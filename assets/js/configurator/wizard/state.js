@@ -1,0 +1,221 @@
+/**
+ * /setup/ wizard state: the answers, the field list, persistence, and the
+ * configuration derived from them.
+ *
+ * Nothing here renders. Every step module reads and mutates the wizard through
+ * this module, so the orchestrator and the steps always agree on what "now"
+ * looks like without passing state down by hand.
+ */
+
+import { applyAnswers, defaultConfig } from '../core.js';
+import { presets } from '../presets.js';
+
+export const STORAGE_KEY = 'catalog-setup-wizard-v1';
+
+/** Step ids, in order. `STEP_META` in setup-page.js carries the prose. */
+export const STEPS = ['start', 'branding', 'modules', 'fields', 'review'];
+
+/**
+ * Parse a Liquid-rendered `<script type="application/json" id="…">` block.
+ * @param {string} id element id.
+ * @returns {object|null} null when absent, unparseable, or not a JSON object.
+ */
+function readEmbeddedJson(id) {
+  const node = typeof document === 'undefined' ? null : document.getElementById(id);
+  if (!node) return null;
+  try {
+    const parsed = JSON.parse(node.textContent || 'null');
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+const fallback = defaultConfig();
+
+/** The site's live configuration, embedded by Liquid; falls back to defaults. */
+export const currentConfig = {
+  site: readEmbeddedJson('current-config') || fallback.site,
+  theme: readEmbeddedJson('current-theme') || fallback.theme,
+  schema: readEmbeddedJson('current-schema') || fallback.schema,
+};
+
+/** `owner/repo` from `site.github.repository_nwo`, when GitHub Pages provided it. */
+export const detectedRepository = (() => {
+  const node = typeof document === 'undefined' ? null : document.getElementById('current-repository');
+  if (!node) return null;
+  try {
+    const value = JSON.parse(node.textContent || 'null');
+    return typeof value === 'string' && value.includes('/') ? value : null;
+  } catch {
+    return null;
+  }
+})();
+
+/** The "start from" choices offered on step 1: the live site, then the presets. */
+export const startingPoints = [
+  {
+    id: 'current',
+    name: 'Current site configuration',
+    description: 'Start from what this site is running right now and change only what you need.',
+    config: currentConfig,
+  },
+  ...presets,
+];
+
+/** @type {{step: number, startId: string, answers: object|null, fields: object[]|null}} */
+export const state = {
+  step: 0,
+  startId: 'current',
+  answers: null,
+  fields: null,
+};
+
+/**
+ * A starting point's config, deep-cloned and back-filled with defaults for
+ * anything a hand-edited `_data` file might be missing.
+ * @param {string} startId id from `startingPoints`.
+ * @returns {{site: object, theme: object, schema: object}}
+ */
+export function baseConfigFor(startId) {
+  const start = startingPoints.find((item) => item.id === startId) || startingPoints[0];
+  const config = JSON.parse(JSON.stringify(start.config));
+  // A hand-edited _data file can be missing pieces; fall back rather than crash.
+  config.site = { ...fallback.site, ...(config.site || {}) };
+  config.theme = { ...fallback.theme, ...(config.theme || {}) };
+  config.schema = { ...fallback.schema, ...(config.schema || {}) };
+  if (!Array.isArray(config.schema.fields)) config.schema.fields = fallback.schema.fields;
+  if (!config.site.modules) config.site.modules = { ...fallback.site.modules };
+  return config;
+}
+
+/** @returns {{key: string, title: string}[]} the groups a field may be assigned to. */
+export function availableGroups() {
+  const groups = baseConfigFor(state.startId).schema.groups;
+  if (!Array.isArray(groups)) return [];
+  return groups
+    .filter((group) => group && typeof group.key === 'string' && group.key.trim() !== '')
+    .map((group) => ({ key: group.key.trim(), title: String(group.title || group.key).trim() }));
+}
+
+/**
+ * Reset the wizard's answers to a starting point's values.
+ * @param {string} startId id from `startingPoints`.
+ */
+export function loadStartingPoint(startId) {
+  const base = baseConfigFor(startId);
+  state.startId = startId;
+  state.fields = base.schema.fields.map((field) => ({ ...field, enabled: true }));
+  state.answers = {
+    siteName: base.site.name,
+    tagline: base.site.tagline,
+    description: base.site.description,
+    orgName: base.site.organization?.name ?? '',
+    orgShort: base.site.organization?.short_name ?? '',
+    orgUrl: base.site.organization?.url ?? '',
+    contactEmail: base.site.organization?.contact_email ?? '',
+    logoText: base.site.logo?.text ?? '',
+    logoImage: base.site.logo?.image ?? '',
+    repository: detectedRepository || base.site.github?.repository || '',
+    branch: base.site.github?.branch ?? 'main',
+    heroEyebrow: base.site.hero?.eyebrow ?? '',
+    heroTitle: base.site.hero?.title ?? '',
+    heroLead: base.site.hero?.lead ?? '',
+    submitIntro: base.site.submit?.intro ?? '',
+    submitFallbackEmail: base.site.submit?.fallback_email ?? '',
+    footerAbout: base.site.footer?.about ?? '',
+    copyright: base.site.footer?.copyright ?? '',
+    primary: base.theme.colors?.primary ?? '',
+    primaryDark: base.theme.colors?.primary_dark ?? '',
+    secondary: base.theme.colors?.secondary ?? '',
+    accent: base.theme.colors?.accent ?? '',
+    headingFont: base.theme.fonts?.heading ?? 'Source Sans 3',
+    bodyFont: base.theme.fonts?.body ?? 'Inter',
+    googleFontsUrl: base.theme.fonts?.google_fonts_url ?? '',
+    radius: base.theme.radius ?? 'soft',
+    modules: { ...base.site.modules },
+    entrySingular: base.schema.entry?.singular ?? 'Entry',
+    entryPlural: base.schema.entry?.plural ?? 'Entries',
+  };
+}
+
+/** Persist `state` to localStorage so the wizard survives a reload. Silently no-ops if storage is unavailable. */
+export function save() {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        step: state.step,
+        startId: state.startId,
+        answers: state.answers,
+        fields: state.fields,
+      })
+    );
+  } catch {
+    /* private browsing / quota — the wizard still works, it just will not resume */
+  }
+}
+
+/** Forget the saved session. Silently no-ops if storage is unavailable. */
+export function clearSaved() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Load `state` from localStorage, falling back to the "current site" starting
+ * point when nothing usable is stored.
+ * @returns {boolean} true when a previous session was actually resumed.
+ */
+export function restore() {
+  let stored = null;
+  try {
+    stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+  } catch {
+    stored = null;
+  }
+  if (!stored || !stored.answers || !Array.isArray(stored.fields)) {
+    loadStartingPoint('current');
+    return false;
+  }
+  state.step = Number.isInteger(stored.step) ? Math.min(Math.max(stored.step, 0), STEPS.length - 1) : 0;
+  state.startId = stored.startId || 'current';
+  state.answers = stored.answers;
+  state.fields = stored.fields;
+  if (!state.answers.modules || typeof state.answers.modules !== 'object') {
+    state.answers.modules = { ...baseConfigFor(state.startId).site.modules };
+  }
+  return true;
+}
+
+/** Keys whose empty string means "unset" rather than "set to an empty value". */
+const BLANKABLE_KEYS = ['description', 'placeholder', 'section', 'filename', 'group'];
+
+/** @returns {object[]} `state.fields` as schema fields: enabled only, wizard-only keys stripped. */
+export function enabledFields() {
+  return state.fields.filter((field) => field.enabled !== false);
+}
+
+/** Strip the wizard-only `enabled` flag and drop disabled fields. */
+export function schemaFields() {
+  return enabledFields().map((field) => {
+    const out = {};
+    for (const [key, value] of Object.entries(field)) {
+      if (key === 'enabled') continue;
+      if (value === undefined || value === null) continue;
+      if (value === '' && BLANKABLE_KEYS.includes(key)) continue;
+      if (value === false && ['required', 'facet', 'card', 'search'].includes(key)) continue;
+      out[key] = value;
+    }
+    return out;
+  });
+}
+
+/** @returns {object} the full config (site/theme/schema) derived from the current answers. */
+export function buildConfig() {
+  const base = baseConfigFor(state.startId);
+  return applyAnswers(base, { ...state.answers, fields: schemaFields() });
+}
