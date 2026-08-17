@@ -85,18 +85,24 @@ function renderStepNav() {
 }
 
 /**
- * Navigate to a step, blocking forward moves until the current step validates.
- * A blocked move still repaints, so the rows validation blamed come back open,
- * and focus stays on the error summary `validateStep` filled.
+ * Navigate to a step. A forward move (Continue, or a step pill further on)
+ * validates every step it would skip, in order, and stops on the first one
+ * with problems: that step is shown, its blamed rows come back open, and
+ * focus lands on the error summary `validateStep` filled. Moving back is
+ * always allowed.
  * @param {number} index target step index.
  */
 function goTo(index) {
-  if (index > state.step && !validateStep(state.step)) {
+  const target = Math.min(Math.max(index, 0), STEPS.length - 1);
+  for (let step = state.step; step < target; step += 1) {
+    if (validateStep(step)) continue;
+    state.step = step;
+    save();
     render();
     document.getElementById('wizard-error-summary')?.focus();
     return;
   }
-  state.step = Math.min(Math.max(index, 0), STEPS.length - 1);
+  state.step = target;
   save();
   render();
   document.getElementById('step-heading')?.focus();

@@ -97,12 +97,20 @@ export function colorField(key, label, help, onChange) {
  */
 export function selectField(key, label, options, help, onChange) {
   const id = answerFieldId(key);
+  const current = state.answers[key];
+  // A starting point may hold a value the list does not offer (a custom font
+  // family, say). Offer it as the first option so the control never shows
+  // blank while the answer behind it is set.
+  const offered =
+    current !== undefined && current !== null && current !== '' && !options.some((o) => o.value === current)
+      ? [{ value: String(current), label: `${current} (current)` }, ...options]
+      : options;
   const select = el(
     'select',
     { id, class: 'field-input' },
-    options.map((option) => el('option', { value: option.value, text: option.label }))
+    offered.map((option) => el('option', { value: option.value, text: option.label }))
   );
-  select.value = state.answers[key] ?? options[0].value;
+  select.value = current ?? offered[0].value;
   select.addEventListener('change', () => {
     state.answers[key] = select.value;
     save();

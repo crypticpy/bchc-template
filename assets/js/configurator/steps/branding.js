@@ -7,7 +7,7 @@
  * module-level handles below never outlive the step body they belong to.
  */
 
-import { contrastRatio, isHexColor } from '../core.js';
+import { COLOR_QUESTIONS, contrastRatio, isHexColor } from '../core.js';
 import { el } from '../dom.js';
 import { renderThemePreview } from '../theme-preview.js';
 import { colorField, selectField, textField } from '../wizard/controls.js';
@@ -39,13 +39,10 @@ function renderPalette() {
     });
   }
   if (!paletteNode) return;
-  const { primary, primaryDark, secondary, accent } = state.answers;
+  const { primaryDark } = state.answers;
   const base = baseConfigFor(state.startId).theme.colors;
   const swatches = [
-    ['Primary', primary],
-    ['Primary dark', primaryDark],
-    ['Secondary', secondary],
-    ['Accent', accent],
+    ...COLOR_QUESTIONS.map((q) => [q.label, state.answers[q.key]]),
     ['Card', base.card],
     ['Surface', base.surface],
   ];
@@ -141,12 +138,11 @@ export function renderBranding() {
     ]),
     el('fieldset', { class: 'space-y-4' }, [
       el('legend', { class: 'section-title', text: 'Colors & type' }),
-      el('div', { class: 'grid gap-4 sm:grid-cols-2' }, [
-        colorField('primary', 'Primary', 'Buttons, links, active states.', renderPalette),
-        colorField('primaryDark', 'Primary dark', 'Hero and footer background.', renderPalette),
-        colorField('secondary', 'Secondary', 'Supporting badges.', renderPalette),
-        colorField('accent', 'Accent', 'Warm highlights.', renderPalette),
-      ]),
+      el(
+        'div',
+        { class: 'grid gap-4 sm:grid-cols-2' },
+        COLOR_QUESTIONS.map((q) => colorField(q.key, q.label, q.help, renderPalette))
+      ),
       el('div', { class: 'card' }, [
         el('div', { class: 'card-header' }, [
           el('p', { class: 'card-title', text: 'Live preview' }),

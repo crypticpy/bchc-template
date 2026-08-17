@@ -6,7 +6,7 @@
  * field row they blame, so following the link lands on an expanded row.
  */
 
-import { isHexColor, validateSchema } from '../core.js';
+import { COLOR_QUESTIONS, isHexColor, validateSchema } from '../core.js';
 import { expandField, fieldToggleId } from '../steps/field-rows.js';
 import { answerFieldId } from './controls.js';
 import { announce } from './errors.js';
@@ -14,13 +14,6 @@ import { enabledFields, schemaFields, state, STEPS } from './state.js';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REPOSITORY = /^[\w.-]+\/[\w.-]+$/;
-
-const COLOR_LABELS = [
-  ['primary', 'Primary'],
-  ['primaryDark', 'Primary dark'],
-  ['secondary', 'Secondary'],
-  ['accent', 'Accent'],
-];
 
 /** @returns {import('./errors.js').Problem[]} */
 function brandingProblems() {
@@ -42,10 +35,10 @@ function brandingProblems() {
       target: answerFieldId('repository'),
     });
   }
-  for (const [key, label] of COLOR_LABELS) {
+  for (const { key, label } of COLOR_QUESTIONS) {
     if (!isHexColor(answers[key])) {
       problems.push({
-        message: `${label} color must be a 6-digit hex value like #1D4E89.`,
+        message: `${label} must be a 6-digit hex value like #1D4E89.`,
         target: answerFieldId(key),
       });
     }

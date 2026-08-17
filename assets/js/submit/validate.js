@@ -140,7 +140,10 @@
         const item = document.createElement('li');
         const link = document.createElement('a');
         link.className = 'error-summary-link';
-        link.href = '#' + (problem.field.control ? problem.field.control.id || '' : '');
+        // Fall back to the field wrapper for controls without an id of their
+        // own (option groups, link rows), so the link is never a bare "#".
+        const control = problem.field.control;
+        link.href = '#' + (control && control.id ? control.id : problem.field.wrap.id || '');
         link.textContent = problem.message;
         link.addEventListener('click', (event) => {
           event.preventDefault();
@@ -164,7 +167,7 @@
    * @param {object} field
    */
   ns.focusField = function focusField(field) {
-    const control = field.control || field.wrap.querySelector('input, select, textarea');
+    const control = field.control || field.wrap.querySelector('input, select, textarea, button');
     if (!control) return;
     if (typeof control.scrollIntoView === 'function') {
       control.scrollIntoView({ block: 'center', behavior: 'smooth' });

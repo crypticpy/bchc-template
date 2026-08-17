@@ -128,6 +128,32 @@ test('the wizard boots on step 1 with the five step pills', () => {
 
 /* --- branding ------------------------------------------------------------- */
 
+test('jumping ahead by step pill validates the steps it would skip', () => {
+  goToStep(2);
+  type('#field-primary', 'nope');
+  goToStep(5);
+  assert.equal($('#step-heading').textContent, 'Branding & contact', 'the jump skipped an invalid step');
+  assert.ok($('#wizard-error-summary'), 'no error summary for the skipped step');
+  type('#field-primary', '#1D4E89');
+});
+
+test('the Branding step asks every colour question the CLI asks, and offers a custom font', () => {
+  goToStep(2);
+  for (const key of ['primary', 'primaryDark', 'secondary', 'accent', 'lineStrong', 'warn']) {
+    assert.ok($(`#field-${key}`), `no colour field for ${key}`);
+  }
+  assert.ok(wizardState.state.answers.lineStrong, 'lineStrong was not seeded from the starting point');
+  assert.ok(wizardState.state.answers.warn, 'warn was not seeded from the starting point');
+
+  wizardState.state.answers.headingFont = 'Roboto';
+  goToStep(1);
+  goToStep(2);
+  const select = $('#field-headingFont');
+  assert.equal(select.value, 'Roboto', 'a custom font left the select unselected');
+  assert.ok([...select.options].some((o) => o.value === 'Roboto'));
+  wizardState.state.answers.headingFont = 'Source Sans 3';
+});
+
 test('the Branding step renders and the live preview follows the primary colour', () => {
   goToStep(2);
   assert.equal($('#step-heading').textContent, 'Branding & contact');
@@ -154,7 +180,7 @@ test('an invalid colour blocks Continue and focuses the error summary, linked to
 
   const link = summary.querySelector('a[href="#field-primary"]');
   assert.ok(link, 'the problem does not link to the field it belongs to');
-  assert.match(link.textContent, /Primary color must be a 6-digit hex/);
+  assert.match(link.textContent, /Main colour must be a 6-digit hex/);
   assert.equal($('#step-heading').textContent, 'Branding & contact', 'the step advanced anyway');
 
   // Fixing it clears the summary and lets the step advance.

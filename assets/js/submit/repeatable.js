@@ -79,6 +79,11 @@
     const list = field.wrap.querySelector('[data-image-previews]');
     if (!list) return;
     const items = ns.readValue(field);
+    // Runs on every keystroke in the textarea; skip the rebuild (and the image
+    // re-requests) unless the parsed list actually changed.
+    const signature = JSON.stringify(items);
+    if (list.dataset.rendered === signature) return;
+    list.dataset.rendered = signature;
     list.textContent = '';
     items.forEach((item) => {
       const li = document.createElement('li');

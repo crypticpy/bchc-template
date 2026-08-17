@@ -28,7 +28,7 @@ robots: noindex
 
   <nav id="wizard-steps" class="mb-6 flex flex-wrap gap-2" aria-label="Setup steps"></nav>
 
-  <div id="wizard-errors" class="mb-6" role="alert" aria-live="polite"></div>
+  <div id="wizard-errors" class="mb-6" role="alert"></div>
 
   <div id="wizard">
     <noscript>

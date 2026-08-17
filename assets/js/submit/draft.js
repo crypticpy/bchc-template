@@ -67,23 +67,31 @@
       return data;
     }
 
+    /**
+     * Update the live status only when its text changes, so a screen reader
+     * hears "Draft saved" once, not on every autosave while typing.
+     * @param {string} text
+     */
+    function setStatus(text) {
+      if (status && status.textContent !== text) status.textContent = text;
+    }
+
     /** Write the current answers to storage and announce it. */
     function write() {
       if (!memory || pending) return;
       const data = snapshot();
       if (Object.keys(data).length === 0) {
         memory.removeItem(key);
-        if (status) status.textContent = '';
+        setStatus('');
         return;
       }
       try {
         memory.setItem(key, JSON.stringify({ saved: new Date().toISOString(), fields: data }));
       } catch (error) {
-        if (status)
-          status.textContent = 'This browser would not save a draft. Copy your answers before leaving.';
+        setStatus('This browser would not save a draft. Copy your answers before leaving.');
         return;
       }
-      if (status) status.textContent = 'Draft saved on this device.';
+      setStatus('Draft saved on this device.');
     }
 
     /** Debounced autosave. Inert while a restore decision is outstanding. */

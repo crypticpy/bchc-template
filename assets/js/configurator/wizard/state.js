@@ -7,7 +7,7 @@
  * looks like without passing state down by hand.
  */
 
-import { applyAnswers, defaultConfig } from '../core.js';
+import { answersFromConfig, applyAnswers, defaultConfig } from '../core.js';
 import { presets } from '../presets.js';
 
 export const STORAGE_KEY = 'catalog-setup-wizard-v1';
@@ -106,37 +106,10 @@ export function loadStartingPoint(startId) {
   const base = baseConfigFor(startId);
   state.startId = startId;
   state.fields = base.schema.fields.map((field) => ({ ...field, enabled: true }));
-  state.answers = {
-    siteName: base.site.name,
-    tagline: base.site.tagline,
-    description: base.site.description,
-    orgName: base.site.organization?.name ?? '',
-    orgShort: base.site.organization?.short_name ?? '',
-    orgUrl: base.site.organization?.url ?? '',
-    contactEmail: base.site.organization?.contact_email ?? '',
-    logoText: base.site.logo?.text ?? '',
-    logoImage: base.site.logo?.image ?? '',
-    repository: detectedRepository || base.site.github?.repository || '',
-    branch: base.site.github?.branch ?? 'main',
-    heroEyebrow: base.site.hero?.eyebrow ?? '',
-    heroTitle: base.site.hero?.title ?? '',
-    heroLead: base.site.hero?.lead ?? '',
-    submitIntro: base.site.submit?.intro ?? '',
-    submitFallbackEmail: base.site.submit?.fallback_email ?? '',
-    footerAbout: base.site.footer?.about ?? '',
-    copyright: base.site.footer?.copyright ?? '',
-    primary: base.theme.colors?.primary ?? '',
-    primaryDark: base.theme.colors?.primary_dark ?? '',
-    secondary: base.theme.colors?.secondary ?? '',
-    accent: base.theme.colors?.accent ?? '',
-    headingFont: base.theme.fonts?.heading ?? 'Source Sans 3',
-    bodyFont: base.theme.fonts?.body ?? 'Inter',
-    googleFontsUrl: base.theme.fonts?.google_fonts_url ?? '',
-    radius: base.theme.radius ?? 'soft',
-    modules: { ...base.site.modules },
-    entrySingular: base.schema.entry?.singular ?? 'Entry',
-    entryPlural: base.schema.entry?.plural ?? 'Entries',
-  };
+  // One mapping for both wizards: `answersFromConfig` seeds every question the
+  // CLI asks, so a colour added there shows up here without a second edit.
+  state.answers = answersFromConfig(base);
+  if (detectedRepository) state.answers.repository = detectedRepository;
 }
 
 /** Persist `state` to localStorage so the wizard survives a reload. Silently no-ops if storage is unavailable. */

@@ -33,13 +33,15 @@ const COLOR_VARS = [
   ['primaryDark', '--c-primary-dark'],
   ['secondary', '--c-secondary'],
   ['accent', '--c-accent'],
+  ['lineStrong', '--c-line-strong'],
+  ['warn', '--c-warn'],
 ];
 
 /**
  * Inline `style` text that re-themes a subtree the way `_includes/theme.html`
  * themes the page. Invalid or empty hex values are skipped so the preview
  * falls back to the page's own value instead of going black.
- * @param {object} answers wizard answers (`primary`, `primaryDark`, `secondary`, `accent`, `headingFont`, `bodyFont`, `radius`).
+ * @param {object} answers wizard answers (the `COLOR_QUESTIONS` keys, `headingFont`, `bodyFont`, `radius`).
  * @returns {string} CSS declarations, e.g. `--c-primary: 29 78 137; --font-heading: "Inter";`.
  */
 export function themeVars(answers = {}) {

@@ -170,7 +170,14 @@ test('submitting an empty form is blocked and announced', async () => {
   const summary = ctx.form.querySelector('[data-error-summary]');
   assert.equal(summary.hidden, false);
   assert.equal(summary.getAttribute('role'), 'alert');
-  assert.ok(summary.querySelectorAll('.error-summary-link').length >= 10);
+  const links = [...summary.querySelectorAll('.error-summary-link')];
+  assert.ok(links.length >= 10);
+  // Every link points at something real: a control id or the field wrapper.
+  for (const link of links) {
+    const href = link.getAttribute('href');
+    assert.notEqual(href, '#', `${link.textContent} links nowhere`);
+    assert.ok(ctx.document.querySelector(href), `${href} is not on the page`);
+  }
   const title = ctx.form.querySelector('[data-field="title"] input');
   assert.equal(title.getAttribute('aria-invalid'), 'true');
   assert.equal(ctx.opened.length, 0);

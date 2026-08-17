@@ -22,25 +22,32 @@ const FILE_HELP = {
 };
 
 /**
- * A "Copy" button for one rendered file's contents, with a transient
- * "Copied"/fallback label instead of a separate status region.
+ * A "Copy" button for one rendered file's contents. The result shows as a
+ * transient button label for sighted users and is announced through a
+ * visually-hidden polite live region beside it, so a screen-reader user hears
+ * "Copied" (or the fallback) without focus moving.
  * @param {string} text file contents to copy.
- * @returns {HTMLButtonElement}
+ * @returns {HTMLElement} the button and its status region.
  */
 function copyButton(text) {
   const button = el('button', { type: 'button', class: 'btn-secondary', text: 'Copy' });
+  const status = el('span', { class: 'sr-only', role: 'status', 'aria-live': 'polite' });
   button.addEventListener('click', async () => {
+    let result;
     try {
       await navigator.clipboard.writeText(text);
-      button.textContent = 'Copied';
+      result = 'Copied';
     } catch {
-      button.textContent = 'Press Ctrl/Cmd+C';
+      result = 'Press Ctrl/Cmd+C';
     }
+    button.textContent = result;
+    status.textContent = result === 'Copied' ? 'Copied to the clipboard.' : 'Copy failed. Press Ctrl/Cmd+C.';
     window.setTimeout(() => {
       button.textContent = 'Copy';
+      status.textContent = '';
     }, 2000);
   });
-  return button;
+  return el('span', { class: 'contents' }, [button, status]);
 }
 
 /**

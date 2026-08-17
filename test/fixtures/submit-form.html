@@ -106,97 +106,97 @@
       <p class="eyebrow">Section 1 of 6</p>
       <h2 class="section-title mt-1" id="heading-about">About</h2><p class="section-lead mt-1">What it is, who built it, and what it changed.</p>
 
-      <div class="mt-6 space-y-7"><div class="field" data-field="title" data-type="text" data-required="true" data-label="Title" data-slot="" data-weight="1" data-prefill="true" data-role="title"><label class="field-label" for="f-title">What is it called?<span class="field-required">Required</span></label>
+      <div class="mt-6 space-y-7"><div class="field" id="f-title-field" data-field="title" data-type="text" data-required="true" data-label="Title" data-slot="" data-weight="1" data-prefill="true" data-role="title"><label class="field-label" for="f-title">What is it called?<span class="field-required">Required</span></label>
             <p class="field-help" id="f-title-help">Short, descriptive name of the solution or project.</p>
             <input class="field-input" type="text" id="f-title" name="title" aria-describedby="f-title-help f-title-error" aria-required="true" placeholder="Automated 311 call triage with LLM classification" /><p class="field-error" id="f-title-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="summary" data-type="textarea" data-required="true" data-label="One-sentence summary" data-slot="" data-weight="2" data-prefill="true" data-role="summary"><label class="field-label" for="f-summary">In one or two sentences, what does it do?<span class="field-required">Required</span></label>
+        </div><div class="field" id="f-summary-field" data-field="summary" data-type="textarea" data-required="true" data-label="One-sentence summary" data-slot="" data-weight="2" data-prefill="true" data-role="summary"><label class="field-label" for="f-summary">In one or two sentences, what does it do?<span class="field-required">Required</span></label>
             <p class="field-help" id="f-summary-help">One or two sentences shown on the catalog card. Plain language, no jargon.</p>
             <textarea class="field-input min-h-[6rem]" id="f-summary" name="summary" rows="3" aria-describedby="f-summary-help f-summary-error" aria-required="true" placeholder="Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first."></textarea><p class="field-error" id="f-summary-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="impact" data-type="text" data-required="false" data-label="Result in one line" data-slot="line" data-weight="3" data-prefill="true" data-role=""><label class="field-label" for="f-impact">What is the single most concrete result so far?</label>
+        </div><div class="field" id="f-impact-field" data-field="impact" data-type="text" data-required="false" data-label="Result in one line" data-slot="line" data-weight="3" data-prefill="true" data-role=""><label class="field-label" for="f-impact">What is the single most concrete result so far?</label>
             <p class="field-help" id="f-impact-help">Optional. The single most concrete outcome so far — a number if you have one.</p>
             <input class="field-input" type="text" id="f-impact" name="impact" aria-describedby="f-impact-help f-impact-error" placeholder="Cut brief turnaround from 3 days to 1 hour" /><p class="field-error" id="f-impact-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="organization" data-type="text" data-required="true" data-label="Organization" data-slot="meta" data-weight="4" data-prefill="true" data-role=""><label class="field-label" for="f-organization">Which organization is sharing this?<span class="field-required">Required</span></label>
+        </div><div class="field" id="f-organization-field" data-field="organization" data-type="text" data-required="true" data-label="Organization" data-slot="meta" data-weight="4" data-prefill="true" data-role=""><label class="field-label" for="f-organization">Which organization is sharing this?<span class="field-required">Required</span></label>
             <p class="field-help" id="f-organization-help">The organization sharing this entry — a health department, city, agency or member organization.</p>
             <input class="field-input" type="text" id="f-organization" name="organization" aria-describedby="f-organization-help f-organization-error" aria-required="true" placeholder="Chicago Department of Public Health" /><p class="field-error" id="f-organization-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="solution_type" data-type="select" data-required="true" data-label="What is being shared" data-slot="badge" data-weight="5" data-prefill="true" data-role=""><fieldset>
-              <legend class="field-label">What are you sharing?<span class="field-required">Required</span></legend>
-              <p class="field-help mt-1" id="f-solution_type-help">Pick the closest match. <span class="text-brand-muted/80">Shown as “What is being shared”.</span></p><div class="field-options mt-2"><label class="field-option">
-                    <input class="radio" type="radio" name="solution_type" value="Source code" data-option-index="0" data-short="Source code" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
+        </div><div class="field" id="f-solution_type-field" data-field="solution_type" data-type="select" data-required="true" data-label="What is being shared" data-slot="badge" data-weight="5" data-prefill="true" data-role=""><fieldset>
+              <legend class="field-label" id="f-solution_type-legend">What are you sharing?<span class="field-required">Required</span></legend>
+              <p class="field-help mt-1" id="f-solution_type-help">Pick the closest match. <span>Shown as “What is being shared”.</span></p><div class="field-options mt-2"><label class="field-option">
+                    <input class="radio" type="radio" id="f-solution_type-0" name="solution_type" value="Source code" data-option-index="0" data-short="Source code" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
                     <span><span class="font-medium">Source code</span><span class="field-option-desc">A repository (GitHub, GitLab, Azure DevOps…) others can clone.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="solution_type" value="Cloud deployment" data-option-index="1" data-short="Cloud deployment" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
+                    <input class="radio" type="radio" id="f-solution_type-1" name="solution_type" value="Cloud deployment" data-option-index="1" data-short="Cloud deployment" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
                     <span><span class="font-medium">Cloud deployment</span><span class="field-option-desc">A deployable stack or template on AWS, Azure, GCP or similar.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="solution_type" value="Vendor product" data-option-index="2" data-short="Vendor product" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
+                    <input class="radio" type="radio" id="f-solution_type-2" name="solution_type" value="Vendor product" data-option-index="2" data-short="Vendor product" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
                     <span><span class="font-medium">Vendor product</span><span class="field-option-desc">A commercial product or partnership, described so others can evaluate it.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="solution_type" value="Internal tool" data-option-index="3" data-short="Internal tool" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
+                    <input class="radio" type="radio" id="f-solution_type-3" name="solution_type" value="Internal tool" data-option-index="3" data-short="Internal tool" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
                     <span><span class="font-medium">Internal tool</span><span class="field-option-desc">Built and used in-house; the write-up is what's shared, not the code.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="solution_type" value="Playbook or write-up" data-option-index="4" data-short="Playbook or write-up" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
+                    <input class="radio" type="radio" id="f-solution_type-4" name="solution_type" value="Playbook or write-up" data-option-index="4" data-short="Playbook or write-up" aria-required="true" aria-describedby="f-solution_type-help f-solution_type-error" />
                     <span><span class="font-medium">Playbook or write-up</span><span class="field-option-desc">Guidance, policy, evaluation or lessons — no software to install.</span></span>
                   </label></div></fieldset><p class="field-error" id="f-solution_type-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="area" data-type="multiselect" data-required="true" data-label="Area of work" data-slot="chip" data-weight="6" data-prefill="false" data-role=""><fieldset>
-              <legend class="field-label">Which areas of work does it apply to?<span class="field-required">Required</span></legend>
-              <p class="field-help mt-1" id="f-area-help">Program areas and business functions this applies to. Select all that fit — it doesn't have to be a health program. <span class="text-brand-muted/80">Shown as “Area of work”.</span></p><div class="field-options-wide mt-2"><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Epidemiology &amp; surveillance" data-option-index="0" data-short="Epi &amp; surveillance" aria-required="true" aria-describedby="f-area-help f-area-error" />
+        </div><div class="field" id="f-area-field" data-field="area" data-type="multiselect" data-required="true" data-label="Area of work" data-slot="chip" data-weight="6" data-prefill="false" data-role=""><fieldset>
+              <legend class="field-label" id="f-area-legend">Which areas of work does it apply to?<span class="field-required">Required</span></legend>
+              <p class="field-help mt-1" id="f-area-help">Program areas and business functions this applies to. Select all that fit — it doesn't have to be a health program. <span>Shown as “Area of work”.</span></p><div class="field-options-wide mt-2"><label class="field-option">
+                    <input class="checkbox" type="checkbox" id="f-area-0" name="area" value="Epidemiology &amp; surveillance" data-option-index="0" data-short="Epi &amp; surveillance" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Epidemiology &amp; surveillance</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Clinical &amp; community services" data-option-index="1" data-short="Clinical" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-1" name="area" value="Clinical &amp; community services" data-option-index="1" data-short="Clinical" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Clinical &amp; community services</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Environmental health" data-option-index="2" data-short="Environmental" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-2" name="area" value="Environmental health" data-option-index="2" data-short="Environmental" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Environmental health</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Emergency preparedness" data-option-index="3" data-short="Preparedness" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-3" name="area" value="Emergency preparedness" data-option-index="3" data-short="Preparedness" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Emergency preparedness</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Communications &amp; outreach" data-option-index="4" data-short="Communications" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-4" name="area" value="Communications &amp; outreach" data-option-index="4" data-short="Communications" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Communications &amp; outreach</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Data &amp; informatics" data-option-index="5" data-short="Data" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-5" name="area" value="Data &amp; informatics" data-option-index="5" data-short="Data" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Data &amp; informatics</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Policy &amp; planning" data-option-index="6" data-short="Policy" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-6" name="area" value="Policy &amp; planning" data-option-index="6" data-short="Policy" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Policy &amp; planning</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="HR &amp; workforce" data-option-index="7" data-short="HR &amp; workforce" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-7" name="area" value="HR &amp; workforce" data-option-index="7" data-short="HR &amp; workforce" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">HR &amp; workforce</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Finance, procurement &amp; contracts" data-option-index="8" data-short="Procurement" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-8" name="area" value="Finance, procurement &amp; contracts" data-option-index="8" data-short="Procurement" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Finance, procurement &amp; contracts</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="IT &amp; operations" data-option-index="9" data-short="IT &amp; ops" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-9" name="area" value="IT &amp; operations" data-option-index="9" data-short="IT &amp; ops" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">IT &amp; operations</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Legal &amp; compliance" data-option-index="10" data-short="Legal" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-10" name="area" value="Legal &amp; compliance" data-option-index="10" data-short="Legal" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Legal &amp; compliance</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Staff &amp; partner coordination" data-option-index="11" data-short="Coordination" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-11" name="area" value="Staff &amp; partner coordination" data-option-index="11" data-short="Coordination" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Staff &amp; partner coordination</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="area" value="Leadership &amp; administration" data-option-index="12" data-short="Leadership" aria-required="true" aria-describedby="f-area-help f-area-error" />
+                    <input class="checkbox" type="checkbox" id="f-area-12" name="area" value="Leadership &amp; administration" data-option-index="12" data-short="Leadership" aria-required="true" aria-describedby="f-area-help f-area-error" />
                     <span><span class="font-medium">Leadership &amp; administration</span></span>
                   </label></div></fieldset><p class="field-error" id="f-area-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="stage" data-type="select" data-required="true" data-label="Stage" data-slot="meta" data-weight="7" data-prefill="true" data-role=""><fieldset>
-              <legend class="field-label">Where is it today?<span class="field-required">Required</span></legend>
-              <p class="field-help mt-1" id="f-stage-help">How far along it is — pick the stage that best matches real use. <span class="text-brand-muted/80">Shown as “Stage”.</span></p><div class="field-options mt-2"><label class="field-option">
-                    <input class="radio" type="radio" name="stage" value="Idea / exploring" data-option-index="0" data-short="Exploring" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
+        </div><div class="field" id="f-stage-field" data-field="stage" data-type="select" data-required="true" data-label="Stage" data-slot="meta" data-weight="7" data-prefill="true" data-role=""><fieldset>
+              <legend class="field-label" id="f-stage-legend">Where is it today?<span class="field-required">Required</span></legend>
+              <p class="field-help mt-1" id="f-stage-help">How far along it is — pick the stage that best matches real use. <span>Shown as “Stage”.</span></p><div class="field-options mt-2"><label class="field-option">
+                    <input class="radio" type="radio" id="f-stage-0" name="stage" value="Idea / exploring" data-option-index="0" data-short="Exploring" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
                     <span><span class="font-medium">Idea / exploring</span><span class="field-option-desc">Scoping or prototyping; nothing in regular use yet.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="stage" value="Pilot" data-option-index="1" data-short="Pilot" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
+                    <input class="radio" type="radio" id="f-stage-1" name="stage" value="Pilot" data-option-index="1" data-short="Pilot" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
                     <span><span class="font-medium">Pilot</span><span class="field-option-desc">In limited use with real users while it is evaluated.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="stage" value="In production" data-option-index="2" data-short="In production" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
+                    <input class="radio" type="radio" id="f-stage-2" name="stage" value="In production" data-option-index="2" data-short="In production" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
                     <span><span class="font-medium">In production</span><span class="field-option-desc">In regular, supported use.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="stage" value="Paused or retired" data-option-index="3" data-short="Retired" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
+                    <input class="radio" type="radio" id="f-stage-3" name="stage" value="Paused or retired" data-option-index="3" data-short="Retired" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
                     <span><span class="font-medium">Paused or retired</span><span class="field-option-desc">No longer active — shared for the lessons.</span></span>
                   </label></div></fieldset><p class="field-error" id="f-stage-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
@@ -207,92 +207,92 @@
       <p class="eyebrow">Section 2 of 6</p>
       <h2 class="section-title mt-1" id="heading-build">How it's built</h2><p class="section-lead mt-1">The AI involved and where it runs.</p>
 
-      <div class="mt-6 space-y-7"><div class="field" data-field="ai_role" data-type="select" data-required="true" data-label="How AI is involved" data-slot="" data-weight="1" data-prefill="true" data-role=""><fieldset>
-              <legend class="field-label">Is the AI in the product, or was AI used to build it?<span class="field-required">Required</span></legend>
-              <p class="field-help mt-1" id="f-ai_role-help">Is the AI in the product, or was it used to make the product? <span class="text-brand-muted/80">Shown as “How AI is involved”.</span></p><div class="field-options mt-2"><label class="field-option">
-                    <input class="radio" type="radio" name="ai_role" value="AI is part of the solution" data-option-index="0" data-short="In the solution" aria-required="true" aria-describedby="f-ai_role-help f-ai_role-error" />
+      <div class="mt-6 space-y-7"><div class="field" id="f-ai_role-field" data-field="ai_role" data-type="select" data-required="true" data-label="How AI is involved" data-slot="" data-weight="1" data-prefill="true" data-role=""><fieldset>
+              <legend class="field-label" id="f-ai_role-legend">Is the AI in the product, or was AI used to build it?<span class="field-required">Required</span></legend>
+              <p class="field-help mt-1" id="f-ai_role-help">Is the AI in the product, or was it used to make the product? <span>Shown as “How AI is involved”.</span></p><div class="field-options mt-2"><label class="field-option">
+                    <input class="radio" type="radio" id="f-ai_role-0" name="ai_role" value="AI is part of the solution" data-option-index="0" data-short="In the solution" aria-required="true" aria-describedby="f-ai_role-help f-ai_role-error" />
                     <span><span class="font-medium">AI is part of the solution</span><span class="field-option-desc">The running system uses AI (a model, an assistant, an automation).</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="ai_role" value="AI was used to build it" data-option-index="1" data-short="Used to build it" aria-required="true" aria-describedby="f-ai_role-help f-ai_role-error" />
+                    <input class="radio" type="radio" id="f-ai_role-1" name="ai_role" value="AI was used to build it" data-option-index="1" data-short="Used to build it" aria-required="true" aria-describedby="f-ai_role-help f-ai_role-error" />
                     <span><span class="font-medium">AI was used to build it</span><span class="field-option-desc">AI tools helped write the code, docs or analysis, but the product itself doesn't use AI.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="ai_role" value="Both" data-option-index="2" data-short="Both" aria-required="true" aria-describedby="f-ai_role-help f-ai_role-error" />
+                    <input class="radio" type="radio" id="f-ai_role-2" name="ai_role" value="Both" data-option-index="2" data-short="Both" aria-required="true" aria-describedby="f-ai_role-help f-ai_role-error" />
                     <span><span class="font-medium">Both</span><span class="field-option-desc">AI is in the product and was used to build it.</span></span>
                   </label></div></fieldset><p class="field-error" id="f-ai_role-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="ai_types" data-type="multiselect" data-required="false" data-label="Types of AI" data-slot="" data-weight="2" data-prefill="false" data-role=""><fieldset>
-              <legend class="field-label">What kinds of AI does it use?</legend>
-              <p class="field-help mt-1" id="f-ai_types-help">Select all that apply. <span class="text-brand-muted/80">Shown as “Types of AI”.</span></p><div class="field-options-wide mt-2"><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Generative text (LLM)" data-option-index="0" data-short="Generative text" aria-describedby="f-ai_types-help f-ai_types-error" />
+        </div><div class="field" id="f-ai_types-field" data-field="ai_types" data-type="multiselect" data-required="false" data-label="Types of AI" data-slot="" data-weight="2" data-prefill="false" data-role=""><fieldset>
+              <legend class="field-label" id="f-ai_types-legend">What kinds of AI does it use?</legend>
+              <p class="field-help mt-1" id="f-ai_types-help">Select all that apply. <span>Shown as “Types of AI”.</span></p><div class="field-options-wide mt-2"><label class="field-option">
+                    <input class="checkbox" type="checkbox" id="f-ai_types-0" name="ai_types" value="Generative text (LLM)" data-option-index="0" data-short="Generative text" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Generative text (LLM)</span><span class="field-option-desc">Drafts, summarizes or rewrites text with a large language model.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Chat assistant" data-option-index="1" data-short="Chat" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-1" name="ai_types" value="Chat assistant" data-option-index="1" data-short="Chat" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Chat assistant</span><span class="field-option-desc">A conversational interface for staff or the public.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Document Q&amp;A (RAG)" data-option-index="2" data-short="Document Q&amp;A" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-2" name="ai_types" value="Document Q&amp;A (RAG)" data-option-index="2" data-short="Document Q&amp;A" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Document Q&amp;A (RAG)</span><span class="field-option-desc">Answers questions from your own documents (retrieval-augmented generation).</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Classification &amp; NLP" data-option-index="3" data-short="Classification" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-3" name="ai_types" value="Classification &amp; NLP" data-option-index="3" data-short="Classification" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Classification &amp; NLP</span><span class="field-option-desc">Sorts, tags or extracts information from text.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Prediction &amp; forecasting" data-option-index="4" data-short="Prediction" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-4" name="ai_types" value="Prediction &amp; forecasting" data-option-index="4" data-short="Prediction" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Prediction &amp; forecasting</span><span class="field-option-desc">Predicts risk, demand or trends from historical data.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Computer vision" data-option-index="5" data-short="Vision" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-5" name="ai_types" value="Computer vision" data-option-index="5" data-short="Vision" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Computer vision</span><span class="field-option-desc">Reads images, video or scanned documents.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Speech &amp; transcription" data-option-index="6" data-short="Speech" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-6" name="ai_types" value="Speech &amp; transcription" data-option-index="6" data-short="Speech" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Speech &amp; transcription</span><span class="field-option-desc">Transcribes or understands spoken audio.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Translation" data-option-index="7" data-short="Translation" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-7" name="ai_types" value="Translation" data-option-index="7" data-short="Translation" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Translation</span><span class="field-option-desc">Translates between languages.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Agents &amp; automation" data-option-index="8" data-short="Agents" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-8" name="ai_types" value="Agents &amp; automation" data-option-index="8" data-short="Agents" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Agents &amp; automation</span><span class="field-option-desc">Multi-step automation where the AI takes actions.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="ai_types" value="Rules-based (no ML)" data-option-index="9" data-short="Rules-based" aria-describedby="f-ai_types-help f-ai_types-error" />
+                    <input class="checkbox" type="checkbox" id="f-ai_types-9" name="ai_types" value="Rules-based (no ML)" data-option-index="9" data-short="Rules-based" aria-describedby="f-ai_types-help f-ai_types-error" />
                     <span><span class="font-medium">Rules-based (no ML)</span><span class="field-option-desc">Deterministic logic — shared here for comparison.</span></span>
                   </label><label class="field-option">
                     <input class="checkbox" type="checkbox" name="ai_types" value="" data-clear="" />
                     <span><span class="font-medium">Skip this one</span></span>
                   </label></div></fieldset><p class="field-error" id="f-ai_types-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="ai_tools" data-type="list" data-required="false" data-label="AI tools &amp; models" data-slot="" data-weight="3" data-prefill="true" data-role=""><label class="field-label" for="f-ai_tools">Which AI tools, models or services does it use?</label>
+        </div><div class="field" id="f-ai_tools-field" data-field="ai_tools" data-type="list" data-required="false" data-label="AI tools &amp; models" data-slot="" data-weight="3" data-prefill="true" data-role=""><label class="field-label" for="f-ai_tools">Which AI tools, models or services does it use?</label>
             <p class="field-help" id="f-ai_tools-help">Comma-separated. Name the models, platforms or libraries that matter. One per line, or separated by commas.</p>
             <textarea class="field-input min-h-[5rem]" id="f-ai_tools" name="ai_tools" rows="3" aria-describedby="f-ai_tools-help f-ai_tools-error" placeholder="Azure OpenAI GPT-4o, LangChain, custom scikit-learn model"></textarea><p class="field-error" id="f-ai_tools-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="platform" data-type="multiselect" data-required="false" data-label="Where it runs" data-slot="" data-weight="4" data-prefill="false" data-role=""><fieldset>
-              <legend class="field-label">Where does it run?</legend>
-              <p class="field-help mt-1" id="f-platform-help">Select all that apply. <span class="text-brand-muted/80">Shown as “Where it runs”.</span></p><div class="field-options-wide mt-2"><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="platform" value="AWS" data-option-index="0" data-short="AWS" aria-describedby="f-platform-help f-platform-error" />
+        </div><div class="field" id="f-platform-field" data-field="platform" data-type="multiselect" data-required="false" data-label="Where it runs" data-slot="" data-weight="4" data-prefill="false" data-role=""><fieldset>
+              <legend class="field-label" id="f-platform-legend">Where does it run?</legend>
+              <p class="field-help mt-1" id="f-platform-help">Select all that apply. <span>Shown as “Where it runs”.</span></p><div class="field-options-wide mt-2"><label class="field-option">
+                    <input class="checkbox" type="checkbox" id="f-platform-0" name="platform" value="AWS" data-option-index="0" data-short="AWS" aria-describedby="f-platform-help f-platform-error" />
                     <span><span class="font-medium">AWS</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="platform" value="Microsoft Azure" data-option-index="1" data-short="Azure" aria-describedby="f-platform-help f-platform-error" />
+                    <input class="checkbox" type="checkbox" id="f-platform-1" name="platform" value="Microsoft Azure" data-option-index="1" data-short="Azure" aria-describedby="f-platform-help f-platform-error" />
                     <span><span class="font-medium">Microsoft Azure</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="platform" value="Google Cloud" data-option-index="2" data-short="GCP" aria-describedby="f-platform-help f-platform-error" />
+                    <input class="checkbox" type="checkbox" id="f-platform-2" name="platform" value="Google Cloud" data-option-index="2" data-short="GCP" aria-describedby="f-platform-help f-platform-error" />
                     <span><span class="font-medium">Google Cloud</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="platform" value="On-premises" data-option-index="3" data-short="On-prem" aria-describedby="f-platform-help f-platform-error" />
+                    <input class="checkbox" type="checkbox" id="f-platform-3" name="platform" value="On-premises" data-option-index="3" data-short="On-prem" aria-describedby="f-platform-help f-platform-error" />
                     <span><span class="font-medium">On-premises</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="platform" value="Vendor / SaaS hosted" data-option-index="4" data-short="SaaS" aria-describedby="f-platform-help f-platform-error" />
+                    <input class="checkbox" type="checkbox" id="f-platform-4" name="platform" value="Vendor / SaaS hosted" data-option-index="4" data-short="SaaS" aria-describedby="f-platform-help f-platform-error" />
                     <span><span class="font-medium">Vendor / SaaS hosted</span><span class="field-option-desc">Runs on the vendor's infrastructure.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="platform" value="Enterprise AI workspace" data-option-index="5" data-short="AI workspace" aria-describedby="f-platform-help f-platform-error" />
+                    <input class="checkbox" type="checkbox" id="f-platform-5" name="platform" value="Enterprise AI workspace" data-option-index="5" data-short="AI workspace" aria-describedby="f-platform-help f-platform-error" />
                     <span><span class="font-medium">Enterprise AI workspace</span><span class="field-option-desc">Microsoft 365 Copilot, ChatGPT Enterprise, Gemini for Workspace and similar.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="platform" value="Low-code platform" data-option-index="6" data-short="Low-code" aria-describedby="f-platform-help f-platform-error" />
+                    <input class="checkbox" type="checkbox" id="f-platform-6" name="platform" value="Low-code platform" data-option-index="6" data-short="Low-code" aria-describedby="f-platform-help f-platform-error" />
                     <span><span class="font-medium">Low-code platform</span><span class="field-option-desc">Power Platform, Airtable, n8n and similar.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="platform" value="Desktop or local" data-option-index="7" data-short="Local" aria-describedby="f-platform-help f-platform-error" />
+                    <input class="checkbox" type="checkbox" id="f-platform-7" name="platform" value="Desktop or local" data-option-index="7" data-short="Local" aria-describedby="f-platform-help f-platform-error" />
                     <span><span class="font-medium">Desktop or local</span><span class="field-option-desc">Runs on a laptop or workstation.</span></span>
                   </label><label class="field-option">
                     <input class="checkbox" type="checkbox" name="platform" value="" data-clear="" />
                     <span><span class="font-medium">Skip this one</span></span>
                   </label></div></fieldset><p class="field-error" id="f-platform-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="vendor" data-type="text" data-required="false" data-label="Vendor or partner" data-slot="" data-weight="5" data-prefill="true" data-role=""><label class="field-label" for="f-vendor">Is a vendor or partner involved?</label>
+        </div><div class="field" id="f-vendor-field" data-field="vendor" data-type="text" data-required="false" data-label="Vendor or partner" data-slot="" data-weight="5" data-prefill="true" data-role=""><label class="field-label" for="f-vendor">Is a vendor or partner involved?</label>
             <p class="field-help" id="f-vendor-help">If a vendor built or hosts the solution, name them here.</p>
             <input class="field-input" type="text" id="f-vendor" name="vendor" aria-describedby="f-vendor-help f-vendor-error" placeholder="Acme Health AI" /><p class="field-error" id="f-vendor-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
@@ -303,69 +303,69 @@
       <p class="eyebrow">Section 3 of 6</p>
       <h2 class="section-title mt-1" id="heading-reuse">Reuse</h2><p class="section-lead mt-1">What it would take for another team to use this.</p>
 
-      <div class="mt-6 space-y-7"><div class="field" data-field="expertise" data-type="select" data-required="true" data-label="Skills needed to set it up" data-slot="icon" data-weight="1" data-prefill="true" data-role=""><fieldset>
-              <legend class="field-label">Who would need to be involved to set this up?<span class="field-required">Required</span></legend>
-              <p class="field-help mt-1" id="f-expertise-help">The least technical person who could get this running. <span class="text-brand-muted/80">Shown as “Skills needed to set it up”.</span></p><div class="field-options mt-2"><label class="field-option">
-                    <input class="radio" type="radio" name="expertise" value="Anyone on staff" data-option-index="0" data-short="Anyone" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
+      <div class="mt-6 space-y-7"><div class="field" id="f-expertise-field" data-field="expertise" data-type="select" data-required="true" data-label="Skills needed to set it up" data-slot="icon" data-weight="1" data-prefill="true" data-role=""><fieldset>
+              <legend class="field-label" id="f-expertise-legend">Who would need to be involved to set this up?<span class="field-required">Required</span></legend>
+              <p class="field-help mt-1" id="f-expertise-help">The least technical person who could get this running. <span>Shown as “Skills needed to set it up”.</span></p><div class="field-options mt-2"><label class="field-option">
+                    <input class="radio" type="radio" id="f-expertise-0" name="expertise" value="Anyone on staff" data-option-index="0" data-short="Anyone" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
                     <span><span class="font-medium">Anyone on staff</span><span class="field-option-desc">No technical skills — follow the instructions.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="expertise" value="Power user" data-option-index="1" data-short="Power user" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
+                    <input class="radio" type="radio" id="f-expertise-1" name="expertise" value="Power user" data-option-index="1" data-short="Power user" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
                     <span><span class="font-medium">Power user</span><span class="field-option-desc">Someone comfortable with spreadsheets, forms and low-code tools.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="expertise" value="Analyst or data scientist" data-option-index="2" data-short="Analyst" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
+                    <input class="radio" type="radio" id="f-expertise-2" name="expertise" value="Analyst or data scientist" data-option-index="2" data-short="Analyst" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
                     <span><span class="font-medium">Analyst or data scientist</span><span class="field-option-desc">Someone who works in Python, R or SQL.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="expertise" value="Developer" data-option-index="3" data-short="Developer" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
+                    <input class="radio" type="radio" id="f-expertise-3" name="expertise" value="Developer" data-option-index="3" data-short="Developer" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
                     <span><span class="font-medium">Developer</span><span class="field-option-desc">A software developer to deploy or adapt it.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="expertise" value="Contractor or vendor" data-option-index="4" data-short="Contractor" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
+                    <input class="radio" type="radio" id="f-expertise-4" name="expertise" value="Contractor or vendor" data-option-index="4" data-short="Contractor" aria-required="true" aria-describedby="f-expertise-help f-expertise-error" />
                     <span><span class="font-medium">Contractor or vendor</span><span class="field-option-desc">Outside help is required to stand this up.</span></span>
                   </label></div></fieldset><p class="field-error" id="f-expertise-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="readiness" data-type="multiselect" data-required="false" data-label="Readiness" data-slot="icon" data-weight="2" data-prefill="false" data-role=""><fieldset>
-              <legend class="field-label">Before someone reuses this, what should they know?</legend>
-              <p class="field-help mt-1" id="f-readiness-help">How much work is left between finding this and running it? Select all that apply. <span class="text-brand-muted/80">Shown as “Readiness”.</span></p><div class="field-options-wide mt-2"><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="readiness" value="Ready to deploy" data-option-index="0" data-short="Ready" aria-describedby="f-readiness-help f-readiness-error" />
+        </div><div class="field" id="f-readiness-field" data-field="readiness" data-type="multiselect" data-required="false" data-label="Readiness" data-slot="icon" data-weight="2" data-prefill="false" data-role=""><fieldset>
+              <legend class="field-label" id="f-readiness-legend">Before someone reuses this, what should they know?</legend>
+              <p class="field-help mt-1" id="f-readiness-help">How much work is left between finding this and running it? Select all that apply. <span>Shown as “Readiness”.</span></p><div class="field-options-wide mt-2"><label class="field-option">
+                    <input class="checkbox" type="checkbox" id="f-readiness-0" name="readiness" value="Ready to deploy" data-option-index="0" data-short="Ready" aria-describedby="f-readiness-help f-readiness-error" />
                     <span><span class="font-medium">Ready to deploy</span><span class="field-option-desc">Can be used as-is with minimal configuration.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="readiness" value="Guided setup" data-option-index="1" data-short="Guided setup" aria-describedby="f-readiness-help f-readiness-error" />
+                    <input class="checkbox" type="checkbox" id="f-readiness-1" name="readiness" value="Guided setup" data-option-index="1" data-short="Guided setup" aria-describedby="f-readiness-help f-readiness-error" />
                     <span><span class="font-medium">Guided setup</span><span class="field-option-desc">A wizard or script walks you through installation.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="readiness" value="Needs customization" data-option-index="2" data-short="Needs config" aria-describedby="f-readiness-help f-readiness-error" />
+                    <input class="checkbox" type="checkbox" id="f-readiness-2" name="readiness" value="Needs customization" data-option-index="2" data-short="Needs config" aria-describedby="f-readiness-help f-readiness-error" />
                     <span><span class="font-medium">Needs customization</span><span class="field-option-desc">Your team will need to adapt it before use.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="readiness" value="Needs a contractor" data-option-index="3" data-short="Needs vendor" aria-describedby="f-readiness-help f-readiness-error" />
+                    <input class="checkbox" type="checkbox" id="f-readiness-3" name="readiness" value="Needs a contractor" data-option-index="3" data-short="Needs vendor" aria-describedby="f-readiness-help f-readiness-error" />
                     <span><span class="font-medium">Needs a contractor</span><span class="field-option-desc">Requires a contractor or vendor to implement.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="readiness" value="Needs a paid license" data-option-index="4" data-short="Paid license" aria-describedby="f-readiness-help f-readiness-error" />
+                    <input class="checkbox" type="checkbox" id="f-readiness-4" name="readiness" value="Needs a paid license" data-option-index="4" data-short="Paid license" aria-describedby="f-readiness-help f-readiness-error" />
                     <span><span class="font-medium">Needs a paid license</span><span class="field-option-desc">Depends on a paid product, API or subscription.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="readiness" value="Needs a data agreement" data-option-index="5" data-short="Data agreement" aria-describedby="f-readiness-help f-readiness-error" />
+                    <input class="checkbox" type="checkbox" id="f-readiness-5" name="readiness" value="Needs a data agreement" data-option-index="5" data-short="Data agreement" aria-describedby="f-readiness-help f-readiness-error" />
                     <span><span class="font-medium">Needs a data agreement</span><span class="field-option-desc">A data-sharing or BAA-type agreement is required.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="readiness" value="Human review built in" data-option-index="6" data-short="Human review" aria-describedby="f-readiness-help f-readiness-error" />
+                    <input class="checkbox" type="checkbox" id="f-readiness-6" name="readiness" value="Human review built in" data-option-index="6" data-short="Human review" aria-describedby="f-readiness-help f-readiness-error" />
                     <span><span class="font-medium">Human review built in</span><span class="field-option-desc">A person checks the AI's output before it is used.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="readiness" value="Reference only" data-option-index="7" data-short="Reference" aria-describedby="f-readiness-help f-readiness-error" />
+                    <input class="checkbox" type="checkbox" id="f-readiness-7" name="readiness" value="Reference only" data-option-index="7" data-short="Reference" aria-describedby="f-readiness-help f-readiness-error" />
                     <span><span class="font-medium">Reference only</span><span class="field-option-desc">Documentation and lessons — not something to deploy.</span></span>
                   </label><label class="field-option">
                     <input class="checkbox" type="checkbox" name="readiness" value="" data-clear="" />
                     <span><span class="font-medium">Skip this one</span></span>
                   </label></div></fieldset><p class="field-error" id="f-readiness-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="repo_url" data-type="url" data-required="false" data-label="Source code" data-slot="" data-weight="3" data-prefill="true" data-role=""><label class="field-label" for="f-repo_url">Where is the source code?</label>
+        </div><div class="field" id="f-repo_url-field" data-field="repo_url" data-type="url" data-required="false" data-label="Source code" data-slot="" data-weight="3" data-prefill="true" data-role=""><label class="field-label" for="f-repo_url">Where is the source code?</label>
             <p class="field-help" id="f-repo_url-help">GitHub, GitLab, Azure DevOps or any public repository.</p>
             <input class="field-input" type="url" id="f-repo_url" name="repo_url" aria-describedby="f-repo_url-help f-repo_url-error" placeholder="https://github.com/your-org/your-project" /><p class="field-error" id="f-repo_url-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="demo_url" data-type="url" data-required="false" data-label="Live site or demo" data-slot="" data-weight="4" data-prefill="true" data-role=""><label class="field-label" for="f-demo_url">Is there a live site or demo?</label>
+        </div><div class="field" id="f-demo_url-field" data-field="demo_url" data-type="url" data-required="false" data-label="Live site or demo" data-slot="" data-weight="4" data-prefill="true" data-role=""><label class="field-label" for="f-demo_url">Is there a live site or demo?</label>
             <p class="field-help" id="f-demo_url-help"></p>
             <input class="field-input" type="url" id="f-demo_url" name="demo_url" aria-describedby="f-demo_url-help f-demo_url-error" placeholder="https://example.org/app" /><p class="field-error" id="f-demo_url-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="docs_url" data-type="url" data-required="false" data-label="Documentation or write-up" data-slot="" data-weight="5" data-prefill="true" data-role=""><label class="field-label" for="f-docs_url">Is there documentation or a write-up?</label>
+        </div><div class="field" id="f-docs_url-field" data-field="docs_url" data-type="url" data-required="false" data-label="Documentation or write-up" data-slot="" data-weight="5" data-prefill="true" data-role=""><label class="field-label" for="f-docs_url">Is there documentation or a write-up?</label>
             <p class="field-help" id="f-docs_url-help">Slides, a report, a blog post, or a vendor case study.</p>
             <input class="field-input" type="url" id="f-docs_url" name="docs_url" aria-describedby="f-docs_url-help f-docs_url-error" placeholder="https://example.org/docs" /><p class="field-error" id="f-docs_url-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="resources" data-type="links" data-required="false" data-label="Other resources" data-slot="" data-weight="6" data-prefill="true" data-role=""><fieldset>
+        </div><div class="field" id="f-resources-field" data-field="resources" data-type="links" data-required="false" data-label="Other resources" data-slot="" data-weight="6" data-prefill="true" data-role=""><fieldset>
               <legend class="field-label">Anything else worth linking?</legend>
               <p class="field-help mt-1" id="f-resources-help">Anything else worth linking — shared drives, SharePoint, model cards, container images, vendor pages. One per line as “Label | URL”.</p>
               <div class="mt-2 space-y-2" data-links-rows=""></div>
@@ -383,13 +383,13 @@
               <button type="button" class="btn-secondary btn-sm mt-2" data-links-add="">Add another link</button>
             </fieldset><p class="field-error" id="f-resources-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="screenshots" data-type="images" data-required="false" data-label="Screenshots" data-slot="" data-weight="7" data-prefill="true" data-role=""><label class="field-label" for="f-screenshots">Can you show it in use?</label>
+        </div><div class="field" id="f-screenshots-field" data-field="screenshots" data-type="images" data-required="false" data-label="Screenshots" data-slot="" data-weight="7" data-prefill="true" data-role=""><label class="field-label" for="f-screenshots">Can you show it in use?</label>
             <p class="field-help" id="f-screenshots-help">Up to eight PNG, JPEG, GIF or WebP images of the tool in use (15 MB total). Make sure no personal or protected information is visible.</p>
-            <p class="field-note">You can drag image files straight into the GitHub issue on the next screen. If your images are already online, paste their addresses here instead — one per line, optionally followed by <code>| alt text</code>. PNG, JPEG, GIF and WebP images are copied into the repository; anything else is left as a link for a maintainer.</p>
-            <textarea class="field-input min-h-[6rem]" id="f-screenshots" name="screenshots" rows="3" aria-describedby="f-screenshots-help f-screenshots-error" placeholder="https://example.org/screenshot.png | The daily brief queue"></textarea>
+            <p class="field-note" id="f-screenshots-note">You can drag image files straight into the GitHub issue on the next screen. If your images are already online, paste their addresses here instead — one per line, optionally followed by <code>| alt text</code>. PNG, JPEG, GIF and WebP images are copied into the repository; anything else is left as a link for a maintainer.</p>
+            <textarea class="field-input min-h-[6rem]" id="f-screenshots" name="screenshots" rows="3" aria-describedby="f-screenshots-help f-screenshots-error f-screenshots-note" placeholder="https://example.org/screenshot.png | The daily brief queue"></textarea>
             <ul class="image-previews" data-image-previews="" hidden=""></ul><p class="field-error" id="f-screenshots-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="deck_pdf" data-type="file" data-required="false" data-label="Slide deck or one-pager (PDF)" data-slot="" data-weight="8" data-prefill="true" data-role=""><p class="field-label">Do you have a slide deck or one-pager?</p>
+        </div><div class="field" id="f-deck_pdf-field" data-field="deck_pdf" data-type="file" data-required="false" data-label="Slide deck or one-pager (PDF)" data-slot="" data-weight="8" data-prefill="true" data-role=""><p class="field-label">Do you have a slide deck or one-pager?</p>
             <p class="field-help" id="f-deck_pdf-help">Optional. After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically.</p>
             <p class="field-note">Files can't be attached from this page. Drag <code>deck.pdf</code> into the GitHub issue on the next screen and a maintainer will add it to your entry.</p><p class="field-error" id="f-deck_pdf-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
@@ -400,42 +400,42 @@
       <p class="eyebrow">Section 4 of 6</p>
       <h2 class="section-title mt-1" id="heading-data">Data &amp; access</h2><p class="section-lead mt-1">What data it touches and who sees the output.</p>
 
-      <div class="mt-6 space-y-7"><div class="field" data-field="data_sensitivity" data-type="multiselect" data-required="true" data-label="Data it touches" data-slot="icon" data-weight="1" data-prefill="false" data-role=""><fieldset>
-              <legend class="field-label">What kind of data does it touch?<span class="field-required">Required</span></legend>
-              <p class="field-help mt-1" id="f-data_sensitivity-help">Select all that apply. This helps others judge governance and approval effort. <span class="text-brand-muted/80">Shown as “Data it touches”.</span></p><div class="field-options mt-2"><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="data_sensitivity" value="Public data only" data-option-index="0" data-short="Public data" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
+      <div class="mt-6 space-y-7"><div class="field" id="f-data_sensitivity-field" data-field="data_sensitivity" data-type="multiselect" data-required="true" data-label="Data it touches" data-slot="icon" data-weight="1" data-prefill="false" data-role=""><fieldset>
+              <legend class="field-label" id="f-data_sensitivity-legend">What kind of data does it touch?<span class="field-required">Required</span></legend>
+              <p class="field-help mt-1" id="f-data_sensitivity-help">Select all that apply. This helps others judge governance and approval effort. <span>Shown as “Data it touches”.</span></p><div class="field-options mt-2"><label class="field-option">
+                    <input class="checkbox" type="checkbox" id="f-data_sensitivity-0" name="data_sensitivity" value="Public data only" data-option-index="0" data-short="Public data" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
                     <span><span class="font-medium">Public data only</span><span class="field-option-desc">Only data that is already public.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="data_sensitivity" value="De-identified data" data-option-index="1" data-short="De-identified" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
+                    <input class="checkbox" type="checkbox" id="f-data_sensitivity-1" name="data_sensitivity" value="De-identified data" data-option-index="1" data-short="De-identified" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
                     <span><span class="font-medium">De-identified data</span><span class="field-option-desc">Personal identifiers removed before use.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="data_sensitivity" value="Internal, non-public data" data-option-index="2" data-short="Internal data" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
+                    <input class="checkbox" type="checkbox" id="f-data_sensitivity-2" name="data_sensitivity" value="Internal, non-public data" data-option-index="2" data-short="Internal data" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
                     <span><span class="font-medium">Internal, non-public data</span><span class="field-option-desc">Non-public operational data without personal identifiers.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="data_sensitivity" value="Personal information (PII)" data-option-index="3" data-short="PII" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
+                    <input class="checkbox" type="checkbox" id="f-data_sensitivity-3" name="data_sensitivity" value="Personal information (PII)" data-option-index="3" data-short="PII" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
                     <span><span class="font-medium">Personal information (PII)</span><span class="field-option-desc">Names, addresses, IDs or other personal identifiers.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="data_sensitivity" value="Health information (PHI)" data-option-index="4" data-short="PHI" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
+                    <input class="checkbox" type="checkbox" id="f-data_sensitivity-4" name="data_sensitivity" value="Health information (PHI)" data-option-index="4" data-short="PHI" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
                     <span><span class="font-medium">Health information (PHI)</span><span class="field-option-desc">Identifiable health information covered by HIPAA.</span></span>
                   </label><label class="field-option">
-                    <input class="checkbox" type="checkbox" name="data_sensitivity" value="Criminal justice data (CJIS)" data-option-index="5" data-short="CJIS" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
+                    <input class="checkbox" type="checkbox" id="f-data_sensitivity-5" name="data_sensitivity" value="Criminal justice data (CJIS)" data-option-index="5" data-short="CJIS" aria-required="true" aria-describedby="f-data_sensitivity-help f-data_sensitivity-error" />
                     <span><span class="font-medium">Criminal justice data (CJIS)</span><span class="field-option-desc">Data subject to CJIS security policy.</span></span>
                   </label></div></fieldset><p class="field-error" id="f-data_sensitivity-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="data_sources" data-type="list" data-required="false" data-label="Data sources" data-slot="" data-weight="2" data-prefill="true" data-role=""><label class="field-label" for="f-data_sources">Which data sources does it use?</label>
+        </div><div class="field" id="f-data_sources-field" data-field="data_sources" data-type="list" data-required="false" data-label="Data sources" data-slot="" data-weight="2" data-prefill="true" data-role=""><label class="field-label" for="f-data_sources">Which data sources does it use?</label>
             <p class="field-help" id="f-data_sources-help">Comma-separated. What data does the solution use? Describe — do not paste — sensitive data. One per line, or separated by commas.</p>
             <textarea class="field-input min-h-[5rem]" id="f-data_sources" name="data_sources" rows="3" aria-describedby="f-data_sources-help f-data_sources-error" placeholder="Immunization registry, 311 call transcripts, ESSENCE"></textarea><p class="field-error" id="f-data_sources-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="audience" data-type="select" data-required="true" data-label="Who sees the output" data-slot="icon" data-weight="3" data-prefill="true" data-role=""><fieldset>
-              <legend class="field-label">Who sees the output?<span class="field-required">Required</span></legend>
-              <p class="field-help mt-1" id="f-audience-help"> <span class="text-brand-muted/80">Shown as “Who sees the output”.</span></p><div class="field-options mt-2"><label class="field-option">
-                    <input class="radio" type="radio" name="audience" value="Public-facing" data-option-index="0" data-short="Public" aria-required="true" aria-describedby="f-audience-help f-audience-error" />
+        </div><div class="field" id="f-audience-field" data-field="audience" data-type="select" data-required="true" data-label="Who sees the output" data-slot="icon" data-weight="3" data-prefill="true" data-role=""><fieldset>
+              <legend class="field-label" id="f-audience-legend">Who sees the output?<span class="field-required">Required</span></legend>
+              <p class="field-help mt-1" id="f-audience-help"> <span>Shown as “Who sees the output”.</span></p><div class="field-options mt-2"><label class="field-option">
+                    <input class="radio" type="radio" id="f-audience-0" name="audience" value="Public-facing" data-option-index="0" data-short="Public" aria-required="true" aria-describedby="f-audience-help f-audience-error" />
                     <span><span class="font-medium">Public-facing</span><span class="field-option-desc">Residents or the general public interact with it.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="audience" value="Internal staff" data-option-index="1" data-short="Internal" aria-required="true" aria-describedby="f-audience-help f-audience-error" />
+                    <input class="radio" type="radio" id="f-audience-1" name="audience" value="Internal staff" data-option-index="1" data-short="Internal" aria-required="true" aria-describedby="f-audience-help f-audience-error" />
                     <span><span class="font-medium">Internal staff</span><span class="field-option-desc">Used only inside the organization.</span></span>
                   </label><label class="field-option">
-                    <input class="radio" type="radio" name="audience" value="Partner organizations" data-option-index="2" data-short="Partners" aria-required="true" aria-describedby="f-audience-help f-audience-error" />
+                    <input class="radio" type="radio" id="f-audience-2" name="audience" value="Partner organizations" data-option-index="2" data-short="Partners" aria-required="true" aria-describedby="f-audience-help f-audience-error" />
                     <span><span class="font-medium">Partner organizations</span><span class="field-option-desc">Shared with specific partner organizations.</span></span>
                   </label></div></fieldset><p class="field-error" id="f-audience-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
@@ -446,13 +446,13 @@
       <p class="eyebrow">Section 5 of 6</p>
       <h2 class="section-title mt-1" id="heading-contact">Contact</h2><p class="section-lead mt-1">Someone others can reach out to.</p>
 
-      <div class="mt-6 space-y-7"><div class="field" data-field="contact_name" data-type="text" data-required="true" data-label="Contact name" data-slot="" data-weight="1" data-prefill="true" data-role=""><label class="field-label" for="f-contact_name">Who can people contact?<span class="field-required">Required</span></label>
+      <div class="mt-6 space-y-7"><div class="field" id="f-contact_name-field" data-field="contact_name" data-type="text" data-required="true" data-label="Contact name" data-slot="" data-weight="1" data-prefill="true" data-role=""><label class="field-label" for="f-contact_name">Who can people contact?<span class="field-required">Required</span></label>
             <p class="field-help" id="f-contact_name-help">Person others can reach out to with questions.</p>
             <input class="field-input" type="text" id="f-contact_name" name="contact_name" aria-describedby="f-contact_name-help f-contact_name-error" aria-required="true" placeholder="Jordan Lee" /><p class="field-error" id="f-contact_name-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
-        </div><div class="field" data-field="contact_email" data-type="email" data-required="true" data-label="Contact email" data-slot="" data-weight="2" data-prefill="true" data-role=""><label class="field-label" for="f-contact_email">What is their email?<span class="field-required">Required</span></label>
+        </div><div class="field" id="f-contact_email-field" data-field="contact_email" data-type="email" data-required="true" data-label="Contact email" data-slot="" data-weight="2" data-prefill="true" data-role=""><label class="field-label" for="f-contact_email">What is their email?<span class="field-required">Required</span></label>
             <p class="field-help" id="f-contact_email-help"></p>
-            <input class="field-input" type="email" id="f-contact_email" name="contact_email" aria-describedby="f-contact_email-help f-contact_email-error" aria-required="true" placeholder="jordan.lee@city.gov" /><p class="field-error" id="f-contact_email-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+            <input class="field-input" type="email" id="f-contact_email" name="contact_email" aria-describedby="f-contact_email-help f-contact_email-error" aria-required="true" autocomplete="email" placeholder="jordan.lee@city.gov" /><p class="field-error" id="f-contact_email-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
         </div>
       </div>
@@ -461,7 +461,7 @@
       <p class="eyebrow">Section 6 of 6</p>
       <h2 class="section-title mt-1" id="heading-story">The story</h2><p class="section-lead mt-1">Problem, approach, what it took, results and lessons.</p>
 
-      <div class="mt-6 space-y-7"><div class="field" data-field="body" data-type="markdown" data-required="true" data-label="Full write-up" data-slot="" data-weight="1" data-prefill="true" data-role=""><label class="field-label" for="f-body">Tell the full story<span class="field-required">Required</span></label>
+      <div class="mt-6 space-y-7"><div class="field" id="f-body-field" data-field="body" data-type="markdown" data-required="true" data-label="Full write-up" data-slot="" data-weight="1" data-prefill="true" data-role=""><label class="field-label" for="f-body">Tell the full story<span class="field-required">Required</span></label>
             <p class="field-help" id="f-body-help">Markdown is supported. Suggested headings: Problem, Approach, What it took (data, staffing, cost), Results, Lessons learned, How to reuse.</p>
             <textarea class="field-input min-h-[18rem] font-mono text-sm" id="f-body" name="body" rows="16" aria-describedby="f-body-help f-body-error" aria-required="true">## Problem
 

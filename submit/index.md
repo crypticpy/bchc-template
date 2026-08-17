@@ -170,17 +170,18 @@ scripts:
         {%- assign describedby = fid | append: '-help ' | append: fid | append: '-error' -%}
         {%- assign question = f.prompt | default: f.label -%}
         {%- if f.type == 'multiselect' -%}{%- assign prefillable = 'false' -%}{%- else -%}{%- assign prefillable = 'true' -%}{%- endif -%}
-        <div class="field" data-field="{{ f.key }}" data-type="{{ f.type }}" data-required="{{ f.required | default: false }}"
+        <div class="field" id="{{ fid }}-field" data-field="{{ f.key }}" data-type="{{ f.type }}" data-required="{{ f.required | default: false }}"
              data-label="{{ f.label | escape }}" data-slot="{{ slot }}" data-weight="{{ f.weight | default: 5 }}"
              data-prefill="{{ prefillable }}" data-role="{% if f.key == 'title' %}title{% elsif f.key == 'summary' %}summary{% endif %}">
 
           {%- case f.type -%}
           {%- when 'select' or 'multiselect' -%}
             <fieldset>
-              <legend class="field-label">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</legend>
+              <legend class="field-label" id="{{ fid }}-legend">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</legend>
               <p class="field-help mt-1" id="{{ fid }}-help">{{ f.description }}{% if f.label != question %} <span>Shown as “{{ f.label }}”.</span>{% endif %}</p>
               {%- if f.type == 'select' and f.options.size > 6 -%}
-                <select class="field-input mt-2" id="{{ fid }}" name="{{ f.key }}" aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}>
+                {%- comment -%} A legend does not name a <select>; point the control at it explicitly. {%- endcomment -%}
+                <select class="field-input mt-2" id="{{ fid }}" name="{{ f.key }}" aria-labelledby="{{ fid }}-legend" aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}>
                   <option value="">Choose one…</option>
                   {%- for o in f.options -%}{%- assign om = f | option_meta: o -%}
                   <option value="{{ o | escape }}" data-option-index="{{ forloop.index0 }}" data-short="{{ om.short | escape }}">{{ o }}</option>
@@ -192,7 +193,7 @@ scripts:
                   <label class="field-option">
                     <input class="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}"
                            type="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}"
-                           name="{{ f.key }}" value="{{ o | escape }}"
+                           id="{{ fid }}-{{ forloop.index0 }}" name="{{ f.key }}" value="{{ o | escape }}"
                            data-option-index="{{ forloop.index0 }}" data-short="{{ om.short | escape }}"
                            {% if f.required %}aria-required="true"{% endif %} aria-describedby="{{ describedby }}">
                     <span><span class="font-medium">{{ o }}</span>{% if om.description != '' %}<span class="field-option-desc">{{ om.description }}</span>{% endif %}</span>
@@ -230,9 +231,10 @@ scripts:
           {%- when 'images' -%}
             <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
             <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
-            <p class="field-note">You can drag image files straight into the GitHub issue on the next screen. If your images are already online, paste their addresses here instead — one per line, optionally followed by <code>| alt text</code>. PNG, JPEG, GIF and WebP images are copied into the repository; anything else is left as a link for a maintainer.</p>
+            <p class="field-note" id="{{ fid }}-note">You can drag image files straight into the GitHub issue on the next screen. If your images are already online, paste their addresses here instead — one per line, optionally followed by <code>| alt text</code>. PNG, JPEG, GIF and WebP images are copied into the repository; anything else is left as a link for a maintainer.</p>
             <textarea class="field-input min-h-[6rem]" id="{{ fid }}" name="{{ f.key }}" rows="3"
-                      aria-describedby="{{ describedby }}" placeholder="https://example.org/screenshot.png | The daily brief queue"></textarea>
+                      aria-describedby="{{ describedby }} {{ fid }}-note" {% if f.required %}aria-required="true"{% endif %}
+                      placeholder="https://example.org/screenshot.png | The daily brief queue"></textarea>
             <ul class="image-previews" data-image-previews hidden></ul>
 
           {%- when 'markdown' -%}
@@ -277,6 +279,7 @@ scripts:
             <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
             <input class="field-input" type="{{ input_type }}" id="{{ fid }}" name="{{ f.key }}"
                    aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}
+                   {% if input_type == 'email' %}autocomplete="email"{% endif %}
                    placeholder="{{ f.placeholder | escape }}">
           {%- endcase -%}
 
