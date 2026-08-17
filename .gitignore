@@ -7,3 +7,5 @@ _config.ci.yml
 .DS_Store
 *.log
 .claude/
+# Build output — regenerate with `npm run build:css` (CI does this on every build).
+/assets/css/site.css
