@@ -6,7 +6,7 @@ use the site's **Submit** page, or follow `docs/admin-guide.md` if you maintain 
 
 ## Local setup
 
-Requirements: Ruby 3.3 (with Bundler), Node 20+, and — only for the audit scripts — a Chrome that
+Requirements: Ruby 3.3 (with Bundler), Node 22+, and — only for the audit scripts — a Chrome that
 `pa11y`/Lighthouse can launch (they download one on first run).
 
 ```sh

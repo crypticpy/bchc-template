@@ -75,7 +75,7 @@ Full reference for every setting: [`docs/configuration.md`](docs/configuration.m
 
 ## Local development
 
-Requires Ruby 3.3 (see `.ruby-version`) and Node 20+.
+Requires Ruby 3.3 (see `.ruby-version`) and Node 22+.
 
 ```bash
 bundle install
