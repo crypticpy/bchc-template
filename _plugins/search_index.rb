@@ -33,6 +33,7 @@ module CatalogTemplate
       searchable = fields.select { |f| f["search"] || f["facet"] }.map { |f| f["key"] }
       searchable = (%w[title summary] + searchable).uniq
 
+      baseurl = site.config["baseurl"].to_s.chomp("/")
       docs = []
       site.pages.each do |page|
         case page.data["layout"]
@@ -43,7 +44,7 @@ module CatalogTemplate
             title: page.data["title"],
             summary: page.data["summary"],
             text: text,
-            url: page.url,
+            url: baseurl + page.url,
             kind: "entry"
           }
         when "event"
@@ -52,7 +53,7 @@ module CatalogTemplate
             title: page.data["title"],
             summary: page.data["summary"],
             text: [page.data["event_location"], page.data["cohort"]].compact.join(" "),
-            url: page.url,
+            url: baseurl + page.url,
             kind: "event"
           }
         when "cohort"
@@ -61,7 +62,7 @@ module CatalogTemplate
             title: page.data["title"],
             summary: page.data["intro"],
             text: page.data["year"].to_s,
-            url: page.url,
+            url: baseurl + page.url,
             kind: "cohort"
           }
         end
