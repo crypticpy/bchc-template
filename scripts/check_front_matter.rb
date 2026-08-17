@@ -217,9 +217,9 @@ module FrontMatterCheck
 
     # Entry bodies are markdown a submitter wrote. Without this flag Jekyll runs
     # them through Liquid at build time, so a `{% include %}` in a write-up
-    # would execute. The scaffolder emits it; hand-written entries should too.
+    # would execute. The scaffolder emits it; hand-written entries must too.
     unless data["render_with_liquid"] == false
-      warnings << "#{where(rel, front_matter, 'render_with_liquid')}: add `render_with_liquid: false` so the page body is not run through Liquid"
+      failures << "#{where(rel, front_matter, 'render_with_liquid')}: add `render_with_liquid: false` so the page body is not run through Liquid"
     end
 
     if data["slug"].to_s != folder

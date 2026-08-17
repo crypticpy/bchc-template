@@ -54,13 +54,14 @@ A group is `{key, title, description?, icon?, placement?}`. `key` is what a fiel
 
 ## Reserved keys
 
-`title`, `slug`, `summary`, `published`, `thumbnail` and `featured` are present on every entry whether or not you list them under `fields`, plus an optional `updated`.
+`title`, `slug`, `summary`, `published`, `render_with_liquid`, `thumbnail` and `featured` are present on every entry whether or not you list them under `fields`, plus an optional `updated`.
 
 | Key | Set by | Notes |
 |---|---|---|
 | `title`, `summary` | Submitter | Declare them as fields too, so they appear in the forms. Always indexed for search. |
 | `slug` | Automation | Must equal the entry's folder name — CI fails otherwise. |
 | `published` | Automation | `YYYY-MM-DD`. The default sort key. |
+| `render_with_liquid` | Automation | Always `false`, and CI fails an entry without it: the body is a submitter's markdown and must not be run through Liquid at build time. |
 | `updated` | Maintainer | Optional `YYYY-MM-DD`. When present, the entry page shows "Updated …" alongside the published date, and "Recently updated" sorting uses it. Set it when the content materially changes, not for typo fixes. |
 | `featured` | Maintainer | `true` pins the entry into the home carousel and shows a Featured badge. Maintainer-only; there is no submitter path to it. |
 | `thumbnail` | Maintainer | Optional image path. First choice for the card image, ahead of any `images` field. |
@@ -231,6 +232,7 @@ A complete entry, `catalog/epi-signal-triage/index.md`:
 ```yaml
 ---
 layout: entry
+render_with_liquid: false
 title: "Syndromic surveillance signal triage assistant"
 slug: epi-signal-triage
 summary: "Reads the daily syndromic alert export, drafts a plain-language note for each signal, and ranks the ones an epidemiologist should open first."
@@ -330,7 +332,7 @@ events:
     type: "Session"
     description: "…"
 materials:
-  program_guides:            # group key -> heading, title-cased ("Program guides")
+  program_guides:            # group key -> heading: underscores to spaces, first letter capitalised ("Program guides")
     - title: "Cohort handbook"
       type: "guide"
       url: "https://…"

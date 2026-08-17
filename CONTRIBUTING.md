@@ -25,7 +25,7 @@ Run these before opening a pull request; `validate.yml` and `quality.yml` run th
 |---|---|
 | `node scripts/generate.mjs --check` | The issue template, `_config.yml` title/description and `defaults.generated.js` match `_data/schema.yml` / `_data/site.yml`. If it fails: `npm run generate` and commit. |
 | `npm run lint` | ESLint over the JS in `assets/js/`, `scripts/` and `test/`. |
-| `npm run format:check` | Prettier, checked but not applied — run `npm run format` locally to fix. |
+| `npm run format:check` | Prettier, checked but not applied — run `npm run format` locally to fix. Scope is JavaScript only: `.prettierignore` leaves Markdown, YAML, HTML/Liquid, generated files and the component CSS (one selector per line, see `docs/design-system.md`) alone. |
 | `npm test` | Node unit tests (`test/**/*.test.mjs`) — configurator, issue parsing, images, YAML, submit form (jsdom). |
 | `npm run test:ruby` | Minitest for the Ruby plugins and validators (`test/plugins/**/*_test.rb`, `test/scripts/**/*_test.rb`). |
 | `npm run validate` | Every `_data/*.yml` parses; every entry's front matter passes `scripts/check_front_matter.rb`; no oversize files. |
@@ -37,7 +37,7 @@ Run these before opening a pull request; `validate.yml` and `quality.yml` run th
 
 1. **The schema is the source of truth.** Never write a field key into a layout, include, script or
    workflow — read `site.data.schema.fields` and act on its hints (`facet`, `card`, `search`,
-   `section`, `group`, `option_meta`…). If a feature needs to know something about a field, add a
+   `group`, `placement`, `option_meta`…). If a feature needs to know something about a field, add a
    hint to the schema and document it in `docs/content-model.md`. After editing `_data/schema.yml`
    run `npm run generate` and commit the regenerated files with your change.
 2. **Configuration over code.** Anything a deployment might want different belongs in `_data/*.yml`

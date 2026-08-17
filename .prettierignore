@@ -7,7 +7,6 @@ assets/js/configurator/defaults.generated.js
 _includes/icon.html
 .github/ISSUE_TEMPLATE/new-entry.yml
 package-lock.json
-dive-portal/
 catalog/
 docs/
 *.md

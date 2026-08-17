@@ -8,6 +8,7 @@
  * Writes  assets/js/configurator/defaults.generated.js  (wizard defaults)
  * Writes  .github/ISSUE_TEMPLATE/new-entry.yml          (public submission form)
  * Syncs   _config.yml title/description from _data/site.yml (SEO fallbacks)
+ * Syncs   .github/ISSUE_TEMPLATE/config.yml contact-link URLs to site.github.repository
  *
  * Run this after hand-editing _data/schema.yml or _data/site.yml. It is
  * idempotent: a second run reports no changes.
@@ -23,6 +24,7 @@ import { renderDefaults, OUTPUT_PATH as DEFAULTS_PATH } from './build_defaults.m
 const ROOT = process.cwd();
 const ISSUE_TEMPLATE_PATH = '.github/ISSUE_TEMPLATE/new-entry.yml';
 const CONFIG_PATH = '_config.yml';
+const CONTACT_LINKS_PATH = '.github/ISSUE_TEMPLATE/config.yml';
 
 const check = process.argv.slice(2).some((arg) => arg === '--check');
 const changes = [];
@@ -96,6 +98,18 @@ if (fs.existsSync(configFile)) {
   sync(CONFIG_PATH, patched.text, `${patched.changed.join(' and ')} synced from _data/site.yml`);
 } else {
   console.warn(`Warning: ${CONFIG_PATH} not found; skipped the title/description sync.`);
+}
+
+// --- 5. issue chooser contact links -----------------------------------------
+// The chooser's "Maintainer guide" link is a plain GitHub URL, so a fork keeps
+// pointing at the template's repository until it is rewritten here.
+
+const contactFile = path.join(ROOT, CONTACT_LINKS_PATH);
+const repository = String(site.github?.repository || '').trim();
+if (fs.existsSync(contactFile) && /^[\w.-]+\/[\w.-]+$/.test(repository)) {
+  const original = fs.readFileSync(contactFile, 'utf8');
+  const patched = original.replace(/github\.com\/[\w.-]+\/[\w.-]+(?=\/)/g, `github.com/${repository}`);
+  sync(CONTACT_LINKS_PATH, patched, `links point at ${repository}`);
 }
 
 // --- report -----------------------------------------------------------------

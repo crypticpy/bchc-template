@@ -3,7 +3,9 @@
  * Local mirror of the CI validation gate: `npm run validate`.
  *
  * 1. Parses every _data/*.yml and _data/cohorts/*.yml file.
- * 2. Runs scripts/check_front_matter.rb and scripts/check_file_sizes.rb.
+ * 2. In CI (GITHUB_REPOSITORY set), checks that _data/site.yml and the issue
+ *    template contact links point at *this* repository, not the template's.
+ * 3. Runs scripts/check_front_matter.rb and scripts/check_file_sizes.rb.
  */
 
 import fs from 'node:fs';
@@ -44,6 +46,51 @@ for (const file of dataFiles) {
 }
 
 if (dataFiles.length === 0) console.log('SKIP  no YAML data files found under _data/');
+
+// --- Repository identity (CI only) -----------------------------------------
+// A fork or a "Use this template" copy still carries the template's
+// owner/repo until the admin runs the setup wizard. Everything the site links
+// to on GitHub (issue forms, "edit this page", the submit fallback) would then
+// point at the wrong repository, so fail the PR gate with the fix spelled out.
+// Locally there is nothing to compare against, so the check is skipped.
+
+const ciRepository = (process.env.GITHUB_REPOSITORY || '').trim();
+
+if (ciRepository) {
+  const siteFile = path.join(ROOT, '_data', 'site.yml');
+  let siteRepository = '';
+  try {
+    siteRepository = String(yaml.load(fs.readFileSync(siteFile, 'utf8'))?.github?.repository || '').trim();
+  } catch {
+    // Parse failures were already reported above.
+  }
+  const matches = siteRepository.toLowerCase() === ciRepository.toLowerCase();
+  report(
+    matches,
+    '_data/site.yml github.repository matches this repository',
+    matches
+      ? ''
+      : `site.yml says ${JSON.stringify(siteRepository)} but this repository is ${JSON.stringify(ciRepository)}.\n` +
+          `      Run \`npm run setup\` (or edit github.repository in _data/site.yml) and commit the result.`
+  );
+
+  const contactFile = path.join(ROOT, '.github', 'ISSUE_TEMPLATE', 'config.yml');
+  if (fs.existsSync(contactFile)) {
+    const contactText = fs.readFileSync(contactFile, 'utf8');
+    const foreign = [...contactText.matchAll(/github\.com\/([\w.-]+\/[\w.-]+)/g)]
+      .map((m) => m[1])
+      .filter((repo) => repo.toLowerCase() !== ciRepository.toLowerCase());
+    report(
+      foreign.length === 0,
+      '.github/ISSUE_TEMPLATE/config.yml links point at this repository',
+      foreign.length
+        ? `contact links still point at ${[...new Set(foreign)].join(', ')}; update the URLs to ${ciRepository}.`
+        : ''
+    );
+  }
+} else {
+  console.log('SKIP  repository identity check — only runs in GitHub Actions (GITHUB_REPOSITORY unset).');
+}
 
 // --- Ruby checks -----------------------------------------------------------
 

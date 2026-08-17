@@ -1,4 +1,4 @@
-# Update the contact link URL to point at your own repository after forking.
+# The contact-link URLs are kept in sync with github.repository in _data/site.yml by `npm run generate`.
 blank_issues_enabled: true
 contact_links:
   - name: Maintainer guide

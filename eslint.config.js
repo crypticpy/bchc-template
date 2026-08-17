@@ -5,14 +5,7 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: [
-      '_site/**',
-      'node_modules/**',
-      'vendor/**',
-      'assets/js/lunr.min.js',
-      'assets/css/site.css',
-      'dive-portal/**',
-    ],
+    ignores: ['_site/**', 'node_modules/**', 'vendor/**', 'assets/js/lunr.min.js', 'assets/css/site.css'],
   },
   js.configs.recommended,
   {

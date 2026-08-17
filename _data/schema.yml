@@ -191,7 +191,7 @@ fields:
       - "Staff & partner coordination"
       - "Leadership & administration"
     option_meta:
-      "Epidemiology & surveillance": { short: "Epi & surveillance" }
+      "Epidemiology & surveillance": { short: "Epidemiology" }
       "Clinical & community services": { short: "Clinical" }
       "Environmental health": { short: "Environmental" }
       "Emergency preparedness": { short: "Preparedness" }
@@ -242,8 +242,8 @@ fields:
       - "AI was used to build it"
       - "Both"
     option_meta:
-      "AI is part of the solution": { short: "In the solution", description: "The running system uses AI (a model, an assistant, an automation)." }
-      "AI was used to build it": { short: "Used to build it", description: "AI tools helped write the code, docs or analysis, but the product itself doesn't use AI." }
+      "AI is part of the solution": { short: "In solution", description: "The running system uses AI (a model, an assistant, an automation)." }
+      "AI was used to build it": { short: "Built with AI", description: "AI tools helped write the code, docs or analysis, but the product itself doesn't use AI." }
       "Both": { description: "AI is in the product and was used to build it." }
     description: "Is the AI in the product, or was it used to make the product?"
 
@@ -267,7 +267,7 @@ fields:
       - "Agents & automation"
       - "Rules-based (no ML)"
     option_meta:
-      "Generative text (LLM)": { short: "Generative text", description: "Drafts, summarizes or rewrites text with a large language model." }
+      "Generative text (LLM)": { short: "Text (LLM)", description: "Drafts, summarizes or rewrites text with a large language model." }
       "Chat assistant": { short: "Chat", description: "A conversational interface for staff or the public." }
       "Document Q&A (RAG)": { short: "Document Q&A", description: "Answers questions from your own documents (retrieval-augmented generation)." }
       "Classification & NLP": { short: "Classification", description: "Sorts, tags or extracts information from text." }

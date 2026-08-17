@@ -70,7 +70,7 @@ home:
 
 When the hero panel and the featured carousel are both on, the "Recently added" grid is shown only below 1024px — at desktop widths the hero list already carries the newest entries and the carousel already shows cards, so the grid would say "new" a third time above the fold. Set `hero_latest_count: 0` (or turn the `carousel` module off) to get the grid back at every width.
 
-The home page also shows a headline stat block (module: `stats`), an entries-by-facet browse grid (built from the first schema facet field that has `options`), and an events/cohorts summary row — all computed automatically from the schema and data, nothing further to configure.
+The home page also shows a headline stat block (module: `stats`), an entries-by-facet browse grid (up to four facet fields with fixed options — the ones also shown on the card as a badge, chip or signal glyph come first, in schema order, and other facets fill the remaining tiles), and an events/cohorts summary row — all computed automatically from the schema and data, nothing further to configure.
 
 ### Submit form copy
 
@@ -140,7 +140,9 @@ Each color has one job, and the templates rely on that (see [`docs/design-brief.
 
 `line_strong` and `warn` exist for contrast reasons. WCAG requires non-text UI boundaries to reach 3:1, which `line` deliberately does not — it is a hairline. Any control a user can click or type into needs `line_strong` or darker.
 
-`radius` maps to a five-step scale (`--radius-sm` … `--radius-2xl`) used across cards, buttons and inputs.
+`radius` maps to a five-step scale (`--radius-sm` … `--radius-2xl`) used across cards, buttons and inputs: `sharp` = 0.25 / 0.375 / 0.5 / 0.75 / 1 rem, `soft` = 0.5 / 0.75 / 1 / 1.25 / 1.75 rem, `round` = 0.75 / 1 / 1.5 / 2 / 2.5 rem (see `_includes/theme.html`).
+
+Colours, fonts and radius are read at build time by `_includes/theme.html`, so a `theme.yml` edit shows up on the next Jekyll build with no CSS rebuild. `npm run build:css` is only needed when you change component CSS under `assets/css/` or `tailwind.config.js`.
 
 ### Elevation and motion
 
@@ -208,6 +210,7 @@ npm run setup                          # interactive, asks every question
 npm run setup -- --preset ai-use-cases # start from a preset instead of choosing interactively
 npm run setup -- --yes                 # accept every default, ask nothing (good for CI / smoke tests)
 npm run setup -- --dry-run             # print the file list and a diff summary; write nothing
+npm run setup -- --out <dir>           # write the files into <dir> instead of the repo (implies --yes)
 npm run setup -- --help
 ```
 

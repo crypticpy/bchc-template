@@ -229,7 +229,7 @@ class CheckFrontMatterTest < Minitest::Test
     assert(failures.any? { |f| f.include?("`contact_email` does not look like an email address") }, failures.inspect)
   end
 
-  def test_a_missing_render_with_liquid_flag_is_a_warning_not_a_failure
+  def test_a_missing_render_with_liquid_flag_is_a_failure
     write_entry("liquid", <<~FM, "{% raw %}Body{% endraw %}")
       title: T
       slug: liquid
@@ -237,12 +237,11 @@ class CheckFrontMatterTest < Minitest::Test
       published: "2026-01-05"
     FM
 
-    failures, warnings = run_check
-    assert(failures.none? { |f| f.include?("render_with_liquid") }, failures.inspect)
-    assert(warnings.any? { |w| w.include?("add `render_with_liquid: false`") }, warnings.inspect)
+    failures, = run_check
+    assert(failures.any? { |f| f.include?("add `render_with_liquid: false`") }, failures.inspect)
   end
 
-  def test_render_with_liquid_true_is_still_warned_about
+  def test_render_with_liquid_true_is_a_failure_too
     write_entry("liquid-true", <<~FM)
       title: T
       slug: liquid-true
@@ -251,8 +250,8 @@ class CheckFrontMatterTest < Minitest::Test
       published: "2026-01-05"
     FM
 
-    _, warnings = run_check
-    assert(warnings.any? { |w| w.include?("add `render_with_liquid: false`") }, warnings.inspect)
+    failures, = run_check
+    assert(failures.any? { |f| f.include?("add `render_with_liquid: false`") }, failures.inspect)
   end
 
   def test_summary_is_only_required_because_the_schema_says_so

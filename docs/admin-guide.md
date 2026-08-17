@@ -59,7 +59,7 @@ Mechanics
 
 - [ ] The **Validate Content** check is green (`check_front_matter.rb` and `check_file_sizes.rb`).
 - [ ] If a slide deck was promised, it has been uploaded into `catalog/<slug>/` as `deck.pdf`.
-- [ ] The PR template's maintainer checklist (`.github/PULL_REQUEST_TEMPLATE.md`) is complete.
+- [ ] The maintainer checklist in the pull request body is complete. (Generated PRs carry their own checklist; `.github/PULL_REQUEST_TEMPLATE.md` is the one hand-opened PRs get.)
 
 ## Editing or removing an existing entry
 
@@ -128,9 +128,9 @@ A failure never fails the scaffold. If an image cannot be downloaded it is left 
 - Open the **Update a cohort schedule** issue (label `content:schedule`) — replaces the event list for a cohort year without hand-editing YAML. The workflow previews normalized event IDs as a comment before writing changes, and only opens a PR if something actually changed.
 
 **Add/replace materials on an existing event page:**
-- Open the **Update event attachments** issue (label `content:event-attachments`). If the event ID is missing or unrecognized, the workflow comments back the list of valid IDs for that year instead of guessing.
+- Open the **Update event attachments** issue (label `content:event-attachments`). Leave the event ID blank (or type `help`) and the workflow comments back the list of valid IDs for that year; an ID that does not exist fails the run with a comment naming it, so edit the issue and it re-runs.
 
-All four cohort/event workflows follow the same pattern as new-entry: issue → scripted scaffold/update → PR for a maintainer to review and merge. None of them touch `main` directly.
+All four cohort/event workflows follow the same pattern as new-entry: issue → scripted scaffold/update → PR for a maintainer to review and merge. None of them touch `main` directly. The new-event and event-attachments PRs close their issue on merge; the new-year and schedule PRs do not (their issues are often reused for follow-up), so close those by hand once the PR is in.
 
 **Resource library** (module `resources`) has no issue-based flow — edit `_data/resources.yml` directly in a PR.
 
@@ -155,7 +155,8 @@ All four cohort/event workflows follow the same pattern as new-entry: issue → 
 
 **Front-matter validation failing on a PR**
 - `check_front_matter.rb` checks: `title`/`slug`/`summary` present, `slug` matches the folder name, `published` (and `updated` when present) is a valid `YYYY-MM-DD` date, every `required` field is present, `select`/`multiselect` values are within `options`, `url` fields start with `http(s)://`, `email` fields contain `@`, `images` items have a `src` that exists inside the entry folder, and `links` items have both a label and an `http(s)` or `mailto:` URL. The error message names the file, the line and the field.
-- Warnings (a remote image `src`, a missing `alt`, a missing `render_with_liquid: false`) are printed but do not fail the check. Fix them anyway. `render_with_liquid: false` in particular belongs on every entry, hand-written ones included: without it Jekyll runs the page body through Liquid at build time, so a Liquid `include` tag someone typed into their write-up would execute. The scaffolder emits it automatically.
+- `render_with_liquid: false` is required on every entry, hand-written ones included: without it Jekyll runs the page body through Liquid at build time, so a Liquid `include` tag someone typed into their write-up would execute. The scaffolder emits it automatically.
+- Warnings (a remote image `src`, a missing `alt`) are printed but do not fail the check. Fix them anyway.
 
 **Weekly smoke build failing**
 - `smoke.yml` runs every Monday and does a full validate + build without deploying, to catch drift (e.g. a stale dependency, a broken external asset) between real deploys. Treat a red run the same as a failing `Build & Deploy`.

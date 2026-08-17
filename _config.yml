@@ -39,6 +39,8 @@ exclude:
   - Gemfile.lock
   - .ruby-version
 
+# If you change entry.path in _data/schema.yml, change the first scope's path
+# here to match — this is what gives every entry the `entry` layout.
 defaults:
   - scope:
       path: "catalog"

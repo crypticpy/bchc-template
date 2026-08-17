@@ -93,7 +93,7 @@ run identically in tests.
 
 | Workflow | Trigger | Script | Result |
 |---|---|---|---|
-| `new-entry.yml` | issue labelled `new-entry` | `scripts/new_entry_from_issue.mjs` (+ `lib/issue_body`, `lib/images`, `lib/yaml`) | PR adding `catalog/<slug>/` with downloaded screenshots |
+| `new-entry.yml` | issue labelled `content:new-entry` | `scripts/new_entry_from_issue.mjs` (+ `lib/issue_body`, `lib/images`, `lib/yaml`) | PR adding `catalog/<slug>/` with downloaded screenshots |
 | `thumbnails.yml` | PR touching `catalog/**` | `scripts/thumbnail_sources.mjs` + `pdftoppm` | commits `thumb.jpg` from `deck.pdf` |
 | `new-event.yml`, `new-year.yml`, `update-schedule.yml`, `update-event-attachments.yml` | issue templates for the events/cohorts modules | matching `scripts/*` | PRs against `_data/` |
 | `validate.yml` | PR / push | `generate.mjs --check`, `npm test`, `npm run test:ruby`, `npm run validate`, CSS + Jekyll build | the merge gate |

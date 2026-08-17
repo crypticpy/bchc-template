@@ -82,7 +82,7 @@ bundle install
 npm install
 
 npm run build     # generate schema-derived files, build CSS, build the Jekyll site into _site/
-npm run serve     # same, then serve with live reload
+npm run serve     # build CSS, then serve with live reload (run `npm run generate` first after schema edits)
 ```
 
 Other useful scripts:

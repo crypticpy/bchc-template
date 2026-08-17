@@ -37,12 +37,15 @@ warns about any entry that is missing the flag.
 write and refuses anything that does not sit under `catalog/<slug>/` — file
 writes and image downloads alike.
 
-**The issue-form parser cannot be spoofed.**
+**The issue-form parser is hard to spoof.**
 A GitHub issue form renders as `### <label>` sections in template order. The
 parser takes the first occurrence of each known heading and treats everything
 after the final free-form section as prose, so a `### Contact email` typed
 inside someone's write-up cannot overwrite the answer GitHub collected.
 Repeated headings are reported on the pull request, not silently applied.
+This holds for a body GitHub rendered from the form; an issue written by hand
+(or edited afterwards) is still parsed, so the pull request — not the parser —
+is the trust boundary.
 
 **Images are fetched behind an SSRF guard.**
 Before each request — and again after every redirect hop, up to five — the
@@ -62,9 +65,15 @@ double-quotes everything else, escaping control characters. A submitted value
 cannot change the type or the structure of the front matter it lands in.
 
 **Nothing publishes itself.**
-Every workflow ends at a pull request. A maintainer reviews and merges it, and
-only then does the site rebuild. The `contents: write` token is scoped to a
-generated branch; the default branch is never written to directly.
+Every issue-driven workflow ends at a pull request. A maintainer reviews and
+merges it, and only then does the site rebuild. The `contents: write` token is
+repository-wide (GitHub has no branch-scoped token), so the workflows confine
+themselves by construction: each pushes only to a branch it created for that
+issue. The one workflow that commits to an existing branch is `thumbnails.yml`,
+which renders PDF thumbnails onto a pull request's own head branch — or, when a
+maintainer runs it by hand, onto the branch they chose — and adds only derived
+`.jpg` files under the entry folder. Branch protection on the default branch is
+the backstop; see "What you should still do" below.
 
 **Third-party actions are pinned.**
 Every `uses:` in `.github/workflows/` names a full commit SHA with the release
@@ -78,6 +87,31 @@ write access. To restrict it, set the repository variable `SUBMISSIONS_OPEN` to
 `new-entry` workflow then scaffolds only for issues opened by the repository
 owner, an organization member or a collaborator. See
 [docs/admin-guide.md](docs/admin-guide.md) for the maintainer view.
+
+## What you should still do
+
+- **Protect the default branch.** Require a pull request before merging
+  (Settings → Branches). The automation never targets the default branch, but
+  the workflow token *could*, and branch protection is what turns "never does"
+  into "cannot".
+- **Review the generated pull request as content.** The checklist on it is the
+  last look a submission gets before it is published.
+- **Watch the Actions tab occasionally.** A workflow that fails on an issue
+  posts a comment on that issue; one that fails before it can comment only
+  shows up in Actions.
+
+## Known limitations
+
+- **DNS rebinding.** The image fetcher resolves the host, checks every address,
+  and then lets `fetch` resolve it again for the actual request. A DNS name
+  that flips from a public to a private address between those two lookups
+  could reach an internal host of the runner. GitHub-hosted runners have no
+  interesting internal hosts, but a self-hosted runner does — put it on a
+  network segment with nothing to reach, or drop the `images` field from
+  `_data/schema.yml` and let maintainers add screenshots on the pull request.
+- **The runner's own network.** The SSRF guard is an allow-list of address
+  classes, not a proxy; anything routable and public is fetchable, which is the
+  point.
 
 ## What is out of scope
 

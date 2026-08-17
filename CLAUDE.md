@@ -21,7 +21,6 @@ A GitHub-Pages-hosted catalog template, currently configured as the BCHC AI Use 
 - `_plugins/modules.rb` — drops pages under a disabled module's path at `post_read`. `_plugins/events.rb` — merges site + cohort events into `site.data.events_all`. `_plugins/search_index.rb` — builds `/search.json` from schema fields marked `search`/`facet`. `_plugins/theme_filters.rb` — Liquid filters (`hex_to_rgb`, `facet_values`, `slugify_list`, `link_host`, `query_encode`).
 - `assets/js/configurator/core.js` — shared logic behind **both** configurators (`/setup/` in-browser and `npm run setup` CLI): `renderFiles()` produces `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`, `_config.yml`, `.github/ISSUE_TEMPLATE/new-entry.yml`. `presets.js` holds the four starting presets. Edit shared behavior in `core.js` once, not in both wizards.
 - `scripts/*.mjs` and `scripts/*.rb` — the issue→PR automation (`new_entry_from_issue.mjs`, `new_event_from_issue.mjs`, `scaffold_year.rb`, `update_schedule_from_issue.rb`, `update_event_attachments_from_issue.mjs`, etc.). Each is invoked by a matching `.github/workflows/*.yml` and reads `ISSUE_BODY`/`ISSUE_TITLE` env vars, not GitHub API calls.
-- `dive-portal/` — old reference project, unrelated to this template, being deleted. Do not read it for context and do not edit it.
 
 ## Liquid gotchas specific to this codebase
 
@@ -31,6 +30,6 @@ A GitHub-Pages-hosted catalog template, currently configured as the BCHC AI Use 
 
 ## Conventions
 
-- Match the schema's `facet`/`card`/`search`/`section` semantics exactly as documented in `docs/content-model.md` — they have precise meanings consumed by multiple templates, not just descriptive labels.
+- Match the schema's `facet`/`card`/`search`/`group`/`placement` semantics exactly as documented in `docs/content-model.md` — they have precise meanings consumed by multiple templates, not just descriptive labels.
 - Front matter files are validated structurally (`check_front_matter.rb`): `slug` must equal the folder name, `published` must be `YYYY-MM-DD`, required fields must be non-blank, `select`/`multiselect` values must be in `options`. Keep generated/edited entries consistent with this or CI will fail the PR.
 - Don't hand-edit `.github/ISSUE_TEMPLATE/new-entry.yml` — it's regenerated from the schema and marked as such at the top of the file.
