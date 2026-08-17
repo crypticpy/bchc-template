@@ -53,7 +53,6 @@ export const blank = {
   theme: theme({ primary: '#475569', primary_dark: '#1E293B', secondary: '#64748B', accent: '#0F766E' }),
   schema: {
     entry: { singular: 'Entry', plural: 'Entries', path: 'catalog', sort: 'published', sort_order: 'desc' },
-    sections: { details: 'Details', links: 'Links', contact: 'Contact' },
     groups: [
       { key: 'about', title: 'About', description: 'What this entry is.' },
       { key: 'details', title: 'Details', description: 'How you want people to find it.' },
@@ -118,7 +117,6 @@ export const blank = {
         type: 'url',
         group: 'links',
         weight: 1,
-        section: 'links',
         icon: 'globe',
         placeholder: 'https://example.org',
         description: 'An external link for this entry, if there is one.',
@@ -130,7 +128,6 @@ export const blank = {
         type: 'links',
         group: 'links',
         weight: 2,
-        section: 'links',
         icon: 'link',
         placeholder: 'Documentation | https://example.org/docs',
         description: 'One per line as “Label | URL”.',

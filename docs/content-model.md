@@ -23,11 +23,6 @@ entry:
   sort: "published"        # default catalog ordering key
   sort_order: "desc"       # asc | desc
 
-sections:                  # sidebar headings on the entry page
-  details: "Details"
-  links: "Links & resources"
-  contact: "Contact"
-
 groups:                    # ordered; group filters and submit-form sections
   - key: about
     title: "About"
@@ -93,7 +88,6 @@ Each item under `fields` is a hash:
 | `icon` | Icon name from `_includes/icon.html`. Used for the filter group header, the fact strip, `card: line`, and as the fallback for `card: icon`. |
 | `group` | A key from the top-level `groups` list. Drives filter grouping and the sections of the submit form. Fields with no group fall into "More". |
 | `search` | `true` → the value is included in `/search.json`. `title` and `summary` and every facet field are indexed regardless. |
-| `section` | `details` \| `links` \| `contact` — which sidebar block the field renders in on the entry page. Defaults by type: `url`/`file`/`links` → links, `email` → contact, everything else → details. |
 | `form` | `false` → hidden from both submission forms. For maintainer-only fields. |
 | `filename` | `file` fields only. The expected filename in the entry folder, e.g. `deck.pdf`. |
 | `thumbnail` | `file` fields only. `true` → CI renders `thumb.jpg` from the PDF's first page. |
@@ -148,7 +142,7 @@ resources:
     url: "https://videos.example.org/share/spike-brief-walkthrough"
 ```
 
-Use it for anything that does not deserve its own `url` field — shared drives, model cards, container images, vendor pages, recorded demos. The forms accept one per line as `Label | URL`; the scaffolder also tolerates `Label — URL`, `Label: URL`, and a bare URL (which gets the host as its label). Rendered in the `links` sidebar section as a labelled row with a host chip. `mailto:` is allowed; everything else must be `http(s)`.
+Use it for anything that does not deserve its own `url` field — shared drives, model cards, container images, vendor pages, recorded demos. The forms accept one per line as `Label | URL`; the scaffolder also tolerates `Label — URL`, `Label: URL`, and a bare URL (which gets the host as its label). Rendered on the entry page as a labelled row with a host chip (in the rail when its group has `placement: rail`). `mailto:` is allowed; everything else must be `http(s)`.
 
 ## Option metadata
 
@@ -192,11 +186,10 @@ Slot caps are enforced by the templates, not by the schema: **one** badge field,
 
 Deliberately not on the card: platform, tools, vendor, data sources, contact, links and the gallery. They belong to the entry page.
 
-## Search, facets and sections
+## Search and facets
 
 - **`search: true`** adds the field's text to `/search.json`. `title`, `summary` and every facet field are always indexed, so set `search` only for free-text fields worth matching on — tool names, vendors, data sources.
 - **`facet: true`** puts the field in the filter rail, grouped by `group` and ordered by `weight`. Filters work best on fields with a bounded set of values: `select` and `multiselect` from `options`, or a `list` whose values repeat across entries. A facet over free text produces a filter with one option per entry, which helps nobody.
-- **`section`** places the field in the entry page sidebar. `details` is the reusability picture, `links` is everything clickable, `contact` is the person. The defaults by type are usually right; set it explicitly when a `text` field is really a link, or a `url` belongs with the details.
 
 ## Shipped fields (AI use case catalog)
 

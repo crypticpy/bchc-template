@@ -8,7 +8,6 @@ import { defaultConfig } from '../../assets/js/configurator/default-config.js';
 function schemaWith(fields, overrides = {}) {
   return {
     entry: { singular: 'Entry', plural: 'Entries', path: 'catalog', sort: 'published', sort_order: 'desc' },
-    sections: { details: 'Details', links: 'Links', contact: 'Contact' },
     groups: [{ key: 'about', title: 'About' }],
     fields: [
       { key: 'title', label: 'Title', type: 'text', required: true, group: 'about' },
@@ -241,13 +240,9 @@ test('warns about an icon name the site cannot render', () => {
   assert.match(result.warnings.map((w) => w.message).join('\n'), /not in _includes\/icon\.html/);
 });
 
-test('validates the entry and sections blocks', () => {
+test('validates the entry block', () => {
   assert.match(errorText(schemaWith([], { entry: { path: 'Catalog Folder' } })), /lowercase URL segment/);
   assert.match(errorText(schemaWith([], { entry: { sort_order: 'sideways' } })), /`asc` or `desc`/);
-  assert.match(
-    errorText(schemaWith([], { sections: { details: '' } })),
-    /heading for section "details" is empty/
-  );
   assert.match(errorText(schemaWith([], { entry: 'nope' })), /`entry` must be a mapping/);
 });
 

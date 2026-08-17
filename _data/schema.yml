@@ -42,7 +42,6 @@
 #   icon        icon name for the field (filter group header, fact strip, card line/icon fallback)
 #   group       key from `groups` below; drives filter-panel grouping and submit-wizard steps
 #   search      true -> included in the search index (title + summary always are; facets always are)
-#   section     details | links | contact   (where the field renders on the detail page sidebar; defaults by type)
 #   form        false -> hidden from the submission forms (maintainer-only field, e.g. `featured`)
 #   thumbnail   (file fields) true -> a thumb.jpg is generated from this PDF's first page in CI
 #
@@ -56,11 +55,6 @@ entry:
   path: "catalog"             # folder + URL base for entries (keep as "catalog" unless you know why)
   sort: "published"           # default catalog ordering key
   sort_order: "desc"          # asc | desc
-
-sections:
-  details: "Details"
-  links: "Links & resources"
-  contact: "Contact"
 
 # Ordered groups: { key, title, description?, icon?, placement? }.
 # Filters show facet fields grouped this way; the submit wizard turns each group
@@ -330,7 +324,6 @@ fields:
     type: text
     group: build
     weight: 5
-    section: details
     search: true
     placeholder: "Acme Health AI"
     description: "If a vendor built or hosts the solution, name them here."
@@ -394,7 +387,6 @@ fields:
     type: url
     group: reuse
     weight: 3
-    section: links
     icon: code
     placeholder: "https://github.com/your-org/your-project"
     description: "GitHub, GitLab, Azure DevOps or any public repository."
@@ -405,7 +397,6 @@ fields:
     type: url
     group: reuse
     weight: 4
-    section: links
     icon: globe
     placeholder: "https://example.org/app"
 
@@ -415,7 +406,6 @@ fields:
     type: url
     group: reuse
     weight: 5
-    section: links
     icon: document
     placeholder: "https://example.org/docs"
     description: "Slides, a report, a blog post, or a vendor case study."
@@ -426,7 +416,6 @@ fields:
     type: links
     group: reuse
     weight: 6
-    section: links
     icon: link
     placeholder: "Evaluation report | https://drive.google.com/…"
     description: "Anything else worth linking — shared drives, SharePoint, model cards, container images, vendor pages. One per line as “Label | URL”."
@@ -448,7 +437,6 @@ fields:
     thumbnail: true
     group: reuse
     weight: 8
-    section: links
     icon: presentation
     description: "Optional. After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically."
 
@@ -484,7 +472,6 @@ fields:
     type: list
     group: data
     weight: 2
-    section: details
     search: true
     icon: database
     placeholder: "Immunization registry, 311 call transcripts, ESSENCE"
@@ -516,7 +503,6 @@ fields:
     required: true
     group: contact
     weight: 1
-    section: contact
     placeholder: "Jordan Lee"
     description: "Person others can reach out to with questions."
 
@@ -527,7 +513,6 @@ fields:
     required: true
     group: contact
     weight: 2
-    section: contact
     placeholder: "jordan.lee@city.gov"
 
   - key: body

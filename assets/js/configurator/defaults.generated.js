@@ -134,11 +134,6 @@ export const SCHEMA = {
     "sort": "published",
     "sort_order": "desc"
   },
-  "sections": {
-    "details": "Details",
-    "links": "Links & resources",
-    "contact": "Contact"
-  },
   "groups": [
     {
       "key": "about",
@@ -534,7 +529,6 @@ export const SCHEMA = {
       "type": "text",
       "group": "build",
       "weight": 5,
-      "section": "details",
       "search": true,
       "placeholder": "Acme Health AI",
       "description": "If a vendor built or hosts the solution, name them here."
@@ -656,7 +650,6 @@ export const SCHEMA = {
       "type": "url",
       "group": "reuse",
       "weight": 3,
-      "section": "links",
       "icon": "code",
       "placeholder": "https://github.com/your-org/your-project",
       "description": "GitHub, GitLab, Azure DevOps or any public repository."
@@ -668,7 +661,6 @@ export const SCHEMA = {
       "type": "url",
       "group": "reuse",
       "weight": 4,
-      "section": "links",
       "icon": "globe",
       "placeholder": "https://example.org/app"
     },
@@ -679,7 +671,6 @@ export const SCHEMA = {
       "type": "url",
       "group": "reuse",
       "weight": 5,
-      "section": "links",
       "icon": "document",
       "placeholder": "https://example.org/docs",
       "description": "Slides, a report, a blog post, or a vendor case study."
@@ -691,7 +682,6 @@ export const SCHEMA = {
       "type": "links",
       "group": "reuse",
       "weight": 6,
-      "section": "links",
       "icon": "link",
       "placeholder": "Evaluation report | https://drive.google.com/…",
       "description": "Anything else worth linking — shared drives, SharePoint, model cards, container images, vendor pages. One per line as “Label | URL”."
@@ -715,7 +705,6 @@ export const SCHEMA = {
       "thumbnail": true,
       "group": "reuse",
       "weight": 8,
-      "section": "links",
       "icon": "presentation",
       "description": "Optional. After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically."
     },
@@ -782,7 +771,6 @@ export const SCHEMA = {
       "type": "list",
       "group": "data",
       "weight": 2,
-      "section": "details",
       "search": true,
       "icon": "database",
       "placeholder": "Immunization registry, 311 call transcripts, ESSENCE",
@@ -830,7 +818,6 @@ export const SCHEMA = {
       "required": true,
       "group": "contact",
       "weight": 1,
-      "section": "contact",
       "placeholder": "Jordan Lee",
       "description": "Person others can reach out to with questions."
     },
@@ -842,7 +829,6 @@ export const SCHEMA = {
       "required": true,
       "group": "contact",
       "weight": 2,
-      "section": "contact",
       "placeholder": "jordan.lee@city.gov"
     },
     {

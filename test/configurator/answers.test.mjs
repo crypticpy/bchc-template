@@ -97,15 +97,13 @@ test('answersFromConfig round-trips through applyAnswers', () => {
   assert.deepEqual(rebuilt.theme, base.theme);
 });
 
-test('new fields, groups and sections replace the base schema wholesale', () => {
+test('new fields and groups replace the base schema wholesale', () => {
   const config = applyAnswers(defaultConfig(), {
     groups: [{ key: 'only', title: 'Only' }],
     fields: [{ key: 'title', label: 'Title', type: 'text' }],
-    sections: { details: 'Facts' },
   });
   assert.equal(config.schema.fields.length, 1);
   assert.deepEqual(config.schema.groups, [{ key: 'only', title: 'Only' }]);
-  assert.deepEqual(config.schema.sections, { details: 'Facts' });
 });
 
 test('slugify and snakeKey normalise human input', () => {

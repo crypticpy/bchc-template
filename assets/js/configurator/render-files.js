@@ -36,7 +36,7 @@ export const HEADERS = {
     '(select/multiselect) · option_meta (per-option short/icon/tone/description) ·\n' +
     'facet (filter panel) · card (true | false | badge | chip | meta | icon | line) ·\n' +
     'weight (1-9, ordering) · icon · group (key from `groups`) · search (search\n' +
-    'index) · section (details | links | contact) · form: false (hidden from the\n' +
+    'index) · form: false (hidden from the\n' +
     'submission forms) · filename + thumbnail (file fields).\n' +
     'Only one field may be `markdown` — it becomes the page body. `title`, `slug`,\n' +
     '`summary`, `published`, `updated`, `thumbnail` and `featured` always exist on\n' +

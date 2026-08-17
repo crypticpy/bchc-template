@@ -80,7 +80,6 @@ export const resourceLibrary = {
       sort: 'published',
       sort_order: 'desc',
     },
-    sections: { details: 'Details', links: 'Links', contact: 'Contact' },
     groups: [
       { key: 'about', title: 'About', description: 'What it is and who published it.' },
       { key: 'audience', title: 'Who it is for', description: 'The people and topics it serves.' },
@@ -98,12 +97,12 @@ export const resourceLibrary = {
       { key: 'notes', title: 'Notes', description: 'Why it is worth someone’s time.' },
     ],
     fields: [
-      { ...TITLE_FIELD, placeholder: 'Community health needs assessment toolkit' },
+      { ...TITLE_FIELD, placeholder: 'New employee onboarding checklist' },
       {
         ...SUMMARY_FIELD,
         prompt: 'In one or two sentences, what does it give you?',
         placeholder:
-          'A step-by-step toolkit for running a community health needs assessment, with templates and sample surveys.',
+          'A step-by-step checklist for onboarding a new employee, with templates and a sample first-week schedule.',
       },
       {
         key: 'resource_type',
@@ -139,7 +138,7 @@ export const resourceLibrary = {
         card: 'meta',
         search: true,
         icon: 'building',
-        placeholder: 'National Association of County and City Health Officials',
+        placeholder: 'National Standards Council',
         description: 'The organization that produced or hosts the resource.',
       },
       {
@@ -160,7 +159,6 @@ export const resourceLibrary = {
         type: 'email',
         group: 'about',
         weight: 6,
-        section: 'contact',
         icon: 'mail',
         placeholder: 'you@example.org',
       },
@@ -177,7 +175,7 @@ export const resourceLibrary = {
         search: true,
         icon: 'tag',
         description: 'Subject areas this resource covers.',
-        placeholder: 'community assessment, health equity, survey design',
+        placeholder: 'onboarding, compliance, project templates',
       },
       {
         key: 'audience',
@@ -192,10 +190,10 @@ export const resourceLibrary = {
         options: [
           'Leadership',
           'Program staff',
-          'Epidemiologists',
+          'Analysts',
           'Communications',
           'IT & data teams',
-          'Community partners',
+          'External partners',
         ],
         option_meta: {
           Leadership: { icon: 'star', description: 'Directors and deputies making the call.' },
@@ -204,10 +202,10 @@ export const resourceLibrary = {
             icon: 'users',
             description: 'The people running the service day to day.',
           },
-          Epidemiologists: {
-            short: 'Epi',
+          Analysts: {
+            short: 'Analysts',
             icon: 'chart-bar',
-            description: 'Analysts and surveillance staff.',
+            description: 'Research, data and evaluation staff.',
           },
           Communications: {
             short: 'Comms',
@@ -219,10 +217,10 @@ export const resourceLibrary = {
             icon: 'server',
             description: 'Engineers, DBAs and informatics staff.',
           },
-          'Community partners': {
+          'External partners': {
             short: 'Partners',
             icon: 'globe',
-            description: 'CBOs, clinics and coalition members.',
+            description: 'Collaborating organizations outside your own.',
           },
         },
         description: 'Select all that apply.',
@@ -322,7 +320,6 @@ export const resourceLibrary = {
         required: true,
         group: 'links',
         weight: 1,
-        section: 'links',
         icon: 'globe',
         placeholder: 'https://example.org/toolkit',
         description: 'The canonical, publicly accessible link.',
@@ -334,7 +331,6 @@ export const resourceLibrary = {
         type: 'links',
         group: 'links',
         weight: 2,
-        section: 'links',
         icon: 'link',
         placeholder: 'Companion webinar | https://example.org/webinar',
         description: 'Companion material, one per line as “Label | URL”.',

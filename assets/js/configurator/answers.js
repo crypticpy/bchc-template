@@ -187,7 +187,6 @@ export function applyAnswers(baseConfig, answers = {}) {
   schema.entry = schema.entry || {};
   schema.entry.singular = pick(answers, 'entrySingular', schema.entry.singular);
   schema.entry.plural = pick(answers, 'entryPlural', schema.entry.plural);
-  if (isPlainObject(answers.sections)) schema.sections = clone(answers.sections);
   if (Array.isArray(answers.groups)) schema.groups = clone(answers.groups);
   if (Array.isArray(answers.fields)) schema.fields = clone(answers.fields);
 

@@ -129,18 +129,6 @@ function checkEntry(entry, report) {
   }
 }
 
-function checkSections(sections, report) {
-  if (sections === undefined) return;
-  if (!isPlainObject(sections)) {
-    report.error('sections', '`sections` must be a mapping of section key to heading.');
-    return;
-  }
-  for (const [key, value] of Object.entries(sections)) {
-    if (!isNonEmptyString(value))
-      report.error(`sections.${key}`, `The heading for section "${key}" is empty.`);
-  }
-}
-
 /** @returns {Set<string>} the declared group keys. */
 function checkGroups(groups, report) {
   const keys = new Set();
@@ -302,7 +290,6 @@ export function checkSchema(schema) {
   }
 
   checkEntry(schema.entry, report);
-  checkSections(schema.sections, report);
   const groupKeys = checkGroups(schema.groups, report);
 
   const fields = Array.isArray(schema.fields) ? schema.fields : null;
