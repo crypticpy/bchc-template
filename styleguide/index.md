@@ -19,7 +19,7 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
 
 <div class="mx-auto max-w-5xl">
   <span class="eyebrow">Design system</span>
-  <h1 class="mt-2 font-heading text-4xl font-semibold text-brand-primary-dark">Style guide</h1>
+  <h1 class="page-title mt-2">Style guide</h1>
   <p class="mt-4 max-w-prose text-lg leading-relaxed text-brand-muted">{{ page.summary }} Reference: <code>docs/design-system.md</code>. Colours and fonts below are read from <code>_data/theme.yml</code>, so this page is also a preview of your theme.</p>
 
   <nav aria-label="Sections" class="mt-8 flex flex-wrap gap-2 text-sm">
@@ -52,7 +52,7 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
     <p class="section-lead mt-2">Headings: <strong>{{ sg_theme.fonts.heading }}</strong> · Body: <strong>{{ sg_theme.fonts.body }}</strong>. Sentence case everywhere; the eyebrow is the only uppercase style.</p>
     <div class="card mt-6 divide-y divide-brand-line">
       <div class="p-6"><p class="eyebrow">Display 40/44</p><p class="mt-2 font-heading text-[40px] font-semibold leading-[44px] tracking-[-0.02em] text-brand-primary-dark">Every pixel reduces a decision</p></div>
-      <div class="p-6"><p class="eyebrow">H1 32/38</p><p class="mt-2 font-heading text-[32px] font-semibold leading-[38px] text-brand-primary-dark">Syndromic surveillance signal triage assistant</p></div>
+      <div class="p-6"><p class="eyebrow">H1 32/38 · .page-title</p><p class="page-title mt-2">Syndromic surveillance signal triage assistant</p></div>
       <div class="p-6"><p class="eyebrow">H2 24/30 · .section-title</p><p class="section-title mt-2">What we built</p></div>
       <div class="p-6"><p class="eyebrow">Card title 18/24 · .entry-title</p><p class="entry-title mt-2">Plain-language rewrites for public notices</p></div>
       <div class="p-6"><p class="eyebrow">Body 16/26 · max 68ch</p><p class="mt-2 max-w-prose text-base leading-relaxed text-brand-ink">A scheduled job pulls the alert export each night. For every signal it assembles fourteen days of visit history, the expected count from a simple seasonal baseline, and the relevant syndrome definition.</p></div>

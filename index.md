@@ -166,7 +166,12 @@ leads with; remaining facets fill in only if fewer than four qualify.
   {% endif %}
 
   {% if cfg.modules.catalog %}
-  <section aria-labelledby="recent-heading">
+  {%- comment -%} At lg+ the hero already lists the newest entries and the carousel
+  shows cards, so this section would say "new" a third time above the fold; it
+  stays for narrow screens, where the hero list is hidden. {%- endcomment -%}
+  {%- assign recent_hidden_lg = false -%}
+  {%- if hero_latest.size > 0 and cfg.modules.carousel and featured.size > 0 -%}{%- assign recent_hidden_lg = true -%}{%- endif -%}
+  <section aria-labelledby="recent-heading"{% if recent_hidden_lg %} class="lg:hidden"{% endif %}>
     <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
       <h2 id="recent-heading" class="section-title">Recently added</h2>
       <a class="inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">Browse all {{ total }} {{ plural | downcase }} {% include icon.html name='arrow-right' size='sm' %}</a>

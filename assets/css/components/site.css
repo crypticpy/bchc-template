@@ -5,6 +5,11 @@
   .card-header { @apply border-b border-brand-line px-6 py-4; }
   .card-title { @apply text-lg font-semibold text-brand-primary-dark; }
   .eyebrow { @apply text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-primary; }
+  .eyebrow-muted { @apply eyebrow text-brand-muted; }
+  .eyebrow-on-dark { @apply eyebrow text-brand-on-dark/80; }
+  /* Page H1: one size everywhere (32px, 38px from sm) so pages read as one family. */
+  .page-title { @apply font-heading text-[2rem] font-semibold leading-tight text-brand-primary-dark sm:text-[2.375rem]; }
+  .page-title-on-dark { @apply page-title text-white; }
   .section-title { @apply font-heading text-2xl font-semibold leading-tight text-brand-primary-dark; }
   .section-lead { @apply text-sm text-brand-muted; }
   .link-row { @apply flex items-center justify-between gap-3 rounded-xl border border-brand-line bg-surface-card px-4 py-3 text-sm font-semibold text-brand-ink transition-colors duration-120 hover:border-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2; }

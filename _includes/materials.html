@@ -2,7 +2,7 @@
 <section aria-labelledby="materials-heading" class="card">
   <div class="card-header">
     <h2 id="materials-heading" class="card-title">{{ include.title | default: 'Materials' }}</h2>
-    {% if include.subtitle %}<p class="text-xs uppercase tracking-[0.22em] text-brand-muted">{{ include.subtitle }}</p>{% endif %}
+    {% if include.subtitle %}<p class="eyebrow-muted">{{ include.subtitle }}</p>{% endif %}
   </div>
   <div class="space-y-6 px-6 py-6">
     {% for group in include.materials %}

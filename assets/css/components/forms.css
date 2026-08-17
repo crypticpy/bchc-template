@@ -35,6 +35,8 @@
   .progress-link[aria-current="true"] { @apply bg-brand-primary/5 font-semibold text-brand-primary-dark; }
   .progress-dot { @apply mt-1.5 h-2 w-2 shrink-0 rounded-full border border-brand-line-strong bg-surface-card; }
   .progress-link[data-done="true"] .progress-dot { @apply border-brand-primary bg-brand-primary; }
+  /* Half-filled dot: something answered, a required field still blank. */
+  .progress-link[data-done="partial"] .progress-dot { @apply border-brand-primary; background: linear-gradient(90deg, rgb(var(--c-primary)) 50%, transparent 50%); }
   .progress-count { @apply text-xs font-medium text-brand-muted tabular; }
 
   /* Error summary shown after a failed submit. */

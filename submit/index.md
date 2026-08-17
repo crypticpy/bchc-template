@@ -50,7 +50,7 @@ scripts:
 
 <section class="max-w-prose">
   <span class="eyebrow">Contribute</span>
-  <h1 class="mt-2 font-heading text-3xl font-semibold text-brand-primary-dark sm:text-4xl">Submit a {{ singular | downcase }}</h1>
+  <h1 class="page-title mt-2">Submit a {{ singular | downcase }}</h1>
   <p class="mt-4 text-lg text-brand-muted">{{ cfg.submit.intro | default: 'Tell us about your work. Maintainers review every submission before it is published.' }}</p>
   <p class="mt-3 text-sm text-brand-muted">Nothing is sent from this page. When you're done, it opens a GitHub issue with your answers filled in, and you press <em>Submit new issue</em> there. You'll need a free GitHub account — or use <em>Email it instead</em>.</p>
 </section>

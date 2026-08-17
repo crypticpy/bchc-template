@@ -48,19 +48,26 @@
     box.hidden = message === '';
   }
 
+  /** Screen-reader suffix for each section state. */
+  const PROGRESS_LABELS = { complete: ' — complete', partial: ' — in progress', empty: ' — not started' };
+
   /**
-   * Section completion: a section is done once every required field in it has
-   * an answer and the submitter has answered something.
+   * Section progress: `complete` once every required field in the section has
+   * an answer (or, with no required fields, once anything is answered),
+   * `partial` when something is answered but a required field is still blank,
+   * `empty` otherwise.
    * @param {object[]} fields
    * @param {string} sectionKey
-   * @returns {boolean}
+   * @returns {'complete'|'partial'|'empty'}
    */
-  function sectionDone(fields, sectionKey) {
+  function sectionState(fields, sectionKey) {
     const inSection = fields.filter((field) => field.section === sectionKey);
-    if (inSection.length === 0) return false;
+    if (inSection.length === 0) return 'empty';
+    const answered = inSection.filter((field) => ns.isAnswered(field));
+    if (answered.length === 0) return 'empty';
     const required = inSection.filter((field) => field.required);
-    if (required.length > 0) return required.every((field) => ns.isAnswered(field));
-    return inSection.some((field) => ns.isAnswered(field));
+    if (required.every((field) => ns.isAnswered(field))) return 'complete';
+    return 'partial';
   }
 
   /**
@@ -101,11 +108,11 @@
     return function update() {
       let done = 0;
       links.forEach((link) => {
-        const complete = sectionDone(fields, link.dataset.progressLink);
-        if (complete) done += 1;
-        link.dataset.done = String(complete);
+        const progress = sectionState(fields, link.dataset.progressLink);
+        if (progress === 'complete') done += 1;
+        link.dataset.done = progress === 'complete' ? 'true' : progress === 'partial' ? 'partial' : 'false';
         const state = link.querySelector('[data-progress-state]');
-        if (state) state.textContent = complete ? ' — complete' : ' — not started';
+        if (state) state.textContent = PROGRESS_LABELS[progress];
       });
       const message = done + ' of ' + total + ' sections complete';
       if (count) count.textContent = message;
