@@ -90,8 +90,11 @@ leads with; remaining facets fill in only if fewer than four qualify.
       {% endif %}
 
       <div class="mt-5 flex flex-wrap gap-3">
-        {% if cfg.hero.primary_cta.label %}<a class="btn-on-dark" href="{{ cfg.hero.primary_cta.url | relative_url }}">{{ cfg.hero.primary_cta.label }} {% include icon.html name='arrow-right' size='sm' %}</a>{% endif %}
-        {% if cfg.hero.secondary_cta.label %}{% assign sec_url = cfg.hero.secondary_cta.url %}{% if sec_url != '/submit/' or cfg.modules.submit %}<a class="btn-on-dark" href="{{ sec_url | relative_url }}">{{ cfg.hero.secondary_cta.label }}</a>{% endif %}{% endif %}
+        {%- comment -%} A CTA with `module:` only renders while that module is on (same key navigation items use). {%- endcomment -%}
+        {% assign hero_pri = cfg.hero.primary_cta %}{% assign hero_pri_on = true %}{% if hero_pri.module %}{% assign hero_pri_on = cfg.modules[hero_pri.module] %}{% endif %}
+        {% if hero_pri.label and hero_pri_on %}<a class="btn-on-dark" href="{{ hero_pri.url | relative_url }}">{{ hero_pri.label }} {% include icon.html name='arrow-right' size='sm' %}</a>{% endif %}
+        {% assign hero_sec = cfg.hero.secondary_cta %}{% assign hero_sec_on = true %}{% if hero_sec.module %}{% assign hero_sec_on = cfg.modules[hero_sec.module] %}{% endif %}
+        {% if hero_sec.label and hero_sec_on %}<a class="btn-on-dark" href="{{ hero_sec.url | relative_url }}">{{ hero_sec.label }}</a>{% endif %}
       </div>
 
       {% if cfg.modules.stats and total > 0 %}

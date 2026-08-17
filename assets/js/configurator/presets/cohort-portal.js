@@ -31,8 +31,8 @@ export const cohortPortal = {
       eyebrow: 'Data Learning Cohorts',
       title: 'What our teams built with data',
       lead: 'Browse capstone projects from every cohort — the question each team asked, the methods they used, and the dashboards, posters and write-ups they produced.',
-      primary_cta: { label: 'Browse team projects', url: '/catalog/' },
-      secondary_cta: { label: 'Share your project', url: '/submit/' },
+      primary_cta: { label: 'Browse team projects', url: '/catalog/', module: 'catalog' },
+      secondary_cta: { label: 'Share your project', url: '/submit/', module: 'submit' },
     },
     home: {
       featured_count: 6,
@@ -41,7 +41,7 @@ export const cohortPortal = {
         {
           eyebrow: 'Learn by doing',
           title: 'Real questions, real data',
-          body: 'Every team picks a question that matters to their department and works it end to end with coaching.',
+          body: 'Every team picks a question that matters to their own area of work and works it end to end with coaching.',
         },
         {
           eyebrow: 'Reusable work',
@@ -51,7 +51,7 @@ export const cohortPortal = {
         {
           eyebrow: 'Cohort by cohort',
           title: 'A growing body of practice',
-          body: 'Filter by cohort year, department or track to see how the program has grown.',
+          body: 'Filter by cohort year, area of work or track to see how the program has grown.',
         },
       ],
     },
@@ -143,9 +143,9 @@ export const cohortPortal = {
         placeholder: '2026',
       },
       {
-        key: 'department',
-        label: 'Department',
-        prompt: 'Which department did the team come from?',
+        key: 'area',
+        label: 'Area of work',
+        prompt: 'Which area or team did the participants come from?',
         type: 'text',
         group: 'about',
         weight: 5,
@@ -153,8 +153,9 @@ export const cohortPortal = {
         card: 'meta',
         search: true,
         icon: 'building',
-        placeholder: 'Public Health — Epidemiology',
-        description: 'The department or team the participants come from.',
+        placeholder: 'Epidemiology',
+        description:
+          'The area, unit or team the participants come from — whatever your organization calls it.',
       },
       {
         key: 'track',

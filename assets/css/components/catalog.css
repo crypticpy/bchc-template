@@ -84,6 +84,16 @@
   .view-toggle { @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-brand-line-strong text-brand-muted lg:min-h-[32px] lg:min-w-[32px] transition-colors duration-120 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
   .view-toggle[aria-pressed="true"] { @apply border-brand-primary bg-brand-primary text-white; }
 
+  /* At 400 % zoom (WCAG 1.4.10 reflow: 320 × 256 CSS px) the sticky site
+     header, sticky results bar and fixed filter bar together outgrow the
+     viewport and no result is ever visible. Below a short viewport the two
+     top bars rejoin the flow; the filter bar stays, it is the route to the
+     facets on small screens. */
+  @media (max-height: 560px) {
+    [data-component="site-header"] { @apply !static; } /* utility `sticky` on the element outranks a component rule */
+    .results-header { @apply static mb-4 rounded-none shadow-none; }
+  }
+
   /* ---------- Search combobox ------------------------------------------ */
   .search-box { @apply h-9 w-full rounded-full border border-brand-line-strong bg-surface-card pl-9 pr-3 text-sm text-brand-ink placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
   .search-listbox { @apply absolute left-0 right-0 z-40 mt-1 max-h-72 list-none overflow-y-auto rounded-xl border border-brand-line bg-surface-card p-0 shadow-e2; }

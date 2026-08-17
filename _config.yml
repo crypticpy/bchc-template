@@ -29,6 +29,8 @@ exclude:
   - package.json
   - tailwind.config.js
   - postcss.config.js
+  - eslint.config.js
+  - quality
   - assets/css/tailwind.css
   - scripts
   - test

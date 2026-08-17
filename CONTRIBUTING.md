@@ -28,8 +28,8 @@ Run these before opening a pull request; `validate.yml` and `quality.yml` run th
 | `npm run test:ruby` | Minitest for the Ruby validators. |
 | `npm run validate` | Every `_data/*.yml` parses; every entry's front matter passes `scripts/check_front_matter.rb`; no oversize files. |
 | `npm run build:css && bundle exec jekyll build` | The site builds without Liquid errors. |
-| `npm run a11y` | pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in `.pa11yci.json`. Needs the built site served on port 4173: `python3 -m http.server 4173 --directory _site &`. |
-| `npm run lighthouse` | Lighthouse CI (`lighthouserc.json`) against the same local server; accessibility ≥ 0.95 is required, other categories warn. |
+| `npm run a11y` | pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in `quality/pa11yci.js` (sample entry URLs are discovered from the built site). Needs the built site served on port 4173: `python3 -m http.server 4173 --directory _site &`. |
+| `npm run lighthouse` | Lighthouse CI (`quality/lighthouserc.js`) against the same local server; accessibility ≥ 0.95 is required, other categories warn. |
 
 ## Ground rules
 

@@ -625,5 +625,7 @@
   readUrl();
   syncRelevanceOption();
   render();
+  // search.js replays a URL query itself on boot (it loads after this file);
+  // this nudge only matters if the script order ever changes.
   if (searchInput && searchInput.value) searchInput.dispatchEvent(new Event('input', { bubbles: true }));
 })();

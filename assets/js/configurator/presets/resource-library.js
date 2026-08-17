@@ -30,8 +30,8 @@ export const resourceLibrary = {
       eyebrow: 'Curated by practitioners',
       title: 'Find the resource you need, fast',
       lead: 'Filter by topic, audience and format to find guides, toolkits, templates, datasets and training that colleagues have already vetted.',
-      primary_cta: { label: 'Browse resources', url: '/catalog/' },
-      secondary_cta: { label: 'Suggest a resource', url: '/submit/' },
+      primary_cta: { label: 'Browse resources', url: '/catalog/', module: 'catalog' },
+      secondary_cta: { label: 'Suggest a resource', url: '/submit/', module: 'submit' },
     },
     home: {
       featured_count: 6,

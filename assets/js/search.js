@@ -222,7 +222,13 @@
 
   let timer = null;
   /** Debounced input handler: load the index if needed, then query, announce and render. */
-  function run() {
+  /**
+   * Query for the current input value and publish the matches to filters.js.
+   * @param {boolean} [showList=true] also open the suggestion listbox — false
+   *   when replaying a URL query on load, so a deep link filters the grid
+   *   without popping a menu under an unfocused box.
+   */
+  function run(showList = true) {
     const q = input.value.trim();
     if (!q) {
       announce(null, []);
@@ -238,7 +244,7 @@
       const results = query(q);
       const entryIds = results.filter((d) => d.kind === 'entry').map((d) => d.id);
       announce(new Set(entryIds), entryIds);
-      renderList(results);
+      if (showList) renderList(results);
     });
   }
 
@@ -287,4 +293,12 @@
     if (listbox && listbox.contains(e.target)) return;
     close();
   });
+
+  /* ----------------------------------------------------------------- boot */
+
+  // A deep link (`/catalog/?q=…`, e.g. from the home hero's search form) is
+  // written into the box by filters.js, which loads before this script and so
+  // dispatches its `input` event to nobody. Replay the query here instead —
+  // this is the only place that knows the index exists.
+  if (input.value.trim()) run(document.activeElement === input);
 })();

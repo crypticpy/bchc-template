@@ -33,6 +33,11 @@ export default [
     ],
     languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: { ...globals.node } },
   },
+  // quality/ is CommonJS (its own package.json): pa11y-ci and Lighthouse CI require() their configs.
+  {
+    files: ['quality/**/*.js'],
+    languageOptions: { ecmaVersion: 2022, sourceType: 'commonjs', globals: { ...globals.node } },
+  },
   // yaml.mjs deliberately matches control characters to decide when to quote.
   { files: ['scripts/lib/yaml.mjs'], rules: { 'no-control-regex': 'off' } },
   {

@@ -1,7 +1,7 @@
 # Accessibility + Lighthouse gate. Runs on every pull request and on pushes to main.
 # Builds the site with url set to the local server, serves _site, then:
-#   * pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in .pa11yci.json — FAILS the job on any issue
-#   * Lighthouse CI over lighthouserc.json — accessibility >= 0.95 is an error, other categories warn
+#   * pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in quality/pa11yci.js (entry URLs discovered from the built site) — FAILS the job on any issue
+#   * Lighthouse CI over quality/lighthouserc.js — accessibility >= 0.95 is an error, other categories warn
 # Neither tool is in package.json so `npm ci` in the other workflows stays fast; versions are pinned here.
 name: Quality (a11y + Lighthouse)
 
@@ -71,7 +71,7 @@ jobs:
           "$CHROME" --version
 
       - name: pa11y-ci (WCAG 2 AA, axe + htmlcs)
-        run: npx --yes pa11y-ci@4.0.1 --config .pa11yci.json
+        run: npx --yes pa11y-ci@4.0.1 --config quality/pa11yci
 
       - name: Lighthouse CI
-        run: npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.json
+        run: npx --yes @lhci/cli@0.15.1 autorun --config=quality/lighthouserc.js

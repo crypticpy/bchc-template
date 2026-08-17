@@ -19,7 +19,7 @@ so when it does.
   `generate --check`, front-matter validation and a full build.
 - Contributor docs: `ARCHITECTURE.md`, `CONTRIBUTING.md`, `SECURITY.md`.
 - Schema v2 presentation hints — `card` (`badge` / `meta` / `line` / `chip` /
-  `signal`), `weight`, `icon`, `group`, `prompt`, `option_meta`
+  `icon`), `weight`, `icon`, `group`, `prompt`, `option_meta`
   (short / icon / tone / description), group `placement` (`rail` | `main`) —
   and two field types, `images` and `links`. See `docs/content-model.md`.
 - Catalog: redesigned card with an at-a-glance signal strip, grouped filter

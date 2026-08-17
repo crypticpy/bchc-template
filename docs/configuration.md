@@ -55,8 +55,8 @@ hero:
   eyebrow: "…"
   title: "…"
   lead: "…"
-  primary_cta:   { label: "…", url: "/catalog/" }
-  secondary_cta: { label: "…", url: "/submit/" }
+  primary_cta:   { label: "…", url: "/catalog/", module: catalog }   # `module` is optional:
+  secondary_cta: { label: "…", url: "/submit/",  module: submit }    # the button hides while that module is off
 
 home:
   featured_count: 6   # entries shown in the carousel (featured: true first, then newest, until this many)
@@ -187,7 +187,7 @@ A no-terminal step-by-step wizard on the deployed site (`setup/index.md` + `asse
 - Offers the same four presets as the CLI: **AI use case catalog**, **Program / cohort portal**, **Resource library**, **Blank catalog**.
 - Lets you edit branding, colors/fonts, module toggles, and the schema's field list (including adding/renaming/removing fields) with validation.
 - Shows a **live preview** on the Branding step — a miniature of the real header, hero, entry card and controls, rendered from the production stylesheet under your palette, type and corner rounding — next to the palette swatches and WCAG contrast checks. It updates as you type.
-- Lets each field's **Show on card** toggle also pick the card slot (`badge`, `meta`, `line`, `chip`, `signal`, `icon`) when the field's type fits one; leave it on **Automatic** to let the card choose from the type. See `card` in `docs/content-model.md`.
+- Lets each field's **Show on card** toggle also pick the card slot (`badge`, `meta`, `line`, `chip`, `icon`) when the field's type fits one; leave it on **Automatic** to let the card choose from the type. See `card` in `docs/content-model.md`.
 - Saves your answers in the browser as you go (a resume banner appears if you return with unfinished progress).
 - Produces copy/download/"open in GitHub, pre-filled" links for each generated file — nothing is pushed automatically; you commit the files yourself via the GitHub UI or by pulling them locally.
 

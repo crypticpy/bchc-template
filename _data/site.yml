@@ -45,9 +45,11 @@ hero:
   primary_cta:
     label: "Browse the catalog"
     url: "/catalog/"
+    module: catalog # optional: hide the button while this module is off
   secondary_cta:
     label: "Share your use case"
     url: "/submit/"
+    module: submit
 
 home:
   featured_count: 6         # entries in the carousel (featured: true first, then newest)

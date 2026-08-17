@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "commonjs",
+  "description": "Marks this directory as CommonJS: pa11y-ci and Lighthouse CI require() their config files, and the repo root is an ES-module package."
+}

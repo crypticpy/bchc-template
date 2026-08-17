@@ -226,7 +226,11 @@
       // Only drop the draft once the new tab actually exists. A blocked popup
       // used to clear it anyway, so the answers were gone and nothing had
       // opened; now the copy-paste route appears and the draft stays put.
-      const opened = window.open(url, '_blank', 'noopener');
+      // Not `window.open(url, '_blank', 'noopener')`: with `noopener` in the
+      // features string the call returns null even when the tab opened, which
+      // made every successful submit look blocked. Sever the opener afterwards.
+      const opened = window.open(url, '_blank');
+      if (opened) opened.opener = null;
       if (!opened) {
         showFallback(
           'Your browser blocked the new tab. Use the link below to open the prefilled issue, or copy the text and paste it into a blank issue.',

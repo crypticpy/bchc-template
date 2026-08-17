@@ -30,8 +30,8 @@ export const blank = {
       eyebrow: 'Your Organization',
       title: 'A catalog of things worth sharing',
       lead: 'Replace this line with a sentence about what people will find here and why it is worth their time.',
-      primary_cta: { label: 'Browse the catalog', url: '/catalog/' },
-      secondary_cta: { label: 'Submit an entry', url: '/submit/' },
+      primary_cta: { label: 'Browse the catalog', url: '/catalog/', module: 'catalog' },
+      secondary_cta: { label: 'Submit an entry', url: '/submit/', module: 'submit' },
     },
     home: { featured_count: 6, recent_count: 6, highlights: [] },
     submit: {
