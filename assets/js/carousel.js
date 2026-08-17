@@ -1,4 +1,11 @@
 // Scroll-snap carousel with prev/next buttons. No autoplay.
+//
+// Data-attribute contract:
+//   [data-carousel]        root; one instance is wired per match
+//   [data-carousel-track]  the scrollable strip (CSS scroll-snap does the rest)
+//   [data-carousel-prev]   optional "previous" button, disabled at the start
+//   [data-carousel-next]   optional "next" button, disabled at the end
+// Nothing is exported; this only attaches DOM event listeners.
 (function () {
   // Checked per scroll so a mid-session change of the OS setting is honoured.
   const behavior = () =>
@@ -8,10 +15,12 @@
     const prev = root.querySelector('[data-carousel-prev]');
     const next = root.querySelector('[data-carousel-next]');
     if (!track) return;
+    /** @returns {number} px to scroll per step: one card's width (+ gap), or 80% of the track as a fallback. */
     function step() {
       const first = track.firstElementChild;
       return first ? first.getBoundingClientRect().width + 24 : track.clientWidth * 0.8;
     }
+    /** Sync the prev/next buttons' disabled state with the current scroll position. */
     function update() {
       const max = track.scrollWidth - track.clientWidth - 2;
       if (prev) prev.disabled = track.scrollLeft <= 2;

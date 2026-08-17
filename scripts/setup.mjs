@@ -42,6 +42,11 @@ const cyan = (text) => paint('36', text);
 const green = (text) => paint('32', text);
 const red = (text) => paint('31', text);
 
+/**
+ * Parse `process.argv.slice(2)` into the wizard's flags.
+ * @param {string[]} argv
+ * @returns {{preset: string|null, yes: boolean, dryRun: boolean, out: string|null, help?: boolean}}
+ */
 function parseArgs(argv) {
   const args = { preset: null, yes: false, dryRun: false, out: null };
   for (let i = 0; i < argv.length; i += 1) {
@@ -79,7 +84,12 @@ function repositoryFromGit() {
 /* Prompting                                                                  */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Prompts the wizard's questions over stdin/stdout, or answers every question
+ * with its default when `auto` is true (`--yes`, `--out`, or once stdin ends).
+ */
 class Asker {
+  /** @param {{auto: boolean}} options `auto: true` skips prompting entirely. */
   constructor({ auto }) {
     this.auto = auto;
     this.queue = [];
@@ -111,6 +121,12 @@ class Asker {
     });
   }
 
+  /**
+   * Print `prompt` and resolve with the next line of input, pulling from the
+   * buffered queue first (see the constructor's `line` handler).
+   * @param {string} prompt
+   * @returns {Promise<string>}
+   */
   async ask(prompt) {
     if (this.rl.terminal) {
       this.rl.setPrompt(prompt);
@@ -124,6 +140,15 @@ class Asker {
     });
   }
 
+  /**
+   * Ask a free-text question, re-prompting until `validate` passes (or `auto`
+   * is set, in which case `fallback` is returned unchecked).
+   * @param {string} label question text.
+   * @param {string} fallback used when the answer is blank, or always in auto mode.
+   * @param {{help?: string, validate?: (value: string) => string|null}} [options]
+   *   `validate` returns an error message, or null when the value is fine.
+   * @returns {Promise<string>}
+   */
   async text(label, fallback, { help, validate } = {}) {
     for (;;) {
       if (this.auto) return fallback;
@@ -139,6 +164,13 @@ class Asker {
     }
   }
 
+  /**
+   * Ask a yes/no question.
+   * @param {string} label question text.
+   * @param {boolean} fallback used on a blank answer, or always in auto mode.
+   * @param {{help?: string}} [options]
+   * @returns {Promise<boolean>}
+   */
   async confirm(label, fallback, { help } = {}) {
     if (this.auto) return fallback;
     if (help) console.log(dim(`  ${help}`));
@@ -148,6 +180,13 @@ class Asker {
     return /^(y|yes)$/.test(answer);
   }
 
+  /**
+   * Ask the submitter to pick one of a numbered list of choices.
+   * @param {string} label question text.
+   * @param {Array<{name: string, description?: string}>} choices
+   * @param {number} [fallbackIndex] used on a blank answer, or always in auto mode.
+   * @returns {Promise<object>} the chosen entry from `choices`.
+   */
   async choose(label, choices, fallbackIndex = 0) {
     if (this.auto) return choices[fallbackIndex];
     console.log(bold(label));
@@ -188,6 +227,14 @@ const requiredValidator = (value) => (String(value).trim() ? null : 'This cannot
 /* Diff summary                                                               */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * A one-line `+n -n lines` (or "new file" / "unchanged") summary of how
+ * `next` differs from the file currently on disk, using a line-multiset
+ * comparison rather than a real diff — good enough for a preview, not a patch.
+ * @param {string} relative repo-relative path.
+ * @param {string} next the file's about-to-be-written contents.
+ * @returns {string} colorized summary text.
+ */
 function diffSummary(relative, next) {
   const file = path.join(ROOT, relative);
   if (!fs.existsSync(file)) return green(`new file, ${next.split('\n').length - 1} lines`);
@@ -236,8 +283,12 @@ const FONT_CHOICES = [
   },
 ];
 
-// Entry folders shipped as sample content: catalog/<slug>/index.md whose front
-// matter carries `sample: true` (all template samples do). User content never does.
+/**
+ * Entry folders shipped as sample content: `<entry path>/<slug>/index.md`
+ * whose front matter carries `sample: true` (all template samples do). User
+ * content never does.
+ * @returns {string[]} absolute paths of sample entry directories.
+ */
 function listSampleEntries() {
   const entryPath = (() => {
     try {
@@ -263,6 +314,7 @@ function listSampleEntries() {
     });
 }
 
+/** @returns {string[]} field keys from the schema currently on disk, or [] if unreadable. */
 function currentSchemaFields() {
   try {
     const raw = fs.readFileSync(path.join(ROOT, '_data', 'schema.yml'), 'utf8');
@@ -272,6 +324,12 @@ function currentSchemaFields() {
   }
 }
 
+/**
+ * Run the wizard end to end: parse flags, ask questions (or accept defaults),
+ * render the files via `core.renderFiles`, show a summary, and write them
+ * after confirmation. See the file header for the flag reference.
+ * @returns {Promise<number>} process exit code.
+ */
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 

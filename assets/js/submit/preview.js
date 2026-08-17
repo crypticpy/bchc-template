@@ -279,6 +279,7 @@
       toggle(foot || signals, drawn > 0);
     }
 
+    /** Repaint every part of the card from the current field values. */
     return function update() {
       if (title) {
         const value = titleField ? String(ns.readValue(titleField)) : '';

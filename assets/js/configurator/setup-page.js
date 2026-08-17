@@ -55,6 +55,17 @@ const OPTION_TYPES = new Set(['select', 'multiselect']);
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 
+/**
+ * Minimal hyperscript-style element builder used throughout this file instead
+ * of innerHTML, so every value (labels, field keys, pasted URLs) is set via
+ * `.textContent`/`.value`/`.setAttribute` and never parsed as markup.
+ * @param {string} tag
+ * @param {Object<string, *>} [attrs] DOM attributes; `class`/`text`/`html` are
+ *   special-cased, `on*` values become event listeners, `true` renders as a
+ *   bare attribute, and `null`/`undefined`/`false` are skipped entirely.
+ * @param {Node|Node[]} [children]
+ * @returns {HTMLElement}
+ */
 function el(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
   for (const [name, value] of Object.entries(attrs)) {
@@ -73,6 +84,11 @@ function el(tag, attrs = {}, children = []) {
   return node;
 }
 
+/**
+ * Parse a Liquid-rendered `<script type="application/json" id="…">` block.
+ * @param {string} id element id.
+ * @returns {object|null} null when absent or not a JSON object.
+ */
 function readEmbeddedJson(id) {
   const node = document.getElementById(id);
   if (!node) return null;
@@ -125,6 +141,12 @@ const state = {
   fields: null,
 };
 
+/**
+ * A starting point's config, deep-cloned and back-filled with defaults for
+ * anything a hand-edited `_data` file might be missing.
+ * @param {string} startId id from `startingPoints`.
+ * @returns {{site: object, theme: object, schema: object}}
+ */
 function baseConfigFor(startId) {
   const start = startingPoints.find((item) => item.id === startId) || startingPoints[0];
   const config = JSON.parse(JSON.stringify(start.config));
@@ -137,7 +159,10 @@ function baseConfigFor(startId) {
   return config;
 }
 
-/** Reset the wizard's answers to a starting point's values. */
+/**
+ * Reset the wizard's answers to a starting point's values.
+ * @param {string} startId id from `startingPoints`.
+ */
 function loadStartingPoint(startId) {
   const base = baseConfigFor(startId);
   state.startId = startId;
@@ -175,6 +200,7 @@ function loadStartingPoint(startId) {
   };
 }
 
+/** Persist `state` to localStorage so the wizard survives a reload. Silently no-ops if storage is unavailable. */
 function save() {
   try {
     localStorage.setItem(
@@ -191,6 +217,11 @@ function save() {
   }
 }
 
+/**
+ * Load `state` from localStorage, falling back to the "current site" starting
+ * point when nothing usable is stored.
+ * @returns {boolean} true when a previous session was actually resumed.
+ */
 function restore() {
   let stored = null;
   try {
@@ -232,6 +263,7 @@ function schemaFields() {
     });
 }
 
+/** @returns {object} the full config (site/theme/schema) derived from the current answers. */
 function buildConfig() {
   const base = baseConfigFor(state.startId);
   return applyAnswers(base, { ...state.answers, fields: schemaFields() });
@@ -245,6 +277,10 @@ const root = $('#wizard');
 const stepNav = $('#wizard-steps');
 const errorRegion = $('#wizard-errors');
 
+/**
+ * Render the shared validation-error panel above the step body.
+ * @param {string[]} [messages] problems to show; clears the panel when empty.
+ */
 function announce(messages) {
   errorRegion.replaceChildren();
   if (!messages || messages.length === 0) return;
@@ -265,6 +301,7 @@ function announce(messages) {
   );
 }
 
+/** Render the numbered step pills above the wizard body. */
 function renderStepNav() {
   const labels = ['Start', 'Branding', 'Modules', 'Entry model', 'Review'];
   stepNav.replaceChildren(
@@ -280,6 +317,10 @@ function renderStepNav() {
   );
 }
 
+/**
+ * Navigate to a step, blocking forward moves until the current step validates.
+ * @param {number} index target step index.
+ */
 function goTo(index) {
   if (index > state.step && !validateStep(state.step)) return;
   state.step = Math.min(Math.max(index, 0), STEPS.length - 1);
@@ -289,7 +330,11 @@ function goTo(index) {
   if (heading) heading.focus();
 }
 
-/** Returns true when the current step is complete enough to move on. */
+/**
+ * Validate one step's answers and paint any problems via `announce()`.
+ * @param {number} index step index (`STEPS[index]` selects the rule set).
+ * @returns {boolean} true when the step is complete enough to move on.
+ */
 function validateStep(index) {
   const problems = [];
   if (STEPS[index] === 'branding') {
@@ -323,6 +368,7 @@ function validateStep(index) {
 
 /* --- step 1: starting point ------------------------------------------------ */
 
+/** @returns {HTMLElement} step 1 body — the starting-point picker cards. */
 function renderStart() {
   return el('div', { class: 'space-y-4' }, [
     el('p', {
@@ -371,6 +417,13 @@ function renderStart() {
 
 /* --- step 2: branding ------------------------------------------------------ */
 
+/**
+ * A labeled text/textarea input bound to `state.answers[key]`, saving on every input.
+ * @param {string} key key into `state.answers`.
+ * @param {string} label field label text.
+ * @param {{help?: string, type?: string, textarea?: boolean, placeholder?: string}} [options]
+ * @returns {HTMLElement}
+ */
 function textField(key, label, { help, type = 'text', textarea = false, placeholder = '' } = {}) {
   const id = `field-${key}`;
   const control = textarea
@@ -388,6 +441,15 @@ function textField(key, label, { help, type = 'text', textarea = false, placehol
   ]);
 }
 
+/**
+ * A hex-text input paired with a native `<input type=color>` swatch, kept in
+ * sync in both directions and bound to `state.answers[key]`. Triggers a
+ * palette/contrast repaint on every change.
+ * @param {string} key key into `state.answers`.
+ * @param {string} label field label text.
+ * @param {string} help help text shown under the label.
+ * @returns {HTMLElement}
+ */
 function colorField(key, label, help) {
   const id = `field-${key}`;
   const text = el('input', {
@@ -422,6 +484,14 @@ function colorField(key, label, help) {
   ]);
 }
 
+/**
+ * A labeled `<select>` bound to `state.answers[key]`.
+ * @param {string} key key into `state.answers`.
+ * @param {string} label field label text.
+ * @param {Array<{value: string, label: string}>} options
+ * @param {string} help help text shown under the label.
+ * @returns {HTMLElement}
+ */
 function selectField(key, label, options, help) {
   const id = `field-${key}`;
   const select = el(
@@ -443,6 +513,10 @@ function selectField(key, label, options, help) {
 
 let paletteNode = null;
 
+/**
+ * Repaint the color swatches and WCAG contrast checks under the color fields.
+ * Called on boot and after every color field change; no-ops before `paletteNode` exists.
+ */
 function renderPalette() {
   if (!paletteNode) return;
   const { primary, primaryDark, secondary, accent } = state.answers;
@@ -503,6 +577,7 @@ function renderPalette() {
   );
 }
 
+/** @returns {HTMLElement} step 2 body — site/org, GitHub, colors/type and home-page copy fields. */
 function renderBranding() {
   paletteNode = el('div', { class: 'px-6 py-5' });
   const node = el('div', { class: 'space-y-6' }, [
@@ -585,6 +660,7 @@ function renderBranding() {
 
 /* --- step 3: modules ------------------------------------------------------- */
 
+/** @returns {HTMLElement} step 3 body — one checkbox per `state.answers.modules` key. */
 function renderModules() {
   return el('fieldset', { class: 'space-y-3' }, [
     el('legend', { class: 'section-title', text: 'Modules' }),
@@ -621,6 +697,15 @@ function renderModules() {
 
 /* --- step 4: entry model --------------------------------------------------- */
 
+/**
+ * One editable card for a schema field: include/enable toggle, key, type,
+ * required/facet/card/search toggles, label, options (for select types) and a
+ * remove button. `title`/`summary` are core fields — always enabled, and
+ * their `required` toggle is locked on — since every entry needs them.
+ * @param {object} field mutated in place; entry from `state.fields`.
+ * @param {number} index field's position in `state.fields` (used for element ids and removal).
+ * @returns {HTMLLIElement}
+ */
 function fieldRow(field, index) {
   const rowId = `schema-field-${index}`;
   const isCore = field.key === 'title' || field.key === 'summary';
@@ -737,6 +822,14 @@ function fieldRow(field, index) {
   return el('li', { class: `card p-5 ${field.enabled === false ? 'opacity-60' : ''}` }, children);
 }
 
+/**
+ * The "Add a field" card: label/key/type inputs plus validation (blank
+ * label/key, reserved key, duplicate key) before appending to `state.fields`.
+ * The key auto-derives from the label via `snakeKey` until the submitter
+ * edits the key field directly. New fields are inserted before the schema's
+ * `markdown` field, if any, so the write-up stays last.
+ * @returns {HTMLElement}
+ */
 function renderAddField() {
   const labelInput = el('input', {
     id: 'new-field-label',
@@ -812,6 +905,7 @@ function renderAddField() {
   ]);
 }
 
+/** @returns {HTMLElement} step 4 body — entry naming, the field-row list, and "Add a field". */
 function renderFields() {
   return el('div', { class: 'space-y-5' }, [
     el('fieldset', { class: 'grid gap-4 sm:grid-cols-2' }, [
@@ -837,6 +931,12 @@ function renderFields() {
 
 /* --- step 5: review -------------------------------------------------------- */
 
+/**
+ * A "Copy" button for one rendered file's contents, with a transient
+ * "Copied"/fallback label instead of a separate status region.
+ * @param {string} text file contents to copy.
+ * @returns {HTMLButtonElement}
+ */
 function copyButton(text) {
   const button = el('button', { type: 'button', class: 'btn-secondary', text: 'Copy' });
   button.addEventListener('click', async () => {
@@ -853,6 +953,13 @@ function copyButton(text) {
   return button;
 }
 
+/**
+ * A "Download" button that saves one rendered file via an object URL,
+ * revoked a second after the click so the download has time to start.
+ * @param {string} relative the file's repo-relative path; only its basename is used for the download filename.
+ * @param {string} text file contents.
+ * @returns {HTMLButtonElement}
+ */
 function downloadButton(relative, text) {
   const button = el('button', { type: 'button', class: 'btn-secondary', text: 'Download' });
   button.addEventListener('click', () => {
@@ -867,6 +974,12 @@ function downloadButton(relative, text) {
   return button;
 }
 
+/**
+ * @returns {HTMLElement} step 5 body — publish instructions plus every
+ *   rendered file with copy/download/"Open on GitHub" actions. Re-validates
+ *   the schema and, on failure, shows the problems via `announce()` instead
+ *   of rendering the files.
+ */
 function renderReview() {
   const config = buildConfig();
   const errors = validateSchema(config.schema);
@@ -951,6 +1064,7 @@ const STEP_META = [
   { title: 'Review & publish', lead: 'Copy each file into GitHub. Nothing is changed until you commit.' },
 ];
 
+/** Repaint the whole wizard shell (step nav, heading, current step body, and Back/Continue/Start-over controls). */
 function render() {
   renderStepNav();
   const meta = STEP_META[state.step];
@@ -1006,6 +1120,7 @@ function render() {
   );
 }
 
+/** Entry point: restore or initialize `state`, then render. No-ops if `#wizard` isn't on the page. */
 function boot() {
   if (!root) return;
   const resumed = restore();

@@ -13,6 +13,10 @@
   if (!toggle || !panel) return;
   const icons = toggle.querySelectorAll('[data-nav-icon]');
 
+  /**
+   * Show/hide the nav panel and swap the toggle's open/close glyph.
+   * @param {boolean} open
+   */
   function setOpen(open) {
     panel.hidden = !open;
     panel.classList.toggle('hidden', !open);

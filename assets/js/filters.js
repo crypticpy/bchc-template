@@ -71,6 +71,13 @@
     });
   });
 
+  /**
+   * Re-sort one pill container's DOM children so zero-count (`.is-empty`)
+   * pills trail the rest, restoring each pill's original position (via its
+   * `data-index`) among its own kind first. No-ops when already in order, to
+   * avoid needless reflow on every render.
+   * @param {Element} container a pill's parent element.
+   */
   function reorderPills(container) {
     const current = Array.from(container.children);
     const byIndex = current
@@ -100,6 +107,7 @@
 
   /* ------------------------------------------------------------------ URL */
 
+  /** Populate `state`, `sort`, `sortExplicit` and `view` from the current URL's query string. */
   function readUrl() {
     const params = new URLSearchParams(window.location.search);
     state.clear();
@@ -129,6 +137,12 @@
     view = v === 'list' ? 'list' : 'grid';
   }
 
+  /**
+   * Serialize `state`/`sort`/`view` back onto the URL.
+   * @param {boolean} push true to push a new history entry (a toggle), false
+   *   to replace the current one (debounced typing, so Back doesn't step
+   *   through every keystroke).
+   */
   function writeUrl(push) {
     const params = new URLSearchParams();
     state.forEach((set, key) => {
@@ -151,6 +165,14 @@
     return !(set instanceof Set) || set.has(cards[i].dataset.entryId);
   }
 
+  /**
+   * Whether card `i` matches every active facet filter except `exceptKey`.
+   * Excluding one key is how the pill counts are computed (a pill's own count
+   * must not be narrowed by its own selection).
+   * @param {number} i index into `cards`/`facets`.
+   * @param {string|null} exceptKey facet key to ignore, or null to check all.
+   * @returns {boolean}
+   */
   function facetOk(i, exceptKey) {
     for (const [key, set] of state) {
       if (!set.size || key === exceptKey) continue;
@@ -180,6 +202,10 @@
 
   /* ------------------------------------------------------------- ordering */
 
+  /**
+   * Build a card-index comparator for the current `sort` value.
+   * @returns {(a: number, b: number) => number} comparator over indices into `cards`.
+   */
   function comparator() {
     if (sort === 'az')
       return (a, b) => (cards[a].dataset.entryTitle || '').localeCompare(cards[b].dataset.entryTitle || '');
@@ -204,6 +230,7 @@
     return (a, b) => (cards[b].dataset.entryDate || '').localeCompare(cards[a].dataset.entryDate || '');
   }
 
+  /** Re-append all cards to the grid in `comparator()` order. Skips the DOM write if the order is unchanged. */
   function applyOrder() {
     const idx = cards.map((_, i) => i).sort(comparator());
     const signature = idx.join(',');
@@ -217,6 +244,13 @@
   /* --------------------------------------------------------------- render */
 
   let announceTimer = null;
+  /**
+   * Debounced live-region update for screen readers: result count plus the
+   * active filter/search terms. Debounced so rapid pill clicks don't spam
+   * announcements.
+   * @param {number} shown cards currently visible.
+   * @param {number} total cards on the page.
+   */
   function announce(shown, total) {
     if (!statusEl) return;
     clearTimeout(announceTimer);
@@ -234,6 +268,11 @@
     }, 500);
   }
 
+  /**
+   * Rebuild the "active filter" remove-pills in every `[data-filter-active-pills]`
+   * wrap (there is one in the rail and one in the empty state).
+   * @param {Array<{key: string, value: string, label: string}>} active from `activeList()`.
+   */
   function renderActivePills(active) {
     const build = (target) => {
       target.textContent = '';
@@ -259,6 +298,12 @@
     if (emptyFilters) build(emptyFilters);
   }
 
+  /**
+   * Full re-render: show/hide cards, recompute per-pill live counts, force
+   * open any filter group with an active pill, update the count/empty-state
+   * text, reorder the grid and sync the sort/view controls. Called after any
+   * state change (`update()`) and on `catalog:search`/`popstate`.
+   */
   function render() {
     let shown = 0;
     const visible = [];
@@ -370,6 +415,12 @@
     render();
   }
 
+  /**
+   * Toggle one facet value on/off in `state` and re-render.
+   * @param {string} key facet key.
+   * @param {string} value facet value (slug).
+   * @param {boolean} [forceOff] true to always turn it off (used by the "remove" pills).
+   */
   function toggleValue(key, value, forceOff) {
     const set = state.get(key) || new Set();
     if (set.has(value) || forceOff) set.delete(value);
@@ -449,7 +500,11 @@
     });
   }
 
-  // "Relevance" only exists while there is a query; it is selected on arrival.
+  /**
+   * "Relevance" only exists while there is a query; it is selected on arrival.
+   * Adds/removes the `<option>` and switches `sort` to/from it as the search
+   * box goes from empty to non-empty, unless the visitor already picked a sort.
+   */
   function syncRelevanceOption() {
     if (!sortSelect) return;
     const q = searchInput ? searchInput.value.trim() : '';
@@ -507,6 +562,10 @@
     inerted = [];
   }
 
+  /**
+   * Open the mobile filter sheet, inert the rest of the page, and move focus in.
+   * @param {HTMLElement} [trigger] the button that opened it, refocused on close.
+   */
   function openSheet(trigger) {
     if (!sheet) return;
     sheetTrigger = trigger || null;
@@ -520,6 +579,7 @@
     if (first) first.focus();
   }
 
+  /** Close the mobile filter sheet, release `inert`, and restore focus to its opener. */
   function closeSheet() {
     if (!sheet || sheet.hidden) return;
     sheet.hidden = true;

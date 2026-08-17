@@ -17,6 +17,13 @@ export function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/**
+ * Whether a scalar must be quoted to survive a YAML round trip.
+ * Deliberately over-eager (see file header) — every check here is a case where
+ * an unquoted value would parse back as something other than a string.
+ * @param {string} str
+ * @returns {boolean}
+ */
 function needsQuoting(str) {
   if (str === '') return true;
   if (str !== str.trim()) return true;
@@ -57,6 +64,12 @@ function blockScalarSafe(str) {
   return !str.split('\n').some((line) => /[ \t]$/.test(line));
 }
 
+/**
+ * Render a single non-container value as a YAML scalar, quoting it when
+ * {@link needsQuoting} requires it.
+ * @param {*} value
+ * @returns {string}
+ */
 function scalarToYaml(value) {
   if (value === null || value === undefined) return 'null';
   if (typeof value === 'boolean') return value ? 'true' : 'false';
@@ -65,7 +78,14 @@ function scalarToYaml(value) {
   return needsQuoting(str) ? doubleQuote(str) : str;
 }
 
-/** `|` block scalar lines for a multi-line string. `prefix` is `key:` or `-`. */
+/**
+ * `|` block scalar lines for a multi-line string.
+ * @param {string} prefix `key:` for a mapping entry, `-` for a sequence item.
+ * @param {string} str the string, already known safe via {@link blockScalarSafe}.
+ * @param {string} pad indentation of `prefix` itself.
+ * @param {number} step indent width in spaces, used for the block's child lines.
+ * @returns {string[]} lines to append to the output, including the `prefix |…` header.
+ */
 function blockScalarLines(prefix, str, pad, step) {
   const childPad = pad + ' '.repeat(step);
   const trailing = /\n*$/.exec(str)[0].length;
@@ -91,6 +111,15 @@ function emitMapping(obj, pad, out, step) {
   }
 }
 
+/**
+ * Emit one `key: value` mapping entry, recursing into {@link emitSequence} or
+ * {@link emitMapping} when the value is a container.
+ * @param {string} key
+ * @param {*} value
+ * @param {string} pad indentation for this entry's own line.
+ * @param {string[]} out lines are pushed here (mutated in place).
+ * @param {number} step indent width in spaces.
+ */
 function emitEntry(key, value, pad, out, step) {
   const renderedKey = scalarToYaml(String(key));
   if (Array.isArray(value)) {
@@ -119,6 +148,15 @@ function emitEntry(key, value, pad, out, step) {
   out.push(`${pad}${renderedKey}: ${scalarToYaml(value)}`);
 }
 
+/**
+ * Emit a YAML sequence. A nested object/array item is rendered at `pad + step`
+ * indentation and then its first line is spliced back onto the `-` marker, so
+ * `- key: value` (not `-\n  key: value`).
+ * @param {Array<*>} arr
+ * @param {string} pad indentation of the `-` markers.
+ * @param {string[]} out lines are pushed here (mutated in place).
+ * @param {number} step indent width in spaces.
+ */
 function emitSequence(arr, pad, out, step) {
   const marker = `-${' '.repeat(step - 1)}`;
   for (const item of arr) {

@@ -42,6 +42,12 @@
     statusEl.classList.toggle('hidden', !message);
   }
 
+  /**
+   * Fetch and index `/search.json`, memoizing the result. A failed load is
+   * never memoized (see file header) so the next call retries, up to two
+   * attempts before giving up with a visible message.
+   * @returns {Promise<boolean>} whether `idx` is now usable.
+   */
   function load() {
     if (idx) return Promise.resolve(true);
     if (loading) return loading;
@@ -77,6 +83,12 @@
     return loading;
   }
 
+  /**
+   * Run a lunr query, boosting exact term matches over trailing-wildcard and
+   * fuzzy (edit-distance 1, for terms > 3 chars) matches.
+   * @param {string} q raw search box value.
+   * @returns {object[]} matching docs from the loaded index, in ranked order.
+   */
   function query(q) {
     if (!idx) return [];
     const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
@@ -96,6 +108,11 @@
     return hits.map((h) => docs[Number(h.ref)]).filter(Boolean);
   }
 
+  /**
+   * Publish the current result set for filters.js and fire `catalog:search`.
+   * @param {Set<string>|null} matches entry ids that match, or null for "no query".
+   * @param {string[]} order entry ids in relevance order.
+   */
   function announce(matches, order) {
     window.__searchMatches = matches;
     window.__searchOrder = order;
@@ -112,6 +129,11 @@
     activeIndex = -1;
   }
 
+  /**
+   * Set the active option (keyboard/mouse hover) and mirror it via
+   * `aria-selected`/`aria-activedescendant` for the combobox.
+   * @param {number} i index into `options`, or -1 to clear.
+   */
   function highlight(i) {
     activeIndex = i;
     options.forEach((el, n) => {
@@ -127,6 +149,12 @@
     }
   }
 
+  /**
+   * Build one `role="option"` row for the results listbox.
+   * @param {object} doc a search.json doc.
+   * @param {number} i index, used for the option's id and hover-highlight wiring.
+   * @returns {HTMLLIElement}
+   */
   function optionRow(doc, i) {
     const li = document.createElement('li');
     li.className = 'search-option';
@@ -164,6 +192,11 @@
     if (li && li.dataset.url) window.location.href = li.dataset.url;
   }
 
+  /**
+   * Populate the listbox: up to 5 non-entry hits (events, cohorts, …) first,
+   * then up to 5 entry hits. Closes the listbox instead when nothing matches.
+   * @param {object[]} results docs from `query()`.
+   */
   function renderList(results) {
     if (!listbox) return;
     listbox.textContent = '';
@@ -188,6 +221,7 @@
   /* -------------------------------------------------------------- events */
 
   let timer = null;
+  /** Debounced input handler: load the index if needed, then query, announce and render. */
   function run() {
     const q = input.value.trim();
     if (!q) {
