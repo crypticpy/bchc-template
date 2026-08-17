@@ -91,7 +91,10 @@ export const ICONS = {
 
 function innerSvg(file) {
   const svg = readFileSync(join(HERO, `${file}.svg`), 'utf8');
-  const inner = svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '').trim();
+  const inner = svg
+    .replace(/^[\s\S]*?<svg[^>]*>/, '')
+    .replace(/<\/svg>\s*$/, '')
+    .trim();
   return inner.replace(/\s+/g, ' ').replace(/> </g, '><');
 }
 
@@ -105,13 +108,19 @@ out.push(`Names: ${names.join(' ')}`);
 out.push('{%- endcomment -%}');
 out.push("{%- assign icon_name = include.name | default: 'info' -%}");
 out.push("{%- assign icon_size = include.size | default: 'md' -%}");
-out.push("{%- case icon_size -%}{%- when 'xs' -%}{%- assign icon_size_class = 'h-3 w-3' -%}{%- when 'sm' -%}{%- assign icon_size_class = 'h-4 w-4' -%}{%- when 'lg' -%}{%- assign icon_size_class = 'h-6 w-6' -%}{%- when 'xl' -%}{%- assign icon_size_class = 'h-8 w-8' -%}{%- else -%}{%- assign icon_size_class = 'h-5 w-5' -%}{%- endcase -%}");
-out.push('<svg class="shrink-0 {{ icon_size_class }} {{ include.class }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">');
+out.push(
+  "{%- case icon_size -%}{%- when 'xs' -%}{%- assign icon_size_class = 'h-3 w-3' -%}{%- when 'sm' -%}{%- assign icon_size_class = 'h-4 w-4' -%}{%- when 'lg' -%}{%- assign icon_size_class = 'h-6 w-6' -%}{%- when 'xl' -%}{%- assign icon_size_class = 'h-8 w-8' -%}{%- else -%}{%- assign icon_size_class = 'h-5 w-5' -%}{%- endcase -%}"
+);
+out.push(
+  '<svg class="shrink-0 {{ icon_size_class }} {{ include.class }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">'
+);
 out.push('{%- case icon_name -%}');
 for (const name of names) {
   out.push(`{%- when '${name}' -%}${innerSvg(ICONS[name])}`);
 }
-out.push('{%- else -%}<circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8h.01M11 12h1v4h1"/>');
+out.push(
+  '{%- else -%}<circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8h.01M11 12h1v4h1"/>'
+);
 out.push('{%- endcase -%}');
 out.push('</svg>');
 writeFileSync(join(root, '_includes', 'icon.html'), out.join('\n') + '\n');

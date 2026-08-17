@@ -66,13 +66,18 @@
     const parent = p.parentElement;
     if (!parent || pillContainers.has(parent)) return;
     pillContainers.add(parent);
-    Array.from(parent.children).forEach((el, i) => { el.dataset.index = String(i); });
+    Array.from(parent.children).forEach((el, i) => {
+      el.dataset.index = String(i);
+    });
   });
 
   function reorderPills(container) {
     const current = Array.from(container.children);
-    const byIndex = current.slice().sort((a, b) => Number(a.dataset.index || 0) - Number(b.dataset.index || 0));
-    const ordered = byIndex.filter((el) => !el.classList.contains('is-empty'))
+    const byIndex = current
+      .slice()
+      .sort((a, b) => Number(a.dataset.index || 0) - Number(b.dataset.index || 0));
+    const ordered = byIndex
+      .filter((el) => !el.classList.contains('is-empty'))
       .concat(byIndex.filter((el) => el.classList.contains('is-empty')));
     if (ordered.every((el, i) => el === current[i])) return;
     const frag = document.createDocumentFragment();
@@ -83,7 +88,12 @@
   const facets = cards.map((el) => {
     const map = {};
     keys.forEach((k) => {
-      map[k] = new Set((el.getAttribute('data-facet-' + k) || '').split(',').map((s) => s.trim()).filter(Boolean));
+      map[k] = new Set(
+        (el.getAttribute('data-facet-' + k) || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      );
     });
     return map;
   });
@@ -95,7 +105,16 @@
     state.clear();
     keys.forEach((k) => {
       const raw = params.get(k) || params.get(k.replace(/-/g, '_'));
-      if (raw) state.set(k, new Set(raw.split(',').map((s) => s.trim()).filter(Boolean)));
+      if (raw)
+        state.set(
+          k,
+          new Set(
+            raw
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
+          )
+        );
     });
     if (searchInput) searchInput.value = params.get('q') || '';
     sortExplicit = params.has('sort');
@@ -112,7 +131,9 @@
 
   function writeUrl(push) {
     const params = new URLSearchParams();
-    state.forEach((set, key) => { if (set.size) params.set(key, Array.from(set).join(',')); });
+    state.forEach((set, key) => {
+      if (set.size) params.set(key, Array.from(set).join(','));
+    });
     const q = searchInput ? searchInput.value.trim() : '';
     if (q) params.set('q', q);
     if (sort !== 'newest') params.set('sort', sort);
@@ -136,7 +157,9 @@
       const have = facets[i][key];
       if (!have) return false;
       let hit = false;
-      set.forEach((v) => { if (have.has(v)) hit = true; });
+      set.forEach((v) => {
+        if (have.has(v)) hit = true;
+      });
       if (!hit) return false;
     }
     return true;
@@ -149,21 +172,29 @@
 
   function activeList() {
     const out = [];
-    state.forEach((set, key) => set.forEach((v) => out.push({ key: key, value: v, label: labelFor(key, v) })));
+    state.forEach((set, key) =>
+      set.forEach((v) => out.push({ key: key, value: v, label: labelFor(key, v) }))
+    );
     return out;
   }
 
   /* ------------------------------------------------------------- ordering */
 
   function comparator() {
-    if (sort === 'az') return (a, b) => (cards[a].dataset.entryTitle || '').localeCompare(cards[b].dataset.entryTitle || '');
+    if (sort === 'az')
+      return (a, b) => (cards[a].dataset.entryTitle || '').localeCompare(cards[b].dataset.entryTitle || '');
     if (sort === 'updated') {
-      return (a, b) => (cards[b].dataset.entryUpdated || cards[b].dataset.entryDate || '')
-        .localeCompare(cards[a].dataset.entryUpdated || cards[a].dataset.entryDate || '');
+      return (a, b) =>
+        (cards[b].dataset.entryUpdated || cards[b].dataset.entryDate || '').localeCompare(
+          cards[a].dataset.entryUpdated || cards[a].dataset.entryDate || ''
+        );
     }
     if (sort === 'relevance') {
       const order = Array.isArray(window.__searchOrder) ? window.__searchOrder : [];
-      const rank = (i) => { const r = order.indexOf(cards[i].dataset.entryId); return r === -1 ? 1e6 : r; };
+      const rank = (i) => {
+        const r = order.indexOf(cards[i].dataset.entryId);
+        return r === -1 ? 1e6 : r;
+      };
       return (a, b) => rank(a) - rank(b);
     }
     if (sort.indexOf('field:') === 0) {
@@ -193,7 +224,12 @@
       const names = activeList().map((a) => a.label);
       const q = searchInput ? searchInput.value.trim() : '';
       if (q) names.push('“' + q + '”');
-      statusEl.textContent = shown + ' of ' + total + ' ' + (shown === 1 ? singular : plural) +
+      statusEl.textContent =
+        shown +
+        ' of ' +
+        total +
+        ' ' +
+        (shown === 1 ? singular : plural) +
         (names.length ? '. Filters: ' + names.join(', ') + '.' : '.');
     }, 500);
   }
@@ -213,7 +249,9 @@
         x.setAttribute('aria-hidden', 'true');
         x.textContent = '×';
         btn.appendChild(x);
-        btn.addEventListener('click', () => { toggleValue(a.key, a.value, true); });
+        btn.addEventListener('click', () => {
+          toggleValue(a.key, a.value, true);
+        });
         target.appendChild(btn);
       });
     };
@@ -227,26 +265,36 @@
     cards.forEach((card, i) => {
       const ok = facetOk(i, null) && searchOk(i);
       card.classList.toggle('hidden', !ok);
-      if (ok) { shown++; visible.push(i); }
+      if (ok) {
+        shown++;
+        visible.push(i);
+      }
     });
 
     // Live counts: for each facet, count against everything EXCEPT that facet.
     keys.forEach((key) => {
       const base = [];
-      cards.forEach((_, i) => { if (facetOk(i, key) && searchOk(i)) base.push(i); });
-      pills.filter((p) => p.dataset.filterKey === key).forEach((p) => {
-        const value = p.dataset.filterValue;
-        let n = 0;
-        base.forEach((i) => { if (facets[i][key] && facets[i][key].has(value)) n++; });
-        const on = (state.get(key) || new Set()).has(value);
-        p.setAttribute('aria-pressed', String(on));
-        p.classList.toggle('is-active', on);
-        p.classList.toggle('is-empty', n === 0 && !on);
-        if (n === 0 && !on) p.setAttribute('aria-disabled', 'true'); else p.removeAttribute('aria-disabled');
-        const badge = p.querySelector('[data-filter-count]');
-        if (badge) badge.textContent = n ? String(n) : '0';
-        if (on && p.hasAttribute('data-overflow')) p.classList.remove('hidden');
+      cards.forEach((_, i) => {
+        if (facetOk(i, key) && searchOk(i)) base.push(i);
       });
+      pills
+        .filter((p) => p.dataset.filterKey === key)
+        .forEach((p) => {
+          const value = p.dataset.filterValue;
+          let n = 0;
+          base.forEach((i) => {
+            if (facets[i][key] && facets[i][key].has(value)) n++;
+          });
+          const on = (state.get(key) || new Set()).has(value);
+          p.setAttribute('aria-pressed', String(on));
+          p.classList.toggle('is-active', on);
+          p.classList.toggle('is-empty', n === 0 && !on);
+          if (n === 0 && !on) p.setAttribute('aria-disabled', 'true');
+          else p.removeAttribute('aria-disabled');
+          const badge = p.querySelector('[data-filter-count]');
+          if (badge) badge.textContent = n ? String(n) : '0';
+          if (on && p.hasAttribute('data-overflow')) p.classList.remove('hidden');
+        });
     });
     pillContainers.forEach(reorderPills);
 
@@ -262,14 +310,22 @@
     });
 
     const total = cards.length;
-    document.querySelectorAll('[data-entry-count]').forEach((el) => { el.textContent = String(shown); });
-    document.querySelectorAll('[data-entry-count-label]').forEach((el) => { el.textContent = shown === 1 ? singular : plural; });
-    document.querySelectorAll('[data-entry-total]').forEach((el) => { el.textContent = String(total); });
+    document.querySelectorAll('[data-entry-count]').forEach((el) => {
+      el.textContent = String(shown);
+    });
+    document.querySelectorAll('[data-entry-count-label]').forEach((el) => {
+      el.textContent = shown === 1 ? singular : plural;
+    });
+    document.querySelectorAll('[data-entry-total]').forEach((el) => {
+      el.textContent = String(total);
+    });
 
     const active = activeList();
     const q = searchInput ? searchInput.value.trim() : '';
     const filtered = active.length > 0 || q !== '';
-    document.querySelectorAll('[data-total-wrap]').forEach((el) => { el.hidden = !filtered; });
+    document.querySelectorAll('[data-total-wrap]').forEach((el) => {
+      el.hidden = !filtered;
+    });
     clearButtons.forEach((b) => b.classList.toggle('hidden', !filtered));
     renderActivePills(active);
 
@@ -292,7 +348,10 @@
     if (sortSelect) {
       sortSelect.value = sort;
       // A sort with no matching <option> renders as a blank select; fall back.
-      if (sortSelect.value !== sort) { sort = 'newest'; sortSelect.value = sort; }
+      if (sortSelect.value !== sort) {
+        sort = 'newest';
+        sortSelect.value = sort;
+      }
     }
     grid.dataset.view = view;
     viewButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewToggle === view)));
@@ -300,16 +359,26 @@
 
   function fade() {
     grid.classList.add('is-fading');
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => grid.classList.remove('is-fading')));
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() => grid.classList.remove('is-fading'))
+    );
   }
 
-  function update(push) { writeUrl(push !== false); fade(); render(); }
+  function update(push) {
+    writeUrl(push !== false);
+    fade();
+    render();
+  }
 
   function toggleValue(key, value, forceOff) {
     const set = state.get(key) || new Set();
     if (set.has(value) || forceOff) set.delete(value);
-    else { if (modes.get(key) === 'single') set.clear(); set.add(value); }
-    if (set.size) state.set(key, set); else state.delete(key);
+    else {
+      if (modes.get(key) === 'single') set.clear();
+      set.add(value);
+    }
+    if (set.size) state.set(key, set);
+    else state.delete(key);
     update(true);
   }
 
@@ -317,22 +386,26 @@
 
   // aria-disabled pills stay focusable (so a screen reader still reads the "0")
   // but must not toggle anything.
-  pills.forEach((p) => p.addEventListener('click', () => {
-    if (p.getAttribute('aria-disabled') === 'true') return;
-    toggleValue(p.dataset.filterKey, p.dataset.filterValue);
-  }));
+  pills.forEach((p) =>
+    p.addEventListener('click', () => {
+      if (p.getAttribute('aria-disabled') === 'true') return;
+      toggleValue(p.dataset.filterKey, p.dataset.filterValue);
+    })
+  );
 
-  clearButtons.forEach((b) => b.addEventListener('click', () => {
-    state.clear();
-    if (searchInput && searchInput.value) {
-      searchInput.value = '';
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    if (sort === 'relevance') sort = 'newest';
-    update(true);
-    closeSheet();
-    if (heading) heading.focus();
-  }));
+  clearButtons.forEach((b) =>
+    b.addEventListener('click', () => {
+      state.clear();
+      if (searchInput && searchInput.value) {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (sort === 'relevance') sort = 'newest';
+      update(true);
+      closeSheet();
+      if (heading) heading.focus();
+    })
+  );
 
   document.querySelectorAll('[data-group-toggle]').forEach((toggle) => {
     toggle.addEventListener('click', () => {
@@ -351,14 +424,28 @@
     });
   });
 
-  if (sortSelect) sortSelect.addEventListener('change', () => { sort = sortSelect.value; sortExplicit = true; update(true); });
-  viewButtons.forEach((b) => b.addEventListener('click', () => { view = b.dataset.viewToggle === 'list' ? 'list' : 'grid'; update(true); }));
+  if (sortSelect)
+    sortSelect.addEventListener('change', () => {
+      sort = sortSelect.value;
+      sortExplicit = true;
+      update(true);
+    });
+  viewButtons.forEach((b) =>
+    b.addEventListener('click', () => {
+      view = b.dataset.viewToggle === 'list' ? 'list' : 'grid';
+      update(true);
+    })
+  );
 
   let typeTimer = null;
   if (searchInput) {
     searchInput.addEventListener('input', () => {
       clearTimeout(typeTimer);
-      typeTimer = setTimeout(() => { writeUrl(false); syncRelevanceOption(); render(); }, 300);
+      typeTimer = setTimeout(() => {
+        writeUrl(false);
+        syncRelevanceOption();
+        render();
+      }, 300);
     });
   }
 
@@ -379,7 +466,10 @@
     }
   }
 
-  document.addEventListener('catalog:search', () => { syncRelevanceOption(); render(); });
+  document.addEventListener('catalog:search', () => {
+    syncRelevanceOption();
+    render();
+  });
 
   window.addEventListener('popstate', () => {
     readUrl();
@@ -424,8 +514,9 @@
     document.body.style.overflow = 'hidden';
     sheetOpeners.forEach((b) => b.setAttribute('aria-expanded', 'true'));
     inertOutside();
-    const first = Array.from(sheet.querySelectorAll(FOCUSABLE))
-      .find((el) => !el.classList.contains('hidden') && !el.closest('[hidden]'));
+    const first = Array.from(sheet.querySelectorAll(FOCUSABLE)).find(
+      (el) => !el.classList.contains('hidden') && !el.closest('[hidden]')
+    );
     if (first) first.focus();
   }
 
@@ -441,19 +532,31 @@
   }
 
   sheetOpeners.forEach((b) => b.addEventListener('click', () => openSheet(b)));
-  document.querySelectorAll('[data-sheet-close],[data-sheet-apply]').forEach((b) => b.addEventListener('click', closeSheet));
+  document
+    .querySelectorAll('[data-sheet-close],[data-sheet-apply]')
+    .forEach((b) => b.addEventListener('click', closeSheet));
 
   if (sheet) {
     sheet.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { e.preventDefault(); closeSheet(); return; }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSheet();
+        return;
+      }
       if (e.key !== 'Tab') return;
-      const items = Array.from(sheet.querySelectorAll(FOCUSABLE))
-        .filter((el) => !el.classList.contains('hidden') && !el.closest('[hidden]'));
+      const items = Array.from(sheet.querySelectorAll(FOCUSABLE)).filter(
+        (el) => !el.classList.contains('hidden') && !el.closest('[hidden]')
+      );
       if (!items.length) return;
       const first = items[0];
       const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     });
   }
 

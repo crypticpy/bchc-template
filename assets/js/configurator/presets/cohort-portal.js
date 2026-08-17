@@ -18,7 +18,15 @@ export const cohortPortal = {
       contact_email: 'data-program@example.org',
     },
     logo: { image: '', text: 'DATA' },
-    modules: { catalog: true, submit: true, carousel: true, stats: true, events: true, cohorts: true, resources: false },
+    modules: {
+      catalog: true,
+      submit: true,
+      carousel: true,
+      stats: true,
+      events: true,
+      cohorts: true,
+      resources: false,
+    },
     hero: {
       eyebrow: 'Data Learning Cohorts',
       title: 'What our teams built with data',
@@ -70,13 +78,33 @@ export const cohortPortal = {
     { heading: 'Source Sans 3', body: 'Inter' }
   ),
   schema: {
-    entry: { singular: 'Team project', plural: 'Team projects', path: 'catalog', sort: 'published', sort_order: 'desc' },
+    entry: {
+      singular: 'Team project',
+      plural: 'Team projects',
+      path: 'catalog',
+      sort: 'published',
+      sort_order: 'desc',
+    },
     sections: { details: 'Project details', links: 'Materials', contact: 'Team & coach' },
     groups: [
-      { key: 'about', title: 'About the project', description: 'The question the team asked and what came of it.' },
-      { key: 'team', title: 'Team', description: 'Who did the work and who coached them.', placement: 'rail' },
+      {
+        key: 'about',
+        title: 'About the project',
+        description: 'The question the team asked and what came of it.',
+      },
+      {
+        key: 'team',
+        title: 'Team',
+        description: 'Who did the work and who coached them.',
+        placement: 'rail',
+      },
       { key: 'method', title: 'Method', description: 'The data, tools and techniques behind the result.' },
-      { key: 'materials', title: 'Materials', description: 'Dashboards, posters and anything else to share.', placement: 'rail' },
+      {
+        key: 'materials',
+        title: 'Materials',
+        description: 'Dashboards, posters and anything else to share.',
+        placement: 'rail',
+      },
       { key: 'story', title: 'The write-up', description: 'The full story, in the team’s own words.' },
     ],
     fields: [
@@ -84,7 +112,8 @@ export const cohortPortal = {
       {
         ...SUMMARY_FIELD,
         prompt: 'In one or two sentences, what did the team do?',
-        placeholder: 'Compared summer 911 heat calls against cooling center locations to find under-served neighborhoods.',
+        placeholder:
+          'Compared summer 911 heat calls against cooling center locations to find under-served neighborhoods.',
       },
       {
         key: 'finding',
@@ -239,12 +268,32 @@ export const cohortPortal = {
           'Stakeholder interviews',
         ],
         option_meta: {
-          'Data cleaning': { short: 'Cleaning', icon: 'filter', description: 'Reshaping messy source data into something analysable.' },
+          'Data cleaning': {
+            short: 'Cleaning',
+            icon: 'filter',
+            description: 'Reshaping messy source data into something analysable.',
+          },
           Statistics: { icon: 'chart-bar', description: 'Testing whether an observed pattern holds up.' },
-          'Mapping & GIS': { short: 'Mapping', icon: 'location-pin', description: 'Working with geography and spatial joins.' },
-          Visualization: { short: 'Visuals', icon: 'presentation', description: 'Charts and dashboards built for a specific audience.' },
-          Automation: { icon: 'bolt', tone: 'primary', description: 'A scheduled job or script that keeps the work current.' },
-          'Stakeholder interviews': { short: 'Interviews', icon: 'chat', description: 'Talking to the people who will use the result.' },
+          'Mapping & GIS': {
+            short: 'Mapping',
+            icon: 'location-pin',
+            description: 'Working with geography and spatial joins.',
+          },
+          Visualization: {
+            short: 'Visuals',
+            icon: 'presentation',
+            description: 'Charts and dashboards built for a specific audience.',
+          },
+          Automation: {
+            icon: 'bolt',
+            tone: 'primary',
+            description: 'A scheduled job or script that keeps the work current.',
+          },
+          'Stakeholder interviews': {
+            short: 'Interviews',
+            icon: 'chat',
+            description: 'Talking to the people who will use the result.',
+          },
         },
         description: 'Select all that apply.',
       },

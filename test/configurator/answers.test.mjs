@@ -1,10 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { applyAnswers, answersFromConfig, navigationFromSite, COLOR_QUESTIONS } from '../../assets/js/configurator/answers.js';
+import {
+  applyAnswers,
+  answersFromConfig,
+  navigationFromSite,
+  COLOR_QUESTIONS,
+} from '../../assets/js/configurator/answers.js';
 import { defaultConfig } from '../../assets/js/configurator/default-config.js';
-import { slugify, snakeKey, githubEditFileUrl, githubNewFileUrl, prefillNoticeIfTooLong } from '../../assets/js/configurator/strings.js';
-import { contrastRatio, derivePrimaryDark, isHexColor, meetsAA, parseHexColor } from '../../assets/js/configurator/color.js';
+import {
+  slugify,
+  snakeKey,
+  githubEditFileUrl,
+  githubNewFileUrl,
+  prefillNoticeIfTooLong,
+} from '../../assets/js/configurator/strings.js';
+import {
+  contrastRatio,
+  derivePrimaryDark,
+  isHexColor,
+  meetsAA,
+  parseHexColor,
+} from '../../assets/js/configurator/color.js';
 
 test('answers overwrite the base config, blanks and all', () => {
   const config = applyAnswers(defaultConfig(), {
@@ -105,7 +122,10 @@ test('GitHub URLs escape the branch and the path', () => {
     'https://github.com/org/repo/edit/main/_data/site.yml'
   );
   assert.equal(githubEditFileUrl('', 'main', 'x'), '', 'no repository, no link');
-  assert.match(githubNewFileUrl('org/repo', 'main', '_data/site.yml', 'name: x'), /\?filename=_data%2Fsite\.yml&value=name/);
+  assert.match(
+    githubNewFileUrl('org/repo', 'main', '_data/site.yml', 'name: x'),
+    /\?filename=_data%2Fsite\.yml&value=name/
+  );
   assert.equal(prefillNoticeIfTooLong('x'.repeat(7001)), true);
   assert.equal(prefillNoticeIfTooLong('x'), false);
 });

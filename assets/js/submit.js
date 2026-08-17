@@ -29,7 +29,10 @@
    */
   function copy(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text).then(() => true, () => false);
+      return navigator.clipboard.writeText(text).then(
+        () => true,
+        () => false
+      );
     }
     return Promise.resolve(false);
   }
@@ -76,19 +79,22 @@
 
     const sections = Array.from(form.querySelectorAll('[data-section]'));
     if (typeof IntersectionObserver === 'function' && sections.length > 0) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const key = entry.target.dataset.section;
-          links.forEach((link) => {
-            link.setAttribute('aria-current', String(link.dataset.progressLink === key));
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const key = entry.target.dataset.section;
+            links.forEach((link) => {
+              link.setAttribute('aria-current', String(link.dataset.progressLink === key));
+            });
+            // The sticky mobile bar is the only place a small screen shows which
+            // section it is in, so it tracks the same observer as the rail.
+            const heading = entry.target.querySelector('h2');
+            if (lineSection && heading) lineSection.textContent = heading.textContent.trim();
           });
-          // The sticky mobile bar is the only place a small screen shows which
-          // section it is in, so it tracks the same observer as the rail.
-          const heading = entry.target.querySelector('h2');
-          if (lineSection && heading) lineSection.textContent = heading.textContent.trim();
-        });
-      }, { rootMargin: '-20% 0px -70% 0px' });
+        },
+        { rootMargin: '-20% 0px -70% 0px' }
+      );
       sections.forEach((section) => observer.observe(section));
     }
 
@@ -144,9 +150,10 @@
       const length = ns.issueUrl(form, fields, entryTitle()).length;
       const near = length >= URL_WARN_AT;
       if (near) {
-        lengthNote.textContent = length > MAX_URL
-          ? 'Your answers are now too long to carry in a link. Pressing the button below will hand you the text to paste into a blank issue instead.'
-          : 'Your answers are getting long. A little more and they will not fit in a link — you will be given text to paste into a blank issue instead.';
+        lengthNote.textContent =
+          length > MAX_URL
+            ? 'Your answers are now too long to carry in a link. Pressing the button below will hand you the text to paste into a blank issue instead.'
+            : 'Your answers are getting long. A little more and they will not fit in a link — you will be given text to paste into a blank issue instead.';
       }
       lengthNote.hidden = !near;
     }
@@ -177,14 +184,19 @@
     });
     form.addEventListener('change', refresh);
 
-    form.addEventListener('blur', (event) => {
-      const wrap = event.target.closest ? event.target.closest('[data-field]') : null;
-      if (!wrap) return;
-      const field = fields.find((candidate) => candidate.wrap === wrap);
-      if (!field) return;
-      const message = ns.checkField(field);
-      if (message) ns.showError(field, message); else ns.clearError(field);
-    }, true);
+    form.addEventListener(
+      'blur',
+      (event) => {
+        const wrap = event.target.closest ? event.target.closest('[data-field]') : null;
+        if (!wrap) return;
+        const field = fields.find((candidate) => candidate.wrap === wrap);
+        if (!field) return;
+        const message = ns.checkField(field);
+        if (message) ns.showError(field, message);
+        else ns.clearError(field);
+      },
+      true
+    );
 
     form.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -198,24 +210,34 @@
 
       const url = ns.issueUrl(form, fields, entryTitle());
       if (url.length > MAX_URL) {
-        showFallback('Your answers are too long to carry in a link. Copy the text below into a blank issue instead — the box is right under these buttons.', '');
+        showFallback(
+          'Your answers are too long to carry in a link. Copy the text below into a blank issue instead — the box is right under these buttons.',
+          ''
+        );
         return;
       }
 
       const missed = ns.unprefillable(fields).map((field) => field.label);
-      const note = missed.length > 0
-        ? ' GitHub cannot prefill tick boxes, so re-answer ' + missed.join(', ') + ' on that page.'
-        : '';
+      const note =
+        missed.length > 0
+          ? ' GitHub cannot prefill tick boxes, so re-answer ' + missed.join(', ') + ' on that page.'
+          : '';
 
       // Only drop the draft once the new tab actually exists. A blocked popup
       // used to clear it anyway, so the answers were gone and nothing had
       // opened; now the copy-paste route appears and the draft stays put.
       const opened = window.open(url, '_blank', 'noopener');
       if (!opened) {
-        showFallback('Your browser blocked the new tab. Use the link below to open the prefilled issue, or copy the text and paste it into a blank issue.', url);
+        showFallback(
+          'Your browser blocked the new tab. Use the link below to open the prefilled issue, or copy the text and paste it into a blank issue.',
+          url
+        );
         return;
       }
-      say(status, 'Opening GitHub with your answers filled in. Check them over and press “Submit new issue”.' + note);
+      say(
+        status,
+        'Opening GitHub with your answers filled in. Check them over and press “Submit new issue”.' + note
+      );
       draft.clear();
     });
 
@@ -253,17 +275,24 @@
         return;
       }
 
-      const text = action === 'copy-yaml' ? ns.yamlFrontMatter(fields)
-        : action === 'copy-markdown' ? ns.markdownBody(fields)
-          : action === 'copy-fallback' && fallbackBody ? fallbackBody.value
-            : null;
+      const text =
+        action === 'copy-yaml'
+          ? ns.yamlFrontMatter(fields)
+          : action === 'copy-markdown'
+            ? ns.markdownBody(fields)
+            : action === 'copy-fallback' && fallbackBody
+              ? fallbackBody.value
+              : null;
       if (text === null) return;
       if (!text.trim()) {
         say(status, 'There is nothing to copy yet.');
         return;
       }
       copy(text).then((ok) => {
-        say(status, ok ? 'Copied to your clipboard.' : 'Copying failed — select the text and copy it by hand.');
+        say(
+          status,
+          ok ? 'Copied to your clipboard.' : 'Copying failed — select the text and copy it by hand.'
+        );
       });
     });
 
@@ -288,4 +317,4 @@
   }
 
   ns.init = init;
-})(window.SubmitForm = window.SubmitForm || {});
+})((window.SubmitForm = window.SubmitForm || {}));

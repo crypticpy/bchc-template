@@ -17,7 +17,15 @@ export const resourceLibrary = {
       contact_email: 'library@example.org',
     },
     logo: { image: '', text: 'LIB' },
-    modules: { catalog: true, submit: true, carousel: true, stats: true, events: false, cohorts: false, resources: false },
+    modules: {
+      catalog: true,
+      submit: true,
+      carousel: true,
+      stats: true,
+      events: false,
+      cohorts: false,
+      resources: false,
+    },
     hero: {
       eyebrow: 'Curated by practitioners',
       title: 'Find the resource you need, fast',
@@ -65,13 +73,28 @@ export const resourceLibrary = {
   }),
   theme: theme({ primary: '#1F6F50', primary_dark: '#123F2E', secondary: '#2C6E9E', accent: '#D98E04' }),
   schema: {
-    entry: { singular: 'Resource', plural: 'Resources', path: 'catalog', sort: 'published', sort_order: 'desc' },
+    entry: {
+      singular: 'Resource',
+      plural: 'Resources',
+      path: 'catalog',
+      sort: 'published',
+      sort_order: 'desc',
+    },
     sections: { details: 'Details', links: 'Links', contact: 'Contact' },
     groups: [
       { key: 'about', title: 'About', description: 'What it is and who published it.' },
       { key: 'audience', title: 'Who it is for', description: 'The people and topics it serves.' },
-      { key: 'access', title: 'Format & access', description: 'How it is delivered and what it takes to use it.' },
-      { key: 'links', title: 'Where to find it', description: 'The canonical link and anything alongside it.', placement: 'rail' },
+      {
+        key: 'access',
+        title: 'Format & access',
+        description: 'How it is delivered and what it takes to use it.',
+      },
+      {
+        key: 'links',
+        title: 'Where to find it',
+        description: 'The canonical link and anything alongside it.',
+        placement: 'rail',
+      },
       { key: 'notes', title: 'Notes', description: 'Why it is worth someone’s time.' },
     ],
     fields: [
@@ -79,7 +102,8 @@ export const resourceLibrary = {
       {
         ...SUMMARY_FIELD,
         prompt: 'In one or two sentences, what does it give you?',
-        placeholder: 'A step-by-step toolkit for running a community health needs assessment, with templates and sample surveys.',
+        placeholder:
+          'A step-by-step toolkit for running a community health needs assessment, with templates and sample surveys.',
       },
       {
         key: 'resource_type',
@@ -165,14 +189,41 @@ export const resourceLibrary = {
         facet: true,
         card: 'icon',
         icon: 'users',
-        options: ['Leadership', 'Program staff', 'Epidemiologists', 'Communications', 'IT & data teams', 'Community partners'],
+        options: [
+          'Leadership',
+          'Program staff',
+          'Epidemiologists',
+          'Communications',
+          'IT & data teams',
+          'Community partners',
+        ],
         option_meta: {
           Leadership: { icon: 'star', description: 'Directors and deputies making the call.' },
-          'Program staff': { short: 'Program', icon: 'users', description: 'The people running the service day to day.' },
-          Epidemiologists: { short: 'Epi', icon: 'chart-bar', description: 'Analysts and surveillance staff.' },
-          Communications: { short: 'Comms', icon: 'microphone', description: 'Public information and outreach teams.' },
-          'IT & data teams': { short: 'IT & data', icon: 'server', description: 'Engineers, DBAs and informatics staff.' },
-          'Community partners': { short: 'Partners', icon: 'globe', description: 'CBOs, clinics and coalition members.' },
+          'Program staff': {
+            short: 'Program',
+            icon: 'users',
+            description: 'The people running the service day to day.',
+          },
+          Epidemiologists: {
+            short: 'Epi',
+            icon: 'chart-bar',
+            description: 'Analysts and surveillance staff.',
+          },
+          Communications: {
+            short: 'Comms',
+            icon: 'microphone',
+            description: 'Public information and outreach teams.',
+          },
+          'IT & data teams': {
+            short: 'IT & data',
+            icon: 'server',
+            description: 'Engineers, DBAs and informatics staff.',
+          },
+          'Community partners': {
+            short: 'Partners',
+            icon: 'globe',
+            description: 'CBOs, clinics and coalition members.',
+          },
         },
         description: 'Select all that apply.',
       },
@@ -187,7 +238,10 @@ export const resourceLibrary = {
         icon: 'language',
         options: ['English', 'Spanish', 'Multiple languages'],
         option_meta: {
-          'Multiple languages': { short: 'Multilingual', description: 'Published in three or more languages.' },
+          'Multiple languages': {
+            short: 'Multilingual',
+            description: 'Published in three or more languages.',
+          },
         },
       },
       {
@@ -221,13 +275,42 @@ export const resourceLibrary = {
         facet: true,
         card: 'icon',
         icon: 'lock',
-        options: ['Freely available', 'Free account required', 'Paid or licensed', 'Members only', 'Request required'],
+        options: [
+          'Freely available',
+          'Free account required',
+          'Paid or licensed',
+          'Members only',
+          'Request required',
+        ],
         option_meta: {
-          'Freely available': { short: 'Free', icon: 'globe', tone: 'primary', description: 'Open on the public web, no sign-in.' },
-          'Free account required': { short: 'Sign-in', icon: 'user', description: 'Free, but you have to register first.' },
-          'Paid or licensed': { short: 'Paid', icon: 'credit-card', tone: 'warn', description: 'Costs money or needs a license.' },
-          'Members only': { short: 'Members', icon: 'lock', tone: 'warn', description: 'Restricted to members of a specific body.' },
-          'Request required': { short: 'On request', icon: 'mail', description: 'You email the publisher to get a copy.' },
+          'Freely available': {
+            short: 'Free',
+            icon: 'globe',
+            tone: 'primary',
+            description: 'Open on the public web, no sign-in.',
+          },
+          'Free account required': {
+            short: 'Sign-in',
+            icon: 'user',
+            description: 'Free, but you have to register first.',
+          },
+          'Paid or licensed': {
+            short: 'Paid',
+            icon: 'credit-card',
+            tone: 'warn',
+            description: 'Costs money or needs a license.',
+          },
+          'Members only': {
+            short: 'Members',
+            icon: 'lock',
+            tone: 'warn',
+            description: 'Restricted to members of a specific body.',
+          },
+          'Request required': {
+            short: 'On request',
+            icon: 'mail',
+            description: 'You email the publisher to get a copy.',
+          },
         },
         description: 'Select all that apply.',
       },

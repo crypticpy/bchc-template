@@ -19,7 +19,17 @@ test('jekyllConfig substitutes the four values the wizard owns', () => {
 test('jekyllConfig leaves every build setting alone', () => {
   const shipped = jsYaml.load(DEFAULT_JEKYLL_CONFIG);
   const doc = jsYaml.load(jekyllConfig(site));
-  for (const key of ['theme', 'timezone', 'markdown', 'permalink', 'future', 'exclude', 'defaults', 'plugins', 'sass']) {
+  for (const key of [
+    'theme',
+    'timezone',
+    'markdown',
+    'permalink',
+    'future',
+    'exclude',
+    'defaults',
+    'plugins',
+    'sass',
+  ]) {
     assert.deepEqual(doc[key], shipped[key], key);
   }
   assert.match(jekyllConfig(site), /^# Jekyll configuration\./, 'the comment header survives');
@@ -31,7 +41,9 @@ test('regenerating the shipped site reproduces _config.yml', () => {
 });
 
 test('patchJekyllConfig rewrites only the lines it owns', () => {
-  const existing = ['title: "Old"', 'description: "Old too"', 'url: ""', 'custom_setting: keep-me', ''].join('\n');
+  const existing = ['title: "Old"', 'description: "Old too"', 'url: ""', 'custom_setting: keep-me', ''].join(
+    '\n'
+  );
   const { text, changed } = patchJekyllConfig(existing, site);
   assert.deepEqual(changed, ['title', 'description']);
   assert.match(text, /custom_setting: keep-me/);

@@ -16,7 +16,12 @@ import { defaultConfig } from './default-config.js';
  * @type {{key: string, path: string, label: string, help: string}[]}
  */
 export const COLOR_QUESTIONS = [
-  { key: 'primary', path: 'primary', label: 'Main colour', help: 'Buttons, links and the active state of controls.' },
+  {
+    key: 'primary',
+    path: 'primary',
+    label: 'Main colour',
+    help: 'Buttons, links and the active state of controls.',
+  },
   {
     key: 'primaryDark',
     path: 'primary_dark',

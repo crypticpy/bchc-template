@@ -107,7 +107,9 @@ lines.push('---');
 
 const dir = path.join(process.cwd(), 'cohorts', year, 'events', eventId);
 if (fs.existsSync(dir)) {
-  console.error(`An event already exists at cohorts/${year}/events/${eventId}. Aborting rather than overwriting it.`);
+  console.error(
+    `An event already exists at cohorts/${year}/events/${eventId}. Aborting rather than overwriting it.`
+  );
   process.exit(1);
 }
 
@@ -119,7 +121,10 @@ fs.writeFileSync(
 );
 
 if (process.env.GITHUB_OUTPUT) {
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, `slug=${eventId}\nyear=${year}\nbranch=event/${year}-${eventId}\n`);
+  fs.appendFileSync(
+    process.env.GITHUB_OUTPUT,
+    `slug=${eventId}\nyear=${year}\nbranch=event/${year}-${eventId}\n`
+  );
 }
 
 console.log(`Scaffolded cohorts/${year}/events/${eventId}/index.md.`);

@@ -62,7 +62,9 @@ export function parseIssueForm(body, knownLabels = [], finalLabel = '') {
   /** @type {string[]} */
   const warnings = [];
   const seen = new Set();
-  const lines = String(body ?? '').replace(/\r\n?/g, '\n').split('\n');
+  const lines = String(body ?? '')
+    .replace(/\r\n?/g, '\n')
+    .split('\n');
 
   let heading = null;
   let buffer = [];
@@ -244,7 +246,9 @@ export function parseLinks(raw) {
 export function parseImageRefs(raw) {
   const found = new Map();
   const add = (url, alt) => {
-    const clean = String(url ?? '').trim().replace(/[).,]+$/, '');
+    const clean = String(url ?? '')
+      .trim()
+      .replace(/[).,]+$/, '');
     if (!isHttpUrl(clean) || found.has(clean)) return;
     found.set(clean, { url: clean, alt: String(alt ?? '').trim() });
   };

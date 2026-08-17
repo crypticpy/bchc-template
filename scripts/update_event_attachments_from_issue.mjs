@@ -54,7 +54,9 @@ for (const section of body.split(/^###[ \t]+/m).slice(1)) {
 
 const year = (values.cohort_year || '').trim();
 const eventId = (values.event_id || '').trim();
-const mode = (values.update_mode || values.mode || 'REPLACE').toUpperCase().includes('APPEND') ? 'APPEND' : 'REPLACE';
+const mode = (values.update_mode || values.mode || 'REPLACE').toUpperCase().includes('APPEND')
+  ? 'APPEND'
+  : 'REPLACE';
 
 const newItems = (values.attachments || '')
   .split('\n')

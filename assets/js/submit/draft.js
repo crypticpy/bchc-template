@@ -79,7 +79,8 @@
       try {
         memory.setItem(key, JSON.stringify({ saved: new Date().toISOString(), fields: data }));
       } catch (error) {
-        if (status) status.textContent = 'This browser would not save a draft. Copy your answers before leaving.';
+        if (status)
+          status.textContent = 'This browser would not save a draft. Copy your answers before leaving.';
         return;
       }
       if (status) status.textContent = 'Draft saved on this device.';
@@ -144,4 +145,4 @@
 
     return { save: save, clear: clear, flush: write };
   };
-})(window.SubmitForm = window.SubmitForm || {});
+})((window.SubmitForm = window.SubmitForm || {}));

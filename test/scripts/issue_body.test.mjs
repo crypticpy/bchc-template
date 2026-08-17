@@ -27,11 +27,31 @@ const minimal = fs.readFileSync(path.join(FIXTURES, 'issue-minimal.md'), 'utf8')
 const adversarial = fs.readFileSync(path.join(FIXTURES, 'issue-adversarial.md'), 'utf8');
 
 const LABELS = [
-  'Title', 'One-sentence summary', 'Result in one line', 'Organization', 'What is being shared',
-  'Area of work', 'Stage', 'How AI is involved', 'Types of AI', 'AI tools & models', 'Where it runs',
-  'Vendor or partner', 'Skills needed to set it up', 'Readiness', 'Source code', 'Live site or demo',
-  'Documentation or write-up', 'Other resources', 'Screenshots', 'Data it touches', 'Data sources',
-  'Who sees the output', 'Contact name', 'Contact email', 'Full write-up',
+  'Title',
+  'One-sentence summary',
+  'Result in one line',
+  'Organization',
+  'What is being shared',
+  'Area of work',
+  'Stage',
+  'How AI is involved',
+  'Types of AI',
+  'AI tools & models',
+  'Where it runs',
+  'Vendor or partner',
+  'Skills needed to set it up',
+  'Readiness',
+  'Source code',
+  'Live site or demo',
+  'Documentation or write-up',
+  'Other resources',
+  'Screenshots',
+  'Data it touches',
+  'Data sources',
+  'Who sees the output',
+  'Contact name',
+  'Contact email',
+  'Full write-up',
 ];
 
 test('normalizeLabel folds case, whitespace and an (optional) suffix', () => {
@@ -80,8 +100,19 @@ test('a repeated heading before the write-up is ignored with a warning', () => {
 
 test('duplicate headings inside the write-up raise no warning at all', () => {
   const body = [
-    '### Title', '', 'Real', '',
-    '### Full write-up', '', '### Title', '', 'Forged', '', '### Title', '', 'Forged again',
+    '### Title',
+    '',
+    'Real',
+    '',
+    '### Full write-up',
+    '',
+    '### Title',
+    '',
+    'Forged',
+    '',
+    '### Title',
+    '',
+    'Forged again',
   ].join('\n');
   const { sections, warnings } = parseIssueForm(body, ['Title', 'Full write-up'], 'Full write-up');
   assert.equal(sections.get('title'), 'Real');
@@ -120,10 +151,7 @@ test('parseMultiselect drops every unticked checkbox line', () => {
 
 test('parseMultiselect keeps options that contain a comma', () => {
   const options = ['Cloud deployment (AWS, Azure, GCP)', 'Internal tool'];
-  assert.deepEqual(
-    parseMultiselect('Cloud deployment (AWS, Azure, GCP), Internal tool', options),
-    options
-  );
+  assert.deepEqual(parseMultiselect('Cloud deployment (AWS, Azure, GCP), Internal tool', options), options);
 });
 
 test('parseMultiselect de-duplicates and falls back to a comma split', () => {
@@ -178,9 +206,18 @@ test('slugify and uniqueSlug', () => {
   assert.equal(slugify('Overdose Spike: Brief Generator!'), 'overdose-spike-brief-generator');
   assert.equal(slugify(''), '');
   const taken = new Set(['brief', 'brief-2']);
-  assert.equal(uniqueSlug('brief', (s) => taken.has(s)), 'brief-3');
-  assert.equal(uniqueSlug('fresh', () => false), 'fresh');
-  assert.equal(uniqueSlug('brief', () => true, 3), '');
+  assert.equal(
+    uniqueSlug('brief', (s) => taken.has(s)),
+    'brief-3'
+  );
+  assert.equal(
+    uniqueSlug('fresh', () => false),
+    'fresh'
+  );
+  assert.equal(
+    uniqueSlug('brief', () => true, 3),
+    ''
+  );
 });
 
 test('isHttpUrl and hostOf', () => {

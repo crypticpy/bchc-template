@@ -40,9 +40,17 @@ async function boot(options = {}) {
   });
   const { window } = dom;
   const opened = [];
-  window.open = (url) => { opened.push(url); return options.popupBlocked ? null : { focus() {} }; };
+  window.open = (url) => {
+    opened.push(url);
+    return options.popupBlocked ? null : { focus() {} };
+  };
   const copied = [];
-  window.navigator.clipboard = { writeText: (text) => { copied.push(text); return Promise.resolve(); } };
+  window.navigator.clipboard = {
+    writeText: (text) => {
+      copied.push(text);
+      return Promise.resolve();
+    },
+  };
 
   await new Promise((resolve) => {
     if (window.document.readyState === 'complete') resolve();
@@ -100,8 +108,9 @@ function answer(ctx, key, value) {
   const wrap = ctx.form.querySelector('[data-field="' + key + '"]');
   const type = wrap.dataset.type;
   if (type === 'select' || type === 'multiselect') {
-    const choice = Array.from(wrap.querySelectorAll('input[value]'))
-      .find((input) => (value ? input.value === value : input.value && !input.hasAttribute('data-clear')));
+    const choice = Array.from(wrap.querySelectorAll('input[value]')).find((input) =>
+      value ? input.value === value : input.value && !input.hasAttribute('data-clear')
+    );
     choice.checked = true;
     choice.dispatchEvent(new ctx.window.Event('change', { bubbles: true }));
     return;
@@ -194,10 +203,7 @@ test('a complete form opens a prefilled issue URL', async () => {
   assert.equal(url.searchParams.get('contact_email'), 'someone@example.org');
   // GitHub cannot prefill `checkboxes`, so multiselect answers are left out.
   assert.equal(url.searchParams.get('area'), null);
-  assert.match(
-    ctx.form.querySelector('[data-submit-status]').textContent,
-    /cannot prefill tick boxes/
-  );
+  assert.match(ctx.form.querySelector('[data-submit-status]').textContent, /cannot prefill tick boxes/);
 });
 
 test('the Markdown fallback keeps the answers GitHub cannot prefill', async () => {
@@ -249,13 +255,15 @@ test('the progress rail counts completed sections', async () => {
 
   // Answering every required field completes every section that has one.
   const expected = new Set(
-    Array.from(ctx.form.querySelectorAll('[data-required="true"]'))
-      .map((wrap) => wrap.closest('[data-section]').dataset.section)
+    Array.from(ctx.form.querySelectorAll('[data-required="true"]')).map(
+      (wrap) => wrap.closest('[data-section]').dataset.section
+    )
   );
   fillRequired(ctx);
   assert.equal(line.textContent, expected.size + ' of ' + total + ' sections complete');
-  const done = Array.from(ctx.document.querySelectorAll('[data-progress-link][data-done="true"]'))
-    .map((link) => link.dataset.progressLink);
+  const done = Array.from(ctx.document.querySelectorAll('[data-progress-link][data-done="true"]')).map(
+    (link) => link.dataset.progressLink
+  );
   assert.deepEqual(new Set(done), expected);
 });
 
@@ -355,8 +363,17 @@ test('the preview card mirrors the real card element and class names', async () 
   const card = ctx.document.querySelector('[data-preview]');
   assert.equal(card.tagName, 'ARTICLE');
   assert.ok(card.classList.contains('entry-card'));
-  ['entry-media', 'entry-body', 'entry-meta', 'entry-title', 'entry-line', 'entry-summary',
-    'entry-chips', 'entry-foot', 'signal-strip'].forEach((name) => {
+  [
+    'entry-media',
+    'entry-body',
+    'entry-meta',
+    'entry-title',
+    'entry-line',
+    'entry-summary',
+    'entry-chips',
+    'entry-foot',
+    'signal-strip',
+  ].forEach((name) => {
     assert.ok(card.querySelector('.' + name), name + ' is missing from the preview');
   });
   // The card's title is not a heading, so the preview's must not be either.
@@ -370,10 +387,8 @@ test('link rows are numbered for screen readers and adding one moves focus', asy
   add.click();
   add.click();
 
-  const labels = () => Array.from(
-    wrap.querySelectorAll('[data-links-remove]'),
-    (button) => button.getAttribute('aria-label')
-  );
+  const labels = () =>
+    Array.from(wrap.querySelectorAll('[data-links-remove]'), (button) => button.getAttribute('aria-label'));
   assert.deepEqual(labels(), ['Remove link 1', 'Remove link 2', 'Remove link 3']);
   const rows = wrap.querySelectorAll('[data-links-rows] > *');
   assert.equal(ctx.document.activeElement, rows[2].querySelector('[data-links-label]'));

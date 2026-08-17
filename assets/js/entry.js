@@ -36,7 +36,9 @@
       if (!status) return;
       status.textContent = message;
       window.clearTimeout(timer);
-      timer = window.setTimeout(() => { status.textContent = ''; }, 4000);
+      timer = window.setTimeout(() => {
+        status.textContent = '';
+      }, 4000);
     }
   }
 

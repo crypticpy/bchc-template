@@ -41,12 +41,20 @@
       if (control.tagName === 'SELECT') {
         const option = control.options[control.selectedIndex];
         if (option && option.value) {
-          picked.push({ value: option.value, index: option.dataset.optionIndex, short: option.dataset.short || option.value });
+          picked.push({
+            value: option.value,
+            index: option.dataset.optionIndex,
+            short: option.dataset.short || option.value,
+          });
         }
         return;
       }
       if (control.hasAttribute('data-clear') || !control.value) return;
-      picked.push({ value: control.value, index: control.dataset.optionIndex, short: control.dataset.short || control.value });
+      picked.push({
+        value: control.value,
+        index: control.dataset.optionIndex,
+        short: control.dataset.short || control.value,
+      });
     });
     return picked;
   }
@@ -131,7 +139,8 @@
         return false;
       });
       image.alt = alt;
-      if (src) image.src = src; else image.removeAttribute('src');
+      if (src) image.src = src;
+      else image.removeAttribute('src');
       toggle(media, Boolean(src));
     }
 
@@ -190,7 +199,8 @@
       const slot = view.querySelector('[data-line-text]');
       const picked = chosenOptions(field)[0];
       const value = ns.readValue(field);
-      if (slot) slot.textContent = picked ? picked.short : (Array.isArray(value) ? value.join(', ') : String(value));
+      if (slot)
+        slot.textContent = picked ? picked.short : Array.isArray(value) ? value.join(', ') : String(value);
       line.appendChild(view);
       toggle(line, true);
     }
@@ -287,4 +297,4 @@
       paintSignals();
     };
   };
-})(window.SubmitForm = window.SubmitForm || {});
+})((window.SubmitForm = window.SubmitForm || {}));

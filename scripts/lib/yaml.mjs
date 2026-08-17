@@ -46,13 +46,20 @@ export function quote(value) {
     .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, (char) => {
       const code = char.codePointAt(0);
       switch (code) {
-        case 0x09: return '\\t';
-        case 0x0a: return '\\n';
-        case 0x0d: return '\\r';
-        case 0x1b: return '\\e';
-        case 0x85: return '\\N';
-        case 0x2028: return '\\L';
-        case 0x2029: return '\\P';
+        case 0x09:
+          return '\\t';
+        case 0x0a:
+          return '\\n';
+        case 0x0d:
+          return '\\r';
+        case 0x1b:
+          return '\\e';
+        case 0x85:
+          return '\\N';
+        case 0x2028:
+          return '\\L';
+        case 0x2029:
+          return '\\P';
         default:
           return code <= 0xff
             ? `\\x${code.toString(16).padStart(2, '0')}`

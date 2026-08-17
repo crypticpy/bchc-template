@@ -176,9 +176,12 @@ class Asker {
   }
 }
 
-const hexValidator = (value) => (core.isHexColor(value) ? null : 'Enter a 6-digit hex color such as #1D4E89.');
-const emailValidator = (value) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : 'Enter a valid email address.');
-const repoValidator = (value) => (/^[\w.-]+\/[\w.-]+$/.test(value) ? null : 'Use the form owner/repo, e.g. bigcities/ai-catalog.');
+const hexValidator = (value) =>
+  core.isHexColor(value) ? null : 'Enter a 6-digit hex color such as #1D4E89.';
+const emailValidator = (value) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : 'Enter a valid email address.';
+const repoValidator = (value) =>
+  /^[\w.-]+\/[\w.-]+$/.test(value) ? null : 'Use the form owner/repo, e.g. bigcities/ai-catalog.';
 const requiredValidator = (value) => (String(value).trim() ? null : 'This cannot be empty.');
 
 /* -------------------------------------------------------------------------- */
@@ -226,9 +229,12 @@ const RADIUS_CHOICES = [
 const FONT_CHOICES = [
   { id: 'Inter', name: 'Inter', description: 'Bundled. Neutral, excellent at small sizes.' },
   { id: 'Source Sans 3', name: 'Source Sans 3', description: 'Bundled. Slightly warmer, good for headings.' },
-  { id: 'other', name: 'Something else', description: 'Any family, loaded from a Google Fonts URL you provide.' },
+  {
+    id: 'other',
+    name: 'Something else',
+    description: 'Any family, loaded from a Google Fonts URL you provide.',
+  },
 ];
-
 
 // Entry folders shipped as sample content: catalog/<slug>/index.md whose front
 // matter carries `sample: true` (all template samples do). User content never does.
@@ -238,16 +244,22 @@ function listSampleEntries() {
       const raw = fs.readFileSync(path.join(ROOT, '_data', 'schema.yml'), 'utf8');
       const m = raw.match(/^\s+path:\s*["']?([\w-]+)/m);
       return m ? m[1] : 'catalog';
-    } catch { return 'catalog'; }
+    } catch {
+      return 'catalog';
+    }
   })();
   const dir = path.join(ROOT, entryPath);
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir, { withFileTypes: true })
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .map((d) => path.join(dir, d.name))
     .filter((d) => {
       const f = path.join(d, 'index.md');
-      return fs.existsSync(f) && /^sample:\s*true\s*$/m.test(fs.readFileSync(f, 'utf8').split(/^---\s*$/m)[1] || '');
+      return (
+        fs.existsSync(f) &&
+        /^sample:\s*true\s*$/m.test(fs.readFileSync(f, 'utf8').split(/^---\s*$/m)[1] || '')
+      );
     });
 }
 
@@ -255,7 +267,9 @@ function currentSchemaFields() {
   try {
     const raw = fs.readFileSync(path.join(ROOT, '_data', 'schema.yml'), 'utf8');
     return [...raw.matchAll(/^\s+-\s+key:\s*([\w-]+)/gm)].map((m) => m[1]);
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 async function main() {
@@ -290,7 +304,11 @@ async function main() {
     if (args.preset) {
       preset = presets.find((p) => p.id === args.preset);
       if (!preset) {
-        console.error(red(`Unknown preset ${JSON.stringify(args.preset)}. Available: ${presets.map((p) => p.id).join(', ')}`));
+        console.error(
+          red(
+            `Unknown preset ${JSON.stringify(args.preset)}. Available: ${presets.map((p) => p.id).join(', ')}`
+          )
+        );
         return 1;
       }
       console.log(`Starting from ${bold(preset.name)}.\n`);
@@ -306,61 +324,117 @@ async function main() {
     answers.tagline = await asker.text('Tagline (one short line under the site name)', base.site.tagline);
     answers.description = await asker.text('Description (used for SEO and the feed)', base.site.description);
 
-    answers.orgName = await asker.text('Organization name', base.site.organization.name, { validate: requiredValidator });
-    answers.orgShort = await asker.text('Organization short name / initials', base.site.organization.short_name);
-    answers.logoText = await asker.text('Logo text mark (shown when no logo image is set)', base.site.logo.text || answers.orgShort);
+    answers.orgName = await asker.text('Organization name', base.site.organization.name, {
+      validate: requiredValidator,
+    });
+    answers.orgShort = await asker.text(
+      'Organization short name / initials',
+      base.site.organization.short_name
+    );
+    answers.logoText = await asker.text(
+      'Logo text mark (shown when no logo image is set)',
+      base.site.logo.text || answers.orgShort
+    );
     answers.orgUrl = await asker.text('Organization website', base.site.organization.url);
-    answers.contactEmail = await asker.text('Contact email', base.site.organization.contact_email, { validate: emailValidator });
+    answers.contactEmail = await asker.text('Contact email', base.site.organization.contact_email, {
+      validate: emailValidator,
+    });
     answers.submitFallbackEmail = answers.contactEmail;
 
     const gitRepository = repositoryFromGit();
-    answers.repository = await asker.text('GitHub repository (owner/repo)', gitRepository || base.site.github.repository, {
-      help: gitRepository ? 'Detected from your git remote.' : 'Where this site lives. Used for submit links and "edit this page".',
-      validate: repoValidator,
-    });
+    answers.repository = await asker.text(
+      'GitHub repository (owner/repo)',
+      gitRepository || base.site.github.repository,
+      {
+        help: gitRepository
+          ? 'Detected from your git remote.'
+          : 'Where this site lives. Used for submit links and "edit this page".',
+        validate: repoValidator,
+      }
+    );
     answers.branch = await asker.text('Branch GitHub Pages builds from', base.site.github.branch);
 
     // --- 3. colors and type -------------------------------------------------
     console.log(bold('Colors') + dim(' — 6-digit hex. Keep text on background at 4.5:1 contrast.'));
-    answers.primary = await asker.text('Primary (buttons, links)', base.theme.colors.primary, { validate: hexValidator });
-    answers.primaryDark = await asker.text('Primary dark (hero and footer background)', base.theme.colors.primary_dark, {
+    answers.primary = await asker.text('Primary (buttons, links)', base.theme.colors.primary, {
       validate: hexValidator,
     });
-    answers.secondary = await asker.text('Secondary (supporting badges)', base.theme.colors.secondary, { validate: hexValidator });
-    answers.accent = await asker.text('Accent (warm highlights)', base.theme.colors.accent, { validate: hexValidator });
+    answers.primaryDark = await asker.text(
+      'Primary dark (hero and footer background)',
+      base.theme.colors.primary_dark,
+      {
+        validate: hexValidator,
+      }
+    );
+    answers.secondary = await asker.text('Secondary (supporting badges)', base.theme.colors.secondary, {
+      validate: hexValidator,
+    });
+    answers.accent = await asker.text('Accent (warm highlights)', base.theme.colors.accent, {
+      validate: hexValidator,
+    });
 
     const primaryContrast = core.contrastRatio(base.theme.colors.on_dark ?? '#FFFFFF', answers.primaryDark);
     if (primaryContrast !== null && primaryContrast < 4.5) {
-      console.log(red(`  Warning: text on the primary-dark background is only ${primaryContrast.toFixed(1)}:1 (AA needs 4.5:1).`));
-      console.log(dim('  Pick a darker primary_dark, or edit theme.colors.on_dark in _data/theme.yml afterwards.\n'));
+      console.log(
+        red(
+          `  Warning: text on the primary-dark background is only ${primaryContrast.toFixed(1)}:1 (AA needs 4.5:1).`
+        )
+      );
+      console.log(
+        dim('  Pick a darker primary_dark, or edit theme.colors.on_dark in _data/theme.yml afterwards.\n')
+      );
     }
 
-    const headingChoice = await asker.choose('Heading font:', FONT_CHOICES, FONT_CHOICES.findIndex((f) => f.id === base.theme.fonts.heading) >= 0 ? FONT_CHOICES.findIndex((f) => f.id === base.theme.fonts.heading) : 0);
+    const headingChoice = await asker.choose(
+      'Heading font:',
+      FONT_CHOICES,
+      FONT_CHOICES.findIndex((f) => f.id === base.theme.fonts.heading) >= 0
+        ? FONT_CHOICES.findIndex((f) => f.id === base.theme.fonts.heading)
+        : 0
+    );
     if (headingChoice.id === 'other') {
       answers.headingFont = await asker.text('Heading font family name', base.theme.fonts.heading);
-      answers.googleFontsUrl = await asker.text('Google Fonts <link> href', base.theme.fonts.google_fonts_url, {
-        help: 'Copy the href from fonts.google.com, e.g. https://fonts.googleapis.com/css2?family=...&display=swap',
-      });
+      answers.googleFontsUrl = await asker.text(
+        'Google Fonts <link> href',
+        base.theme.fonts.google_fonts_url,
+        {
+          help: 'Copy the href from fonts.google.com, e.g. https://fonts.googleapis.com/css2?family=...&display=swap',
+        }
+      );
     } else {
       answers.headingFont = headingChoice.id;
     }
 
-    const bodyChoice = await asker.choose('Body font:', FONT_CHOICES, FONT_CHOICES.findIndex((f) => f.id === base.theme.fonts.body) >= 0 ? FONT_CHOICES.findIndex((f) => f.id === base.theme.fonts.body) : 0);
+    const bodyChoice = await asker.choose(
+      'Body font:',
+      FONT_CHOICES,
+      FONT_CHOICES.findIndex((f) => f.id === base.theme.fonts.body) >= 0
+        ? FONT_CHOICES.findIndex((f) => f.id === base.theme.fonts.body)
+        : 0
+    );
     if (bodyChoice.id === 'other') {
       answers.bodyFont = await asker.text('Body font family name', base.theme.fonts.body);
-      answers.googleFontsUrl = await asker.text('Google Fonts <link> href', answers.googleFontsUrl ?? base.theme.fonts.google_fonts_url);
+      answers.googleFontsUrl = await asker.text(
+        'Google Fonts <link> href',
+        answers.googleFontsUrl ?? base.theme.fonts.google_fonts_url
+      );
     } else {
       answers.bodyFont = bodyChoice.id;
     }
 
-    const radiusIndex = Math.max(0, RADIUS_CHOICES.findIndex((r) => r.id === base.theme.radius));
+    const radiusIndex = Math.max(
+      0,
+      RADIUS_CHOICES.findIndex((r) => r.id === base.theme.radius)
+    );
     answers.radius = (await asker.choose('Corner rounding:', RADIUS_CHOICES, radiusIndex)).id;
 
     // --- 4. modules ---------------------------------------------------------
     console.log(bold('Modules') + dim(' — turn sections of the site on or off. You can change these later.'));
     answers.modules = {};
     for (const [key, enabled] of Object.entries(base.site.modules)) {
-      answers.modules[key] = await asker.confirm(`  Enable ${bold(key)}?`, enabled, { help: MODULE_HELP[key] });
+      answers.modules[key] = await asker.confirm(`  Enable ${bold(key)}?`, enabled, {
+        help: MODULE_HELP[key],
+      });
     }
     console.log('');
     if (!answers.modules.catalog) {
@@ -368,17 +442,26 @@ async function main() {
     }
 
     // --- 5. entry naming ----------------------------------------------------
-    answers.entrySingular = await asker.text('What is one entry called? (singular)', base.schema.entry.singular, {
-      help: 'Used in buttons, the issue form and page headings. e.g. "Use case", "Resource", "Team project".',
-      validate: requiredValidator,
-    });
+    answers.entrySingular = await asker.text(
+      'What is one entry called? (singular)',
+      base.schema.entry.singular,
+      {
+        help: 'Used in buttons, the issue form and page headings. e.g. "Use case", "Resource", "Team project".',
+        validate: requiredValidator,
+      }
+    );
     answers.entryPlural = await asker.text('And several of them? (plural)', base.schema.entry.plural, {
       validate: requiredValidator,
     });
 
     // --- 6. copy ------------------------------------------------------------
-    answers.heroEyebrow = await asker.text('Home page eyebrow (small line above the headline)', base.site.hero.eyebrow);
-    answers.heroTitle = await asker.text('Home page headline', base.site.hero.title, { validate: requiredValidator });
+    answers.heroEyebrow = await asker.text(
+      'Home page eyebrow (small line above the headline)',
+      base.site.hero.eyebrow
+    );
+    answers.heroTitle = await asker.text('Home page headline', base.site.hero.title, {
+      validate: requiredValidator,
+    });
     answers.heroLead = await asker.text('Home page lead paragraph', base.site.hero.lead);
     answers.submitIntro = await asker.text('Submission page intro', base.site.submit.intro);
     answers.footerAbout = await asker.text('Footer "about" paragraph', base.site.footer.about);
@@ -409,13 +492,22 @@ async function main() {
     // --- summary ------------------------------------------------------------
     console.log(bold('\nFiles to write:\n'));
     for (const [relative, content] of Object.entries(files)) {
-      console.log(`  ${relative.padEnd(42)} ${args.out ? green('new file') : diffSummary(relative, content)}`);
+      console.log(
+        `  ${relative.padEnd(42)} ${args.out ? green('new file') : diffSummary(relative, content)}`
+      );
     }
     console.log('');
     console.log(`  Site        ${bold(config.site.name)}`);
-    console.log(`  Entries     ${config.schema.entry.singular} / ${config.schema.entry.plural} (${config.schema.fields.length} fields)`);
     console.log(
-      `  Modules on  ${Object.entries(config.site.modules).filter(([, on]) => on).map(([key]) => key).join(', ') || 'none'}`
+      `  Entries     ${config.schema.entry.singular} / ${config.schema.entry.plural} (${config.schema.fields.length} fields)`
+    );
+    console.log(
+      `  Modules on  ${
+        Object.entries(config.site.modules)
+          .filter(([, on]) => on)
+          .map(([key]) => key)
+          .join(', ') || 'none'
+      }`
     );
     console.log(`  Repository  ${config.site.github.repository} (${config.site.github.branch})`);
     console.log('');
@@ -449,7 +541,8 @@ async function main() {
     // --- sample content -----------------------------------------------------
     // The shipped sample entries were written for the default entry model. If
     // the schema changed, they will fail validation, so offer to remove them.
-    const schemaChanged = JSON.stringify(previousFields) !== JSON.stringify(config.schema.fields.map((f) => f.key));
+    const schemaChanged =
+      JSON.stringify(previousFields) !== JSON.stringify(config.schema.fields.map((f) => f.key));
     const sampleEntries = listSampleEntries();
     if (sampleEntries.length && (schemaChanged || preset.id !== 'current')) {
       const remove = await asker.confirm(
@@ -458,16 +551,26 @@ async function main() {
       );
       if (remove) {
         for (const dir of sampleEntries) fs.rmSync(dir, { recursive: true, force: true });
-        console.log(dim(`  Removed ${sampleEntries.length} sample ${sampleEntries.length === 1 ? 'entry' : 'entries'}. Sample data in _data/events.yml, _data/cohorts/ and _data/resources.yml is left in place — edit or clear it as needed.`));
+        console.log(
+          dim(
+            `  Removed ${sampleEntries.length} sample ${sampleEntries.length === 1 ? 'entry' : 'entries'}. Sample data in _data/events.yml, _data/cohorts/ and _data/resources.yml is left in place — edit or clear it as needed.`
+          )
+        );
       }
     }
 
     // --- next steps ---------------------------------------------------------
     console.log(green(bold('\nDone.')) + ' Next steps:\n');
     console.log(`  1. Review the changes:      ${cyan('git diff')}`);
-    console.log(`  2. Commit and push:         ${cyan('git add -A && git commit -m "chore: configure site" && git push')}`);
-    console.log(`  3. Enable GitHub Pages:     ${cyan(`https://github.com/${config.site.github.repository}/settings/pages`)}`);
-    console.log(dim(`     Source: "GitHub Actions". The site builds from the ${config.site.github.branch} branch.`));
+    console.log(
+      `  2. Commit and push:         ${cyan('git add -A && git commit -m "chore: configure site" && git push')}`
+    );
+    console.log(
+      `  3. Enable GitHub Pages:     ${cyan(`https://github.com/${config.site.github.repository}/settings/pages`)}`
+    );
+    console.log(
+      dim(`     Source: "GitHub Actions". The site builds from the ${config.site.github.branch} branch.`)
+    );
     console.log('');
     console.log(dim('  To change the entry fields, edit _data/schema.yml and run `npm run generate`'));
     console.log(dim('  (that rebuilds .github/ISSUE_TEMPLATE/new-entry.yml), or use the field editor'));

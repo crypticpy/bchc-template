@@ -122,7 +122,10 @@
     const control = field.wrap.querySelector('input, textarea');
     const text = control ? String(control.value || '').trim() : '';
     if (field.type === 'list') {
-      return text.split('\n').map((line) => line.trim()).filter(Boolean);
+      return text
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
     }
     return text;
   };
@@ -161,7 +164,9 @@
     if (field.type === 'select') {
       const radios = field.wrap.querySelectorAll('input[type=radio]');
       if (radios.length > 0) {
-        radios.forEach((input) => { input.checked = input.value === value; });
+        radios.forEach((input) => {
+          input.checked = input.value === value;
+        });
         return;
       }
       const select = field.wrap.querySelector('select');
@@ -203,4 +208,4 @@
     if (LIST_TYPES.has(field.type)) return value.join('\n');
     return String(value);
   };
-})(window.SubmitForm = window.SubmitForm || {});
+})((window.SubmitForm = window.SubmitForm || {}));

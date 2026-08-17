@@ -22,10 +22,7 @@ function report(ok, label, detail) {
 
 // --- YAML data files -------------------------------------------------------
 
-const dataFiles = [
-  ...listYaml(path.join(ROOT, '_data')),
-  ...listYaml(path.join(ROOT, '_data', 'cohorts')),
-];
+const dataFiles = [...listYaml(path.join(ROOT, '_data')), ...listYaml(path.join(ROOT, '_data', 'cohorts'))];
 
 function listYaml(dir) {
   if (!fs.existsSync(dir)) return [];

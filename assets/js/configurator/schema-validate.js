@@ -114,7 +114,11 @@ function checkEntry(entry, report) {
       report.error(`entry.${key}`, `\`entry.${key}\` must be a non-empty string.`);
     }
   }
-  if (entry.path !== undefined && isNonEmptyString(entry.path) && !/^[a-z0-9][a-z0-9-]*$/.test(entry.path.trim())) {
+  if (
+    entry.path !== undefined &&
+    isNonEmptyString(entry.path) &&
+    !/^[a-z0-9][a-z0-9-]*$/.test(entry.path.trim())
+  ) {
     report.error('entry.path', '`entry.path` must be a lowercase URL segment such as `catalog`.');
   }
   if (entry.sort_order !== undefined && !['asc', 'desc'].includes(String(entry.sort_order).trim())) {
@@ -132,7 +136,8 @@ function checkSections(sections, report) {
     return;
   }
   for (const [key, value] of Object.entries(sections)) {
-    if (!isNonEmptyString(value)) report.error(`sections.${key}`, `The heading for section "${key}" is empty.`);
+    if (!isNonEmptyString(value))
+      report.error(`sections.${key}`, `The heading for section "${key}" is empty.`);
   }
 }
 
@@ -159,7 +164,8 @@ function checkGroups(groups, report) {
     } else {
       keys.add(key);
     }
-    if (!isNonEmptyString(group.title)) report.error(`${path}.title`, `Group "${key || index}" needs a \`title\`.`);
+    if (!isNonEmptyString(group.title))
+      report.error(`${path}.title`, `Group "${key || index}" needs a \`title\`.`);
     if (group.description !== undefined && !isNonEmptyString(group.description)) {
       report.error(`${path}.description`, `Group "${key || index}" has an empty \`description\`.`);
     }
@@ -193,9 +199,13 @@ function checkOptionMeta(field, path, options, report) {
       continue;
     }
     if (value.short !== undefined) {
-      if (!isNonEmptyString(value.short)) report.error(`${where}.short`, '`short` must be a non-empty string.');
+      if (!isNonEmptyString(value.short))
+        report.error(`${where}.short`, '`short` must be a non-empty string.');
       else if (value.short.trim().length > SHORT_MAX) {
-        report.warn(`${where}.short`, `"${value.short}" is ${value.short.trim().length} characters; ${SHORT_MAX} or fewer fits a chip.`);
+        report.warn(
+          `${where}.short`,
+          `"${value.short}" is ${value.short.trim().length} characters; ${SHORT_MAX} or fewer fits a chip.`
+        );
       }
     }
     if (value.tone !== undefined && !OPTION_TONES.includes(String(value.tone).trim())) {
@@ -254,7 +264,10 @@ function checkPresentation(field, path, type, groupKeys, report) {
   if (field.facet !== undefined) {
     if (typeof field.facet !== 'boolean') report.error(`${path}.facet`, '`facet` must be true or false.');
     else if (field.facet && !FACET_TYPES.includes(type)) {
-      report.error(`${path}.facet`, `A ${type} field cannot be a filter — \`facet\` works on: ${FACET_TYPES.join(', ')}.`);
+      report.error(
+        `${path}.facet`,
+        `A ${type} field cannot be a filter — \`facet\` works on: ${FACET_TYPES.join(', ')}.`
+      );
     }
   }
 
@@ -267,7 +280,10 @@ function checkPresentation(field, path, type, groupKeys, report) {
   }
 
   if (field.thumbnail !== undefined && type !== 'file') {
-    report.error(`${path}.thumbnail`, '`thumbnail` only applies to `file` fields (a thumb is rendered from page 1).');
+    report.error(
+      `${path}.thumbnail`,
+      '`thumbnail` only applies to `file` fields (a thumb is rendered from page 1).'
+    );
   }
 }
 
@@ -316,9 +332,15 @@ export function checkSchema(schema) {
 
     if (!key) report.error(`${path}.key`, 'Missing `key`.');
     else if (!/^[a-z][a-z0-9_]*$/.test(key)) {
-      report.error(`${path}.key`, `"${key}" must be snake_case: lowercase letters, digits and underscores, starting with a letter.`);
+      report.error(
+        `${path}.key`,
+        `"${key}" must be snake_case: lowercase letters, digits and underscores, starting with a letter.`
+      );
     } else if (RESERVED_KEYS.includes(key)) {
-      report.error(`${path}.key`, `"${key}" is managed by the site and is always present — remove it from \`fields\`.`);
+      report.error(
+        `${path}.key`,
+        `"${key}" is managed by the site and is always present — remove it from \`fields\`.`
+      );
     } else if (seenKeys.has(key)) {
       report.error(`${path}.key`, `"${key}" is already used by field ${seenKeys.get(key) + 1}.`);
     } else {
@@ -341,7 +363,10 @@ export function checkSchema(schema) {
 
     const type = typeof field.type === 'string' ? field.type.trim() : '';
     if (!FIELD_TYPES.includes(type)) {
-      report.error(`${path}.type`, `Unknown type ${JSON.stringify(field.type ?? null)}. Use one of: ${FIELD_TYPES.join(', ')}.`);
+      report.error(
+        `${path}.type`,
+        `Unknown type ${JSON.stringify(field.type ?? null)}. Use one of: ${FIELD_TYPES.join(', ')}.`
+      );
       return;
     }
 
@@ -350,9 +375,12 @@ export function checkSchema(schema) {
 
     let options = [];
     if (OPTION_TYPES.has(type)) {
-      options = Array.isArray(field.options) ? field.options.filter((o) => isNonEmptyString(o)).map((o) => o.trim()) : [];
+      options = Array.isArray(field.options)
+        ? field.options.filter((o) => isNonEmptyString(o)).map((o) => o.trim())
+        : [];
       if (options.length === 0) report.error(`${path}.options`, `A ${type} field needs at least one option.`);
-      if (new Set(options).size !== options.length) report.error(`${path}.options`, 'Options must be unique.');
+      if (new Set(options).size !== options.length)
+        report.error(`${path}.options`, 'Options must be unique.');
     } else if (field.options !== undefined && NO_OPTION_TYPES.has(type)) {
       report.error(`${path}.options`, `A ${type} field has no fixed choices — remove \`options\`.`);
     }
@@ -360,17 +388,26 @@ export function checkSchema(schema) {
     checkOptionMeta(field, path, options, report);
 
     if (type === 'file' && !isNonEmptyString(field.filename)) {
-      report.error(`${path}.filename`, 'A file field needs a `filename` (e.g. deck.pdf) so contributors know what to upload.');
+      report.error(
+        `${path}.filename`,
+        'A file field needs a `filename` (e.g. deck.pdf) so contributors know what to upload.'
+      );
     }
 
     checkPresentation(field, path, type, groupKeys, report);
   });
 
   if (markdownCount > 1) {
-    report.error('fields', `Only one field may be \`markdown\` — it becomes the page body; found ${markdownCount}.`);
+    report.error(
+      'fields',
+      `Only one field may be \`markdown\` — it becomes the page body; found ${markdownCount}.`
+    );
   }
   if (lineCount > 1) {
-    report.error('fields', `Only one field may use \`card: line\` — the card has room for one; found ${lineCount}.`);
+    report.error(
+      'fields',
+      `Only one field may use \`card: line\` — the card has room for one; found ${lineCount}.`
+    );
   }
 
   return { ok: report.errors.length === 0, errors: report.errors, warnings: report.warnings };

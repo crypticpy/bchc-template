@@ -49,7 +49,10 @@ const PRIVATE_SUFFIXES = ['.internal', '.local', '.localhost', 'localhost'];
  * @returns {boolean}
  */
 export function isBlockedAddress(address) {
-  const value = String(address ?? '').trim().toLowerCase().replace(/^\[|\]$/g, '');
+  const value = String(address ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/^\[|\]$/g, '');
   if (!value) return true;
 
   const version = net.isIP(value);
@@ -91,7 +94,10 @@ export function isBlockedAddress(address) {
  */
 export async function assertPublicHost(url, dnsImpl = dnsPromises) {
   const hostname = new URL(url).hostname;
-  const host = hostname.replace(/^\[|\]$/g, '').toLowerCase().replace(/\.$/, '');
+  const host = hostname
+    .replace(/^\[|\]$/g, '')
+    .toLowerCase()
+    .replace(/\.$/, '');
 
   if (PRIVATE_SUFFIXES.some((suffix) => host === suffix.replace(/^\./, '') || host.endsWith(suffix))) {
     throw new Error(`${hostname} is a private hostname`);
@@ -115,7 +121,10 @@ export async function assertPublicHost(url, dnsImpl = dnsPromises) {
  * @returns {string}
  */
 export function extensionForContentType(contentType) {
-  const type = String(contentType ?? '').split(';')[0].trim().toLowerCase();
+  const type = String(contentType ?? '')
+    .split(';')[0]
+    .trim()
+    .toLowerCase();
   return TYPE_EXTENSIONS.get(type) ?? '';
 }
 
@@ -127,12 +136,32 @@ export function extensionForContentType(contentType) {
  */
 export function sniffImageType(bytes) {
   const b = bytes ?? new Uint8Array();
-  if (b.length >= 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 &&
-      b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a) return 'png';
+  if (
+    b.length >= 8 &&
+    b[0] === 0x89 &&
+    b[1] === 0x50 &&
+    b[2] === 0x4e &&
+    b[3] === 0x47 &&
+    b[4] === 0x0d &&
+    b[5] === 0x0a &&
+    b[6] === 0x1a &&
+    b[7] === 0x0a
+  )
+    return 'png';
   if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'jpg';
   if (b.length >= 6 && b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38) return 'gif';
-  if (b.length >= 12 && b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
-      b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return 'webp';
+  if (
+    b.length >= 12 &&
+    b[0] === 0x52 &&
+    b[1] === 0x49 &&
+    b[2] === 0x46 &&
+    b[3] === 0x46 &&
+    b[8] === 0x57 &&
+    b[9] === 0x45 &&
+    b[10] === 0x42 &&
+    b[11] === 0x50
+  )
+    return 'webp';
   return '';
 }
 
@@ -251,7 +280,9 @@ export async function downloadImages(refs, options) {
 
   if (candidates.length === 0) return { items, warnings };
   if (candidates.length > maxFiles) {
-    warnings.push(`Only the first ${maxFiles} images were saved; ${candidates.length - maxFiles} were ignored.`);
+    warnings.push(
+      `Only the first ${maxFiles} images were saved; ${candidates.length - maxFiles} were ignored.`
+    );
   }
 
   let total = 0;
@@ -278,7 +309,9 @@ export async function downloadImages(refs, options) {
       });
 
       if (!bytes) {
-        warnings.push(`Could not download ${url} (HTTP ${response.status}). Left it out — re-add it in this pull request if it should be included.`);
+        warnings.push(
+          `Could not download ${url} (HTTP ${response.status}). Left it out — re-add it in this pull request if it should be included.`
+        );
         continue;
       }
 
@@ -294,7 +327,9 @@ export async function downloadImages(refs, options) {
         continue;
       }
       if (total + bytes.length > maxTotalBytes) {
-        warnings.push(`Skipped ${url} — the images add up to more than ${Math.round(maxTotalBytes / (1024 * 1024))} MB.`);
+        warnings.push(
+          `Skipped ${url} — the images add up to more than ${Math.round(maxTotalBytes / (1024 * 1024))} MB.`
+        );
         continue;
       }
 
@@ -305,7 +340,9 @@ export async function downloadImages(refs, options) {
       fsImpl.writeFileSync(path.join(destDir, name), bytes);
       items.push({ src: `${publicPrefix}/${name}`, alt: alt || altFallback });
     } catch (error) {
-      warnings.push(`Could not download ${url} (${error.message}). Left it out — re-add it in this pull request if it should be included.`);
+      warnings.push(
+        `Could not download ${url} (${error.message}). Left it out — re-add it in this pull request if it should be included.`
+      );
     }
   }
 

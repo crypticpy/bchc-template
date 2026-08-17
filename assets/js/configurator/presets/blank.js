@@ -17,7 +17,15 @@ export const blank = {
       contact_email: 'you@example.org',
     },
     logo: { image: '', text: 'ORG' },
-    modules: { catalog: true, submit: true, carousel: false, stats: false, events: false, cohorts: false, resources: false },
+    modules: {
+      catalog: true,
+      submit: true,
+      carousel: false,
+      stats: false,
+      events: false,
+      cohorts: false,
+      resources: false,
+    },
     hero: {
       eyebrow: 'Your Organization',
       title: 'A catalog of things worth sharing',
@@ -33,7 +41,8 @@ export const blank = {
       fallback_email: 'you@example.org',
     },
     footer: {
-      about: 'Replace this with a sentence or two about who maintains this catalog and how entries are reviewed.',
+      about:
+        'Replace this with a sentence or two about who maintains this catalog and how entries are reviewed.',
       links: [
         { label: 'Organization home', url: 'https://example.org' },
         { label: 'Submit an entry', url: '/submit/' },
@@ -48,7 +57,12 @@ export const blank = {
     groups: [
       { key: 'about', title: 'About', description: 'What this entry is.' },
       { key: 'details', title: 'Details', description: 'How you want people to find it.' },
-      { key: 'links', title: 'Links & images', description: 'Anything to look at or click through to.', placement: 'rail' },
+      {
+        key: 'links',
+        title: 'Links & images',
+        description: 'Anything to look at or click through to.',
+        placement: 'rail',
+      },
     ],
     fields: [
       { ...TITLE_FIELD, placeholder: 'A clear, specific title' },
@@ -65,9 +79,21 @@ export const blank = {
         icon: 'layers',
         options: ['Category one', 'Category two', 'Category three'],
         option_meta: {
-          'Category one': { short: 'One', icon: 'star', description: 'Replace this with what the first category means.' },
-          'Category two': { short: 'Two', icon: 'flag', description: 'Replace this with what the second category means.' },
-          'Category three': { short: 'Three', icon: 'bolt', description: 'Replace this with what the third category means.' },
+          'Category one': {
+            short: 'One',
+            icon: 'star',
+            description: 'Replace this with what the first category means.',
+          },
+          'Category two': {
+            short: 'Two',
+            icon: 'flag',
+            description: 'Replace this with what the second category means.',
+          },
+          'Category three': {
+            short: 'Three',
+            icon: 'bolt',
+            description: 'Replace this with what the third category means.',
+          },
         },
         description: 'Replace these options with your own categories.',
       },

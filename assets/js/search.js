@@ -22,7 +22,10 @@
   const indexUrl = input.dataset.searchIndex || '/search.json';
 
   if (typeof lunr === 'undefined') {
-    if (statusEl) { statusEl.textContent = 'Search is unavailable — try again.'; statusEl.classList.remove('hidden'); }
+    if (statusEl) {
+      statusEl.textContent = 'Search is unavailable — try again.';
+      statusEl.classList.remove('hidden');
+    }
     return;
   }
 
@@ -44,7 +47,10 @@
     if (loading) return loading;
     attempts += 1;
     loading = fetch(indexUrl)
-      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then((r) => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
       .then((data) => {
         docs = (data && data.docs) || [];
         idx = lunr(function () {
@@ -53,7 +59,9 @@
           this.field('summary', { boost: 4 });
           this.field('text');
           this.metadataWhitelist = [];
-          docs.forEach((d, i) => this.add({ i: String(i), title: d.title, summary: d.summary, text: d.text }));
+          docs.forEach((d, i) =>
+            this.add({ i: String(i), title: d.title, summary: d.summary, text: d.text })
+          );
         });
         setStatus('');
         return true;
@@ -82,7 +90,9 @@
           if (t.length > 3) qb.term(t, { editDistance: 1 });
         });
       });
-    } catch (e) { hits = []; }
+    } catch (e) {
+      hits = [];
+    }
     return hits.map((h) => docs[Number(h.ref)]).filter(Boolean);
   }
 
@@ -142,7 +152,10 @@
 
     li.appendChild(text);
     li.appendChild(kind);
-    li.addEventListener('mousedown', (e) => { e.preventDefault(); go(li); });
+    li.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      go(li);
+    });
     li.addEventListener('mouseenter', () => highlight(i));
     return li;
   }
@@ -158,7 +171,10 @@
     const others = results.filter((d) => d.kind !== 'entry').slice(0, 5);
     const entries = results.filter((d) => d.kind === 'entry').slice(0, 5);
     const shown = others.concat(entries);
-    if (!shown.length) { close(); return; }
+    if (!shown.length) {
+      close();
+      return;
+    }
     shown.forEach((doc, i) => {
       const li = optionRow(doc, i);
       options.push(li);
@@ -174,9 +190,17 @@
   let timer = null;
   function run() {
     const q = input.value.trim();
-    if (!q) { announce(null, []); close(); return; }
+    if (!q) {
+      announce(null, []);
+      close();
+      return;
+    }
     load().then((ok) => {
-      if (!ok) { announce(null, []); close(); return; }
+      if (!ok) {
+        announce(null, []);
+        close();
+        return;
+      }
       const results = query(q);
       const entryIds = results.filter((d) => d.kind === 'entry').map((d) => d.id);
       announce(new Set(entryIds), entryIds);
@@ -184,29 +208,43 @@
     });
   }
 
-  input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 120); });
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(run, 120);
+  });
   input.addEventListener('focus', () => load());
 
   input.addEventListener('keydown', (e) => {
     const open = listbox && !listbox.hidden;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      if (!open) { run(); return; }
+      if (!open) {
+        run();
+        return;
+      }
       highlight(activeIndex + 1 >= options.length ? 0 : activeIndex + 1);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (!open) return;
       highlight(activeIndex - 1 < 0 ? options.length - 1 : activeIndex - 1);
     } else if (e.key === 'Enter') {
-      if (open && activeIndex >= 0) { e.preventDefault(); go(options[activeIndex]); }
-      else close();
+      if (open && activeIndex >= 0) {
+        e.preventDefault();
+        go(options[activeIndex]);
+      } else close();
     } else if (e.key === 'Escape') {
       // First Esc closes the listbox, a second one clears the query.
-      if (open) { e.preventDefault(); close(); }
+      if (open) {
+        e.preventDefault();
+        close();
+      }
       // Clearing has to go through the same path a keystroke takes, otherwise
       // filters.js never hears about it and ?q= survives in the URL (and a
       // relevance sort is left selected with no query to rank against).
-      else if (input.value) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+      else if (input.value) {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
     }
   });
 
@@ -215,5 +253,4 @@
     if (listbox && listbox.contains(e.target)) return;
     close();
   });
-
 })();

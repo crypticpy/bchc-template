@@ -1,17 +1,11 @@
 {
   "defaults": {
     "standard": "WCAG2AA",
-    "runners": [
-      "axe",
-      "htmlcs"
-    ],
+    "runners": ["axe", "htmlcs"],
     "timeout": 60000,
     "wait": 500,
     "chromeLaunchConfig": {
-      "args": [
-        "--no-sandbox",
-        "--disable-dev-shm-usage"
-      ]
+      "args": ["--no-sandbox", "--disable-dev-shm-usage"]
     },
     "concurrency": 1,
     "levelCapWhenNeedsReview": "warning",

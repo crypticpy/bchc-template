@@ -9,8 +9,16 @@
  * @returns {{r: number, g: number, b: number}|null} 0-255 channels, or null.
  */
 export function parseHexColor(hex) {
-  const value = String(hex ?? '').trim().replace(/^#/, '');
-  const expanded = value.length === 3 ? value.split('').map((c) => c + c).join('') : value;
+  const value = String(hex ?? '')
+    .trim()
+    .replace(/^#/, '');
+  const expanded =
+    value.length === 3
+      ? value
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : value;
   if (!/^[0-9a-fA-F]{6}$/.test(expanded)) return null;
   return {
     r: parseInt(expanded.slice(0, 2), 16),
@@ -21,7 +29,10 @@ export function parseHexColor(hex) {
 
 /** `{r,g,b}` back to `#rrggbb`. */
 export function toHexColor({ r, g, b }) {
-  const channel = (value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0');
+  const channel = (value) =>
+    Math.max(0, Math.min(255, Math.round(value)))
+      .toString(16)
+      .padStart(2, '0');
   return `#${channel(r)}${channel(g)}${channel(b)}`.toUpperCase();
 }
 

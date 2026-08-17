@@ -17,13 +17,20 @@
     panel.hidden = !open;
     panel.classList.toggle('hidden', !open);
     toggle.setAttribute('aria-expanded', String(open));
-    icons.forEach((i) => { i.classList.toggle('hidden', (i.dataset.navIcon === 'open') === open); });
+    icons.forEach((i) => {
+      i.classList.toggle('hidden', (i.dataset.navIcon === 'open') === open);
+    });
   }
 
   setOpen(false);
   toggle.addEventListener('click', () => setOpen(panel.hidden));
-  panel.addEventListener('click', (e) => { if (e.target.closest('a')) setOpen(false); });
+  panel.addEventListener('click', (e) => {
+    if (e.target.closest('a')) setOpen(false);
+  });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !panel.hidden) { setOpen(false); toggle.focus(); }
+    if (e.key === 'Escape' && !panel.hidden) {
+      setOpen(false);
+      toggle.focus();
+    }
   });
 })();

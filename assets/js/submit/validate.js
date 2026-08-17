@@ -49,7 +49,8 @@
     if (empty) return '';
 
     if (field.type === 'url' || field.type === 'image') {
-      if (!isUrl(String(value))) return 'That does not look like a web address. It should start with https://';
+      if (!isUrl(String(value)))
+        return 'That does not look like a web address. It should start with https://';
     }
     if (field.type === 'email' && !EMAIL.test(String(value))) {
       return 'That does not look like an email address.';
@@ -128,9 +129,10 @@
     const list = summary.querySelector('[data-error-summary-list]');
     const title = summary.querySelector('[data-error-summary-title]');
     if (title) {
-      title.textContent = problems.length === 1
-        ? 'One answer still needs attention'
-        : problems.length + ' answers still need attention';
+      title.textContent =
+        problems.length === 1
+          ? 'One answer still needs attention'
+          : problems.length + ' answers still need attention';
     }
     if (list) {
       list.textContent = '';
@@ -169,4 +171,4 @@
     }
     control.focus();
   };
-})(window.SubmitForm = window.SubmitForm || {});
+})((window.SubmitForm = window.SubmitForm || {}));

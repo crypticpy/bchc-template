@@ -79,13 +79,53 @@ const CRLF = String.fromCharCode(13, 10);
  */
 const NASTY = [
   // YAML 1.1 scalars that are not strings
-  '0x1F', '0o17', '1_000', '12:30', '1:2:3', '.inf', '-.inf', '.nan', '~', 'null', 'Null', 'NULL',
-  'y', 'Y', 'n', 'N', 'yes', 'No', 'on', 'OFF', 'true', 'False', '007', '1e3', '2026-08-17',
+  '0x1F',
+  '0o17',
+  '1_000',
+  '12:30',
+  '1:2:3',
+  '.inf',
+  '-.inf',
+  '.nan',
+  '~',
+  'null',
+  'Null',
+  'NULL',
+  'y',
+  'Y',
+  'n',
+  'N',
+  'yes',
+  'No',
+  'on',
+  'OFF',
+  'true',
+  'False',
+  '007',
+  '1e3',
+  '2026-08-17',
   // structure characters
-  '# comment', '- item', 'key: value', '? key', '*alias', '&anchor', '!!str x', '%YAML 1.2',
-  '{ a: 1 }', '[ 1, 2 ]', '| block', '> fold', "'single'", '"double"', '@reserved', '`backtick',
+  '# comment',
+  '- item',
+  'key: value',
+  '? key',
+  '*alias',
+  '&anchor',
+  '!!str x',
+  '%YAML 1.2',
+  '{ a: 1 }',
+  '[ 1, 2 ]',
+  '| block',
+  '> fold',
+  "'single'",
+  '"double"',
+  '@reserved',
+  '`backtick',
   // whitespace the loader would eat, and backslashes
-  'trailing space ', ' leading space', `tab${TAB}here`, 'a\\b\\\\c',
+  'trailing space ',
+  ' leading space',
+  `tab${TAB}here`,
+  'a\\b\\\\c',
   // control characters and the Unicode line breaks
   ...CONTROLS.map((code) => `ctrl${String.fromCodePoint(code)}here`),
   `crlf${CRLF}here`,
@@ -97,7 +137,13 @@ const NASTY_KEYS = NASTY.map((_, i) => `f${String(i).padStart(2, '0')}`);
 const NASTY_FRONT_MATTER = frontMatter([
   ...NASTY.map((value, i) => [NASTY_KEYS[i], value]),
   ['list', NASTY.slice(0, 12)],
-  ['maps', [{ label: '.inf', url: 'https://e.org/?a=1&b=2' }, { label: 'on', url: 'x: y' }]],
+  [
+    'maps',
+    [
+      { label: '.inf', url: 'https://e.org/?a=1&b=2' },
+      { label: 'on', url: 'x: y' },
+    ],
+  ],
 ]);
 
 /** The same document without the `---` fences. */

@@ -34,10 +34,7 @@ const eventId = clean(values.event_id);
 const intro = clean(values.intro_paragraph || values.intro).replace(/\s*\n+\s*/g, ' ');
 
 if (process.env.GITHUB_OUTPUT) {
-  fs.appendFileSync(
-    process.env.GITHUB_OUTPUT,
-    `cohort_year=${year}\nevent_id=${eventId}\nintro=${intro}\n`
-  );
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, `cohort_year=${year}\nevent_id=${eventId}\nintro=${intro}\n`);
 }
 
 console.log(`Extracted cohort_year='${year}', event_id='${eventId}'.`);

@@ -20,7 +20,8 @@ const OTHER_GROUP = { key: 'other', title: 'More' };
 /** Extra guidance appended to a field's description, by type. */
 const TYPE_GUIDANCE = {
   list: 'One per line, or separated by commas.',
-  images: 'Drag images into this box to upload them, or paste one image URL per line — optionally as `URL | alt text`.',
+  images:
+    'Drag images into this box to upload them, or paste one image URL per line — optionally as `URL | alt text`.',
   links: 'One per line as `Label | URL`.',
 };
 
@@ -163,7 +164,10 @@ export function issueTemplateFromSchema(schema, site = {}) {
     body.push({
       type: 'input',
       id: 'title',
-      attributes: { label: 'Title', description: `A short, specific name for this ${lowercaseFirst(singular)}.` },
+      attributes: {
+        label: 'Title',
+        description: `A short, specific name for this ${lowercaseFirst(singular)}.`,
+      },
       validations: { required: true },
     });
   }
@@ -174,7 +178,10 @@ export function issueTemplateFromSchema(schema, site = {}) {
       const heading = String(section.group.title ?? '').trim();
       const blurb = String(section.group.description ?? '').trim();
       if (heading) {
-        body.push({ type: 'markdown', attributes: { value: blurb ? `### ${heading}\n\n${blurb}` : `### ${heading}` } });
+        body.push({
+          type: 'markdown',
+          attributes: { value: blurb ? `### ${heading}\n\n${blurb}` : `### ${heading}` },
+        });
       }
     }
     for (const field of section.fields) {

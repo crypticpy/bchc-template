@@ -69,7 +69,8 @@ test('downloadImages numbers files and writes site-absolute src values', async (
       altFallback: 'X — screenshot',
       dnsImpl: PUBLIC_DNS,
       fsImpl: files,
-      fetchImpl: async (url) => stubResponse(url.endsWith('a.png') ? PNG : JPG, url.endsWith('a.png') ? 'image/png' : 'image/jpeg'),
+      fetchImpl: async (url) =>
+        stubResponse(url.endsWith('a.png') ? PNG : JPG, url.endsWith('a.png') ? 'image/png' : 'image/jpeg'),
     }
   );
 
@@ -78,28 +79,22 @@ test('downloadImages numbers files and writes site-absolute src values', async (
     { src: '/catalog/x/screenshots/02.jpg', alt: 'X — screenshot' },
   ]);
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual([...files.written.keys()], [
-    '/repo/catalog/x/screenshots/01.png',
-    '/repo/catalog/x/screenshots/02.jpg',
-  ]);
+  assert.deepEqual(
+    [...files.written.keys()],
+    ['/repo/catalog/x/screenshots/01.png', '/repo/catalog/x/screenshots/02.jpg']
+  );
 });
 
 test('downloadImages rejects a disallowed content type and a lying content type', async () => {
   const files = stubFs();
-  const result = await downloadImages(
-    [
-      { url: 'https://e.org/a.svg' },
-      { url: 'https://e.org/b.png' },
-    ],
-    {
-      destDir: '/d',
-      publicPrefix: '/p',
-      dnsImpl: PUBLIC_DNS,
-      fsImpl: files,
-      fetchImpl: async (url) =>
-        url.endsWith('.svg') ? stubResponse(TEXT, 'image/svg+xml') : stubResponse(TEXT, 'image/png'),
-    }
-  );
+  const result = await downloadImages([{ url: 'https://e.org/a.svg' }, { url: 'https://e.org/b.png' }], {
+    destDir: '/d',
+    publicPrefix: '/p',
+    dnsImpl: PUBLIC_DNS,
+    fsImpl: files,
+    fetchImpl: async (url) =>
+      url.endsWith('.svg') ? stubResponse(TEXT, 'image/svg+xml') : stubResponse(TEXT, 'image/png'),
+  });
 
   assert.deepEqual(result.items, []);
   assert.equal(result.warnings.length, 2);
@@ -159,22 +154,47 @@ test('downloadImages refuses non-http URLs and returns early with no refs', asyn
 });
 
 test('isBlockedAddress covers loopback, link-local, private and multicast space', () => {
-  ['127.0.0.1', '127.1.2.3', '169.254.169.254', '10.0.0.5', '172.16.0.1', '172.31.255.255',
-    '192.168.1.1', '0.0.0.0', '100.64.0.1', '224.0.0.1', '255.255.255.255',
-    '::1', '::', 'fe80::1', 'fc00::1', 'fd12::3', 'ff02::1', '::ffff:127.0.0.1', 'nonsense',
+  [
+    '127.0.0.1',
+    '127.1.2.3',
+    '169.254.169.254',
+    '10.0.0.5',
+    '172.16.0.1',
+    '172.31.255.255',
+    '192.168.1.1',
+    '0.0.0.0',
+    '100.64.0.1',
+    '224.0.0.1',
+    '255.255.255.255',
+    '::1',
+    '::',
+    'fe80::1',
+    'fc00::1',
+    'fd12::3',
+    'ff02::1',
+    '::ffff:127.0.0.1',
+    'nonsense',
   ].forEach((address) => assert.equal(isBlockedAddress(address), true, address));
 
-  ['93.184.216.34', '8.8.8.8', '172.32.0.1', '2606:2800:220:1:248:1893:25c8:1946']
-    .forEach((address) => assert.equal(isBlockedAddress(address), false, address));
+  ['93.184.216.34', '8.8.8.8', '172.32.0.1', '2606:2800:220:1:248:1893:25c8:1946'].forEach((address) =>
+    assert.equal(isBlockedAddress(address), false, address)
+  );
 });
 
 test('assertPublicHost refuses private hostnames, private DNS answers and IP literals', async () => {
-  const never = { lookup: async () => { throw new Error('DNS should not be consulted'); } };
+  const never = {
+    lookup: async () => {
+      throw new Error('DNS should not be consulted');
+    },
+  };
 
   await assert.rejects(assertPublicHost('http://metadata.internal/x', never), /private hostname/);
   await assert.rejects(assertPublicHost('http://db.local/x', never), /private hostname/);
   await assert.rejects(assertPublicHost('http://localhost:8080/x', never), /private hostname/);
-  await assert.rejects(assertPublicHost('http://169.254.169.254/latest/meta-data/', never), /private or reserved/);
+  await assert.rejects(
+    assertPublicHost('http://169.254.169.254/latest/meta-data/', never),
+    /private or reserved/
+  );
   await assert.rejects(assertPublicHost('http://[::1]/x', never), /private or reserved/);
 
   // A public name that resolves inward (DNS rebinding) is refused too, and one
@@ -269,9 +289,8 @@ test('downloadImages refuses a body larger than the size cap, declared or actual
     fsImpl: stubFs(),
     // The first declares its size honestly; the second under-reports it and is
     // still caught once the bytes are in hand.
-    fetchImpl: async (url) => (url.endsWith('huge.png')
-      ? withLength(PNG, 1024 * 1024)
-      : withLength(PNG, null)),
+    fetchImpl: async (url) =>
+      url.endsWith('huge.png') ? withLength(PNG, 1024 * 1024) : withLength(PNG, null),
   });
 
   assert.deepEqual(lying.items, []);
@@ -293,13 +312,14 @@ test('the abort timer stays armed until the body has been read', async () => {
       ok: true,
       status: 200,
       headers: { get: (name) => (name.toLowerCase() === 'content-type' ? 'image/png' : null) },
-      arrayBuffer: () => new Promise((resolve, reject) => {
-        const timer = setTimeout(() => resolve(PNG.buffer), 5_000);
-        init.signal.addEventListener('abort', () => {
-          clearTimeout(timer);
-          reject(new Error('The operation was aborted'));
-        });
-      }),
+      arrayBuffer: () =>
+        new Promise((resolve, reject) => {
+          const timer = setTimeout(() => resolve(PNG.buffer), 5_000);
+          init.signal.addEventListener('abort', () => {
+            clearTimeout(timer);
+            reject(new Error('The operation was aborted'));
+          });
+        }),
     }),
   });
 

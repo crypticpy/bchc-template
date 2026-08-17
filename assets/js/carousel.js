@@ -2,7 +2,7 @@
 (function () {
   // Checked per scroll so a mid-session change of the OS setting is honoured.
   const behavior = () =>
-    (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
+    window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   document.querySelectorAll('[data-carousel]').forEach((root) => {
     const track = root.querySelector('[data-carousel-track]');
     const prev = root.querySelector('[data-carousel-prev]');
@@ -22,8 +22,14 @@
     next && next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: behavior() }));
     track.addEventListener('scroll', update, { passive: true });
     track.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') { e.preventDefault(); track.scrollBy({ left: step(), behavior: behavior() }); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); track.scrollBy({ left: -step(), behavior: behavior() }); }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        track.scrollBy({ left: step(), behavior: behavior() });
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        track.scrollBy({ left: -step(), behavior: behavior() });
+      }
     });
     window.addEventListener('resize', update);
     update();

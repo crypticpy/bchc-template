@@ -43,7 +43,8 @@ const FILE_HELP = {
   '_data/navigation.yml': 'The header navigation, derived from your modules.',
   '_config.yml':
     'Jekyll build settings. Only the title and description lines change — if you have customised this file, edit those two lines on GitHub instead of pasting the whole thing.',
-  '.github/ISSUE_TEMPLATE/new-entry.yml': 'The GitHub issue form contributors fill in. Generated from the schema.',
+  '.github/ISSUE_TEMPLATE/new-entry.yml':
+    'The GitHub issue form contributors fill in. Generated from the schema.',
 };
 
 const OPTION_TYPES = new Set(['select', 'multiselect']);
@@ -61,7 +62,8 @@ function el(tag, attrs = {}, children = []) {
     if (name === 'class') node.className = value;
     else if (name === 'text') node.textContent = value;
     else if (name === 'html') node.innerHTML = value;
-    else if (name.startsWith('on') && typeof value === 'function') node.addEventListener(name.slice(2), value);
+    else if (name.startsWith('on') && typeof value === 'function')
+      node.addEventListener(name.slice(2), value);
     else node.setAttribute(name, value === true ? '' : String(value));
   }
   for (const child of [].concat(children)) {
@@ -177,7 +179,12 @@ function save() {
   try {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ step: state.step, startId: state.startId, answers: state.answers, fields: state.fields })
+      JSON.stringify({
+        step: state.step,
+        startId: state.startId,
+        answers: state.answers,
+        fields: state.fields,
+      })
     );
   } catch {
     /* private browsing / quota — the wizard still works, it just will not resume */
@@ -244,7 +251,10 @@ function announce(messages) {
   errorRegion.append(
     el('div', { class: 'card border-brand-accent' }, [
       el('div', { class: 'card-header bg-brand-accent/10' }, [
-        el('p', { class: 'card-title', text: messages.length === 1 ? 'One problem to fix' : `${messages.length} problems to fix` }),
+        el('p', {
+          class: 'card-title',
+          text: messages.length === 1 ? 'One problem to fix' : `${messages.length} problems to fix`,
+        }),
       ]),
       el(
         'ul',
@@ -297,11 +307,13 @@ function validateStep(index) {
       ['secondary', 'Secondary'],
       ['accent', 'Accent'],
     ]) {
-      if (!isHexColor(state.answers[key])) problems.push(`${label} color must be a 6-digit hex value like #1D4E89.`);
+      if (!isHexColor(state.answers[key]))
+        problems.push(`${label} color must be a 6-digit hex value like #1D4E89.`);
     }
   }
   if (STEPS[index] === 'fields') {
-    if (!String(state.answers.entrySingular || '').trim()) problems.push('The singular entry name is required.');
+    if (!String(state.answers.entrySingular || '').trim())
+      problems.push('The singular entry name is required.');
     if (!String(state.answers.entryPlural || '').trim()) problems.push('The plural entry name is required.');
     problems.push(...validateSchema({ fields: schemaFields() }));
   }
@@ -313,7 +325,10 @@ function validateStep(index) {
 
 function renderStart() {
   return el('div', { class: 'space-y-4' }, [
-    el('p', { class: 'section-lead', text: 'Pick a starting point. You can change everything afterwards — nothing is written until you copy the files to GitHub yourself.' }),
+    el('p', {
+      class: 'section-lead',
+      text: 'Pick a starting point. You can change everything afterwards — nothing is written until you copy the files to GitHub yourself.',
+    }),
     el(
       'div',
       { class: 'grid gap-4 sm:grid-cols-2' },
@@ -328,7 +343,9 @@ function renderStart() {
             onclick: () => {
               if (
                 option.id !== state.startId &&
-                !window.confirm(`Start over from "${option.name}"? Any edits you have made in this wizard will be replaced.`)
+                !window.confirm(
+                  `Start over from "${option.name}"? Any edits you have made in this wizard will be replaced.`
+                )
               ) {
                 return;
               }
@@ -342,7 +359,9 @@ function renderStart() {
               el('span', { class: 'eyebrow', text: selected ? 'Selected' : 'Starting point' }),
               el('p', { class: 'card-title', text: option.name }),
             ]),
-            el('div', { class: 'px-6 py-4' }, [el('p', { class: 'text-sm text-brand-muted', text: option.description })]),
+            el('div', { class: 'px-6 py-4' }, [
+              el('p', { class: 'text-sm text-brand-muted', text: option.description }),
+            ]),
           ]
         );
       })
@@ -371,8 +390,18 @@ function textField(key, label, { help, type = 'text', textarea = false, placehol
 
 function colorField(key, label, help) {
   const id = `field-${key}`;
-  const text = el('input', { id, class: 'field-input !mt-0 font-mono', type: 'text', maxlength: 7, spellcheck: 'false' });
-  const swatch = el('input', { class: 'h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-brand-line', type: 'color', 'aria-label': `${label} color picker` });
+  const text = el('input', {
+    id,
+    class: 'field-input !mt-0 font-mono',
+    type: 'text',
+    maxlength: 7,
+    spellcheck: 'false',
+  });
+  const swatch = el('input', {
+    class: 'h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-brand-line',
+    type: 'color',
+    'aria-label': `${label} color picker`,
+  });
   text.value = state.answers[key] ?? '';
   swatch.value = isHexColor(state.answers[key]) ? state.answers[key] : '#000000';
   const sync = (value) => {
@@ -455,11 +484,19 @@ function renderPalette() {
       'ul',
       { class: 'mt-4 space-y-1 text-sm' },
       checks.map(([name, ratio]) => {
-        if (ratio === null) return el('li', { class: 'text-brand-muted', text: `${name}: enter a valid hex color to check contrast.` });
+        if (ratio === null)
+          return el('li', {
+            class: 'text-brand-muted',
+            text: `${name}: enter a valid hex color to check contrast.`,
+          });
         const ok = ratio >= 4.5;
         return el('li', { class: ok ? 'text-brand-ink' : 'font-semibold text-brand-accent' }, [
           el('span', { text: `${name}: ${ratio.toFixed(1)}:1 — ` }),
-          el('span', { text: ok ? 'passes WCAG AA.' : 'below the 4.5:1 minimum. Darken the background or lighten the text.' }),
+          el('span', {
+            text: ok
+              ? 'passes WCAG AA.'
+              : 'below the 4.5:1 minimum. Darken the background or lighten the text.',
+          }),
         ]);
       })
     )
@@ -475,7 +512,10 @@ function renderBranding() {
         textField('siteName', 'Site name', { help: 'Shown in the header and browser tab.' }),
         textField('tagline', 'Tagline', { help: 'One short line under the site name.' }),
       ]),
-      textField('description', 'Description', { textarea: true, help: 'Used for search engines and the RSS feed.' }),
+      textField('description', 'Description', {
+        textarea: true,
+        help: 'Used for search engines and the RSS feed.',
+      }),
       el('div', { class: 'grid gap-4 sm:grid-cols-2' }, [
         textField('orgName', 'Organization name'),
         textField('orgShort', 'Short name / initials', { help: 'Used in tight spaces.' }),
@@ -488,7 +528,10 @@ function renderBranding() {
     el('fieldset', { class: 'space-y-4' }, [
       el('legend', { class: 'section-title', text: 'GitHub' }),
       el('div', { class: 'grid gap-4 sm:grid-cols-2' }, [
-        textField('repository', 'Repository', { help: 'owner/repo — used for submission links and edit links.', placeholder: 'owner/repo' }),
+        textField('repository', 'Repository', {
+          help: 'owner/repo — used for submission links and edit links.',
+          placeholder: 'owner/repo',
+        }),
         textField('branch', 'Branch', { help: 'The branch GitHub Pages builds from.' }),
       ]),
     ]),
@@ -501,7 +544,9 @@ function renderBranding() {
         colorField('accent', 'Accent', 'Warm highlights.'),
       ]),
       el('div', { class: 'card' }, [
-        el('div', { class: 'card-header' }, [el('p', { class: 'card-title', text: 'Palette preview & contrast' })]),
+        el('div', { class: 'card-header' }, [
+          el('p', { class: 'card-title', text: 'Palette preview & contrast' }),
+        ]),
         paletteNode,
       ]),
       el('div', { class: 'grid gap-4 sm:grid-cols-3' }, [
@@ -543,22 +588,33 @@ function renderBranding() {
 function renderModules() {
   return el('fieldset', { class: 'space-y-3' }, [
     el('legend', { class: 'section-title', text: 'Modules' }),
-    el('p', { class: 'section-lead', text: 'Turn sections of the site on or off. Navigation and the home page adapt automatically.' }),
+    el('p', {
+      class: 'section-lead',
+      text: 'Turn sections of the site on or off. Navigation and the home page adapt automatically.',
+    }),
     ...Object.keys(state.answers.modules).map((key) => {
       const id = `module-${key}`;
-      const input = el('input', { id, type: 'checkbox', class: 'mt-1 h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30' });
+      const input = el('input', {
+        id,
+        type: 'checkbox',
+        class: 'mt-1 h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30',
+      });
       input.checked = Boolean(state.answers.modules[key]);
       input.addEventListener('change', () => {
         state.answers.modules[key] = input.checked;
         save();
       });
-      return el('div', { class: 'flex items-start gap-3 rounded-xl border border-brand-line bg-surface-card px-4 py-3' }, [
-        input,
-        el('div', {}, [
-          el('label', { class: 'field-label capitalize', for: id, text: key }),
-          el('p', { class: 'field-help', text: MODULE_HELP[key] || '' }),
-        ]),
-      ]);
+      return el(
+        'div',
+        { class: 'flex items-start gap-3 rounded-xl border border-brand-line bg-surface-card px-4 py-3' },
+        [
+          input,
+          el('div', {}, [
+            el('label', { class: 'field-label capitalize', for: id, text: key }),
+            el('p', { class: 'field-help', text: MODULE_HELP[key] || '' }),
+          ]),
+        ]
+      );
     }),
   ]);
 }
@@ -571,14 +627,21 @@ function fieldRow(field, index) {
 
   const toggle = (prop, label) => {
     const id = `${rowId}-${prop}`;
-    const input = el('input', { id, type: 'checkbox', class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30' });
+    const input = el('input', {
+      id,
+      type: 'checkbox',
+      class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30',
+    });
     input.checked = Boolean(field[prop]);
     input.disabled = isCore && prop === 'required';
     input.addEventListener('change', () => {
       field[prop] = input.checked;
       save();
     });
-    return el('label', { class: 'inline-flex items-center gap-1.5 text-xs text-brand-muted', for: id }, [input, el('span', { text: label })]);
+    return el('label', { class: 'inline-flex items-center gap-1.5 text-xs text-brand-muted', for: id }, [
+      input,
+      el('span', { text: label }),
+    ]);
   };
 
   const labelInput = el('input', { id: `${rowId}-label`, class: 'field-input !mt-0', type: 'text' });
@@ -588,7 +651,11 @@ function fieldRow(field, index) {
     save();
   });
 
-  const enabled = el('input', { id: `${rowId}-enabled`, type: 'checkbox', class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30' });
+  const enabled = el('input', {
+    id: `${rowId}-enabled`,
+    type: 'checkbox',
+    class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30',
+  });
   enabled.checked = field.enabled !== false;
   enabled.disabled = isCore;
   enabled.addEventListener('change', () => {
@@ -599,10 +666,11 @@ function fieldRow(field, index) {
 
   const children = [
     el('div', { class: 'flex flex-wrap items-center gap-3' }, [
-      el('label', { class: 'inline-flex items-center gap-2 text-xs text-brand-muted', for: `${rowId}-enabled` }, [
-        enabled,
-        el('span', { text: isCore ? 'Always on' : 'Include' }),
-      ]),
+      el(
+        'label',
+        { class: 'inline-flex items-center gap-2 text-xs text-brand-muted', for: `${rowId}-enabled` },
+        [enabled, el('span', { text: isCore ? 'Always on' : 'Include' })]
+      ),
       el('span', { class: 'chip-neutral font-mono', text: field.key }),
       el('span', { class: 'chip', text: field.type }),
       el('div', { class: 'ml-auto flex flex-wrap gap-3' }, [
@@ -614,22 +682,35 @@ function fieldRow(field, index) {
     ]),
     el('div', { class: 'mt-3' }, [
       el('label', { class: 'field-label', for: `${rowId}-label`, text: 'Label' }),
-      el('p', { class: 'field-help', text: 'Shown in forms and on the entry page. Must be unique — the issue parser matches on it.' }),
+      el('p', {
+        class: 'field-help',
+        text: 'Shown in forms and on the entry page. Must be unique — the issue parser matches on it.',
+      }),
       el('div', { class: 'mt-2' }, [labelInput]),
     ]),
   ];
 
   if (OPTION_TYPES.has(field.type)) {
-    const optionsInput = el('textarea', { class: 'field-input', rows: 4, 'aria-label': `Options for ${field.key}` });
+    const optionsInput = el('textarea', {
+      class: 'field-input',
+      rows: 4,
+      'aria-label': `Options for ${field.key}`,
+    });
     optionsInput.value = (field.options || []).join('\n');
     optionsInput.addEventListener('input', () => {
-      field.options = optionsInput.value.split('\n').map((line) => line.trim()).filter(Boolean);
+      field.options = optionsInput.value
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
       save();
     });
     children.push(
       el('div', { class: 'mt-3' }, [
         el('span', { class: 'field-label', text: 'Options' }),
-        el('p', { class: 'field-help', text: 'One per line. These become the dropdown choices and the filter values.' }),
+        el('p', {
+          class: 'field-help',
+          text: 'One per line. These become the dropdown choices and the filter values.',
+        }),
         optionsInput,
       ])
     );
@@ -653,16 +734,22 @@ function fieldRow(field, index) {
     );
   }
 
-  return el(
-    'li',
-    { class: `card p-5 ${field.enabled === false ? 'opacity-60' : ''}` },
-    children
-  );
+  return el('li', { class: `card p-5 ${field.enabled === false ? 'opacity-60' : ''}` }, children);
 }
 
 function renderAddField() {
-  const labelInput = el('input', { id: 'new-field-label', class: 'field-input', type: 'text', placeholder: 'e.g. Budget range' });
-  const keyInput = el('input', { id: 'new-field-key', class: 'field-input font-mono', type: 'text', placeholder: 'budget_range' });
+  const labelInput = el('input', {
+    id: 'new-field-label',
+    class: 'field-input',
+    type: 'text',
+    placeholder: 'e.g. Budget range',
+  });
+  const keyInput = el('input', {
+    id: 'new-field-key',
+    class: 'field-input font-mono',
+    type: 'text',
+    placeholder: 'budget_range',
+  });
   const typeSelect = el(
     'select',
     { id: 'new-field-type', class: 'field-input' },
@@ -679,7 +766,10 @@ function renderAddField() {
   return el('div', { class: 'card p-5' }, [
     el('p', { class: 'card-title', text: 'Add a field' }),
     el('div', { class: 'mt-3 grid gap-4 sm:grid-cols-3' }, [
-      el('div', {}, [el('label', { class: 'field-label', for: 'new-field-label', text: 'Label' }), labelInput]),
+      el('div', {}, [
+        el('label', { class: 'field-label', for: 'new-field-label', text: 'Label' }),
+        labelInput,
+      ]),
       el('div', {}, [
         el('label', { class: 'field-label', for: 'new-field-key', text: 'Key' }),
         el('p', { class: 'field-help', text: 'snake_case, derived from the label.' }),
@@ -700,7 +790,8 @@ function renderAddField() {
           if (!label) problems.push('Give the new field a label.');
           if (!key) problems.push('Give the new field a key.');
           if (RESERVED_KEYS.includes(key)) problems.push(`"${key}" is reserved and always present.`);
-          if (state.fields.some((f) => f.key === key)) problems.push(`"${key}" is already used by another field.`);
+          if (state.fields.some((f) => f.key === key))
+            problems.push(`"${key}" is already used by another field.`);
           if (problems.length) {
             announce(problems);
             return;
@@ -730,9 +821,16 @@ function renderFields() {
     ]),
     el('div', {}, [
       el('h3', { class: 'section-title', text: 'Fields' }),
-      el('p', { class: 'section-lead', text: 'These become the entry front matter, the filter panel, the catalog cards and the submission forms. Title and summary are always present.' }),
+      el('p', {
+        class: 'section-lead',
+        text: 'These become the entry front matter, the filter panel, the catalog cards and the submission forms. Title and summary are always present.',
+      }),
     ]),
-    el('ul', { class: 'space-y-4' }, state.fields.map((field, index) => fieldRow(field, index))),
+    el(
+      'ul',
+      { class: 'space-y-4' },
+      state.fields.map((field, index) => fieldRow(field, index))
+    ),
     renderAddField(),
   ]);
 }
@@ -775,7 +873,10 @@ function renderReview() {
   if (errors.length > 0) {
     announce(errors);
     return el('div', { class: 'card p-6' }, [
-      el('p', { class: 'text-sm text-brand-ink', text: 'Fix the problems listed above on the "Entry model" step, then come back here.' }),
+      el('p', {
+        class: 'text-sm text-brand-ink',
+        text: 'Fix the problems listed above on the "Entry model" step, then come back here.',
+      }),
     ]);
   }
   announce([]);
@@ -786,14 +887,23 @@ function renderReview() {
 
   return el('div', { class: 'space-y-6' }, [
     el('div', { class: 'card' }, [
-      el('div', { class: 'card-header' }, [el('p', { class: 'card-title', text: 'How to publish these changes' })]),
+      el('div', { class: 'card-header' }, [
+        el('p', { class: 'card-title', text: 'How to publish these changes' }),
+      ]),
       el('ol', { class: 'list-decimal space-y-2 px-10 py-5 text-sm text-brand-ink' }, [
         el('li', { text: 'Press Copy on a file below.' }),
         el('li', { text: 'Press "Open on GitHub" — it opens that file in GitHub\'s web editor.' }),
-        el('li', { text: 'Select everything in the editor (Ctrl/Cmd+A), paste, then press "Commit changes".' }),
-        el('li', { text: 'Repeat for each file. The site rebuilds automatically, usually within a minute or two.' }),
+        el('li', {
+          text: 'Select everything in the editor (Ctrl/Cmd+A), paste, then press "Commit changes".',
+        }),
+        el('li', {
+          text: 'Repeat for each file. The site rebuilds automatically, usually within a minute or two.',
+        }),
       ]),
-      el('p', { class: 'border-t border-brand-line px-6 py-4 text-xs text-brand-muted', text: 'GitHub cannot pre-fill its editor for files that already exist, so the copy-and-paste step is unavoidable. Download works too if you prefer to commit from your own machine.' }),
+      el('p', {
+        class: 'border-t border-brand-line px-6 py-4 text-xs text-brand-muted',
+        text: 'GitHub cannot pre-fill its editor for files that already exist, so the copy-and-paste step is unavoidable. Download works too if you prefer to commit from your own machine.',
+      }),
     ]),
     ...Object.entries(files).map(([relative, text]) => {
       const editUrl = repository ? githubEditFileUrl(repository, branch, relative) : '';
@@ -808,7 +918,13 @@ function renderReview() {
             copyButton(text),
             downloadButton(relative, text),
             editUrl
-              ? el('a', { class: 'btn-primary', href: editUrl, target: '_blank', rel: 'noopener', text: 'Open on GitHub' })
+              ? el('a', {
+                  class: 'btn-primary',
+                  href: editUrl,
+                  target: '_blank',
+                  rel: 'noopener',
+                  text: 'Open on GitHub',
+                })
               : el('span', { class: 'chip-neutral', text: 'Set a repository to get a GitHub link' }),
           ]),
         ]),
@@ -825,7 +941,10 @@ function renderReview() {
 /* -------------------------------------------------------------------------- */
 
 const STEP_META = [
-  { title: 'Choose a starting point', lead: 'Every field on every later step is pre-filled from this choice.' },
+  {
+    title: 'Choose a starting point',
+    lead: 'Every field on every later step is pre-filled from this choice.',
+  },
   { title: 'Branding & contact', lead: 'Names, colors, type and the copy on the home page.' },
   { title: 'Modules', lead: 'Which sections of the site exist.' },
   { title: 'Entry model', lead: 'The fields every catalog entry has.' },
@@ -844,32 +963,46 @@ function render() {
       el('p', { class: 'section-lead', text: meta.lead }),
     ]),
     body,
-    el('div', { class: 'mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-brand-line pt-6' }, [
-      state.step > 0
-        ? el('button', { type: 'button', class: 'btn-secondary', text: 'Back', onclick: () => goTo(state.step - 1) })
-        : el('span'),
-      el('div', { class: 'flex flex-wrap gap-3' }, [
-        el('button', {
-          type: 'button',
-          class: 'btn-secondary',
-          text: 'Start over',
-          onclick: () => {
-            if (!window.confirm('Discard everything you have entered and start again?')) return;
-            try {
-              localStorage.removeItem(STORAGE_KEY);
-            } catch {
-              /* ignore */
-            }
-            state.step = 0;
-            loadStartingPoint('current');
-            render();
-          },
-        }),
-        state.step < STEPS.length - 1
-          ? el('button', { type: 'button', class: 'btn-primary', text: 'Continue', onclick: () => goTo(state.step + 1) })
-          : null,
-      ]),
-    ])
+    el(
+      'div',
+      { class: 'mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-brand-line pt-6' },
+      [
+        state.step > 0
+          ? el('button', {
+              type: 'button',
+              class: 'btn-secondary',
+              text: 'Back',
+              onclick: () => goTo(state.step - 1),
+            })
+          : el('span'),
+        el('div', { class: 'flex flex-wrap gap-3' }, [
+          el('button', {
+            type: 'button',
+            class: 'btn-secondary',
+            text: 'Start over',
+            onclick: () => {
+              if (!window.confirm('Discard everything you have entered and start again?')) return;
+              try {
+                localStorage.removeItem(STORAGE_KEY);
+              } catch {
+                /* ignore */
+              }
+              state.step = 0;
+              loadStartingPoint('current');
+              render();
+            },
+          }),
+          state.step < STEPS.length - 1
+            ? el('button', {
+                type: 'button',
+                class: 'btn-primary',
+                text: 'Continue',
+                onclick: () => goTo(state.step + 1),
+              })
+            : null,
+        ]),
+      ]
+    )
   );
 }
 

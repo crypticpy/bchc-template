@@ -55,7 +55,10 @@ try {
 finish(
   events.length
     ? events
-        .map((event) => `- \`${event.id || '(no id)'}\` — ${event.name || ''}${event.date ? ` (${event.date})` : ''}`)
+        .map(
+          (event) =>
+            `- \`${event.id || '(no id)'}\` — ${event.name || ''}${event.date ? ` (${event.date})` : ''}`
+        )
         .join('\n')
     : 'No events are listed in this cohort schedule yet.'
 );

@@ -6,7 +6,15 @@
  * point and the live site cannot drift apart.
  */
 
-import { SITE, THEME, SCHEMA, NAVIGATION, JEKYLL_CONFIG, JEKYLL_DEFAULTS, ICON_NAMES } from './defaults.generated.js';
+import {
+  SITE,
+  THEME,
+  SCHEMA,
+  NAVIGATION,
+  JEKYLL_CONFIG,
+  JEKYLL_DEFAULTS,
+  ICON_NAMES,
+} from './defaults.generated.js';
 
 /** Structured clone via JSON — every value here is JSON-shaped. */
 function clone(value) {

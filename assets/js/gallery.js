@@ -27,7 +27,9 @@
     let opener = null;
 
     if (single) {
-      [prev, next].forEach((b) => { if (b) b.hidden = true; });
+      [prev, next].forEach((b) => {
+        if (b) b.hidden = true;
+      });
     }
 
     /**
@@ -71,8 +73,14 @@
 
     dialog.addEventListener('keydown', (event) => {
       if (single) return;
-      if (event.key === 'ArrowRight') { event.preventDefault(); show(index + 1); }
-      if (event.key === 'ArrowLeft') { event.preventDefault(); show(index - 1); }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        show(index + 1);
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        show(index - 1);
+      }
     });
 
     // Clicking the backdrop (the dialog itself, outside its content) closes it.

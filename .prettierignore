@@ -13,3 +13,5 @@ docs/
 *.md
 *.yml
 *.html
+# Component CSS keeps one selector per line with its full @apply token list (see docs/design-system.md).
+assets/css/

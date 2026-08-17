@@ -48,7 +48,11 @@ test('every non-file field becomes one control keyed by its schema key', () => {
   for (const field of shipped.schema.fields) {
     if (field.form === false || field.type === 'file') continue;
     assert.ok(controls.has(field.key), `${field.key} has a control`);
-    assert.equal(controls.get(field.key).attributes.label, field.label, `${field.key} keeps its label verbatim`);
+    assert.equal(
+      controls.get(field.key).attributes.label,
+      field.label,
+      `${field.key} keeps its label verbatim`
+    );
   }
 });
 
@@ -109,14 +113,21 @@ test('groups become markdown separators in schema order', () => {
   const headings = doc.body
     .filter((item) => item.type === 'markdown' && String(item.attributes.value).startsWith('### '))
     .map((item) => String(item.attributes.value).split('\n')[0].replace('### ', ''));
-  assert.deepEqual(headings, shipped.schema.groups.map((group) => group.title));
+  assert.deepEqual(
+    headings,
+    shipped.schema.groups.map((group) => group.title)
+  );
 });
 
 test('fields are ordered by weight inside their group', () => {
   const sections = groupedFormFields(shipped.schema);
   for (const section of sections) {
     const weights = section.fields.map((field) => field.weight ?? 5);
-    assert.deepEqual([...weights].sort((a, b) => a - b), weights, `${section.group.key} is weight-ordered`);
+    assert.deepEqual(
+      [...weights].sort((a, b) => a - b),
+      weights,
+      `${section.group.key} is weight-ordered`
+    );
   }
 });
 
@@ -128,7 +139,10 @@ test('ungrouped fields land in a trailing "More" group', () => {
       { key: 'stray', label: 'Stray', type: 'text' },
     ],
   });
-  assert.deepEqual(sections.map((s) => s.group.key), ['about', 'other']);
+  assert.deepEqual(
+    sections.map((s) => s.group.key),
+    ['about', 'other']
+  );
   assert.equal(sections[1].group.title, 'More');
 });
 
@@ -138,7 +152,10 @@ test('file fields become an upload instruction, not a control', () => {
     (item) => item.type === 'markdown' && String(item.attributes.value).includes('deck.pdf')
   );
   assert.ok(note, 'the deck field explains the upload step');
-  assert.equal(doc.body.some((item) => item.id === 'deck_pdf'), false);
+  assert.equal(
+    doc.body.some((item) => item.id === 'deck_pdf'),
+    false
+  );
 });
 
 test('form: false fields are left out entirely', () => {
@@ -151,7 +168,10 @@ test('form: false fields are left out entirely', () => {
     ],
   };
   const doc = jsYaml.load(issueTemplateFromSchema(schema));
-  assert.equal(doc.body.some((item) => item.id === 'internal'), false);
+  assert.equal(
+    doc.body.some((item) => item.id === 'internal'),
+    false
+  );
 });
 
 test('a schema with no title field gets one synthesised', () => {
@@ -173,5 +193,8 @@ test('a single group does not get a redundant separator', () => {
       fields: [{ key: 'title', label: 'Title', type: 'text', group: 'about', required: true }],
     })
   );
-  assert.equal(doc.body.some((item) => item.type === 'markdown'), false);
+  assert.equal(
+    doc.body.some((item) => item.type === 'markdown'),
+    false
+  );
 });

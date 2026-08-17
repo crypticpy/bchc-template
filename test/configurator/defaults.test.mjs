@@ -45,7 +45,20 @@ test('the compiled _config.yml is the repository one', () => {
 
 test('the theme carries the v2 tokens', () => {
   const { colors } = defaultConfig().theme;
-  for (const token of ['primary', 'primary_dark', 'secondary', 'accent', 'ink', 'muted', 'line', 'line_strong', 'surface', 'card', 'on_dark', 'warn']) {
+  for (const token of [
+    'primary',
+    'primary_dark',
+    'secondary',
+    'accent',
+    'ink',
+    'muted',
+    'line',
+    'line_strong',
+    'surface',
+    'card',
+    'on_dark',
+    'warn',
+  ]) {
     assert.match(colors[token] ?? '', /^#[0-9A-Fa-f]{6}$/, `theme.colors.${token}`);
   }
 });

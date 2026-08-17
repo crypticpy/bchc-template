@@ -24,7 +24,9 @@ const filenames = (Array.isArray(schema.fields) ? schema.fields : [])
 const entriesDir = path.join(ROOT, entryPath);
 if (filenames.length === 0 || !fs.existsSync(entriesDir)) process.exit(0);
 
-for (const dirent of fs.readdirSync(entriesDir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+for (const dirent of fs
+  .readdirSync(entriesDir, { withFileTypes: true })
+  .sort((a, b) => a.name.localeCompare(b.name))) {
   if (!dirent.isDirectory()) continue;
   for (const filename of filenames) {
     const source = path.join(entryPath, dirent.name, filename);

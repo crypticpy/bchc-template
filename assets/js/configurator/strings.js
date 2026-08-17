@@ -6,7 +6,7 @@
 export function slugify(str) {
   return String(str ?? '')
     .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
@@ -16,7 +16,7 @@ export function slugify(str) {
 export function snakeKey(str) {
   const base = String(str ?? '')
     .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')

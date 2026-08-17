@@ -34,7 +34,9 @@
    * @returns {object[]}
    */
   ns.unprefillable = function unprefillable(fields) {
-    return answered(fields).filter((entry) => !entry.field.prefill).map((entry) => entry.field);
+    return answered(fields)
+      .filter((entry) => !entry.field.prefill)
+      .map((entry) => entry.field);
   };
 
   /**
@@ -73,13 +75,14 @@
   function scalar(value) {
     const text = String(value);
     if (text === '') return '""';
-    const risky = /^[\s\-?:,[\]{}#&*!|>'"%@`]/.test(text) //  an indicator in first position
-      || /:(\s|$)/.test(text) //                                looks like a mapping key
-      || / #/.test(text) //                                      looks like a comment
-      || /[\n\r\t]/.test(text) //                                needs escaping
-      || /\s$/.test(text) //                                     trailing space is eaten
-      || /^(true|false|null|yes|no|on|off|~)$/i.test(text) //     would be retyped to a boolean
-      || /^\d{4}-\d{1,2}-\d{1,2}([Tt ].*)?$/.test(text); //      would be retyped to a date
+    const risky =
+      /^[\s\-?:,[\]{}#&*!|>'"%@`]/.test(text) || //  an indicator in first position
+      /:(\s|$)/.test(text) || //                                looks like a mapping key
+      / #/.test(text) || //                                      looks like a comment
+      /[\n\r\t]/.test(text) || //                                needs escaping
+      /\s$/.test(text) || //                                     trailing space is eaten
+      /^(true|false|null|yes|no|on|off|~)$/i.test(text) || //     would be retyped to a boolean
+      /^\d{4}-\d{1,2}-\d{1,2}([Tt ].*)?$/.test(text); //      would be retyped to a date
     if (risky) {
       return '"' + text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
     }
@@ -125,7 +128,9 @@
       }
       if (field.type === 'markdown' || String(value).indexOf('\n') !== -1) {
         lines.push(field.key + ': |-');
-        String(value).split('\n').forEach((row) => lines.push('  ' + row));
+        String(value)
+          .split('\n')
+          .forEach((row) => lines.push('  ' + row));
         return;
       }
       lines.push(field.key + ': ' + scalar(value));
@@ -142,8 +147,13 @@
    * @returns {string}
    */
   ns.mailtoUrl = function mailtoUrl(email, subject, body) {
-    return 'mailto:' + encodeURIComponent(email)
-      + '?subject=' + encodeURIComponent(subject)
-      + '&body=' + encodeURIComponent(body);
+    return (
+      'mailto:' +
+      encodeURIComponent(email) +
+      '?subject=' +
+      encodeURIComponent(subject) +
+      '&body=' +
+      encodeURIComponent(body)
+    );
   };
-})(window.SubmitForm = window.SubmitForm || {});
+})((window.SubmitForm = window.SubmitForm || {}));

@@ -115,7 +115,7 @@ for (const field of fields) {
 // treat everything after its heading as prose: a `### Organization` the
 // submitter types inside their write-up can no longer overwrite a real answer.
 const writeUpField = [...fields].reverse().find((f) => f?.type === 'markdown');
-const writeUpLabel = writeUpField ? (writeUpField.label || writeUpField.key || '') : '';
+const writeUpLabel = writeUpField ? writeUpField.label || writeUpField.key || '' : '';
 
 /** @type {string[]} */
 const warnings = [];
@@ -133,13 +133,14 @@ const entryPath = String(schema.entry?.path || 'catalog');
 // The schema may cap how many screenshots an entry keeps; MAX_FILES is the ceiling.
 const maxImages = Math.min(Number(schema.entry?.max_images) || MAX_FILES, MAX_FILES);
 const slugOverride = sections.get(SLUG_HEADING);
-const slugSeed = slugify(
-  slugOverride && slugOverride.toLowerCase() !== NO_RESPONSE ? slugOverride : title
-);
+const slugSeed = slugify(slugOverride && slugOverride.toLowerCase() !== NO_RESPONSE ? slugOverride : title);
 if (!slugSeed) fail(`Could not derive a URL slug from the title ${JSON.stringify(title)}.`);
 
 const slug = uniqueSlug(slugSeed, (candidate) => fs.existsSync(path.join(ROOT, entryPath, candidate)));
-if (!slug) fail(`Too many entries already exist under ${entryPath}/${slugSeed}*. Add a "### Slug" section with a different slug.`);
+if (!slug)
+  fail(
+    `Too many entries already exist under ${entryPath}/${slugSeed}*. Add a "### Slug" section with a different slug.`
+  );
 // `slugify` already strips everything outside [a-z0-9-], but this job runs with
 // `contents: write` on issue text from anyone, so the folder name it is about
 // to create is re-checked rather than trusted.
@@ -243,7 +244,9 @@ const content = `${frontMatter(entries)}\n${bodyText || 'Write-up forthcoming.'}
 
 // --- write and report ------------------------------------------------------
 
-const savedImages = Object.values(imageValues).flat().filter((item) => item.src.startsWith('/'));
+const savedImages = Object.values(imageValues)
+  .flat()
+  .filter((item) => item.src.startsWith('/'));
 
 if (DRY_RUN) {
   console.log(`# dry run — would write ${entryPath}/${slug}/index.md\n`);

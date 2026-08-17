@@ -42,19 +42,35 @@ test('accepts the v2 field types', () => {
 test('rejects unknown types, bad keys, duplicate keys and duplicate labels', () => {
   assert.match(errorText(schemaWith([{ key: 'x', label: 'X', type: 'rainbow' }])), /Unknown type/);
   assert.match(errorText(schemaWith([{ key: 'Bad Key', label: 'X', type: 'text' }])), /snake_case/);
-  assert.match(errorText(schemaWith([{ key: 'title', label: 'Repeat', type: 'text' }])), /already used by field 1/);
-  assert.match(errorText(schemaWith([{ key: 'other', label: 'Title', type: 'text' }])), /labels identify answers/);
+  assert.match(
+    errorText(schemaWith([{ key: 'title', label: 'Repeat', type: 'text' }])),
+    /already used by field 1/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'other', label: 'Title', type: 'text' }])),
+    /labels identify answers/
+  );
 });
 
 test('rejects site-managed keys as fields', () => {
   for (const key of ['slug', 'published', 'updated', 'featured', 'thumbnail', 'layout']) {
-    assert.match(errorText(schemaWith([{ key, label: `Field ${key}`, type: 'text' }])), /managed by the site/, key);
+    assert.match(
+      errorText(schemaWith([{ key, label: `Field ${key}`, type: 'text' }])),
+      /managed by the site/,
+      key
+    );
   }
 });
 
 test('select and multiselect need options; images and links must not have them', () => {
-  assert.match(errorText(schemaWith([{ key: 'pick', label: 'Pick', type: 'select', options: [] }])), /at least one option/);
-  assert.match(errorText(schemaWith([{ key: 'pick', label: 'Pick', type: 'multiselect' }])), /at least one option/);
+  assert.match(
+    errorText(schemaWith([{ key: 'pick', label: 'Pick', type: 'select', options: [] }])),
+    /at least one option/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'pick', label: 'Pick', type: 'multiselect' }])),
+    /at least one option/
+  );
   assert.match(
     errorText(schemaWith([{ key: 'shots', label: 'Shots', type: 'images', options: ['a'] }])),
     /no fixed choices/
@@ -77,7 +93,13 @@ test('option_meta keys must be options, with a known tone', () => {
   assert.match(errorText(badTone), /`tone` must be one of/);
 
   const longShort = schemaWith([
-    { key: 'pick', label: 'Pick', type: 'select', options: ['A'], option_meta: { A: { short: 'A rather long label' } } },
+    {
+      key: 'pick',
+      label: 'Pick',
+      type: 'select',
+      options: ['A'],
+      option_meta: { A: { short: 'A rather long label' } },
+    },
   ]);
   const result = checkSchema(longShort);
   assert.equal(result.ok, true);
@@ -95,10 +117,22 @@ test('card slots only fit compatible types', () => {
   ]);
   assert.equal(checkSchema(ok).ok, true, errorText(ok));
 
-  assert.match(errorText(schemaWith([{ key: 'tags', label: 'Tags', type: 'list', card: 'badge' }])), /does not fit a list/);
-  assert.match(errorText(schemaWith([{ key: 'org', label: 'Org', type: 'text', card: 'chip' }])), /does not fit a text/);
-  assert.match(errorText(schemaWith([{ key: 'when', label: 'When', type: 'date', card: 'icon' }])), /does not fit a date/);
-  assert.match(errorText(schemaWith([{ key: 'org', label: 'Org', type: 'text', card: 'sidebar' }])), /`card` must be/);
+  assert.match(
+    errorText(schemaWith([{ key: 'tags', label: 'Tags', type: 'list', card: 'badge' }])),
+    /does not fit a list/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'org', label: 'Org', type: 'text', card: 'chip' }])),
+    /does not fit a text/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'when', label: 'When', type: 'date', card: 'icon' }])),
+    /does not fit a date/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'org', label: 'Org', type: 'text', card: 'sidebar' }])),
+    /`card` must be/
+  );
 });
 
 test('at most one field may claim the card line', () => {
@@ -120,17 +154,31 @@ test('at most one field may be markdown', () => {
 test('weight must be a whole number from 1 to 9', () => {
   assert.equal(checkSchema(schemaWith([{ key: 'a', label: 'A', type: 'text', weight: 9 }])).ok, true);
   assert.match(errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', weight: 0 }])), /between 1 and 9/);
-  assert.match(errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', weight: 10 }])), /between 1 and 9/);
-  assert.match(errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', weight: 2.5 }])), /between 1 and 9/);
+  assert.match(
+    errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', weight: 10 }])),
+    /between 1 and 9/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', weight: 2.5 }])),
+    /between 1 and 9/
+  );
 });
 
 test('group must be declared under groups', () => {
-  assert.match(errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', group: 'nowhere' }])), /not declared under/);
+  assert.match(
+    errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', group: 'nowhere' }])),
+    /not declared under/
+  );
   assert.equal(checkSchema(schemaWith([{ key: 'a', label: 'A', type: 'text', group: 'about' }])).ok, true);
 });
 
 test('groups need unique keys and a title', () => {
-  const dupe = schemaWith([], { groups: [{ key: 'about', title: 'About' }, { key: 'about', title: 'Again' }] });
+  const dupe = schemaWith([], {
+    groups: [
+      { key: 'about', title: 'About' },
+      { key: 'about', title: 'Again' },
+    ],
+  });
   assert.match(errorText(dupe), /used by more than one group/);
   const untitled = schemaWith([], { groups: [{ key: 'about' }] });
   assert.match(errorText(untitled), /needs a `title`/);
@@ -144,14 +192,22 @@ test('group placement is optional, takes main|rail, and only warns when unknown'
     assert.equal(result.ok, true, errorText(schema));
     assert.equal(result.warnings.length, 0, `${placement} is silent`);
   }
-  const odd = checkSchema(schemaWith([], { groups: [{ key: 'about', title: 'About', placement: 'sidebar' }] }));
+  const odd = checkSchema(
+    schemaWith([], { groups: [{ key: 'about', title: 'About', placement: 'sidebar' }] })
+  );
   assert.equal(odd.ok, true, 'an unknown placement is not fatal');
   assert.match(odd.warnings.map((w) => `${w.path} ${w.message}`).join('\n'), /placement.*main, rail/s);
 });
 
 test('facet only applies to filterable types, thumbnail only to files', () => {
-  assert.match(errorText(schemaWith([{ key: 'shots', label: 'Shots', type: 'images', facet: true }])), /cannot be a filter/);
-  assert.match(errorText(schemaWith([{ key: 'when', label: 'When', type: 'date', facet: true }])), /cannot be a filter/);
+  assert.match(
+    errorText(schemaWith([{ key: 'shots', label: 'Shots', type: 'images', facet: true }])),
+    /cannot be a filter/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'when', label: 'When', type: 'date', facet: true }])),
+    /cannot be a filter/
+  );
   assert.equal(checkSchema(schemaWith([{ key: 'tags', label: 'Tags', type: 'list', facet: true }])).ok, true);
   assert.match(
     errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', thumbnail: true }])),
@@ -164,9 +220,18 @@ test('file fields need a filename', () => {
 });
 
 test('search, facet and form must be booleans; prompt and icon must be strings', () => {
-  assert.match(errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', search: 'yes' }])), /`search` must be true or false/);
-  assert.match(errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', form: 'no' }])), /`form` must be true or false/);
-  assert.match(errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', prompt: '  ' }])), /`prompt` must be/);
+  assert.match(
+    errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', search: 'yes' }])),
+    /`search` must be true or false/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', form: 'no' }])),
+    /`form` must be true or false/
+  );
+  assert.match(
+    errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', prompt: '  ' }])),
+    /`prompt` must be/
+  );
   assert.match(errorText(schemaWith([{ key: 'a', label: 'A', type: 'text', icon: 42 }])), /`icon` must be/);
 });
 
@@ -179,7 +244,10 @@ test('warns about an icon name the site cannot render', () => {
 test('validates the entry and sections blocks', () => {
   assert.match(errorText(schemaWith([], { entry: { path: 'Catalog Folder' } })), /lowercase URL segment/);
   assert.match(errorText(schemaWith([], { entry: { sort_order: 'sideways' } })), /`asc` or `desc`/);
-  assert.match(errorText(schemaWith([], { sections: { details: '' } })), /heading for section "details" is empty/);
+  assert.match(
+    errorText(schemaWith([], { sections: { details: '' } })),
+    /heading for section "details" is empty/
+  );
   assert.match(errorText(schemaWith([], { entry: 'nope' })), /`entry` must be a mapping/);
 });
 

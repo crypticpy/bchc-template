@@ -88,7 +88,9 @@
       img.referrerPolicy = 'no-referrer';
       img.alt = item.alt || '';
       img.src = item.url;
-      img.addEventListener('error', () => { li.hidden = true; });
+      img.addEventListener('error', () => {
+        li.hidden = true;
+      });
       li.appendChild(img);
       list.appendChild(li);
     });
@@ -101,40 +103,44 @@
    * @param {() => void} onChange called after any structural change
    */
   ns.initRepeatables = function initRepeatables(fields, onChange) {
-    fields.filter((field) => field.type === 'links').forEach((field) => {
-      const rows = field.wrap.querySelector('[data-links-rows]');
-      if (rows && rows.children.length === 0) addRow(field);
+    fields
+      .filter((field) => field.type === 'links')
+      .forEach((field) => {
+        const rows = field.wrap.querySelector('[data-links-rows]');
+        if (rows && rows.children.length === 0) addRow(field);
 
-      renumber(field);
+        renumber(field);
 
-      const add = field.wrap.querySelector('[data-links-add]');
-      if (add) {
-        add.addEventListener('click', () => {
-          const row = addRow(field);
-          // Moving focus into the new row is what announces it: the label the
-          // renumber pass just wrote ("Link 3 label") is read on arrival.
-          const first = row ? row.querySelector('input') : null;
-          if (first) first.focus();
+        const add = field.wrap.querySelector('[data-links-add]');
+        if (add) {
+          add.addEventListener('click', () => {
+            const row = addRow(field);
+            // Moving focus into the new row is what announces it: the label the
+            // renumber pass just wrote ("Link 3 label") is read on arrival.
+            const first = row ? row.querySelector('input') : null;
+            if (first) first.focus();
+            onChange();
+          });
+        }
+
+        field.wrap.addEventListener('click', (event) => {
+          const button = event.target.closest ? event.target.closest('[data-links-remove]') : null;
+          if (!button) return;
+          const row = button.closest('.links-row');
+          if (!row) return;
+          const container = row.parentElement;
+          row.remove();
+          if (container && container.children.length === 0) addRow(field);
+          renumber(field);
+          if (add) add.focus();
           onChange();
         });
-      }
-
-      field.wrap.addEventListener('click', (event) => {
-        const button = event.target.closest ? event.target.closest('[data-links-remove]') : null;
-        if (!button) return;
-        const row = button.closest('.links-row');
-        if (!row) return;
-        const container = row.parentElement;
-        row.remove();
-        if (container && container.children.length === 0) addRow(field);
-        renumber(field);
-        if (add) add.focus();
-        onChange();
       });
-    });
 
-    fields.filter((field) => field.type === 'images').forEach((field) => {
-      ns.renderImagePreviews(field);
-    });
+    fields
+      .filter((field) => field.type === 'images')
+      .forEach((field) => {
+        ns.renderImagePreviews(field);
+      });
   };
-})(window.SubmitForm = window.SubmitForm || {});
+})((window.SubmitForm = window.SubmitForm || {}));
