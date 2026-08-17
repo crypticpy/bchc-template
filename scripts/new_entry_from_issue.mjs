@@ -1,13 +1,22 @@
 #!/usr/bin/env node
 /**
- * Scaffold a catalog entry from a GitHub issue form submission.
+ * Scaffold a catalog entry from a GitHub issue-form submission.
  *
- * Input (env):  ISSUE_BODY, ISSUE_TITLE, ISSUE_NUMBER
- * Output:       catalog/<slug>/index.md
- *               $GITHUB_OUTPUT: slug, branch, title  (or `error` on failure)
+ * Input (env):   ISSUE_BODY, ISSUE_TITLE, ISSUE_NUMBER, GITHUB_TOKEN (optional)
+ * Output:        <entry path>/<slug>/index.md
+ *                <entry path>/<slug>/screenshots/NN.<ext>  (downloaded images)
+ *                $GITHUB_OUTPUT:  slug, branch, title, warnings, summary
+ *                $GITHUB_STEP_SUMMARY: a human-readable report
  *
- * The set of front matter keys is driven entirely by _data/schema.yml, so this
- * script never needs editing when the content model changes.
+ * Flags:         --dry-run   print the front matter instead of writing files
+ *
+ * Every front matter key comes from _data/schema.yml, so this script never
+ * needs editing when the content model changes. The pure parsing/serialising
+ * helpers live in scripts/lib/ and are unit-tested in test/scripts/.
+ *
+ * Exit code is non-zero only for genuinely fatal problems (no title, no
+ * schema, a slug that cannot be derived). A screenshot that fails to download
+ * is reported as a warning on the pull request, never a failure.
  */
 
 import fs from 'node:fs';
@@ -15,117 +24,67 @@ import path from 'node:path';
 import process from 'node:process';
 import yaml from 'js-yaml';
 
+import { frontMatter } from './lib/yaml.mjs';
+import { downloadImages, MAX_FILES } from './lib/images.mjs';
+import {
+  NO_RESPONSE,
+  coerce,
+  parseImageRefs,
+  parseSections,
+  rawValue,
+  slugify,
+  uniqueSlug,
+} from './lib/issue_body.mjs';
+
 const ROOT = process.cwd();
 const SCHEMA_PATH = path.join(ROOT, '_data', 'schema.yml');
+const DRY_RUN = process.argv.includes('--dry-run');
 
-// Keys emitted by the fixed header block; schema fields with these keys are not
-// repeated in the generated front matter (duplicate YAML keys are invalid).
+/** Keys written by the fixed header block; a schema field with one of these
+ * keys must not be emitted twice (duplicate YAML keys are invalid). */
 const HEADER_KEYS = new Set(['title', 'slug', 'published', 'featured', 'thumbnail']);
-const NO_RESPONSE = '_no response_';
 
+/** Extra headings the form may carry that are not schema fields. */
+const SLUG_HEADING = 'slug';
+
+/**
+ * Append a `key<<EOF … EOF` pair to $GITHUB_OUTPUT (no-op outside Actions).
+ * @param {string} key
+ * @param {string} value
+ */
 function setOutput(key, value) {
   if (!process.env.GITHUB_OUTPUT) return;
-  const delim = `GHEOF_${key}`;
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, `${key}<<${delim}\n${value}\n${delim}\n`);
+  const delimiter = `GHEOF_${key}_${Math.random().toString(36).slice(2, 10)}`;
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, `${key}<<${delimiter}\n${value}\n${delimiter}\n`);
 }
 
+/**
+ * Report a fatal problem on stderr and in $GITHUB_OUTPUT, then exit.
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(message);
   setOutput('error', message);
   process.exit(1);
 }
 
-function slugify(input) {
-  return String(input || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-/** Normalize a heading or label so the two can be compared. */
-function normalizeLabel(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .replace(/\s*\((optional|required)\)\s*$/, '');
-}
-
-/** Escape a value for a double-quoted YAML scalar. */
-function yamlString(value) {
-  const escaped = String(value ?? '')
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\r/g, '\\r')
-    .replace(/\n/g, '\\n')
-    .replace(/\t/g, '\\t');
-  return `"${escaped}"`;
-}
-
-/** Split a GitHub issue form body into { normalized heading -> raw value }. */
-function parseSections(body) {
-  const sections = new Map();
-  const parts = body.split(/^###[ \t]+/m).slice(1);
-  for (const part of parts) {
-    const newline = part.indexOf('\n');
-    const heading = newline === -1 ? part : part.slice(0, newline);
-    const value = newline === -1 ? '' : part.slice(newline + 1);
-    sections.set(normalizeLabel(heading), value.trim());
-  }
-  return sections;
-}
-
 /**
- * GitHub renders a multi-select dropdown as "A, B, C", but an option may itself
- * contain a comma ("Cloud deployment (AWS, Azure, GCP)"). Match known options
- * greedily (longest first) at the head of the string before falling back to a
- * plain comma split.
+ * Write the run report to stdout and, in Actions, to the job summary.
+ * @param {string} markdown
  */
-function parseMultiselect(raw, options) {
-  const byLength = [...options].sort((a, b) => b.length - a.length);
-  const selected = [];
-
-  for (const line of raw.split('\n')) {
-    // Tolerate checkbox-style rendering as well as plain comma lists.
-    let rest = line.replace(/^\s*[-*]\s*\[[xX ]\]\s*/, '').trim();
-    while (rest.length > 0) {
-      const match = byLength.find((opt) => rest.toLowerCase().startsWith(opt.toLowerCase()));
-      if (match) {
-        selected.push(match);
-        rest = rest.slice(match.length);
-      } else {
-        const idx = rest.indexOf(',');
-        const piece = (idx === -1 ? rest : rest.slice(0, idx)).trim();
-        if (piece) selected.push(piece);
-        rest = idx === -1 ? '' : rest.slice(idx);
-      }
-      rest = rest.replace(/^\s*,\s*/, '').trim();
-    }
+function report(markdown) {
+  console.log(markdown);
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${markdown}\n`);
   }
-  return selected;
 }
 
-function parseList(raw) {
-  return raw
-    .split(/[\n,]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
+// --- inputs ----------------------------------------------------------------
 
-function parseBoolean(raw) {
-  return /^(true|yes|y|on|1|checked)$/i.test(raw.trim());
-}
-
-function renderBlockList(items) {
-  if (items.length === 0) return ' []';
-  return '\n' + items.map((item) => `  - ${yamlString(item)}`).join('\n');
-}
-
-// --- load inputs -----------------------------------------------------------
-
-const issueBody = (process.env.ISSUE_BODY || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-const issueTitle = (process.env.ISSUE_TITLE || '').trim();
-const issueNumber = (process.env.ISSUE_NUMBER || '').trim();
+const issueBody = String(process.env.ISSUE_BODY ?? '').replace(/\r\n?/g, '\n');
+const issueTitle = String(process.env.ISSUE_TITLE ?? '').trim();
+const issueNumber = String(process.env.ISSUE_NUMBER ?? '').trim();
 
 if (!issueBody.trim()) fail('The issue body is empty, so there is nothing to scaffold.');
 
@@ -139,93 +98,137 @@ try {
 const fields = Array.isArray(schema.fields) ? schema.fields : [];
 if (fields.length === 0) fail('_data/schema.yml defines no `fields`.');
 
-const sections = parseSections(issueBody);
-
-/** Raw value for a schema field, or '' when absent / "_No response_". */
-function rawValue(field) {
-  const candidates = [normalizeLabel(field.label), normalizeLabel(field.key)];
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    const value = sections.get(candidate);
-    if (value === undefined) continue;
-    return value.trim().toLowerCase() === NO_RESPONSE ? '' : value.trim();
-  }
-  return '';
+const knownHeadings = [SLUG_HEADING];
+for (const field of fields) {
+  if (field?.label) knownHeadings.push(field.label);
+  if (field?.key) knownHeadings.push(field.key);
+  if (field?.prompt) knownHeadings.push(field.prompt);
 }
+const sections = parseSections(issueBody, knownHeadings);
 
-// --- title, slug -----------------------------------------------------------
+// --- title and slug --------------------------------------------------------
 
 const titleField = fields.find((f) => f.key === 'title');
-const title = (titleField ? rawValue(titleField) : '') || issueTitle;
+const title = (titleField ? rawValue(sections, titleField) : '') || issueTitle;
 if (!title) fail('No title was provided in the issue form or the issue title.');
 
-const slugOverride = sections.get('slug');
-const slug = slugify(slugOverride && slugOverride.toLowerCase() !== NO_RESPONSE ? slugOverride : title);
-if (!slug) fail(`Could not derive a URL slug from the title ${JSON.stringify(title)}.`);
+const entryPath = String(schema.entry?.path || 'catalog');
+// The schema may cap how many screenshots an entry keeps; MAX_FILES is the ceiling.
+const maxImages = Math.min(Number(schema.entry?.max_images) || MAX_FILES, MAX_FILES);
+const slugOverride = sections.get(SLUG_HEADING);
+const slugSeed = slugify(
+  slugOverride && slugOverride.toLowerCase() !== NO_RESPONSE ? slugOverride : title
+);
+if (!slugSeed) fail(`Could not derive a URL slug from the title ${JSON.stringify(title)}.`);
 
-const entryPath = schema.entry?.path || 'catalog';
+const slug = uniqueSlug(slugSeed, (candidate) => fs.existsSync(path.join(ROOT, entryPath, candidate)));
+if (!slug) fail(`Too many entries already exist under ${entryPath}/${slugSeed}*. Add a "### Slug" section with a different slug.`);
+
 const entryDir = path.join(ROOT, entryPath, slug);
-if (fs.existsSync(entryDir)) {
-  fail(
-    `An entry already exists at ${entryPath}/${slug}/. ` +
-      'Add a "### Slug" section to the issue with a different slug, or edit the existing entry instead.'
-  );
+
+// --- images ----------------------------------------------------------------
+
+/** @type {string[]} */
+const warnings = [];
+/** @type {Record<string, Array<{src: string, alt: string}>>} */
+const imageValues = {};
+
+for (const field of fields.filter((f) => f.type === 'images')) {
+  const refs = parseImageRefs(rawValue(sections, field));
+  if (refs.length === 0) {
+    imageValues[field.key] = [];
+    continue;
+  }
+  if (DRY_RUN) {
+    imageValues[field.key] = refs.map((ref, index) => ({
+      src: `/${entryPath}/${slug}/screenshots/${String(index + 1).padStart(2, '0')}.png`,
+      alt: ref.alt || `${title} — screenshot ${index + 1}`,
+    }));
+    warnings.push(`Dry run: ${refs.length} image URL(s) were parsed but not downloaded.`);
+    continue;
+  }
+  const result = await downloadImages(refs, {
+    destDir: path.join(entryDir, 'screenshots'),
+    publicPrefix: `/${entryPath}/${slug}/screenshots`,
+    altFallback: `${title} — screenshot`,
+    maxFiles: maxImages,
+    token: process.env.GITHUB_TOKEN || '',
+  });
+  imageValues[field.key] = result.items;
+  warnings.push(...result.warnings);
 }
 
 // --- front matter ----------------------------------------------------------
 
 const published = new Date().toISOString().slice(0, 10);
-const lines = [
-  '---',
-  'layout: entry',
-  `title: ${yamlString(title)}`,
-  `slug: ${slug}`,
-  `published: ${yamlString(published)}`,
-  'featured: false',
-  'thumbnail: ""',
+/** @type {Array<[string, unknown]>} */
+const entries = [
+  ['layout', 'entry'],
+  ['title', title],
+  ['slug', slug],
+  ['published', published],
+  ['featured', false],
+  ['thumbnail', ''],
 ];
 
 let bodyText = '';
 
 for (const field of fields) {
-  const raw = rawValue(field);
+  const key = String(field.key ?? '');
+  if (!key) continue;
+  const raw = rawValue(sections, field);
 
   if (field.type === 'markdown') {
     if (!bodyText) bodyText = raw;
     continue;
   }
-  if (HEADER_KEYS.has(field.key)) continue;
+  if (HEADER_KEYS.has(key)) continue;
 
-  switch (field.type) {
-    case 'multiselect': {
-      const options = Array.isArray(field.options) ? field.options : [];
-      lines.push(`${field.key}:${renderBlockList(raw ? parseMultiselect(raw, options) : [])}`);
-      break;
-    }
-    case 'list':
-      lines.push(`${field.key}:${renderBlockList(raw ? parseList(raw) : [])}`);
-      break;
-    case 'boolean':
-      lines.push(`${field.key}: ${parseBoolean(raw)}`);
-      break;
-    case 'file':
-      lines.push(`${field.key}: ${yamlString(`/${entryPath}/${slug}/${field.filename || `${field.key}.pdf`}`)}`);
-      break;
-    default:
-      // text, textarea, url, email, date, number, select, image
-      lines.push(`${field.key}: ${yamlString(raw)}`);
+  if (field.type === 'images') {
+    entries.push([key, imageValues[key] ?? []]);
+    continue;
   }
+  if (field.type === 'file') {
+    entries.push([key, `/${entryPath}/${slug}/${field.filename || `${key}.pdf`}`]);
+    continue;
+  }
+  entries.push([key, coerce(field, raw)]);
 }
 
-lines.push('---');
+const content = `${frontMatter(entries)}\n${bodyText || 'Write-up forthcoming.'}\n`;
 
-const content = `${lines.join('\n')}\n\n${bodyText || 'Write-up forthcoming.'}\n`;
+// --- write and report ------------------------------------------------------
+
+const savedImages = Object.values(imageValues).flat().filter((item) => item.src.startsWith('/'));
+
+if (DRY_RUN) {
+  console.log(`# dry run — would write ${entryPath}/${slug}/index.md\n`);
+  console.log(content);
+  if (warnings.length > 0) console.log(`\n# warnings\n${warnings.map((w) => `- ${w}`).join('\n')}`);
+  process.exit(0);
+}
 
 fs.mkdirSync(entryDir, { recursive: true });
 fs.writeFileSync(path.join(entryDir, 'index.md'), content, 'utf8');
 
-setOutput('slug', slug);
-setOutput('branch', `entry/${slug}`);
-setOutput('title', title);
+const summaryLines = [
+  `## Scaffolded \`${entryPath}/${slug}/index.md\``,
+  '',
+  `- Source: issue #${issueNumber || '?'}`,
+  `- Title: ${title}`,
+  `- Files written: ${1 + savedImages.length}`,
+];
+if (savedImages.length > 0) {
+  summaryLines.push('', '### Screenshots saved', ...savedImages.map((item) => `- \`${item.src}\``));
+}
+if (warnings.length > 0) {
+  summaryLines.push('', '### Warnings', ...warnings.map((warning) => `- ${warning}`));
+}
 
-console.log(`Scaffolded ${entryPath}/${slug}/index.md from issue #${issueNumber || '?'}.`);
+report(summaryLines.join('\n'));
+
+setOutput('slug', slug);
+setOutput('branch', `entry/${slug}${issueNumber ? `-${issueNumber}` : ''}`);
+setOutput('title', title);
+setOutput('images', savedImages.map((item) => `- \`${item.src}\``).join('\n'));
+setOutput('warnings', warnings.map((warning) => `- ${warning}`).join('\n'));

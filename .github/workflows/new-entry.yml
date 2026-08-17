@@ -1,19 +1,27 @@
 name: New entry from issue
 
+# A submission arrives as an issue labelled `content:new-entry` (from /submit/ or
+# the issue form). This scaffolds catalog/<slug>/index.md plus any screenshots
+# the submitter attached, and opens a pull request that closes the issue.
+#
+# Issue content is NEVER interpolated into a `run:` script — it only ever
+# reaches a step through `env:`, so a title containing shell syntax is inert.
+
 on:
   issues:
     types:
       - opened
       - edited
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   scaffold:
     if: contains(github.event.issue.labels.*.name, 'content:new-entry')
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: write
 
     steps:
       - name: Checkout repository
@@ -25,6 +33,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
 
       - name: Install npm dependencies
         run: npm ci --ignore-scripts
@@ -37,6 +46,8 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          # Lets the scaffolder download images attached to a private issue.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Report the failure on the issue
         if: steps.scaffold.outcome == 'failure'
@@ -60,21 +71,93 @@ jobs:
             });
             core.setFailed(detail);
 
-      - name: Create pull request
+      - name: Commit the entry on a new branch
+        id: commit
         if: steps.scaffold.outcome == 'success'
-        uses: peter-evans/create-pull-request@v6
+        env:
+          BRANCH: ${{ steps.scaffold.outputs.branch }}
+          SLUG: ${{ steps.scaffold.outputs.slug }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            echo "The scaffolder produced no changes." >&2
+            exit 0
+          fi
+          git commit -m "feat: add entry $SLUG"
+          # The branch is machine-generated and named after this issue, so an
+          # `issues: edited` re-run replaces its contents rather than merging.
+          git push --force origin "HEAD:refs/heads/$BRANCH"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open the pull request
+        id: pr
+        if: steps.commit.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.scaffold.outputs.branch }}
+          SLUG: ${{ steps.scaffold.outputs.slug }}
+          ENTRY_TITLE: ${{ steps.scaffold.outputs.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          IMAGES: ${{ steps.scaffold.outputs.images }}
+          WARNINGS: ${{ steps.scaffold.outputs.warnings }}
+        run: |
+          set -euo pipefail
+          {
+            printf 'Scaffolded from issue #%s.\n\n' "$ISSUE_NUMBER"
+            printf 'Closes #%s\n\n' "$ISSUE_NUMBER"
+            if [ -n "$IMAGES" ]; then
+              printf '### Screenshots downloaded\n\n%s\n\n' "$IMAGES"
+            else
+              printf '### Screenshots downloaded\n\nNone.\n\n'
+            fi
+            if [ -n "$WARNINGS" ]; then
+              printf '### Warnings from the scaffolder\n\n%s\n\n' "$WARNINGS"
+            fi
+            printf '### Maintainer checklist\n\n'
+            printf -- '- [ ] The summary reads clearly to someone outside the submitting team\n'
+            printf -- '- [ ] Front matter values match the schema options and nothing is missing\n'
+            printf -- '- [ ] Screenshots show no personal, protected or non-public information\n'
+            printf -- '- [ ] Any PDF or extra file is uploaded into `catalog/%s/`\n' "$SLUG"
+            printf -- '- [ ] The "Validate Content" check passes\n'
+            printf -- '- [ ] Merge to publish\n'
+          } > /tmp/pr-body.md
+
+          # An `issues: edited` re-run reuses the pull request that already
+          # points at this branch instead of failing.
+          url="$(gh pr view "$BRANCH" --json url --jq .url 2>/dev/null || true)"
+          if [ -n "$url" ]; then
+            gh pr edit "$BRANCH" --title "Add entry: $ENTRY_TITLE" --body-file /tmp/pr-body.md
+            echo "url=" >> "$GITHUB_OUTPUT"
+          else
+            url="$(gh pr create \
+              --base "${GITHUB_REF_NAME}" \
+              --head "$BRANCH" \
+              --title "Add entry: $ENTRY_TITLE" \
+              --body-file /tmp/pr-body.md)"
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Link the pull request from the issue
+        if: steps.pr.outputs.url != ''
+        uses: actions/github-script@v7
+        env:
+          PR_URL: ${{ steps.pr.outputs.url }}
         with:
-          branch: ${{ steps.scaffold.outputs.branch }}
-          commit-message: "feat: add entry ${{ steps.scaffold.outputs.slug }}"
-          title: "Add entry: ${{ steps.scaffold.outputs.title }}"
-          body: |
-            Generated from issue #${{ github.event.issue.number }}.
-
-            Closes #${{ github.event.issue.number }}
-
-            ### Maintainer checklist
-            - [ ] Review the entry content and front matter for accuracy
-            - [ ] Upload any PDFs or images into `catalog/${{ steps.scaffold.outputs.slug }}/`
-            - [ ] Confirm the content validation check passes
-            - [ ] Merge to publish
-          delete-branch: true
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                'Thanks — a draft pull request is open for maintainer review:',
+                '',
+                process.env.PR_URL,
+                '',
+                'Comment here if anything needs changing; edit this issue and the automation runs again.'
+              ].join('\n')
+            });

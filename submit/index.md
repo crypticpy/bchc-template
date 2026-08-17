@@ -3,88 +3,322 @@ layout: default
 title: "Submit"
 summary: "Propose a new entry for the catalog."
 permalink: /submit/
+scripts:
+  - "/assets/js/submit/fields.js"
+  - "/assets/js/submit/validate.js"
+  - "/assets/js/submit/repeatable.js"
+  - "/assets/js/submit/preview.js"
+  - "/assets/js/submit/draft.js"
+  - "/assets/js/submit/handoff.js"
+  - "/assets/js/submit.js"
 ---
+{%- comment -%}
+  The submission form. Every control is generated from _data/schema.yml — no
+  field key appears below. `prompt` is the visible question, `label` is the
+  heading the GitHub issue form uses (and the one the scaffolder reads back),
+  and `f.key` is the query-parameter name shared by both.
+
+  Data attributes read by assets/js/submit*.js:
+    [data-submit-form]        the form; carries repo/template/copy configuration
+    [data-field=<key>]        one field wrapper
+      data-type               schema type
+      data-required           "true" when an answer is needed
+      data-label              schema label (issue-form heading + error summary)
+      data-slot               card slot: badge | chip | meta | icon | line
+      data-weight             schema weight, for card slot truncation order
+      data-prefill            "false" when GitHub cannot prefill this control
+    [data-preview-panel]      the card preview; hidden until the JS opens it, so
+                              it never appears as a dead panel without scripts
+    [data-section=<key>]      one form step
+    [data-option-view=k__i]   <template> for option i of field k on the card
+    [data-line-view=<key>]    <template> for a `card: line` field
+      data-role               "title" / "summary" — the two reserved keys every
+                              entry has (see _data/schema.yml header), used by
+                              the card preview
+{%- endcomment -%}
 {%- assign cfg = site.data.site -%}
 {%- assign schema = site.data.schema -%}
 {%- assign singular = schema.entry.singular | default: 'Entry' -%}
-{%- assign form_fields = schema.fields | where_exp: 'f', 'f.form != false' -%}
-<section class="mb-10 max-w-3xl">
+{%- assign ff = schema.fields | form_fields -%}
+{%- assign form_groups = schema.groups | groups_for: ff -%}
+{%- assign badge_fields = ff | card_fields: 'badge' -%}
+{%- assign badge_field = badge_fields | first -%}
+{%- assign chip_fields = ff | card_fields: 'chip' -%}
+{%- assign chip_field = chip_fields | first -%}
+{%- assign line_fields = ff | card_fields: 'line' -%}
+{%- assign icon_fields = ff | card_fields: 'icon' -%}
+
+<section class="max-w-prose">
   <span class="eyebrow">Contribute</span>
-  <h1 class="mt-2 font-heading text-4xl font-semibold text-brand-primary-dark sm:text-5xl">Submit a {{ singular | downcase }}</h1>
+  <h1 class="mt-2 font-heading text-3xl font-semibold text-brand-primary-dark sm:text-4xl">Submit a {{ singular | downcase }}</h1>
   <p class="mt-4 text-lg text-brand-muted">{{ cfg.submit.intro | default: 'Tell us about your work. Maintainers review every submission before it is published.' }}</p>
+  <p class="mt-3 text-sm text-brand-muted">Nothing is sent from this page. When you're done, it opens a GitHub issue with your answers filled in, and you press <em>Submit new issue</em> there. You'll need a free GitHub account — or use <em>Email it instead</em>.</p>
 </section>
 
-<div class="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-  <form class="card min-w-0 space-y-8 p-6 sm:p-8" data-submit-form
+<div class="mt-10 grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)_19rem]">
+
+  <nav class="hidden lg:col-start-1 lg:row-start-1 lg:block" aria-label="Form sections">
+    <div class="progress-rail lg:sticky lg:top-24">
+      <p class="progress-count" data-progress-count>0 of {{ form_groups.size }} sections complete</p>
+      <ul class="mt-3 space-y-0.5">
+        {%- for g in form_groups %}
+        <li>
+          <a class="progress-link" href="#section-{{ g.key }}" data-progress-link="{{ g.key }}" data-done="false">
+            <span class="progress-dot" aria-hidden="true"></span>
+            <span>{{ g.title }}<span class="sr-only" data-progress-state> — not started</span></span>
+          </a>
+        </li>
+        {%- endfor %}
+      </ul>
+    </div>
+  </nav>
+
+  <div class="lg:col-start-3 lg:row-start-1">
+    <details class="preview-panel lg:sticky lg:top-24" data-preview-panel hidden>
+      <summary class="preview-summary">
+        <span>Card preview</span>
+        {% include icon.html name='chevron-down' size='sm' %}
+      </summary>
+      <p class="mt-3 hidden text-xs font-semibold uppercase tracking-[0.12em] text-brand-muted lg:block">Card preview</p>
+      <p class="mt-1 text-xs text-brand-muted">This is how your entry will look in the catalog.</p>
+
+      <article class="card mt-3 overflow-hidden" data-preview>
+        <div class="aspect-[16/9] w-full bg-brand-ink/5" data-preview-media hidden>
+          <img class="h-full w-full object-cover" alt="" referrerpolicy="no-referrer" data-preview-image>
+        </div>
+        <div class="p-4">
+          <p class="eyebrow flex flex-wrap items-center gap-x-2 gap-y-1 text-brand-muted" data-preview-meta hidden></p>
+          <h3 class="card-title mt-2 line-clamp-2" data-preview-title>Your title appears here</h3>
+          <p class="mt-2 flex items-start gap-1.5 text-sm font-semibold text-brand-ink" data-preview-line hidden></p>
+          <p class="mt-2 line-clamp-2 text-sm text-brand-muted" data-preview-summary hidden>Your one-sentence summary appears here.</p>
+          <ul class="mt-3 flex flex-wrap gap-1.5" data-preview-chips hidden></ul>
+          <div class="signal-strip mt-4" data-preview-signals hidden></div>
+        </div>
+      </article>
+
+      <div class="mt-4 space-y-2 border-t border-brand-line pt-4 text-xs text-brand-muted">
+        <p class="font-semibold text-brand-ink">What happens next</p>
+        <ol class="space-y-1.5">
+          <li>1. Your answers open a pre-filled GitHub issue. Review it and press <em>Submit new issue</em>.</li>
+          <li>2. Automation drafts the page and opens a pull request.</li>
+          <li>3. {{ cfg.submit.review_note | default: 'A maintainer reviews the draft, may ask follow-up questions on the issue, and merges it.' }}</li>
+        </ol>
+      </div>
+    </details>
+  </div>
+
+  <form class="min-w-0 space-y-10 lg:col-start-2 lg:row-start-1"
+        data-submit-form
         data-repo="{{ cfg.github.repository }}"
         data-template="new-entry.yml"
+        data-title-prefix="[{{ singular }}] "
         data-fallback-email="{{ cfg.submit.fallback_email | default: cfg.organization.contact_email }}"
         data-singular="{{ singular }}"
+        data-entry-path="{{ schema.entry.path | default: 'catalog' }}"
+        data-draft-key="{{ cfg.name | default: 'catalog' | slugify }}"
+        data-section-count="{{ form_groups.size }}"
         novalidate>
-    {% for f in form_fields %}
-      {% assign fid = 'f-' | append: f.key %}
-      <div class="space-y-2" data-field="{{ f.key }}" data-type="{{ f.type }}">
-        <label class="field-label" for="{{ fid }}">{{ f.label }}{% if f.required %} <span class="text-brand-accent" aria-hidden="true">*</span>{% endif %}</label>
-        {% if f.description %}<p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>{% endif %}
-        {% case f.type %}
-        {% when 'textarea' or 'markdown' or 'list' %}
-          <textarea class="field-input min-h-[7rem]" id="{{ fid }}" name="{{ f.key }}" rows="{% if f.type == 'markdown' %}10{% else %}4{% endif %}" {% if f.required %}required{% endif %} placeholder="{{ f.placeholder | escape }}" {% if f.description %}aria-describedby="{{ fid }}-help"{% endif %}></textarea>
-          {% if f.type == 'list' %}<p class="field-help">One per line, or separate with commas.</p>{% endif %}
-        {% when 'select' %}
-          <select class="field-input" id="{{ fid }}" name="{{ f.key }}" {% if f.required %}required{% endif %}>
-            <option value="">Select one…</option>
-            {% for o in f.options %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
-          </select>
-        {% when 'multiselect' %}
-          <fieldset class="grid gap-2 sm:grid-cols-2" id="{{ fid }}"><legend class="sr-only">{{ f.label }}</legend>
-            {% for o in f.options %}<label class="flex items-start gap-2 rounded-md border border-brand-line bg-surface-base px-3 py-2 text-sm text-brand-ink hover:border-brand-primary/50"><input class="mt-0.5 rounded border-brand-line text-brand-primary focus:ring-brand-primary" type="checkbox" name="{{ f.key }}" value="{{ o }}"><span>{{ o }}</span></label>{% endfor %}
-          </fieldset>
-        {% when 'boolean' %}
-          <label class="flex items-center gap-2 text-sm"><input class="rounded border-brand-line text-brand-primary" type="checkbox" id="{{ fid }}" name="{{ f.key }}" value="true"><span>Yes</span></label>
-        {% when 'file' or 'image' %}
-          <p class="rounded-md border border-dashed border-brand-line bg-surface-base px-4 py-3 text-sm text-brand-muted">Files can't be attached here. After you open the GitHub issue, drag the file into the issue description (or a comment) and a maintainer will add it to your entry.</p>
-        {% when 'date' %}
-          <input class="field-input" type="date" id="{{ fid }}" name="{{ f.key }}" {% if f.required %}required{% endif %}>
-        {% when 'number' %}
-          <input class="field-input" type="number" id="{{ fid }}" name="{{ f.key }}" {% if f.required %}required{% endif %} placeholder="{{ f.placeholder | escape }}">
-        {% when 'url' or 'email' %}
-          <input class="field-input" type="{{ f.type }}" id="{{ fid }}" name="{{ f.key }}" {% if f.required %}required{% endif %} placeholder="{{ f.placeholder | escape }}" {% if f.description %}aria-describedby="{{ fid }}-help"{% endif %}>
-        {% else %}
-          <input class="field-input" type="text" id="{{ fid }}" name="{{ f.key }}" {% if f.required %}required{% endif %} placeholder="{{ f.placeholder | escape }}" {% if f.description %}aria-describedby="{{ fid }}-help"{% endif %}>
-        {% endcase %}
+
+    <div class="draft-bar" data-draft-restore hidden>
+      <p><strong>You have an unfinished draft</strong> saved on this device.</p>
+      <div class="flex gap-2">
+        <button type="button" class="btn-secondary btn-sm" data-draft-action="restore">Restore it</button>
+        <button type="button" class="btn-ghost btn-sm" data-draft-action="discard">Start fresh</button>
       </div>
-    {% endfor %}
+    </div>
 
-    <div class="rounded-lg border border-brand-line bg-surface-base p-4 text-sm text-brand-muted" data-submit-status hidden></div>
+    <p class="progress-count lg:hidden" data-progress-line>0 of {{ form_groups.size }} sections complete</p>
 
-    <div class="flex flex-col gap-3 border-t border-brand-line pt-6 sm:flex-row sm:items-center">
-      <button type="submit" class="btn-primary">Continue on GitHub {% include icon.html name='arrow-right' size='sm' %}</button>
-      <button type="button" class="btn-secondary" data-submit-email>Email it instead</button>
-      <span class="text-xs text-brand-muted">You'll need a free GitHub account to open the issue.</span>
+    <div class="error-summary" role="alert" tabindex="-1" data-error-summary hidden>
+      <p class="error-summary-title">{% include icon.html name='warning' size='sm' %}<span data-error-summary-title>There is a problem</span></p>
+      <ul class="mt-2 space-y-1 pl-6" data-error-summary-list></ul>
+    </div>
+
+    {%- for g in form_groups %}
+    {%- assign group_fields = ff | fields_in_group: g.key %}
+    <section class="form-section" id="section-{{ g.key }}" aria-labelledby="heading-{{ g.key }}" data-section="{{ g.key }}">
+      <p class="eyebrow">Section {{ forloop.index }} of {{ form_groups.size }}</p>
+      <h2 class="section-title mt-1" id="heading-{{ g.key }}">{{ g.title }}</h2>
+      {%- if g.description %}<p class="section-lead mt-1">{{ g.description }}</p>{% endif %}
+
+      <div class="mt-6 space-y-7">
+        {%- for f in group_fields %}
+        {%- assign fid = 'f-' | append: f.key -%}
+        {%- assign slot = f | card_slot -%}
+        {%- assign describedby = fid | append: '-help ' | append: fid | append: '-error' -%}
+        {%- assign question = f.prompt | default: f.label -%}
+        {%- if f.type == 'multiselect' -%}{%- assign prefillable = 'false' -%}{%- else -%}{%- assign prefillable = 'true' -%}{%- endif -%}
+        <div class="field" data-field="{{ f.key }}" data-type="{{ f.type }}" data-required="{{ f.required | default: false }}"
+             data-label="{{ f.label | escape }}" data-slot="{{ slot }}" data-weight="{{ f.weight | default: 5 }}"
+             data-prefill="{{ prefillable }}" data-role="{% if f.key == 'title' %}title{% elsif f.key == 'summary' %}summary{% endif %}">
+
+          {%- case f.type -%}
+          {%- when 'select' or 'multiselect' -%}
+            <fieldset>
+              <legend class="field-label">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</legend>
+              <p class="field-help mt-1" id="{{ fid }}-help">{{ f.description }}{% if f.label != question %} <span class="text-brand-muted/80">Shown as “{{ f.label }}”.</span>{% endif %}</p>
+              {%- if f.type == 'select' and f.options.size > 6 -%}
+                <select class="field-input mt-2" id="{{ fid }}" name="{{ f.key }}" aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}>
+                  <option value="">Choose one…</option>
+                  {%- for o in f.options -%}{%- assign om = f | option_meta: o -%}
+                  <option value="{{ o | escape }}" data-option-index="{{ forloop.index0 }}" data-short="{{ om.short | escape }}">{{ o }}</option>
+                  {%- endfor -%}
+                </select>
+              {%- else -%}
+                <div class="{% if f.options.size > 6 %}field-options-wide{% else %}field-options{% endif %} mt-2">
+                  {%- for o in f.options -%}{%- assign om = f | option_meta: o -%}
+                  <label class="field-option">
+                    <input class="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}"
+                           type="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}"
+                           name="{{ f.key }}" value="{{ o | escape }}"
+                           data-option-index="{{ forloop.index0 }}" data-short="{{ om.short | escape }}"
+                           {% if f.required %}aria-required="true"{% endif %} aria-describedby="{{ describedby }}">
+                    <span><span class="font-medium">{{ o }}</span>{% if om.description != '' %}<span class="field-option-desc">{{ om.description }}</span>{% endif %}</span>
+                  </label>
+                  {%- endfor -%}
+                  {%- unless f.required -%}
+                  <label class="field-option">
+                    <input class="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}" type="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}" name="{{ f.key }}" value="" data-clear>
+                    <span><span class="font-medium">Skip this one</span></span>
+                  </label>
+                  {%- endunless -%}
+                </div>
+              {%- endif -%}
+            </fieldset>
+
+          {%- when 'links' -%}
+            <fieldset>
+              <legend class="field-label">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</legend>
+              <p class="field-help mt-1" id="{{ fid }}-help">{{ f.description }}</p>
+              <div class="mt-2 space-y-2" data-links-rows></div>
+              <template data-links-template>
+                <div class="links-row">
+                  <label class="block text-xs font-medium text-brand-muted">Label
+                    <input class="field-input mt-1" type="text" data-links-label placeholder="Evaluation report">
+                  </label>
+                  <label class="block text-xs font-medium text-brand-muted">Link
+                    <input class="field-input mt-1" type="url" data-links-url placeholder="https://example.org/report.pdf">
+                  </label>
+                  <button type="button" class="btn-ghost btn-sm justify-self-start" data-links-remove>Remove</button>
+                </div>
+              </template>
+              <button type="button" class="btn-secondary btn-sm mt-2" data-links-add>Add another link</button>
+            </fieldset>
+
+          {%- when 'images' -%}
+            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
+            <p class="field-note">You can drag image files straight into the GitHub issue on the next screen. If your images are already online, paste their addresses here instead — one per line, optionally followed by <code>| alt text</code>. PNG, JPEG, GIF and WebP images are copied into the repository; anything else is left as a link for a maintainer.</p>
+            <textarea class="field-input min-h-[6rem]" id="{{ fid }}" name="{{ f.key }}" rows="3"
+                      aria-describedby="{{ describedby }}" placeholder="https://example.org/screenshot.png | The daily brief queue"></textarea>
+            <ul class="image-previews" data-image-previews hidden></ul>
+
+          {%- when 'markdown' -%}
+            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <p class="field-help" id="{{ fid }}-help">{{ f.description }}{% unless f.description contains 'arkdown' %} Markdown is supported — use <code>##</code> for headings.{% endunless %}</p>
+            <textarea class="field-input min-h-[18rem] font-mono text-sm" id="{{ fid }}" name="{{ f.key }}" rows="16"
+                      aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}>{{ f.placeholder }}</textarea>
+
+          {%- when 'textarea' -%}
+            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
+            <textarea class="field-input min-h-[6rem]" id="{{ fid }}" name="{{ f.key }}" rows="3"
+                      aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}
+                      placeholder="{{ f.placeholder | escape }}"></textarea>
+
+          {%- when 'list' -%}
+            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <p class="field-help" id="{{ fid }}-help">{{ f.description }} One per line, or separated by commas.</p>
+            <textarea class="field-input min-h-[5rem]" id="{{ fid }}" name="{{ f.key }}" rows="3"
+                      aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}
+                      placeholder="{{ f.placeholder | escape }}"></textarea>
+
+          {%- when 'file' -%}
+            <p class="field-label">{{ question }}</p>
+            <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
+            <p class="field-note">Files can't be attached from this page. Drag <code>{{ f.filename | default: 'the file' }}</code> into the GitHub issue on the next screen and a maintainer will add it to your entry.</p>
+
+          {%- when 'boolean' -%}
+            <label class="field-option">
+              <input class="checkbox" type="checkbox" id="{{ fid }}" name="{{ f.key }}" value="true" aria-describedby="{{ describedby }}">
+              <span><span class="font-medium">{{ question }}</span>{% if f.description %}<span class="field-option-desc">{{ f.description }}</span>{% endif %}</span>
+            </label>
+            <p class="sr-only" id="{{ fid }}-help">{{ f.description }}</p>
+
+          {%- else -%}
+            {%- assign input_type = 'text' -%}
+            {%- if f.type == 'url' or f.type == 'image' -%}{%- assign input_type = 'url' -%}{%- endif -%}
+            {%- if f.type == 'email' -%}{%- assign input_type = 'email' -%}{%- endif -%}
+            {%- if f.type == 'date' -%}{%- assign input_type = 'date' -%}{%- endif -%}
+            {%- if f.type == 'number' -%}{%- assign input_type = 'number' -%}{%- endif -%}
+            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
+            <input class="field-input" type="{{ input_type }}" id="{{ fid }}" name="{{ f.key }}"
+                   aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}
+                   placeholder="{{ f.placeholder | escape }}">
+          {%- endcase -%}
+
+          <p class="field-error" id="{{ fid }}-error" hidden>{% include icon.html name='warning' size='sm' %}<span data-error-text></span></p>
+        </div>
+        {%- endfor %}
+      </div>
+    </section>
+    {%- endfor %}
+
+    <div class="space-y-4 border-t border-brand-line pt-6">
+      <div class="rounded-lg border border-brand-line bg-surface-base p-4 text-sm text-brand-muted" role="status" data-submit-status hidden></div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button type="submit" class="btn-primary">Review and send on GitHub {% include icon.html name='arrow-right' size='sm' %}</button>
+        <button type="button" class="btn-secondary" data-action="email">Email it instead</button>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class="btn-ghost btn-sm" data-action="copy-markdown">Copy as Markdown</button>
+        <button type="button" class="btn-ghost btn-sm" data-action="copy-yaml">Copy as YAML front matter</button>
+      </div>
+      <p class="draft-status" role="status" aria-live="polite" data-draft-status></p>
+      <p class="text-xs text-brand-muted">
+        Your answers stay in this browser until you press one of these buttons.
+        <button type="button" class="underline underline-offset-2 hover:no-underline" data-draft-action="clear">Clear the saved draft</button>
+      </p>
+
+      <div class="space-y-2" data-fallback hidden>
+        <label class="field-label" for="fallback-body">Copy this and paste it into a blank GitHub issue</label>
+        <p class="field-help">Your answers are longer than a link can carry. Open a blank issue, add the label <code>content:new-entry</code>, and paste the text below — the automation reads exactly this format.</p>
+        <textarea class="field-input min-h-[10rem] font-mono text-xs" id="fallback-body" readonly rows="10" data-fallback-body></textarea>
+        <button type="button" class="btn-secondary btn-sm" data-action="copy-fallback">Copy to clipboard</button>
+      </div>
     </div>
   </form>
-
-  <aside class="space-y-6">
-    <section class="card p-6">
-      <h2 class="font-heading text-lg font-semibold text-brand-primary-dark">What happens next</h2>
-      <ol class="mt-4 space-y-3 text-sm text-brand-muted">
-        <li class="flex gap-3"><span class="chip shrink-0">1</span><span>Clicking <strong>Continue on GitHub</strong> opens a pre-filled GitHub issue with your answers. Review, then press <em>Submit new issue</em>.</span></li>
-        <li class="flex gap-3"><span class="chip shrink-0">2</span><span>Automation drafts a page and opens a pull request for maintainers.</span></li>
-        <li class="flex gap-3"><span class="chip shrink-0">3</span><span>{{ cfg.submit.review_note | default: 'A maintainer reviews the draft, may ask follow-up questions on the issue, and merges it. Your entry goes live within minutes.' }}</span></li>
-      </ol>
-    </section>
-    <section class="card p-6">
-      <h2 class="font-heading text-lg font-semibold text-brand-primary-dark">Tips</h2>
-      <ul class="mt-4 list-disc space-y-2 pl-5 text-sm text-brand-muted">
-        <li>Write the summary for someone outside your team — one or two plain sentences.</li>
-        <li>Link the source repo or deployment if it's shareable; otherwise describe the setup in the write-up.</li>
-        <li>Anything you leave blank can be added later by editing the page on GitHub.</li>
-      </ul>
-    </section>
-    <section class="card p-6">
-      <h2 class="font-heading text-lg font-semibold text-brand-primary-dark">No GitHub account?</h2>
-      <p class="mt-2 text-sm text-brand-muted">Use <strong>Email it instead</strong> — it opens your mail client with the same details addressed to the maintainers.</p>
-    </section>
-  </aside>
 </div>
-<script src="{{ '/assets/js/submit.js' | relative_url }}" defer></script>
+
+{%- comment -%}
+  Pre-rendered fragments the preview clones. Rendering them with Liquid keeps
+  every icon and tone decision in the schema, and lets the JS use cloneNode +
+  textContent instead of building HTML from strings.
+{%- endcomment -%}
+<div hidden data-preview-templates>
+  {%- if badge_field -%}
+  {%- for o in badge_field.options -%}{%- assign om = badge_field | option_meta: o -%}
+  <template data-option-view="{{ badge_field.key }}__{{ forloop.index0 }}"><span class="badge-{{ om.tone }}">{% if om.icon != '' %}{% include icon.html name=om.icon size='xs' %}{% endif %}<span>{{ om.short }}</span></span></template>
+  {%- endfor -%}
+  {%- endif -%}
+
+  {%- if chip_field -%}
+  {%- for o in chip_field.options -%}{%- assign om = chip_field | option_meta: o -%}
+  <template data-option-view="{{ chip_field.key }}__{{ forloop.index0 }}"><li class="chip">{{ om.short }}</li></template>
+  {%- endfor -%}
+  {%- endif -%}
+
+  {%- for f in icon_fields -%}
+  {%- for o in f.options -%}{%- assign om = f | option_meta: o -%}
+  <template data-option-view="{{ f.key }}__{{ forloop.index0 }}"><span class="{% if om.tone == 'warn' %}signal-warn{% else %}signal{% endif %}" title="{{ f.label | escape }}: {{ o | escape }}">{% if om.icon != '' %}{% include icon.html name=om.icon size='xs' %}{% endif %}<span aria-hidden="true">{{ om.short }}</span><span class="sr-only">{{ f.label }}: {{ o }}</span></span></template>
+  {%- endfor -%}
+  {%- endfor -%}
+
+  {%- for f in line_fields -%}
+  <template data-line-view="{{ f.key }}">{% include icon.html name=f.icon size='sm' class='mt-0.5 text-brand-primary' %}<span data-line-text></span></template>
+  {%- endfor -%}
+
+  <template data-chip-overflow><li class="chip-neutral" data-overflow-text></li></template>
+</div>

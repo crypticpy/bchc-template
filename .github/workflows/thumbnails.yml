@@ -1,10 +1,19 @@
 name: Generate entry thumbnails
 
+# Renders the first page of every entry PDF to catalog/<slug>/thumb.jpg.
+#
+# Uses `pdftoppm` (poppler-utils) rather than ImageMagick: ubuntu-latest ships
+# ImageMagick 6, whose `magick` command does not exist, and its PDF delegate is
+# disabled by policy on many images. pdftoppm needs neither.
+
 on:
   pull_request:
     paths:
       - "catalog/**/*.pdf"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   thumbnail:
@@ -23,12 +32,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
 
       - name: Install npm dependencies
         run: npm ci --ignore-scripts
 
-      - name: Install ImageMagick
-        run: sudo apt-get update && sudo apt-get install -y imagemagick
+      - name: Install poppler-utils
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
 
       - name: Generate thumbnails
         run: |
@@ -44,13 +54,27 @@ jobs:
               echo "Skipping non-PDF file at $source (signature: $signature)"
               continue
             fi
-            if [ ! -f "$thumb" ] || [ "$source" -nt "$thumb" ]; then
-              echo "Generating thumbnail for $source"
-              magick -density 150 "$source"[0] -quality 85 -resize 800x -background white -alpha remove -alpha off "$thumb"
+            if [ -f "$thumb" ] && [ ! "$source" -nt "$thumb" ]; then
+              continue
             fi
+            echo "Generating thumbnail for $source"
+            # -singlefile writes "<prefix>.jpg" with no page-number suffix.
+            # -scale-to-y -1 keeps the aspect ratio of the 800px-wide render.
+            pdftoppm -jpeg -jpegopt quality=85 -scale-to-x 800 -scale-to-y -1 \
+              -f 1 -l 1 -singlefile "$source" "${thumb%.jpg}"
           done
 
       - name: Commit thumbnails
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: update entry thumbnails"
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A "catalog"
+          if git diff --cached --quiet; then
+            echo "No thumbnail changes."
+            exit 0
+          fi
+          git commit -m "chore: update entry thumbnails"
+          git push origin "HEAD:refs/heads/$BRANCH"

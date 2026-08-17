@@ -1,13 +1,19 @@
-<!-- Most content pull requests are opened by automation from an issue. Delete anything that does not apply. -->
+<!--
+Entry submissions get their own generated checklist — this template is for
+pull requests a person opens by hand (template changes, docs, fixes).
+-->
 
 ## What this changes
 
-<!-- One or two sentences. Link the issue: Closes #123 -->
+<!-- One or two sentences. Link the issue with "Closes #123" if there is one. -->
 
-## Maintainer checklist
+## Checklist
 
-- [ ] Content is accurate and written for a public audience
-- [ ] No sensitive, personal, or non-public data (link out rather than pasting)
-- [ ] Attachments (PDFs, images) are uploaded into the entry or event folder and under 10 MB
-- [ ] External links resolve
-- [ ] The **Validate Content** check is green
+- [ ] `npm run validate` passes locally (data files, front matter, file sizes)
+- [ ] `npm test` and `npm run test:ruby` pass
+- [ ] Schema changes were followed by `npm run generate`, and the regenerated
+      `.github/ISSUE_TEMPLATE/new-entry.yml` is committed here
+- [ ] No field key is hardcoded outside `_data/schema.yml`
+- [ ] New or changed UI keeps a visible focus ring, a programmatic label on
+      every input, and text alternatives for icons
+- [ ] Screenshots below for anything that changes what a page looks like
