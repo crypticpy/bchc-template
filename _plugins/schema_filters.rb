@@ -16,6 +16,9 @@ module CatalogTemplate
       "multiselect" => "chip"
     }.freeze
     CARD_SLOTS = %w[badge chip meta icon line].freeze
+    # Where a group renders on the entry page.
+    GROUP_PLACEMENTS = %w[main rail].freeze
+    GROUP_PLACEMENT_DEFAULT = "main"
 
     # Stable sort by `weight` (default 5). Fields without weight keep their
     # relative schema order among equals.
@@ -52,6 +55,21 @@ module CatalogTemplate
       leftovers = used - known
       leftovers.each { |k| ordered << { "key" => k, "title" => (k == "other" ? "More" : k.tr("_-", "  ").capitalize) } }
       ordered
+    end
+
+    # Groups whose `placement` matches, in the order given. `placement` is
+    # optional on a group and anything unrecognised falls back to "main", so a
+    # schema that never mentions it keeps every group in the page body.
+    # @param groups [Array<Hash>] usually the output of `groups_for`
+    # @param placement [String] "rail" | "main"
+    def groups_placed(groups, placement)
+      want = placement.to_s.strip
+      want = GROUP_PLACEMENT_DEFAULT unless GROUP_PLACEMENTS.include?(want)
+      Array(groups).select do |g|
+        actual = g.is_a?(Hash) ? g["placement"].to_s.strip : ""
+        actual = GROUP_PLACEMENT_DEFAULT unless GROUP_PLACEMENTS.include?(actual)
+        actual == want
+      end
     end
 
     # Effective card slot for a field: "badge" | "chip" | "meta" | "icon" | "line" | nil.

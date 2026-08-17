@@ -41,14 +41,14 @@ Local assigns are prefixed `gal_` so nothing leaks into the caller's scope.
         {%- assign gal_shape = 'gallery-thumb' -%}{%- assign gal_span = '' -%}
       {%- endif -%}
       <li class="{{ gal_span }}">
-        <button type="button" class="{{ gal_shape }}" data-gallery-open="{{ forloop.index0 }}" data-gallery-src="{{ gal_src }}" data-gallery-alt="{{ gal_item.alt | escape }}" aria-haspopup="dialog" aria-label="Image {{ forloop.index }} of {{ gal_count }}: {{ gal_item.alt | escape }}">
-          <img src="{{ gal_src }}" alt="{{ gal_item.alt | escape }}"{% unless forloop.first %} loading="lazy" decoding="async"{% endunless %}>
+        <button type="button" class="{{ gal_shape }}" data-gallery-open="{{ forloop.index0 }}" data-gallery-src="{{ gal_src | escape }}" data-gallery-alt="{{ gal_item.alt | escape }}" aria-haspopup="dialog" aria-label="Image {{ forloop.index }} of {{ gal_count }}: {{ gal_item.alt | escape }}">
+          <img src="{{ gal_src | escape }}" alt="{{ gal_item.alt | escape }}"{% unless forloop.first %} loading="lazy" decoding="async"{% endunless %}>
         </button>
       </li>
     {%- endfor -%}
   </ul>
 
-  <dialog class="lightbox" data-gallery-dialog aria-label="{{ gal_f.label }}">
+  <dialog class="lightbox" data-gallery-dialog aria-label="{{ gal_f.label | escape }}">
     <div class="lightbox-stage">
       <img data-gallery-image src="" alt="">
     </div>
@@ -76,15 +76,15 @@ Local assigns are prefixed `gal_` so nothing leaks into the caller's scope.
       {%- assign gal_auto_found = site.static_files | where: 'path', gal_auto | size -%}
       {%- if gal_auto_found > 0 -%}{%- assign gal_thumb = gal_auto -%}{%- endif -%}
     {%- endif -%}
-<a class="group flex items-center gap-4 rounded-xl border border-brand-line bg-surface-card p-3 transition-colors duration-120 ease-brand hover:border-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30" href="{{ gal_v | relative_url }}" download>
+<a class="group flex items-center gap-4 rounded-xl border border-brand-line bg-surface-card p-3 transition-colors duration-120 ease-brand hover:border-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30" href="{{ gal_v | relative_url | escape }}" download>
   {%- if gal_thumb and gal_thumb != '' -%}
-  <img class="h-20 w-16 shrink-0 rounded-md border border-brand-line object-cover object-top" src="{{ gal_thumb | relative_url }}" alt="First page of {{ gal_f.label | downcase }}" loading="lazy" decoding="async">
+  <img class="h-20 w-16 shrink-0 rounded-md border border-brand-line object-cover object-top" src="{{ gal_thumb | relative_url | escape }}" alt="First page of {{ gal_f.label | downcase | escape }}" loading="lazy" decoding="async">
   {%- else -%}
   <span class="inline-flex h-20 w-16 shrink-0 items-center justify-center rounded-md border border-brand-line text-brand-muted">{% include icon.html name='document' size='lg' %}</span>
   {%- endif -%}
   <span class="min-w-0 flex-1">
-    <span class="block text-sm font-semibold text-brand-ink">Download {{ gal_f.label | downcase }}</span>
-    <span class="block text-xs text-brand-muted">{{ gal_v | split: '.' | last | upcase }}</span>
+    <span class="block text-sm font-semibold text-brand-ink">Download {{ gal_f.label | downcase | escape }}</span>
+    <span class="block text-xs text-brand-muted">{{ gal_v | split: "." | last | upcase | escape }}</span>
   </span>
   {% include icon.html name='download' size='sm' class='shrink-0 text-brand-primary' %}
 </a>

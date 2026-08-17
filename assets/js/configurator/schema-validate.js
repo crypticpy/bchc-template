@@ -38,6 +38,9 @@ export const RESERVED_KEYS = ['layout', 'slug', 'published', 'updated', 'feature
 /** Legal `card` values beyond `true` / `false`. */
 export const CARD_SLOTS = ['badge', 'chip', 'meta', 'icon', 'line'];
 
+/** Where a group renders on the entry page: a sidebar card, or a body section. */
+export const GROUP_PLACEMENTS = ['main', 'rail'];
+
 /** Which types each explicit card slot can render. */
 const CARD_SLOT_TYPES = {
   badge: ['select'],
@@ -138,7 +141,7 @@ function checkGroups(groups, report) {
   const keys = new Set();
   if (groups === undefined) return keys;
   if (!Array.isArray(groups)) {
-    report.error('groups', '`groups` must be a list of {key, title, description} mappings.');
+    report.error('groups', '`groups` must be a list of {key, title, description, icon, placement} mappings.');
     return keys;
   }
   groups.forEach((group, index) => {
@@ -159,6 +162,13 @@ function checkGroups(groups, report) {
     if (!isNonEmptyString(group.title)) report.error(`${path}.title`, `Group "${key || index}" needs a \`title\`.`);
     if (group.description !== undefined && !isNonEmptyString(group.description)) {
       report.error(`${path}.description`, `Group "${key || index}" has an empty \`description\`.`);
+    }
+    if (group.icon !== undefined) checkIcon(group.icon, `${path}.icon`, report);
+    if (group.placement !== undefined && !GROUP_PLACEMENTS.includes(String(group.placement).trim())) {
+      report.warn(
+        `${path}.placement`,
+        `"${group.placement}" is not one of: ${GROUP_PLACEMENTS.join(', ')} — the group renders as a body section.`
+      );
     }
   });
   return keys;

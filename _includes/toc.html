@@ -26,11 +26,11 @@ links still work. Local assigns are prefixed `toc_`.
       {%- assign toc_id = toc_c | split: '"' | first -%}
       {%- assign toc_after = toc_c | split: '">' -%}
       {%- assign toc_text = toc_after[1] | split: '</h2>' | first | strip_html | strip -%}
-      <li><a class="toc-link" href="#{{ toc_id }}" data-toc-link>{{ toc_text }}</a></li>
+      <li><a class="toc-link" href="#{{ toc_id | escape }}" data-toc-link>{{ toc_text | escape }}</a></li>
     {%- endfor -%}
     {%- for toc_s in toc_sections -%}
       {%- assign toc_parts = toc_s | split: '|' -%}
-      <li><a class="toc-link" href="#{{ toc_parts[0] }}" data-toc-link>{{ toc_parts[1] | escape }}</a></li>
+      <li><a class="toc-link" href="#{{ toc_parts[0] | escape }}" data-toc-link>{{ toc_parts[1] | escape }}</a></li>
     {%- endfor -%}
   </ul>
 </nav>

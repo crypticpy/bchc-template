@@ -1,11 +1,19 @@
 {%- comment -%}
-One sidebar card for a schema group — "Reuse this", "Contact", or any other group
-the entry page hands it. Renders every field of that group that has a value and
-has not already been shown elsewhere on the page, as a label/value list.
+One sidebar card for a schema group with `placement: rail` — "Reuse", "Contact",
+or any other group the entry page hands it. Renders every field of that group
+that has a value and has not already been shown elsewhere on the page:
+
+  url fields    skipped — they are the primary buttons in the page header
+  links fields  a compact icon + label + host list (this is where "Other
+                resources" belongs, not 3,000px down the body)
+  email + text  a person card: name line, then a mailto link (detected by
+                `type: email`, never by key)
+  everything else  a label/value list
+
 Emits nothing when nothing is left, so the rail never shows a labelled void.
 
 Usage:
-  {% include reuse-card.html fields=ent_fields entry=page group='reuse' title='Reuse this' icon='rocket' shown=ent_shown %}
+  {% include reuse-card.html fields=ent_fields entry=page group='reuse' title='Reuse' icon='rocket' shown=ent_shown %}
     fields  schema.fields
     entry   the entry page object
     group   group key from schema.groups
@@ -22,25 +30,85 @@ Local assigns are prefixed `rc_` so nothing leaks into the caller's scope.
 {%- capture rc_default_id -%}rail-{{ include.group }}{%- endcapture -%}
 {%- assign rc_id = include.id | default: rc_default_id -%}
 
-{%- capture rc_rows -%}
+{%- comment -%}
+A person card needs an email field with a value; the name is the first text
+field of the same group that also has one. Both are then skipped by the list.
+{%- endcomment -%}
+{%- assign rc_email_key = '' -%}
+{%- assign rc_name_key = '' -%}
+{%- for rc_f in rc_fields -%}
+  {%- assign rc_k = '|' | append: rc_f.key | append: '|' -%}
+  {%- if rc_shown contains rc_k -%}{%- continue -%}{%- endif -%}
+  {%- assign rc_v = rc_entry[rc_f.key] -%}
+  {%- if rc_v == nil or rc_v == '' -%}{%- continue -%}{%- endif -%}
+  {%- if rc_f.type == 'email' and rc_email_key == '' -%}{%- assign rc_email_key = rc_f.key -%}{%- endif -%}
+  {%- if rc_f.type == 'text' and rc_name_key == '' -%}{%- assign rc_name_key = rc_f.key -%}{%- endif -%}
+{%- endfor -%}
+{%- if rc_email_key == '' -%}{%- assign rc_name_key = '' -%}{%- endif -%}
+
+{%- capture rc_body -%}
+  {%- comment -%} 1. Person block, when this group holds a name + an email. {%- endcomment -%}
+  {%- if rc_email_key != '' -%}
+    {%- assign rc_email = rc_entry[rc_email_key] -%}
+    {%- assign rc_email_f = rc_fields | where: 'key', rc_email_key | first -%}
+    <div class="rail-person">
+      {%- if rc_name_key != '' -%}
+      <p class="text-sm font-semibold text-brand-ink">{{ rc_entry[rc_name_key] | escape }}</p>
+      {%- endif -%}
+      <a class="rail-link" href="mailto:{{ rc_email | escape }}">{% include icon.html name='mail' size='sm' class='shrink-0 text-brand-primary' %}<span class="min-w-0 break-all">{{ rc_email | escape }}</span><span class="sr-only"> ({{ rc_email_f.label | escape }})</span></a>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} 2. Link lists, compact: icon, label, host. {%- endcomment -%}
   {%- for rc_f in rc_fields -%}
-    {%- assign rc_key = '|' | append: rc_f.key | append: '|' -%}
-    {%- if rc_shown contains rc_key -%}{%- continue -%}{%- endif -%}
-    {%- comment -%} Long-form link lists belong in the body, not a 280px rail. {%- endcomment -%}
-    {%- if rc_f.type == 'markdown' or rc_f.type == 'links' -%}{%- continue -%}{%- endif -%}
-    {%- assign rc_v = rc_entry[rc_f.key] -%}
-    {%- if rc_v == nil or rc_v == '' or rc_v == empty -%}{%- continue -%}{%- endif -%}
+    {%- if rc_f.type != 'links' -%}{%- continue -%}{%- endif -%}
+    {%- assign rc_k = '|' | append: rc_f.key | append: '|' -%}
+    {%- if rc_shown contains rc_k -%}{%- continue -%}{%- endif -%}
+    {%- assign rc_links = rc_entry[rc_f.key] -%}
+    {%- unless rc_links.first -%}{%- continue -%}{%- endunless -%}
     <div>
-      <dt class="rail-term">{{ rc_f.label | escape }}</dt>
-      <dd class="rail-def">{% include field-value.html field=rc_f value=rc_v %}</dd>
+      <p class="rail-term">{{ rc_f.label | escape }}</p>
+      <ul class="mt-1.5 space-y-1" role="list">
+        {%- for rc_l in rc_links -%}
+          {%- assign rc_url = rc_l.url | default: rc_l -%}
+          {%- assign rc_label = rc_l.label | default: rc_url -%}
+          {%- if rc_url == nil or rc_url == '' -%}{%- continue -%}{%- endif -%}
+          <li>
+            <a class="rail-link" href="{{ rc_url | escape }}" target="_blank" rel="noopener noreferrer">
+              {% include icon.html name='link' size='sm' class='mt-0.5 shrink-0 text-brand-primary' %}
+              <span class="min-w-0"><span class="block leading-snug">{{ rc_label | escape }}</span><span class="block truncate text-xs text-brand-muted">{{ rc_url | link_host | escape }}</span></span>
+              <span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
     </div>
   {%- endfor -%}
+
+  {%- comment -%} 3. Everything else in the group, as a label/value list. {%- endcomment -%}
+  {%- capture rc_rows -%}
+    {%- for rc_f in rc_fields -%}
+      {%- assign rc_k = '|' | append: rc_f.key | append: '|' -%}
+      {%- if rc_shown contains rc_k -%}{%- continue -%}{%- endif -%}
+      {%- comment -%} url fields are the header buttons; the blocks above own the rest. {%- endcomment -%}
+      {%- if rc_f.type == 'markdown' or rc_f.type == 'links' or rc_f.type == 'url' -%}{%- continue -%}{%- endif -%}
+      {%- if rc_f.key == rc_email_key or rc_f.key == rc_name_key -%}{%- continue -%}{%- endif -%}
+      {%- assign rc_v = rc_entry[rc_f.key] -%}
+      {%- if rc_v == nil or rc_v == '' or rc_v == empty -%}{%- continue -%}{%- endif -%}
+      <div>
+        <dt class="rail-term">{{ rc_f.label | escape }}</dt>
+        <dd class="rail-def">{% include field-value.html field=rc_f value=rc_v %}</dd>
+      </div>
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- assign rc_rows = rc_rows | strip -%}
+  {%- if rc_rows != '' -%}<dl class="rail-list">{{ rc_rows }}</dl>{%- endif -%}
 {%- endcapture -%}
 
-{%- assign rc_rows = rc_rows | strip -%}
-{%- if rc_rows != '' -%}
+{%- assign rc_body = rc_body | strip -%}
+{%- if rc_body != '' -%}
 <section class="rail-card" aria-labelledby="{{ rc_id }}-heading" id="{{ rc_id }}">
-  <h2 class="rail-title flex items-center gap-1.5" id="{{ rc_id }}-heading">{%- if include.icon -%}{% include icon.html name=include.icon size='xs' %}{%- endif -%}{{ include.title | default: include.group }}</h2>
-  <dl class="rail-list">{{ rc_rows }}</dl>
+  <h2 class="rail-title flex items-center gap-1.5" id="{{ rc_id }}-heading">{%- if include.icon -%}{% include icon.html name=include.icon size='xs' %}{%- endif -%}{{ include.title | default: include.group | escape }}</h2>
+  <div class="mt-3 space-y-3">{{ rc_body }}</div>
 </section>
 {%- endif -%}

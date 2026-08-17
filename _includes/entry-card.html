@@ -2,7 +2,8 @@
 Catalog card. One <li> for a <ul role="list" data-entry-grid>.
 
 Usage: {% include entry-card.html entry=entry %}
-Params: entry (required).
+Params: entry (required); eager (optional; true = the media image loads eagerly —
+        pass it for the first row of a grid so the LCP image is not lazy-loaded).
 
 Everything on the card comes from `_data/schema.yml` presentation hints, resolved by
 _plugins/schema_filters.rb — no field key is named here. Slot caps are enforced by
@@ -15,8 +16,10 @@ this template (design-brief.md → Catalog card):
   line     the first `card: line` field (icon + one semibold line)
   summary  2-line clamp
   chip     ONE family: the first `card: chip` field, 2 chips + "+n"
-  icon     signal strip: `card: icon` fields in weight order, <= 4 glyphs total,
-           a multiselect shows <= 2 values then "+n"
+           (3 chips on an imageless card, which has the vertical room)
+  icon     signal strip: `card: icon` fields in weight order, <= 2 values per
+           field and <= 4 items in total INCLUDING the single trailing "+n"
+           that counts every value the strip could not show
 
 Data attributes consumed by assets/js/filters.js:
   data-entry, data-entry-id, data-entry-title, data-entry-date, data-entry-updated,
@@ -32,9 +35,8 @@ Local assigns are prefixed `ec_`.
 {%- assign ec_badge_field = ec_fields | card_fields: 'badge' | first -%}
 {%- assign ec_line_field = ec_fields | card_fields: 'line' | first -%}
 {%- assign ec_chip_field = ec_fields | card_fields: 'chip' | first -%}
-{%- assign ec_icon_fields = ec_fields | card_fields: 'icon' -%}
 
-{%- capture ec_thumb -%}{% include entry-thumb.html entry=ec_entry %}{%- endcapture -%}
+{%- capture ec_thumb -%}{% include entry-thumb.html entry=ec_entry eager=include.eager %}{%- endcapture -%}
 {%- assign ec_thumb = ec_thumb | strip -%}
 {%- assign ec_has_image = false -%}
 {%- if ec_thumb != '' -%}{%- assign ec_has_image = true -%}{%- endif -%}
@@ -46,7 +48,7 @@ Local assigns are prefixed `ec_`.
   {%- if ec_badge_values.size > 0 -%}{%- assign ec_badge_value = ec_badge_values | first -%}{%- endif -%}
 {%- endif -%}
 
-<li class="entry-card card-hover"
+<li class="entry-card card-hover{% unless ec_has_image %} entry-card--text{% endunless %}"
   data-entry
   data-entry-id="{{ ec_entry.slug | default: ec_entry.title | slugify }}"
   data-entry-title="{{ ec_entry.title | escape }}"
@@ -77,8 +79,7 @@ Local assigns are prefixed `ec_`.
         {%- if ec_vals.size > 0 -%}
           {%- assign ec_raw = ec_vals | first -%}
           {%- assign ec_text = ec_f | option_short: ec_raw -%}
-          {%- if ec_seg > 0 -%}<span class="entry-meta-sep" aria-hidden="true">·</span>{%- endif -%}
-          <span title="{{ ec_f.label | escape }}: {{ ec_raw | escape }}">{{ ec_text }}</span>
+          <span class="entry-meta-seg{% if ec_seg == 0 %} entry-meta-seg--lead{% endif %}" title="{{ ec_f.label | escape }}: {{ ec_raw | escape }}">{{ ec_text | escape }}</span>
           {%- assign ec_seg = ec_seg | plus: 1 -%}
         {%- endif -%}
       {%- endfor -%}
@@ -101,59 +102,41 @@ Local assigns are prefixed `ec_`.
       </p>
     {%- endif -%}
 
-    <h3 class="entry-title line-clamp-2"><a href="{{ ec_entry.url | relative_url }}">{{ ec_entry.title }}</a></h3>
+    <h3 class="entry-title line-clamp-2"><a href="{{ ec_entry.url | relative_url }}">{{ ec_entry.title | escape }}</a></h3>
 
     {%- if ec_line_field -%}
       {%- assign ec_line_value = ec_entry[ec_line_field.key] -%}
       {%- if ec_line_value and ec_line_value != '' -%}
-        <p class="entry-line">{% include icon.html name=ec_line_field.icon size='sm' class='mt-0.5 text-brand-primary' %}<span class="line-clamp-2"><span class="sr-only">{{ ec_line_field.label }}: </span>{{ ec_line_value }}</span></p>
+        <p class="entry-line">{% include icon.html name=ec_line_field.icon size='sm' class='mt-0.5 text-brand-primary' %}<span><span class="sr-only">{{ ec_line_field.label | escape }}: </span>{{ ec_line_value | escape }}</span></p>
       {%- endif -%}
     {%- endif -%}
 
     {%- if ec_entry.summary and ec_entry.summary != '' -%}
-      <p class="entry-summary">{{ ec_entry.summary }}</p>
+      <p class="entry-summary">{{ ec_entry.summary | escape }}</p>
     {%- endif -%}
 
     {%- if ec_chip_field -%}
       {%- assign ec_chips = ec_entry[ec_chip_field.key] | as_list -%}
+      {%- comment -%} An imageless card has the room for a third chip. {%- endcomment -%}
+      {%- assign ec_chip_cap = 2 -%}
+      {%- unless ec_has_image -%}{%- assign ec_chip_cap = 3 -%}{%- endunless -%}
       {%- if ec_chips.size > 0 -%}
         <ul class="entry-chips" aria-label="{{ ec_chip_field.label | escape }}">
-          {%- for ec_v in ec_chips limit: 2 -%}
+          {%- for ec_v in ec_chips limit: ec_chip_cap -%}
             <li><span class="chip" title="{{ ec_v | escape }}">{{ ec_chip_field | option_short: ec_v }}</span></li>
           {%- endfor -%}
-          {%- if ec_chips.size > 2 -%}
-            {%- assign ec_chip_more = ec_chips.size | minus: 2 -%}
-            <li><span class="chip-neutral">+{{ ec_chip_more }}<span class="sr-only"> more {{ ec_chip_field.label | downcase }}</span></span></li>
+          {%- if ec_chips.size > ec_chip_cap -%}
+            {%- assign ec_chip_more = ec_chips.size | minus: ec_chip_cap -%}
+            <li><span class="chip-neutral"><span aria-hidden="true">+{{ ec_chip_more }}</span><span class="sr-only">{{ ec_chip_more }} more {{ ec_chip_field.label | downcase }}</span></span></li>
           {%- endif -%}
         </ul>
       {%- endif -%}
     {%- endif -%}
   </div>
 
-  {%- assign ec_glyphs = 0 -%}
-  {%- capture ec_signals -%}
-    {%- for ec_f in ec_icon_fields -%}
-      {%- if ec_glyphs >= 4 -%}{%- break -%}{%- endif -%}
-      {%- assign ec_vals = ec_entry[ec_f.key] | as_list -%}
-      {%- assign ec_shown = 0 -%}
-      {%- for ec_v in ec_vals -%}
-        {%- if ec_glyphs >= 4 or ec_shown >= 2 -%}{%- break -%}{%- endif -%}
-        {%- assign ec_om = ec_f | option_meta: ec_v -%}
-        {%- assign ec_tone = 'signal' -%}
-        {%- if ec_om.tone == 'warn' -%}{%- assign ec_tone = 'signal-warn' -%}{%- elsif ec_om.tone == 'primary' -%}{%- assign ec_tone = 'signal-primary' -%}{%- endif -%}
-        {%- capture ec_sig_label -%}{{ ec_f.label }}: {{ ec_v }}{%- endcapture -%}
-        <span class="{{ ec_tone }}" title="{{ ec_sig_label | escape }}">{% include icon.html name=ec_om.icon size='xs' %}<span aria-hidden="true">{{ ec_om.short }}</span><span class="sr-only">{{ ec_sig_label }}</span></span>
-        {%- assign ec_shown = ec_shown | plus: 1 -%}
-        {%- assign ec_glyphs = ec_glyphs | plus: 1 -%}
-      {%- endfor -%}
-      {%- assign ec_rest = ec_vals.size | minus: ec_shown -%}
-      {%- if ec_shown > 0 and ec_rest > 0 -%}
-        <span class="signal">+{{ ec_rest }}<span class="sr-only"> more {{ ec_f.label | downcase }}</span></span>
-      {%- endif -%}
-    {%- endfor -%}
-  {%- endcapture -%}
+  {%- capture ec_signals -%}{% include signal-strip.html entry=ec_entry %}{%- endcapture -%}
   {%- assign ec_signals = ec_signals | strip -%}
   {%- if ec_signals != '' -%}
-    <div class="entry-foot"><div class="signal-strip">{{ ec_signals }}</div></div>
+    <div class="entry-foot">{{ ec_signals }}</div>
   {%- endif -%}
 </li>

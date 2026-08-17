@@ -203,7 +203,10 @@
     } else if (e.key === 'Escape') {
       // First Esc closes the listbox, a second one clears the query.
       if (open) { e.preventDefault(); close(); }
-      else if (input.value) { input.value = ''; run(); }
+      // Clearing has to go through the same path a keystroke takes, otherwise
+      // filters.js never hears about it and ?q= survives in the URL (and a
+      // relevance sort is left selected with no query to rank against).
+      else if (input.value) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
     }
   });
 

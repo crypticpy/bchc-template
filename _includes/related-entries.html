@@ -15,7 +15,8 @@ Usage:
     title    heading text
     limit    how many to show (default 3)
 
-Cards come from entry-card.html, which renders an <li>. Local assigns are
+Rows come from entry-row.html, which renders an <li>: the related list is a
+dense stack, not a card grid (imageless cards leave voids). Local assigns are
 prefixed `rel_` so nothing leaks into the caller's scope.
 {%- endcomment -%}
 {%- assign rel_self = include.entry -%}
@@ -70,11 +71,11 @@ prefixed `rel_` so nothing leaks into the caller's scope.
 {%- assign rel_final = rel_urls | split: ';;' -%}
 {%- if rel_final.size > 0 -%}
 <section class="mt-16 border-t border-brand-line pt-10" aria-labelledby="related-heading">
-  <h2 class="section-title" id="related-heading">{{ include.title | default: 'Related' }}</h2>
-  <ul class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
+  <h2 class="section-title" id="related-heading">{{ include.title | default: "Related" | escape }}</h2>
+  <ul class="mt-6 divide-y divide-brand-line [&>li]:border-b-0" role="list">
     {%- for rel_u in rel_final -%}
       {%- assign rel_hit = rel_pool | where: 'url', rel_u | first -%}
-      {%- if rel_hit -%}{% include entry-card.html entry=rel_hit %}{%- endif -%}
+      {%- if rel_hit -%}{% include entry-row.html entry=rel_hit %}{%- endif -%}
     {%- endfor -%}
   </ul>
 </section>

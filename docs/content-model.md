@@ -32,12 +32,30 @@ groups:                    # ordered; group filters and submit-form sections
   - key: about
     title: "About"
     description: "What it is, who built it, and what it changed."
+  - key: contact
+    title: "Contact"
+    description: "Someone others can reach out to."
+    placement: rail        # main (default) | rail — see below
 
 fields:
   - key: …
 ```
 
 `entry.path` is also read by `_plugins/modules.rb` (to know which pages belong to the `catalog` module) and by every script that scaffolds or reads entries.
+
+### Groups
+
+A group is `{key, title, description?, icon?, placement?}`. `key` is what a field's `group` points at; `title` heads the filter block, the submit-form step and the entry-page section.
+
+| Property | Meaning |
+|---|---|
+| `key` | `snake_case`, unique. Fields with no `group` fall into `other` ("More"). |
+| `title` | Required. Heading shown in filters, the submit form and on the entry page. |
+| `description` | Optional one-liner under the heading in the submit form. |
+| `icon` | Optional icon name from `_includes/icon.html`, shown beside a rail card's heading. |
+| `placement` | `main` (default) or `rail`. **Entry page only** — a `rail` group becomes a sidebar card instead of a body section. Everywhere else (filters, submit form, issue template) placement is ignored. |
+
+`placement: rail` is for the short, act-on-it groups: the links someone follows to reuse the thing, and the person they email. The rail is 280px and sticky, so a group whose fields hold sentences belongs in `main`. Inside a rail card the entry page renders, in order: a person block when the group has an `email` field with a value (plus the first `text` field of the same group as the name), each `links` field as a compact icon + label + host list, then everything else as a label/value list. `url` fields are skipped — they are already the primary buttons in the page header — as are fields the header, fact strip or gallery has shown. A rail group whose fields are all empty or already shown renders nothing at all.
 
 ## Reserved keys
 

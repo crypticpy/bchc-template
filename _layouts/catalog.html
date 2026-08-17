@@ -29,7 +29,8 @@ include_search: true
 
       <section aria-labelledby="results-heading">
         <ul role="list" class="entry-grid" data-entry-grid data-view="grid">
-          {% for entry in entries %}{% include entry-card.html entry=entry %}{% endfor %}
+          {%- comment -%} The first row is above the fold; its images must not be lazy (LCP). {%- endcomment -%}
+          {% for entry in entries %}{% assign cat_eager = false %}{% if forloop.index <= 3 %}{% assign cat_eager = true %}{% endif %}{% include entry-card.html entry=entry eager=cat_eager %}{% endfor %}
         </ul>
 
         <div class="card hidden px-6 py-12 text-center" data-empty-state>

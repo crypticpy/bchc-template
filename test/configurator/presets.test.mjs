@@ -48,6 +48,16 @@ for (const preset of presets) {
       assert.ok(Number.isInteger(field.weight), `${field.key} has a weight`);
       assert.ok(field.prompt, `${field.key} asks a question`);
     }
+    for (const group of schema.groups) {
+      if (group.placement === undefined) continue;
+      assert.ok(['main', 'rail'].includes(group.placement), `group ${group.key} has a legal placement`);
+    }
+    // Every preset needs at least one rail group, or its entry pages render an
+    // empty sidebar (the bug `placement` replaced a hardcoded 'reuse,contact').
+    assert.ok(
+      schema.groups.some((group) => group.placement === 'rail'),
+      'at least one group renders in the entry-page rail'
+    );
     const carded = schema.fields.filter((field) => typeof field.card === 'string');
     assert.ok(carded.length > 0, 'at least one field claims a card slot');
     for (const field of carded) {

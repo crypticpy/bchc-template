@@ -92,8 +92,8 @@ leads with; remaining facets fill in only if fewer than four qualify.
       {% if cfg.modules.stats and total > 0 %}
       <p class="mt-8 text-sm text-brand-on-dark/80">
         <span class="font-semibold text-white tabular">{{ total }}</span> {{ plural | downcase }}
-        {% if meta_field and meta_count > 0 %}<span class="text-brand-on-dark/50" aria-hidden="true"> · </span><span class="font-semibold text-white tabular">{{ meta_count }}</span> {{ meta_label }}{% endif %}
-        {% if url_field and url_count > 0 %}<span class="text-brand-on-dark/50" aria-hidden="true"> · </span><span class="font-semibold text-white tabular">{{ url_count }}</span> with {{ url_field.label | downcase }}{% endif %}
+        {% if meta_field and meta_count > 0 %}<span class="hero-stat"><span class="font-semibold text-white tabular">{{ meta_count }}</span> {{ meta_label }}</span>{% endif %}
+        {% if url_field and url_count > 0 %}<span class="hero-stat"><span class="font-semibold text-white tabular">{{ url_count }}</span> with {{ url_field.label | downcase }}</span>{% endif %}
       </p>
       {% endif %}
     </div>
@@ -113,7 +113,7 @@ leads with; remaining facets fill in only if fewer than four qualify.
           <ul role="list" class="mt-3 space-y-1">
             {% for opt in bf.options limit: 6 %}
               {% assign om = bf | option_meta: opt %}{% assign own = bf.option_meta[opt] %}
-              <li><a class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-brand-ink transition-colors duration-120 ease-brand hover:bg-brand-primary/5 hover:text-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30" href="{{ catalog_url | relative_url }}?{{ bkey }}={{ opt | slugify }}" title="{{ opt | escape }}">{% if own.icon %}{% include icon.html name=own.icon size='xs' class='text-brand-muted' %}{% endif %}{{ om.short }}</a></li>
+              <li><a class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-brand-primary transition-colors duration-120 ease-brand hover:bg-brand-primary/5 hover:underline" href="{{ catalog_url | relative_url }}?{{ bkey }}={{ opt | slugify }}" title="{{ opt | escape }}">{% if own.icon %}{% include icon.html name=own.icon size='xs' class='text-brand-muted' %}{% endif %}{{ om.short }}</a></li>
             {% endfor %}
           </ul>
           {% if bf.options.size > 6 %}<a class="mt-2 inline-block px-2 text-xs font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">All {{ bf.options.size }} options</a>{% endif %}
@@ -133,7 +133,7 @@ leads with; remaining facets fill in only if fewer than four qualify.
       </div>
     </div>
     <ul role="list" class="no-scrollbar -mx-4 flex list-none snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0 [&>li]:w-[85%] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-[48%] xl:[&>li]:w-[32%]" data-carousel-track tabindex="0" aria-label="Featured {{ plural | downcase }}">
-      {% for e in featured %}{% include entry-card.html entry=e %}{% endfor %}
+      {% for e in featured %}{% assign home_eager = false %}{% if forloop.index <= 3 %}{% assign home_eager = true %}{% endif %}{% include entry-card.html entry=e eager=home_eager %}{% endfor %}
     </ul>
   </section>
   {% endif %}

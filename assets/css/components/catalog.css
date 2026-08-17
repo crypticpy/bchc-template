@@ -10,7 +10,9 @@
   .entry-grid.is-fading { @apply opacity-0; }
 
   /* ---------- Card ----------------------------------------------------- */
-  .entry-card { @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand-line bg-surface-card; }
+  /* The title link's own box is a sliver (its ::after supplies the hit area), so
+     the focus ring is drawn on the card instead — the link opts out in .entry-title a. */
+  .entry-card { @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand-line bg-surface-card focus-within:ring-2 focus-within:ring-brand-primary focus-within:ring-offset-2 focus-within:ring-offset-surface-base; }
   .entry-media { @apply relative aspect-video w-full overflow-hidden border-b border-brand-line bg-brand-ink/5; }
   .entry-media::after { content: ""; @apply pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-brand-ink/40 to-transparent; }
   .entry-badges { @apply absolute left-3 top-3 z-10 flex flex-wrap items-center gap-1.5; }
@@ -21,13 +23,23 @@
   .entry-meta > * { @apply min-w-0; }
   /* An inline badge (imageless card) keeps its own case and tracking. */
   .entry-meta [class*="badge-"] { @apply normal-case tracking-normal; }
-  .entry-meta-sep { @apply text-brand-line-strong; }
+  /* Kept for _includes/entry-row.html, which still emits a standalone separator. */
+  /* Segments carry their own separator so "·" can never orphan onto its own line. */
+  /* The lead segment (usually the org) flexes and truncates so the second one
+     ("· Pilot") stays on the same line; later segments keep their full short text. */
+  .entry-meta-seg { @apply max-w-[24ch] shrink-0 truncate; }
+  .entry-meta-seg--lead { @apply min-w-[10ch] max-w-none shrink; }
+  .entry-meta-seg + .entry-meta-seg::before { content: "\00b7"; @apply mr-2 text-brand-line-strong; }
   .entry-title { @apply font-heading text-[18px] font-semibold leading-6 text-brand-primary-dark; }
   .entry-title a { @apply after:absolute after:inset-0 after:content-[''] hover:text-brand-primary focus-visible:outline-none; }
+  /* Never clamped: the impact line is usually a number and truncates mid-figure. */
   .entry-line { @apply flex items-start gap-1.5 text-sm font-semibold leading-5 text-brand-ink; }
   .entry-summary { @apply line-clamp-2 text-sm leading-6 text-brand-muted; }
   .entry-chips { @apply flex list-none flex-wrap gap-1.5 p-0 pt-1; }
   .entry-foot { @apply px-5 pb-5 sm:px-6; }
+  /* No media band: the summary takes the space the picture would have used
+     (the card renders a third chip too — see _includes/entry-card.html). */
+  .entry-card--text .entry-summary { @apply line-clamp-4; }
 
   /* List view: the card collapses into one row, media and summary drop out. */
   .entry-grid[data-view="list"] .entry-card { @apply h-auto rounded-none border-0 border-b border-brand-line bg-transparent; }
@@ -46,33 +58,38 @@
   /* ---------- Filter rail + groups ------------------------------------- */
   .filter-rail { @apply lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:w-[272px] lg:overflow-y-auto lg:pb-8 lg:pr-1; }
   .filter-group { @apply border-b border-brand-line py-1 last:border-b-0; }
-  .filter-group-toggle { @apply flex w-full items-center justify-between gap-2 rounded-lg py-3 text-left text-sm font-semibold text-brand-primary-dark transition-colors duration-120 ease-brand hover:text-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30; }
+  .filter-group-toggle { @apply flex w-full items-center justify-between gap-2 rounded-lg py-3 text-left text-sm font-semibold text-brand-primary-dark transition-colors duration-120 ease-brand hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
   .filter-group-toggle .filter-chevron { @apply transition-transform duration-180 ease-brand; }
   .filter-group-toggle[aria-expanded="false"] .filter-chevron { @apply -rotate-90; }
   .filter-group-panel { @apply space-y-5 pb-4; }
   .filter-legend { @apply mb-2 block text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-muted; }
   .filter-options { @apply flex flex-wrap gap-1.5; }
-  .filter-pill { @apply inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-brand-line-strong bg-surface-card px-3.5 text-sm font-medium text-brand-ink transition-colors duration-120 ease-brand hover:border-brand-primary hover:text-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30 lg:min-h-[32px] lg:text-xs; }
+  .filter-pill { @apply inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-brand-line-strong bg-surface-card px-3.5 text-sm font-medium text-brand-ink transition-colors duration-120 ease-brand hover:border-brand-primary hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card lg:min-h-[32px] lg:text-xs; }
   .filter-pill.is-active, .filter-pill[aria-pressed="true"] { @apply border-brand-primary bg-brand-primary text-white hover:border-brand-primary hover:text-white; }
-  .filter-pill[disabled], .filter-pill.is-empty { @apply border-brand-line text-brand-muted/70 hover:border-brand-line hover:text-brand-muted/70; }
+  /* Zero-count options stay readable (muted = 5.93:1); alpha stacked with the
+     count's own opacity used to land at 2.10:1. They are reordered in the DOM,
+     not with `order`, so tab order still follows the visual order. */
+  .filter-pill[disabled], .filter-pill.is-empty { @apply border-brand-line text-brand-muted hover:border-brand-line hover:text-brand-muted; }
   .filter-pill > span:first-child { @apply max-w-[13rem] truncate; }
-  .filter-count { @apply text-[11px] tabular-nums opacity-70; }
-  .filter-showall { @apply mt-2 inline-flex min-h-[32px] items-center text-xs font-semibold text-brand-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30; }
+  .filter-count { @apply text-[11px] tabular-nums text-brand-muted; }
+  .filter-pill.is-active .filter-count, .filter-pill[aria-pressed="true"] .filter-count { @apply text-white; }
+  .filter-showall { @apply mt-2 inline-flex min-h-[32px] items-center text-xs font-semibold text-brand-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
 
   /* ---------- Results header ------------------------------------------- */
   .results-header { @apply sticky top-16 z-30 -mx-4 mb-6 border-b border-brand-line bg-surface-base/95 px-4 py-3 shadow-e2 backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:rounded-b-2xl lg:px-4; }
   .results-count { @apply font-heading text-lg font-semibold leading-6 text-brand-primary-dark; }
   .results-total { @apply font-sans text-sm font-normal text-brand-muted; }
-  .results-select { @apply h-9 rounded-full border border-brand-line-strong bg-surface-card py-0 pl-3 pr-8 text-xs font-medium text-brand-ink focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/30; }
-  .active-pill { @apply inline-flex min-h-[32px] items-center gap-1 rounded-full border border-brand-primary/40 bg-brand-primary/10 px-3 text-xs font-medium text-brand-primary-dark transition-colors duration-120 hover:bg-brand-primary/20 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30; }
-  .view-toggle { @apply inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-line-strong text-brand-muted transition-colors duration-120 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30; }
+  .results-select { @apply h-9 rounded-full border border-brand-line-strong bg-surface-card py-0 pl-3 pr-8 text-xs font-medium text-brand-ink focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
+  .active-pill { @apply inline-flex min-h-[44px] items-center gap-1 rounded-full border border-brand-primary bg-brand-primary/10 px-3 text-xs font-medium text-brand-primary-dark lg:min-h-[32px] transition-colors duration-120 hover:bg-brand-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
+  .view-toggle { @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-brand-line-strong text-brand-muted lg:min-h-[32px] lg:min-w-[32px] transition-colors duration-120 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
   .view-toggle[aria-pressed="true"] { @apply border-brand-primary bg-brand-primary text-white; }
 
   /* ---------- Search combobox ------------------------------------------ */
-  .search-box { @apply h-9 w-full rounded-full border border-brand-line-strong bg-surface-card pl-9 pr-3 text-sm text-brand-ink placeholder:text-brand-muted/80 focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/30; }
+  .search-box { @apply h-9 w-full rounded-full border border-brand-line-strong bg-surface-card pl-9 pr-3 text-sm text-brand-ink placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
   .search-listbox { @apply absolute left-0 right-0 z-40 mt-1 max-h-72 list-none overflow-y-auto rounded-xl border border-brand-line bg-surface-card p-0 shadow-e2; }
-  .search-option { @apply flex cursor-pointer items-center justify-between gap-3 border-b border-brand-line px-3 py-2 text-sm last:border-b-0; }
-  .search-option.is-active, .search-option[aria-selected="true"] { @apply bg-brand-primary/10; }
+  .search-option { @apply flex cursor-pointer items-center justify-between gap-3 border-b border-l-4 border-brand-line border-l-transparent px-3 py-2 text-sm last:border-b-0; }
+  /* A tint alone was 1.18:1 against the neighbouring rows; the rule carries it. */
+  .search-option.is-active, .search-option[aria-selected="true"] { @apply border-l-brand-primary bg-brand-primary/15; }
 
   /* ---------- Mobile filter bar + sheet --------------------------------- */
   .filter-bar { @apply fixed inset-x-0 bottom-0 z-30 flex items-center justify-center gap-3 border-t border-brand-line bg-surface-card px-4 py-3 shadow-e2 lg:hidden; }

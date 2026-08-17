@@ -12,7 +12,7 @@ named here. Which block a field lands in comes from its `card` slot, `type` and
   header      title, summary, `card: line`, `card: badge`, `card: meta`, `url` fields
   fact strip  `card: icon` fields (+ any `card: meta` field the header did not use)
   gallery     `images` and `file` fields
-  rail        the `reuse` and `contact` groups, then the TOC and provenance
+  rail        every group with `placement: rail`, then the TOC and provenance
   sections    every remaining group, in schema `groups` order, as a <dl>
 
 Blocks are captured in claim order at the top of the file and printed further
@@ -29,8 +29,14 @@ leaving a labelled void. All assigns are prefixed `ent_`.
 {%- assign ent_catalog_url = '/' | append: ent_path | append: '/' -%}
 {%- capture ent_crumbs -%}{{ ent_plural }}|{{ ent_catalog_url }};;{{ page.title }}{%- endcapture -%}
 
-{%- comment -%} Group keys the sidebar rail claims before the body sections run. {%- endcomment -%}
-{%- assign ent_rail_groups = 'reuse,contact' | split: ',' -%}
+{%- comment -%}
+Groups split by their schema `placement` (rail | main, default main): the rail
+ones become sidebar cards, the rest become body sections. `groups_for` first, so
+a group with no populated field never claims space in either place.
+{%- endcomment -%}
+{%- assign ent_all_groups = ent_schema.groups | groups_for: ent_fields -%}
+{%- assign ent_rail_groups = ent_all_groups | groups_placed: 'rail' -%}
+{%- assign ent_groups = ent_all_groups | groups_placed: 'main' -%}
 
 {%- comment -%} 1. Engine keys the page furniture renders itself (schema contract §4). {%- endcomment -%}
 {%- assign ent_shown = '|title|slug|summary|published|updated|thumbnail|featured|' -%}
@@ -70,25 +76,14 @@ leaving a labelled void. All assigns are prefixed `ent_`.
 {%- endcapture -%}
 {%- assign ent_media = ent_media | strip -%}
 
-{%- comment -%} 5. Rail cards, captured before the keys are claimed. {%- endcomment -%}
+{%- comment -%} 5. Rail cards — one per `placement: rail` group. {%- endcomment -%}
 {%- capture ent_rail_cards -%}
-  {%- for ent_gkey in ent_rail_groups -%}
-    {%- assign ent_g = ent_schema.groups | where: 'key', ent_gkey | first -%}
-    {%- if ent_g == nil -%}{%- continue -%}{%- endif -%}
-    {% include reuse-card.html fields=ent_fields entry=page group=ent_gkey title=ent_g.title icon=ent_g.icon shown=ent_shown %}
+  {%- for ent_g in ent_rail_groups -%}
+    {% include reuse-card.html fields=ent_fields entry=page group=ent_g.key title=ent_g.title icon=ent_g.icon shown=ent_shown %}
   {%- endfor -%}
 {%- endcapture -%}
-{%- for ent_gkey in ent_rail_groups -%}
-  {%- assign ent_gf = ent_fields | fields_in_group: ent_gkey -%}
-  {%- for ent_f in ent_gf -%}
-    {%- comment -%} reuse-card.html leaves link lists to the body; don't claim them here. {%- endcomment -%}
-    {%- if ent_f.type == 'links' -%}{%- continue -%}{%- endif -%}
-    {%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}
-  {%- endfor -%}
-{%- endfor -%}
 
-{%- comment -%} 6. Body sections, one per remaining schema group. {%- endcomment -%}
-{%- assign ent_groups = ent_schema.groups | groups_for: ent_fields -%}
+{%- comment -%} 6. Body sections, one per `placement: main` group. {%- endcomment -%}
 {%- assign ent_section_index = '' -%}
 {%- capture ent_sections -%}
   {%- for ent_g in ent_groups -%}
@@ -146,7 +141,7 @@ leaving a labelled void. All assigns are prefixed `ent_`.
       {%- endif -%}
     {%- endfor -%}
 
-    {%- if page.summary -%}<p class="max-w-prose text-base leading-relaxed text-brand-muted">{{ page.summary }}</p>{%- endif -%}
+    {%- if page.summary -%}<p class="max-w-prose text-base leading-relaxed text-brand-muted">{{ page.summary | escape }}</p>{%- endif -%}
 
     <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-brand-muted">
       {%- if page.published -%}<span class="inline-flex items-center gap-1.5">{% include icon.html name='calendar' size='sm' %}Published {{ page.published | date: '%B %-d, %Y' }}</span>{%- endif -%}
@@ -161,7 +156,7 @@ leaving a labelled void. All assigns are prefixed `ent_`.
         {%- if ent_action_index == 0 -%}{%- assign ent_btn = 'btn-primary' -%}{%- else -%}{%- assign ent_btn = 'btn-secondary' -%}{%- endif -%}
         {%- assign ent_action_index = ent_action_index | plus: 1 -%}
         {%- assign ent_action_icon = ent_f.icon | default: 'external-link' -%}
-        <a class="{{ ent_btn }}" href="{{ ent_v }}" target="_blank" rel="noopener noreferrer">{% include icon.html name=ent_action_icon size='sm' %}{{ ent_f.label | escape }}<span class="hidden text-xs font-normal opacity-70 sm:inline">{{ ent_v | link_host }}</span><span class="sr-only"> (opens in a new tab)</span>{% include icon.html name='external-link' size='xs' %}</a>
+        <a class="{{ ent_btn }}" href="{{ ent_v | escape }}" target="_blank" rel="noopener noreferrer">{% include icon.html name=ent_action_icon size='sm' %}{{ ent_f.label | escape }}<span class="btn-host hidden text-xs font-normal sm:inline">{{ ent_v | link_host | escape }}</span><span class="sr-only"> (opens in a new tab)</span>{% include icon.html name='external-link' size='xs' %}</a>
       {%- endfor -%}
     {%- endcapture -%}
     {%- assign ent_actions = ent_actions | strip -%}
@@ -179,7 +174,7 @@ leaving a labelled void. All assigns are prefixed `ent_`.
       {{ ent_sections }}
     </div>
 
-    <aside class="entry-rail space-y-6 lg:sticky lg:top-24 lg:self-start" aria-label="About this {{ ent_singular | downcase }}">
+    <aside class="entry-rail space-y-6 lg:sticky lg:top-24 lg:self-start" aria-label="About this {{ ent_singular | downcase | escape }}">
       <div class="hidden lg:block">{% include toc.html content=content sections=ent_section_index %}</div>
       {{ ent_rail_cards }}
       <section class="rail-card" aria-labelledby="rail-share-heading">
@@ -188,7 +183,7 @@ leaving a labelled void. All assigns are prefixed `ent_`.
         <p class="mt-2 text-xs text-brand-muted" data-copy-status role="status"></p>
         {%- if ent_cfg.github.repository and ent_cfg.github.repository != '' -%}
         <ul class="entry-no-print mt-3 space-y-2 text-sm" role="list">
-          <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/edit/{{ ent_cfg.github.branch | default: 'main' }}/{{ page.path }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='edit' size='sm' %}Suggest an edit<span class="sr-only"> (opens in a new tab)</span></a></li>
+          <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/edit/{{ ent_cfg.github.branch | default: 'main' }}/{{ page.path | escape }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='edit' size='sm' %}Suggest an edit<span class="sr-only"> (opens in a new tab)</span></a></li>
           <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/issues/new?title={{ 'Update: ' | append: page.title | query_encode }}&amp;body={{ 'Requested change for ' | append: page.url | append: ':%0A%0A' }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='flag' size='sm' %}Report an issue<span class="sr-only"> (opens in a new tab)</span></a></li>
         </ul>
         {%- endif -%}

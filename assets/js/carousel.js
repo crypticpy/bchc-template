@@ -1,5 +1,8 @@
 // Scroll-snap carousel with prev/next buttons. No autoplay.
 (function () {
+  // Checked per scroll so a mid-session change of the OS setting is honoured.
+  const behavior = () =>
+    (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
   document.querySelectorAll('[data-carousel]').forEach((root) => {
     const track = root.querySelector('[data-carousel-track]');
     const prev = root.querySelector('[data-carousel-prev]');
@@ -15,12 +18,12 @@
       if (next) next.disabled = track.scrollLeft >= max;
       [prev, next].forEach((b) => b && b.classList.toggle('opacity-40', b.disabled));
     }
-    prev && prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
-    next && next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
+    prev && prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: behavior() }));
+    next && next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: behavior() }));
     track.addEventListener('scroll', update, { passive: true });
     track.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') { e.preventDefault(); track.scrollBy({ left: step(), behavior: 'smooth' }); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); track.scrollBy({ left: -step(), behavior: 'smooth' }); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); track.scrollBy({ left: step(), behavior: behavior() }); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); track.scrollBy({ left: -step(), behavior: behavior() }); }
     });
     window.addEventListener('resize', update);
     update();

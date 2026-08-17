@@ -71,7 +71,7 @@ export const resourceLibrary = {
       { key: 'about', title: 'About', description: 'What it is and who published it.' },
       { key: 'audience', title: 'Who it is for', description: 'The people and topics it serves.' },
       { key: 'access', title: 'Format & access', description: 'How it is delivered and what it takes to use it.' },
-      { key: 'links', title: 'Where to find it', description: 'The canonical link and anything alongside it.' },
+      { key: 'links', title: 'Where to find it', description: 'The canonical link and anything alongside it.', placement: 'rail' },
       { key: 'notes', title: 'Notes', description: 'Why it is worth someone’s time.' },
     ],
     fields: [

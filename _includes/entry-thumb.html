@@ -2,7 +2,8 @@
 Entry image, resolved honestly — no generated placeholder.
 
 Usage: {% include entry-thumb.html entry=page img_class="rounded-md" %}
-Params: entry (required, an entry page object), img_class (extra classes on the <img>).
+Params: entry (required, an entry page object), img_class (extra classes on the <img>),
+        eager (optional; true = loading="eager" for above-the-fold cards, default lazy).
 
 Fallback order: explicit `thumbnail` front matter -> the first image of the first
 `images`-type schema field -> `<entry.dir>thumb.jpg` when it exists on disk -> NOTHING.
@@ -36,5 +37,5 @@ Local assigns are prefixed `et_`.
 {%- endif -%}
 {%- if et_src != '' -%}
   {%- if et_src contains '://' -%}{%- assign et_href = et_src -%}{%- else -%}{%- assign et_href = et_src | relative_url -%}{%- endif -%}
-  <img class="h-full w-full object-cover {{ include.img_class }}" src="{{ et_href }}" alt="{{ et_alt | escape }}" loading="lazy" decoding="async">
+  <img class="h-full w-full object-cover {{ include.img_class }}" src="{{ et_href }}" alt="{{ et_alt | escape }}" loading="{% if include.eager %}eager{% else %}lazy{% endif %}" decoding="async">
 {%- endif -%}

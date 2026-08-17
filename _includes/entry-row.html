@@ -13,18 +13,17 @@ Local assigns are prefixed `er_`.
 {%- assign er_facets = er_fields | facet_fields -%}
 {%- assign er_metas = er_fields | card_fields: 'meta' -%}
 {%- assign er_chip_field = er_fields | card_fields: 'chip' | first -%}
-{%- assign er_icon_fields = er_fields | card_fields: 'icon' -%}
 
 <li class="entry-row"
   data-entry
   data-entry-id="{{ er_entry.slug | default: er_entry.title | slugify }}"
   data-entry-title="{{ er_entry.title | escape }}"
-  data-entry-date="{{ er_entry.published | date: '%Y-%m-%d' }}"
-  {% if er_entry.updated %}data-entry-updated="{{ er_entry.updated | date: '%Y-%m-%d' }}" {% endif %}
+  data-entry-date="{{ er_entry.published | date: '%Y-%m-%d' | escape }}"
+  {% if er_entry.updated %}data-entry-updated="{{ er_entry.updated | date: '%Y-%m-%d' | escape }}" {% endif %}
   {%- for er_f in er_metas %}{% if er_f.type == 'text' or er_f.type == 'select' %} data-sort-{{ er_f.key | replace: '_', '-' }}="{{ er_entry[er_f.key] | escape }}"{% endif %}{% endfor %}
-  {%- for er_f in er_facets %} data-facet-{{ er_f.key | replace: '_', '-' }}="{{ er_entry[er_f.key] | facet_values }}"{% endfor %}>
+  {%- for er_f in er_facets %} data-facet-{{ er_f.key | replace: '_', '-' }}="{{ er_entry[er_f.key] | facet_values | escape }}"{% endfor %}>
 
-  <h3 class="entry-row-title line-clamp-2"><a href="{{ er_entry.url | relative_url }}">{{ er_entry.title }}</a></h3>
+  <h3 class="entry-row-title line-clamp-2"><a href="{{ er_entry.url | relative_url | escape }}">{{ er_entry.title | escape }}</a></h3>
 
   {%- capture er_meta_line -%}
     {%- assign er_seg = 0 -%}
@@ -33,8 +32,7 @@ Local assigns are prefixed `er_`.
       {%- assign er_vals = er_entry[er_f.key] | as_list -%}
       {%- if er_vals.size > 0 -%}
         {%- assign er_raw = er_vals | first -%}
-        {%- if er_seg > 0 -%}<span class="entry-meta-sep" aria-hidden="true">·</span>{%- endif -%}
-        <span title="{{ er_f.label | escape }}: {{ er_raw | escape }}">{{ er_f | option_short: er_raw }}</span>
+        <span class="entry-meta-seg{% if er_seg == 0 %} entry-meta-seg--lead{% endif %}" title="{{ er_f.label | escape }}: {{ er_raw | escape }}">{{ er_f | option_short: er_raw | escape }}</span>
         {%- assign er_seg = er_seg | plus: 1 -%}
       {%- endif -%}
     {%- endfor -%}
@@ -47,38 +45,15 @@ Local assigns are prefixed `er_`.
     {%- if er_chips.size > 0 -%}
       <ul class="entry-chips" aria-label="{{ er_chip_field.label | escape }}">
         {%- for er_v in er_chips limit: 2 -%}
-          <li><span class="chip" title="{{ er_v | escape }}">{{ er_chip_field | option_short: er_v }}</span></li>
+          <li><span class="chip" title="{{ er_v | escape }}">{{ er_chip_field | option_short: er_v | escape }}</span></li>
         {%- endfor -%}
         {%- if er_chips.size > 2 -%}
           {%- assign er_chip_more = er_chips.size | minus: 2 -%}
-          <li><span class="chip-neutral">+{{ er_chip_more }}<span class="sr-only"> more {{ er_chip_field.label | downcase }}</span></span></li>
+          <li><span class="chip-neutral">+{{ er_chip_more }}<span class="sr-only"> more {{ er_chip_field.label | downcase | escape }}</span></span></li>
         {%- endif -%}
       </ul>
     {%- endif -%}
   {%- endif -%}
 
-  {%- assign er_glyphs = 0 -%}
-  {%- capture er_signals -%}
-    {%- for er_f in er_icon_fields -%}
-      {%- if er_glyphs >= 4 -%}{%- break -%}{%- endif -%}
-      {%- assign er_vals = er_entry[er_f.key] | as_list -%}
-      {%- assign er_shown = 0 -%}
-      {%- for er_v in er_vals -%}
-        {%- if er_glyphs >= 4 or er_shown >= 2 -%}{%- break -%}{%- endif -%}
-        {%- assign er_om = er_f | option_meta: er_v -%}
-        {%- assign er_tone = 'signal' -%}
-        {%- if er_om.tone == 'warn' -%}{%- assign er_tone = 'signal-warn' -%}{%- elsif er_om.tone == 'primary' -%}{%- assign er_tone = 'signal-primary' -%}{%- endif -%}
-        {%- capture er_sig_label -%}{{ er_f.label }}: {{ er_v }}{%- endcapture -%}
-        <span class="{{ er_tone }}" title="{{ er_sig_label | escape }}">{% include icon.html name=er_om.icon size='xs' %}<span aria-hidden="true">{{ er_om.short }}</span><span class="sr-only">{{ er_sig_label }}</span></span>
-        {%- assign er_shown = er_shown | plus: 1 -%}
-        {%- assign er_glyphs = er_glyphs | plus: 1 -%}
-      {%- endfor -%}
-      {%- assign er_rest = er_vals.size | minus: er_shown -%}
-      {%- if er_shown > 0 and er_rest > 0 -%}
-        <span class="signal">+{{ er_rest }}<span class="sr-only"> more {{ er_f.label | downcase }}</span></span>
-      {%- endif -%}
-    {%- endfor -%}
-  {%- endcapture -%}
-  {%- assign er_signals = er_signals | strip -%}
-  {%- if er_signals != '' -%}<div class="signal-strip !border-t-0 !pt-1">{{ er_signals }}</div>{%- endif -%}
+  {% include signal-strip.html entry=er_entry class='signal-strip !border-t-0 !pt-1' %}
 </li>

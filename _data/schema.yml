@@ -62,8 +62,13 @@ sections:
   links: "Links & resources"
   contact: "Contact"
 
-# Ordered groups. Filters show facet fields grouped this way; the submit wizard
-# turns each group with form fields into a step. Fields with no group land in "other".
+# Ordered groups: { key, title, description?, icon?, placement? }.
+# Filters show facet fields grouped this way; the submit wizard turns each group
+# with form fields into a step. Fields with no group land in "other".
+#   placement   rail | main (default main) -> on the entry page, `rail` groups become
+#               sidebar cards instead of body sections. Keep it to the short,
+#               act-on-it groups (links to reuse, who to contact); a 280px rail
+#               cannot hold prose.
 groups:
   - key: about
     title: "About"
@@ -74,12 +79,14 @@ groups:
   - key: reuse
     title: "Reuse"
     description: "What it would take for another team to use this."
+    placement: rail
   - key: data
     title: "Data & access"
     description: "What data it touches and who sees the output."
   - key: contact
     title: "Contact"
     description: "Someone others can reach out to."
+    placement: rail
   - key: story
     title: "The story"
     description: "Problem, approach, what it took, results and lessons."

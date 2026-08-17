@@ -48,7 +48,7 @@ export const blank = {
     groups: [
       { key: 'about', title: 'About', description: 'What this entry is.' },
       { key: 'details', title: 'Details', description: 'How you want people to find it.' },
-      { key: 'links', title: 'Links & images', description: 'Anything to look at or click through to.' },
+      { key: 'links', title: 'Links & images', description: 'Anything to look at or click through to.', placement: 'rail' },
     ],
     fields: [
       { ...TITLE_FIELD, placeholder: 'A clear, specific title' },

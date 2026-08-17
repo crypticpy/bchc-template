@@ -136,6 +136,19 @@ test('groups need unique keys and a title', () => {
   assert.match(errorText(untitled), /needs a `title`/);
 });
 
+test('group placement is optional, takes main|rail, and only warns when unknown', () => {
+  assert.equal(checkSchema(schemaWith([], { groups: [{ key: 'about', title: 'About' }] })).ok, true);
+  for (const placement of ['main', 'rail']) {
+    const schema = schemaWith([], { groups: [{ key: 'about', title: 'About', placement }] });
+    const result = checkSchema(schema);
+    assert.equal(result.ok, true, errorText(schema));
+    assert.equal(result.warnings.length, 0, `${placement} is silent`);
+  }
+  const odd = checkSchema(schemaWith([], { groups: [{ key: 'about', title: 'About', placement: 'sidebar' }] }));
+  assert.equal(odd.ok, true, 'an unknown placement is not fatal');
+  assert.match(odd.warnings.map((w) => `${w.path} ${w.message}`).join('\n'), /placement.*main, rail/s);
+});
+
 test('facet only applies to filterable types, thumbnail only to files', () => {
   assert.match(errorText(schemaWith([{ key: 'shots', label: 'Shots', type: 'images', facet: true }])), /cannot be a filter/);
   assert.match(errorText(schemaWith([{ key: 'when', label: 'When', type: 'date', facet: true }])), /cannot be a filter/);

@@ -58,6 +58,28 @@
   let view = grid.dataset.view === 'list' ? 'list' : 'grid';
   let appliedOrder = '';
 
+  // Zero-count pills sort last. Doing that with `order` desyncs tab order from the
+  // visual order, so they are moved in the DOM instead; data-index remembers where
+  // each pill started so the original order can always be rebuilt.
+  const pillContainers = new Set();
+  pills.forEach((p) => {
+    const parent = p.parentElement;
+    if (!parent || pillContainers.has(parent)) return;
+    pillContainers.add(parent);
+    Array.from(parent.children).forEach((el, i) => { el.dataset.index = String(i); });
+  });
+
+  function reorderPills(container) {
+    const current = Array.from(container.children);
+    const byIndex = current.slice().sort((a, b) => Number(a.dataset.index || 0) - Number(b.dataset.index || 0));
+    const ordered = byIndex.filter((el) => !el.classList.contains('is-empty'))
+      .concat(byIndex.filter((el) => el.classList.contains('is-empty')));
+    if (ordered.every((el, i) => el === current[i])) return;
+    const frag = document.createDocumentFragment();
+    ordered.forEach((el) => frag.appendChild(el));
+    container.appendChild(frag);
+  }
+
   const facets = cards.map((el) => {
     const map = {};
     keys.forEach((k) => {
@@ -78,6 +100,12 @@
     if (searchInput) searchInput.value = params.get('q') || '';
     sortExplicit = params.has('sort');
     sort = params.get('sort') || 'newest';
+    // "Relevance" only exists while there is a query; a bare ?sort=relevance would
+    // leave the <select> showing nothing, so fall back to the default order.
+    if (sort === 'relevance' && !(searchInput && searchInput.value.trim())) {
+      sort = 'newest';
+      sortExplicit = false;
+    }
     const v = params.get('view');
     view = v === 'list' ? 'list' : 'grid';
   }
@@ -215,12 +243,12 @@
         p.classList.toggle('is-active', on);
         p.classList.toggle('is-empty', n === 0 && !on);
         if (n === 0 && !on) p.setAttribute('aria-disabled', 'true'); else p.removeAttribute('aria-disabled');
-        p.style.order = n === 0 && !on ? '1' : '0';
         const badge = p.querySelector('[data-filter-count]');
         if (badge) badge.textContent = n ? String(n) : '0';
         if (on && p.hasAttribute('data-overflow')) p.classList.remove('hidden');
       });
     });
+    pillContainers.forEach(reorderPills);
 
     // Any group holding an active filter is forced open.
     document.querySelectorAll('[data-filter-group]').forEach((group) => {
@@ -261,7 +289,11 @@
 
     applyOrder();
     announce(shown, total);
-    if (sortSelect) sortSelect.value = sort;
+    if (sortSelect) {
+      sortSelect.value = sort;
+      // A sort with no matching <option> renders as a blank select; fall back.
+      if (sortSelect.value !== sort) { sort = 'newest'; sortSelect.value = sort; }
+    }
     grid.dataset.view = view;
     viewButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewToggle === view)));
   }
@@ -283,7 +315,12 @@
 
   /* --------------------------------------------------------------- events */
 
-  pills.forEach((p) => p.addEventListener('click', () => toggleValue(p.dataset.filterKey, p.dataset.filterValue)));
+  // aria-disabled pills stay focusable (so a screen reader still reads the "0")
+  // but must not toggle anything.
+  pills.forEach((p) => p.addEventListener('click', () => {
+    if (p.getAttribute('aria-disabled') === 'true') return;
+    toggleValue(p.dataset.filterKey, p.dataset.filterValue);
+  }));
 
   clearButtons.forEach((b) => b.addEventListener('click', () => {
     state.clear();
@@ -354,7 +391,31 @@
   /* ---------------------------------------------------------- mobile sheet */
 
   let sheetTrigger = null;
+  let inerted = [];
   const FOCUSABLE = 'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
+
+  // aria-modal alone does not stop a screen reader reaching the rest of the page,
+  // and the sheet is not a <body> child (it renders inside <main> next to its own
+  // trigger). Walk from the sheet up to <body> marking every sibling on the way
+  // `inert`, so the header, the results, the footer and the trigger itself all
+  // drop out of the a11y tree and the tab ring while the dialog is open.
+  function inertOutside() {
+    releaseInert();
+    let node = sheet;
+    while (node && node !== document.body && node.parentElement) {
+      Array.from(node.parentElement.children).forEach((sib) => {
+        if (sib === node || sib.hasAttribute('inert')) return;
+        sib.setAttribute('inert', '');
+        inerted.push(sib);
+      });
+      node = node.parentElement;
+    }
+  }
+
+  function releaseInert() {
+    inerted.forEach((el) => el.removeAttribute('inert'));
+    inerted = [];
+  }
 
   function openSheet(trigger) {
     if (!sheet) return;
@@ -362,6 +423,7 @@
     sheet.hidden = false;
     document.body.style.overflow = 'hidden';
     sheetOpeners.forEach((b) => b.setAttribute('aria-expanded', 'true'));
+    inertOutside();
     const first = Array.from(sheet.querySelectorAll(FOCUSABLE))
       .find((el) => !el.classList.contains('hidden') && !el.closest('[hidden]'));
     if (first) first.focus();
@@ -372,6 +434,8 @@
     sheet.hidden = true;
     document.body.style.overflow = '';
     sheetOpeners.forEach((b) => b.setAttribute('aria-expanded', 'false'));
+    // Release before focusing: the trigger is one of the elements we made inert.
+    releaseInert();
     if (sheetTrigger) sheetTrigger.focus();
     sheetTrigger = null;
   }

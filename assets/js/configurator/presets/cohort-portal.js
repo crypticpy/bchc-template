@@ -74,9 +74,9 @@ export const cohortPortal = {
     sections: { details: 'Project details', links: 'Materials', contact: 'Team & coach' },
     groups: [
       { key: 'about', title: 'About the project', description: 'The question the team asked and what came of it.' },
-      { key: 'team', title: 'Team', description: 'Who did the work and who coached them.' },
+      { key: 'team', title: 'Team', description: 'Who did the work and who coached them.', placement: 'rail' },
       { key: 'method', title: 'Method', description: 'The data, tools and techniques behind the result.' },
-      { key: 'materials', title: 'Materials', description: 'Dashboards, posters and anything else to share.' },
+      { key: 'materials', title: 'Materials', description: 'Dashboards, posters and anything else to share.', placement: 'rail' },
       { key: 'story', title: 'The write-up', description: 'The full story, in the team’s own words.' },
     ],
     fields: [

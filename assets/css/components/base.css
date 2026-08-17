@@ -1,17 +1,22 @@
-/* Base layer: fonts, resets, motion defaults. */
-@font-face { font-family: "Inter"; src: url("../fonts/Inter-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../fonts/Inter-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../fonts/Inter-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../fonts/Inter-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+/* Base layer: fonts, resets, motion defaults.
+   Bundled fonts are latin/latin-ext woff2 subsets (~35 KB each) — see assets/fonts/README.md
+   for the subset recipe. Any other family goes through theme.yml → fonts.google_fonts_url. */
+@font-face { font-family: "Inter"; src: url("../fonts/Inter-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("../fonts/Inter-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("../fonts/Inter-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("../fonts/Inter-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
 @layer base {
   html { scroll-behavior: smooth; }
   body { @apply font-sans text-base leading-relaxed text-brand-ink antialiased; }
   h1, h2, h3, h4 { @apply font-heading; }
-  :focus-visible { @apply outline-none ring-4 ring-brand-primary/30; }
+  /* Solid 2px ring + a 2px card-coloured gap: 8.39:1 on the card ground and still
+     visible when the control itself is filled with `primary` (the gap separates
+     the two blues). A translucent ring (primary/30 = 1.67:1) failed AA non-text. */
+  :focus-visible { @apply outline-none ring-2 ring-brand-primary ring-offset-2 ring-offset-surface-card; }
   ::selection { @apply bg-brand-primary/15; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }

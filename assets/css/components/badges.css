@@ -2,7 +2,7 @@
  * Badges, chips and signal glyphs.
  * - .badge      : categorical label (solution type, stage). Tones are semantic only.
  * - .chip       : ONE taxonomy family per card (area of work) — hairline, ink text, secondary dot.
- * - .chip-neutral: overflow "+n" and de-emphasised lists.
+ * - .chip-neutral: overflow "+n" and de-emphasised lists — same hairline as .chip, no dot.
  * - .signal     : at-a-glance glyph + short text; monochrome, `warn` only for caution.
  * Never colour-only: every badge/chip/signal carries visible or sr-only text.
  */
@@ -12,8 +12,13 @@
   .badge-secondary { @apply badge bg-brand-secondary/10 text-brand-ink ring-brand-secondary/25; }
   .badge-accent { @apply badge bg-brand-accent/15 text-brand-ink ring-brand-accent/40; }
   .badge-neutral { @apply badge bg-brand-ink/5 text-brand-ink ring-brand-line; }
-  .badge-warn { @apply badge bg-brand-warn/10 text-brand-warn ring-brand-warn/30; }
-  .badge-on-dark { @apply badge bg-white/15 text-white ring-white/30 backdrop-blur-sm; }
+  /* The warn tint is painted over an opaque card ground so warn-on-tint keeps
+     4.69:1 wherever the badge lands (a bare warn/5 drops to 4.38:1 on surface). */
+  .badge-warn { @apply badge bg-surface-card text-brand-warn ring-brand-warn/30;
+    background-image: linear-gradient(rgb(var(--c-warn) / 0.05), rgb(var(--c-warn) / 0.05)); }
+  /* Over the media scrim a white/15 fill left the label at ~2:1 on a light photo;
+     an opaque ink ground holds >= 10.7:1 whatever the picture underneath is. */
+  .badge-on-dark { @apply badge bg-brand-ink/80 text-white ring-white/30 backdrop-blur-sm; }
   .badge-md { @apply px-3 py-1 text-xs leading-4; }
   .badge-lg { @apply px-4 py-1.5 text-sm leading-5; }
 
@@ -22,7 +27,9 @@
   .chip-plain { @apply chip; }
   .chip-plain::before { content: none; }
   .chip-warn { @apply chip-plain border-brand-warn/40 text-brand-warn; }
-  .chip-neutral { @apply inline-flex items-center rounded-full bg-brand-ink/5 px-2.5 py-0.5 text-xs font-medium leading-5 text-brand-muted; }
+  /* Hairline like .chip (minus the taxonomy dot) so overflow counters read as the
+     same family as the chips they follow, not as a second filled chip style. */
+  .chip-neutral { @apply inline-flex items-center rounded-full border border-brand-line bg-transparent px-2.5 py-0.5 text-xs font-medium leading-5 text-brand-muted; }
   /* legacy alias */
   .chip-secondary { @apply chip; }
 
