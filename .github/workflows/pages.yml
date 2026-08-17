@@ -43,14 +43,7 @@ jobs:
       - name: Build CSS
         run: npm run build:css
 
-      - name: Smoke check configuration
-        env:
-          JEKYLL_ENV: production
-        run: bundle exec jekyll doctor
-
-      - name: Build Jekyll site
-        env:
-          JEKYLL_ENV: production
+      - name: Resolve site URL
         run: |
           set -euo pipefail
           repo_name="${GITHUB_REPOSITORY#*/}"
@@ -74,7 +67,16 @@ jobs:
           if [[ -n "$configured_url" ]]; then site_url="$configured_url"; fi
           printf 'url: "%s"\nbaseurl: "%s"\n' "$site_url" "$baseurl" > _config.ci.yml
           echo "Building with url='${site_url}' baseurl='${baseurl}'"
-          bundle exec jekyll build --destination _site --config _config.yml,_config.ci.yml
+
+      - name: Smoke check configuration
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll doctor --config _config.yml,_config.ci.yml
+
+      - name: Build Jekyll site
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --destination _site --config _config.yml,_config.ci.yml
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
