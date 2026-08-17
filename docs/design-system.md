@@ -104,7 +104,8 @@ Pill shape, 44px min-height under `lg` (40 above), no translate on hover — col
   `neutral`, `warn` (caution), `on-dark` (over a screenshot: opaque `ink/80` ground so contrast
   holds on any image), `secondary`. `.badge-md`, `.badge-lg` sizes.
 - `.chip` — one taxonomy family per card (hairline, `secondary` dot). `.chip-plain` (no dot),
-  `.chip-warn` (sensitive values), `.chip-neutral` (the "+n" overflow, same hairline, no dot).
+  `.chip-warn` (sensitive values), `.chip-neutral` (the "+n" overflow, same hairline, no dot),
+  `.chip-secondary` (legacy alias for `.chip`).
 - `.signal` / `.signal-warn` / `.signal-primary` — icon + short text at 12px, monochrome; the
   strip is `.signal-strip` (hairline top). ≤ 4 items including one trailing "+n"
   (`_includes/signal-strip.html`).
@@ -118,32 +119,42 @@ Every badge/chip/signal carries visible or `sr-only` text — never colour- or i
   `.entry-meta-seg`, the lead one flexes and truncates, later ones get a `·` via `::before`),
   `.entry-title`, `.entry-line` (impact), `.entry-summary` (2-line clamp; 4 on `.entry-card--text`),
   `.entry-chips`, `.entry-foot`.
-- `.entry-row` — compact variant for related lists.
-- Filter rail: `.filter-rail`, `.filter-group`, `.filter-group-toggle`, `.filter-legend`,
-  `.filter-pill` (`aria-pressed`, `.is-empty` for zero-count), `.filter-showall`.
-- Results header: `.results-header` (sticky, E2), `.results-count`, `.results-select`,
-  `.active-pill`, `.view-toggle`. Search: `.search-box`, `.search-listbox` (E2), `.search-option`.
-- Mobile: `.filter-bar` (fixed bottom), `.filter-sheet` (`role=dialog`, focus trap, siblings `inert`).
+- `.entry-row` — compact variant for related lists; its title link is `.entry-row-title`.
+- Filter rail: `.filter-rail`, `.filter-group`, `.filter-group-toggle` (its chevron is
+  `.filter-chevron`, its collapsible body `.filter-group-panel`), `.filter-legend`,
+  `.filter-pill` (`aria-pressed`, `.is-empty` for zero-count) inside a `.filter-options` wrapper,
+  `.filter-showall`.
+- Results header: `.results-header` (sticky, E2), `.results-count` (with `.results-total` as the
+  "of N" suffix), `.results-select`, `.active-pill`, `.view-toggle`. Search: `.search-box`,
+  `.search-listbox` (E2), `.search-option`.
+- Mobile: `.filter-bar` (fixed bottom), `.filter-sheet` (`role=dialog`, focus trap, siblings
+  `inert`) structured as `.filter-sheet-head` / `-body` / `-foot`.
 
 ### Entry page (`entry.css`)
 
 `.fact-strip` / `.fact` / `.fact-label` / `.fact-value` / `.fact-item(-warn)`; `.rail-card`,
 `.rail-title`, `.rail-list`, `.rail-term`, `.rail-def`, `.rail-link`, `.rail-person`; `.toc-link`
-(`aria-current`); `.gallery-lead`, `.gallery-thumb`; `.lightbox*` (native `<dialog>`). Print styles
+(`aria-current`); `.gallery-lead`, `.gallery-thumb`; `.lightbox*` (native `<dialog>`). The sidebar wraps in
+`.entry-rail`; `.entry-no-print` hides an element in print. Print styles
 drop interactive chrome and flow the rail after the prose.
 
 ### Forms (`forms.css`)
 
 `.field` → `.field-label` (+ `.field-required` spelled out), `.field-help` **above** the control,
 `.field-input` (`line_strong` border, `aria-invalid` → warn), `.field-error` below, `.field-option`
-(card-style radio/checkbox with `has-[:checked]`), `.checkbox`, `.radio`, `.field-note`. Submit page:
-`.form-section`, `.progress-rail`/`.progress-link`/`.progress-dot`, `.error-summary*`, `.links-row`,
-`.image-previews`, `.preview-panel`, `.draft-bar`/`.draft-status`.
+(card-style radio/checkbox with `has-[:checked]`, secondary text `.field-option-desc`) laid out in a
+`.field-options` / `.field-options-wide` grid, `.checkbox`, `.radio`, `.field-note`. Submit page:
+`.form-section`, `.progress-rail`/`.progress-link`/`.progress-dot` (`.progress-count` for the
+answered/total text), `.error-summary*`, `.links-row`, `.image-previews` (each thumbnail is an
+`.image-preview`), `.preview-panel` (its collapsible label below `lg` is `.preview-summary`),
+`.draft-bar`/`.draft-status`.
 
 ### Page furniture (`site.css`)
 
-`.card`, `.card-hover`, `.card-header`, `.card-title`, `.eyebrow`, `.section-title`,
-`.section-lead`, `.link-row`, `.prose-body`, `.sr-only-focusable`.
+`.card`, `.card-hover`, `.card-header`, `.card-title`, `.eyebrow` (muted variant `.eyebrow-muted`,
+on-dark variant `.eyebrow-on-dark`), `.page-title` (the one H1 size everywhere; `.page-title-on-dark`
+for dark grounds), `.section-title`, `.section-lead`, `.link-row`, `.prose-body`,
+`.sr-only-focusable`.
 
 Home hero: `.hero-stat` (stat-line segment; its `·` separator is a `::before`, never
 text) and `.hero-latest` / `-item` / `-link` / `-title` / `-meta` — the "Latest
@@ -156,6 +167,9 @@ white / on-dark ink on `primary-dark`, 15 % white hairlines).
 so the miniature is themed like the built site), `.theme-preview-header`, `-mark`, `-hero`,
 `-body` (two columns from `sm`), `-controls`. Everything inside the preview is a production
 component class (`.entry-card`, `.btn-*`, `.badge-*`, `.filter-pill`, `.signal-*`) — never a copy.
+`.wizard-actions` is the wizard's footer action bar (`.is-sticky` pins it on long steps). The
+field builder's collapsible rows are `.schema-field-row` → `-head` / `-toggle` / `-name` / `-caret`
+(`.is-open` rotates it) and the expanded `-details`.
 
 ## Accessibility baseline
 

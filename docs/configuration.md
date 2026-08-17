@@ -44,7 +44,7 @@ Each toggle does three things:
 
 1. Removes (or restores) the module's link from the header, via `_data/navigation.yml`'s `module:` key.
 2. Shows or hides the module's block on the home page (`index.md` checks `cfg.modules.<name>`).
-3. **Removes the module's pages from the build entirely.** `_plugins/modules.rb` runs on `post_read` and drops any page whose URL starts with the module's path (`/cohorts/`, `/events/`, `/resources/`, `/submit/`, or the catalog's `entry.path`) when that module is off — those pages are not built, not in the sitemap, and not in `search.json`. Turning the module back on brings them back on the next build without further changes.
+3. **Removes the module's pages from the build entirely.** `_plugins/modules.rb` runs on `post_read` and drops any page whose URL starts with the module's path prefix when that module is off — those pages are not built, not in the sitemap, and not in `search.json`. Prefixes come from `_data/modules.yml` (`/cohorts/`, `/events/`, `/resources/`, `/submit/`); `catalog`'s prefix is derived from the schema's `entry.path` instead, since it has to track the configured entry folder. Turning the module back on brings its pages back on the next build without further changes.
 
 The shipped BCHC configuration has `catalog`, `submit`, `carousel` and `stats` on, and `events`, `cohorts` and `resources` off. Sample data for the three off-by-default modules still ships in `_data/`, so turning one on gives you something to look at immediately.
 
@@ -60,13 +60,15 @@ hero:
 
 home:
   featured_count: 6   # entries shown in the carousel (featured: true first, then newest, until this many)
-  recent_count: 6     # entries shown in the "Recently added" grid
+  recent_count: 6     # entries shown in the "Recently added" grid (see note below)
   hero_latest_count: 3 # newest entries listed beside the hero at ≥1024px (0 hides the panel)
   highlights:          # optional 3-up value-proposition cards; leave the list empty to hide the section
     - eyebrow: "…"
       title: "…"
       body: "…"
 ```
+
+When the hero panel and the featured carousel are both on, the "Recently added" grid is shown only below 1024px — at desktop widths the hero list already carries the newest entries and the carousel already shows cards, so the grid would say "new" a third time above the fold. Set `hero_latest_count: 0` (or turn the `carousel` module off) to get the grid back at every width.
 
 The home page also shows a headline stat block (module: `stats`), an entries-by-facet browse grid (built from the first schema facet field that has `options`), and an events/cohorts summary row — all computed automatically from the schema and data, nothing further to configure.
 
@@ -187,9 +189,17 @@ A no-terminal step-by-step wizard on the deployed site (`setup/index.md` + `asse
 - Offers the same four presets as the CLI: **AI use case catalog**, **Program / cohort portal**, **Resource library**, **Blank catalog**.
 - Lets you edit branding, colors/fonts, module toggles, and the schema's field list (including adding/renaming/removing fields) with validation.
 - Shows a **live preview** on the Branding step — a miniature of the real header, hero, entry card and controls, rendered from the production stylesheet under your palette, type and corner rounding — next to the palette swatches and WCAG contrast checks. It updates as you type.
+- Lists the entry model's fields as **collapsed rows** — one summary line each (label, key, type, and badges for required / filter / card / searchable / group) behind an expand button. Only the row you open shows its controls, so the step stays a screen or two rather than a mile of form. Open rows stay open as you edit, and a validation error re-opens the row it blames.
+- Keeps that step's actions (**Add a field**, **Back**, **Continue**) pinned to the bottom of the viewport, so you never have to scroll back up to move on.
 - Lets each field's **Show on card** toggle also pick the card slot (`badge`, `meta`, `line`, `chip`, `icon`) when the field's type fits one; leave it on **Automatic** to let the card choose from the type. See `card` in `docs/content-model.md`.
+- Lets each field pick its **group** (which entry-page section it renders in) and its **weight** (1-9, ordering within the group) — the same `group`/`weight` keys documented in `docs/content-model.md`, both on existing fields and on the add-a-field form.
+- Reports validation problems in a single **error summary** that takes focus when you try to continue, with one link per problem that jumps to the control at fault.
 - Saves your answers in the browser as you go (a resume banner appears if you return with unfinished progress).
 - Produces copy/download/"open in GitHub, pre-filled" links for each generated file — nothing is pushed automatically; you commit the files yourself via the GitHub UI or by pulling them locally.
+
+| Branding step | Entry model step |
+| --- | --- |
+| ![Branding step: live preview of the header, hero, an entry card and controls under a teal palette, with palette swatches and WCAG contrast readouts below.](images/setup-branding.png) | ![Entry model step: the schema's fields as collapsed rows with key, type and badge chips, and a sticky action bar with Back, Add a field, Start over and Continue.](images/setup-entry-model.png) |
 
 ### `npm run setup` — CLI wizard
 

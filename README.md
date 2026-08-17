@@ -4,6 +4,14 @@ A configurable, GitHub-Pages-hosted catalog and resource site, managed entirely 
 
 This repository is shipped configured as the **Big Cities Health Coalition (BCHC) AI Use Case Catalog**, where member health departments share AI use cases — source repos, cloud deployments, vendor solutions, write-ups. The same template can be re-pointed at other uses without touching layout code: a project/asset portal, a cohort or training-program portal where teams publish outputs, an event calendar, or a curated resource library. See [`docs/configuration.md`](docs/configuration.md) for how to retarget it.
 
+<p align="center">
+  <img src="docs/images/home.png" alt="Home page: dark hero with search, calls to action, an honest stat line and the newest entries listed alongside; a browse-by grid of the schema's facets underneath." width="720">
+</p>
+
+| Catalog | Entry |
+| --- | --- |
+| ![Catalog page: filter rail on the left with counted pills, results header with search, sort and view toggle, and cards carrying an image, a result line, taxonomy chips and a signal strip.](docs/images/catalog.png) | ![Entry page: breadcrumbs, organization and stage eyebrow, title, result line, summary, dates, a documentation button, a four-column fact strip and a screenshot gallery.](docs/images/entry.png) |
+
 ## Features
 
 - **GitHub-as-CMS.** Anyone can propose an entry through a web form or a GitHub issue. Automation turns the issue into a pull request with the entry already drafted — screenshots downloaded into the entry folder and all — and a maintainer reviews and merges it.
@@ -97,7 +105,7 @@ _config.yml              Jekyll build mechanics (title/description fall back to 
 _data/                   site.yml, theme.yml, schema.yml, navigation.yml, events.yml, resources.yml, cohorts/<year>.yml
 _layouts/, _includes/    schema-driven templates (entry cards, filters, field rendering, etc.)
 _plugins/                schema_filters.rb (card/weight/group/option_meta rules), theme_filters.rb, search_index.rb (/search.json), events.rb, modules.rb
-assets/js/configurator/  shared logic behind both configurators (core.js, presets.js, setup-page.js)
+assets/js/configurator/  shared logic behind both configurators (core.js, presets/, setup-page.js + steps/ + wizard/)
 assets/js/submit.js      turns the /submit/ form into a pre-filled GitHub issue URL
 scripts/                 setup.mjs, generate.mjs, validate.mjs, and the issue-to-PR automation scripts
 .github/workflows/       pages, validate, quality (a11y + Lighthouse), smoke, new-entry, thumbnails, new-year, new-event, update-schedule, update-event-attachments
@@ -106,7 +114,9 @@ catalog/<slug>/index.md  published entries; screenshots live in catalog/<slug>/s
                          (ten sample entries ship with the template, marked `sample: true`)
 cohorts/<year>/          cohort landing page + event pages (module: cohorts)
 styleguide/              /styleguide/ — live rendering of the design system against your theme (noindex)
-docs/                    admin-guide.md, configuration.md, content-model.md, design-brief.md, design-system.md
+docs/                    admin-guide.md, configuration.md, content-model.md, design-brief.md, design-system.md, roadmap.md
+quality/                 pa11y-ci and Lighthouse CI config, plus urls.js (shared URL discovery for both)
+test/                    configurator/, plugins/, scripts/ and fixtures/ — Node's test runner + Ruby minitest
 ARCHITECTURE.md          how the pieces fit; CONTRIBUTING.md — working on the template itself; SECURITY.md
 ```
 

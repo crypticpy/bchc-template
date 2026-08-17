@@ -108,9 +108,9 @@ A failure never fails the scaffold. If an image cannot be downloaded it is left 
 - File-type schema fields (e.g. `deck_pdf`) store a path (`/catalog/<slug>/<filename>`) in front matter; the actual file must be added to that folder in a PR — usually by a maintainer, after the entry PR is open.
 - `links`-type fields (shipped: `resources`) hold `{label, url}` pairs and need no files at all. They are the right home for a shared drive folder, a recorded demo, a model card or a vendor page — anything that does not deserve its own `url` field. Check that each one opens for someone outside the organization before merging.
 - Any `file` field flagged `thumbnail: true` in `_data/schema.yml` (shipped: `deck_pdf` → `deck.pdf`) gets a first-page thumbnail rendered automatically:
-  - `thumbnails.yml` triggers on a PR touching `catalog/**/*.pdf`.
-  - It runs `scripts/thumbnail_sources.mjs` to find PDF → `thumb.jpg` pairs, skips empty placeholders and anything that isn't actually a PDF (checks the `%PDF` file signature), and renders each with ImageMagick (`magick -density 150 … -resize 800x …`).
-  - It commits `thumb.jpg` back onto the PR branch automatically (`stefanzweifel/git-auto-commit-action`).
+  - `thumbnails.yml` triggers on a PR touching any `*.pdf` file (it can't read the schema to narrow the trigger, since GitHub evaluates `paths:` before checkout — the schema-driven filtering happens in the next step instead).
+  - It runs `scripts/thumbnail_sources.mjs` to find PDF → `thumb.jpg` pairs under the schema's `entry.path` (default `catalog/`), skips empty placeholders and anything that isn't actually a PDF (checks the `%PDF` file signature), and renders each with `pdftoppm` (poppler-utils: `pdftoppm -jpeg -jpegopt quality=85 -scale-to-x 800 …`).
+  - It commits `thumb.jpg` back onto the PR branch itself with a plain `git add`/`commit`/`push`.
   - **This does not run on PRs from forks** (the job is gated on `github.event.pull_request.head.repo.full_name == github.repository`, since fork PRs get a read-only token). For a fork-originated PR, run the workflow manually afterward via `workflow_dispatch`, or generate `thumb.jpg` locally and commit it.
   - `_includes/entry-thumb.html`'s fallback order for the card image: explicit `thumbnail` front-matter value → the first image of the entry's `images` field → an existing `<entry>/thumb.jpg` → nothing. There is no generated placeholder: an entry with no picture gets a text-first card, which is honest and reads better than a fake graphic.
 

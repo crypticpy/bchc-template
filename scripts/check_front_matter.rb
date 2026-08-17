@@ -58,6 +58,7 @@ module FrontMatterCheck
     [parsed, (match[2] || ""), match[1]]
   end
 
+  # @param value [Object]
   # @return [Boolean] true for nil, an empty array/hash, or whitespace-only text
   def blank?(value)
     return true if value.nil?
@@ -66,6 +67,7 @@ module FrontMatterCheck
     value.to_s.strip.empty?
   end
 
+  # @param value [Object]
   # @return [Boolean] true when the value parses as an ISO-8601 date
   def date?(value)
     return true if value.is_a?(Date) || value.is_a?(Time)
@@ -87,12 +89,16 @@ module FrontMatterCheck
   end
 
   # "catalog/x/index.md:7" when the key is present, "catalog/x/index.md" otherwise.
+  # @param rel [String] file path, relative to `root`
+  # @param front_matter [String]
+  # @param key [String]
   # @return [String]
   def where(rel, front_matter, key)
     line = line_of(front_matter, key)
     line ? "#{rel}:#{line}" : rel
   end
 
+  # @param value [Object]
   # @return [Boolean] true for http:// or https:// URLs
   #
   # These values are printed into `href`/`src` attributes, so a quote, angle

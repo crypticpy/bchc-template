@@ -31,8 +31,11 @@ const TYPE_EXTENSIONS = new Map([
   ['image/webp', 'webp'],
 ]);
 
+/** Default cap on how many images one entry may attach. */
 export const MAX_FILES = 8;
+/** Default cap on the combined size, in bytes, of all of an entry's images. */
 export const MAX_TOTAL_BYTES = 15 * 1024 * 1024;
+/** Default per-request timeout, in milliseconds, covering the whole body read. */
 export const TIMEOUT_MS = 30_000;
 /** Redirect hops followed before giving up (each one is re-checked). */
 export const MAX_REDIRECTS = 5;

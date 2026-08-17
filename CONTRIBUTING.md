@@ -24,8 +24,10 @@ Run these before opening a pull request; `validate.yml` and `quality.yml` run th
 | Command | Checks |
 |---|---|
 | `node scripts/generate.mjs --check` | The issue template, `_config.yml` title/description and `defaults.generated.js` match `_data/schema.yml` / `_data/site.yml`. If it fails: `npm run generate` and commit. |
+| `npm run lint` | ESLint over the JS in `assets/js/`, `scripts/` and `test/`. |
+| `npm run format:check` | Prettier, checked but not applied — run `npm run format` locally to fix. |
 | `npm test` | Node unit tests (`test/**/*.test.mjs`) — configurator, issue parsing, images, YAML, submit form (jsdom). |
-| `npm run test:ruby` | Minitest for the Ruby validators. |
+| `npm run test:ruby` | Minitest for the Ruby plugins and validators (`test/plugins/**/*_test.rb`, `test/scripts/**/*_test.rb`). |
 | `npm run validate` | Every `_data/*.yml` parses; every entry's front matter passes `scripts/check_front_matter.rb`; no oversize files. |
 | `npm run build:css && bundle exec jekyll build` | The site builds without Liquid errors. |
 | `npm run a11y` | pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in `quality/pa11yci.js` (sample entry URLs are discovered from the built site). Needs the built site served on port 4173: `python3 -m http.server 4173 --directory _site &`. |

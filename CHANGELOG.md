@@ -41,8 +41,42 @@ so when it does.
   toggle can pin a card slot.
 - Ten sample AI use cases across health programmes and back-office functions,
   each with a screenshot.
+- Setup wizard: entry-model fields as collapsed rows with a sticky action bar,
+  `group`/`weight` controls on every field and on the add-a-field form, and a
+  focusable error summary that links to each control at fault. The CLI wizard
+  gained a declarative flag table (`--preset/--yes/--dry-run/--out/--help`).
+- `_data/modules.yml` maps each module to the paths it owns; `_plugins/modules.rb`
+  reads it instead of a hand-maintained table.
+- Tests: `test/plugins/*_test.rb` for every Jekyll plugin, a JS↔Ruby parity test
+  for the schema constants, `test/scripts/filter_state.test.mjs` for the catalog
+  filter logic, and jsdom tests for the wizard (223 node + 67 Ruby).
+- pa11y-ci audits interactive states too: the mobile filter sheet, "Show all"
+  expanded, the lightbox, and the wizard's Branding and Entry-model steps.
+- Screenshots in `README.md` and `docs/configuration.md`.
 
 ### Changed
+
+- Panel #2 review fixes. Interaction: the submit form's "open a pre-filled
+  issue" flow works again under `noopener`; `?q=` deep links search on load;
+  the layout still reflows at 400 % zoom; the "Show all" toggle, carousel
+  buttons and search listbox manage focus correctly; live regions stay quiet
+  on boot; the filter sheet closes on Escape from anywhere; filter counts read
+  as "(12 matches)" to assistive tech; the results header and rail hide when
+  JavaScript is off. Layout: one `.page-title` size on every page, `.eyebrow`
+  variants replace ad-hoc tracked capitals, the entry rail comes first in DOM
+  order on small screens, and the home page's "Recently added" grid yields to
+  the hero list at desktop widths. Hero CTAs hide with their module
+  (`module:` on each CTA). Cohort-portal preset: `department` → `area`;
+  resource-library preset copy is organization-neutral.
+- Code organisation: `filters.js` split into `lib/filter-state.js`,
+  `lib/entry-order.js` and `filter-sheet.js`; the wizard into `wizard/*` and
+  `steps/*`; the CLI into `scripts/lib/setup-*.mjs`; `_layouts/cohort.html` and
+  `_layouts/event.html` use prefixed Liquid assigns.
+- Removed the unused per-field `section` hint and the top-level `sections:`
+  map from the schema, presets and validator (`groups` replaced them).
+- Quality configs moved to `quality/` (`urls.js` discovers sample entries;
+  `pa11yci.js`, `lighthouserc.js`); the thumbnails workflow reads the entry
+  path from the schema; every issue-driven workflow has a concurrency group.
 
 - Fonts ship as latin/latin-ext woff2 subsets (Inter, Source Sans 3) with the
   body and heading faces preloaded; the TTFs are gone.
