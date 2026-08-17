@@ -18,6 +18,10 @@ exclude:
   - node_modules
   - vendor
   - README.md
+  - ARCHITECTURE.md
+  - CONTRIBUTING.md
+  - CHANGELOG.md
+  - SECURITY.md
   - CLAUDE.md
   - AGENTS.md
   - LICENSE

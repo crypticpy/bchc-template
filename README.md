@@ -83,7 +83,12 @@ Other useful scripts:
 npm run setup      # configuration wizard (see Quick start)
 npm run generate   # regenerate the issue template + configurator defaults, and sync _config.yml from _data/site.yml
 npm run validate   # parse all _data/*.yml and run the front-matter / file-size checks CI runs on pull requests
+npm test           # Node unit tests; `npm run test:ruby` for the Ruby validators
+npm run a11y       # pa11y-ci (WCAG 2 AA) against _site served on :4173 — see CONTRIBUTING.md
+npm run lighthouse # Lighthouse CI against the same local server
 ```
+
+Contributing to the template itself? Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Repository layout
 
@@ -95,12 +100,14 @@ _plugins/                schema_filters.rb (card/weight/group/option_meta rules)
 assets/js/configurator/  shared logic behind both configurators (core.js, presets.js, setup-page.js)
 assets/js/submit.js      turns the /submit/ form into a pre-filled GitHub issue URL
 scripts/                 setup.mjs, generate.mjs, validate.mjs, and the issue-to-PR automation scripts
-.github/workflows/       pages, validate, smoke, new-entry, thumbnails, new-year, new-event, update-schedule, update-event-attachments
+.github/workflows/       pages, validate, quality (a11y + Lighthouse), smoke, new-entry, thumbnails, new-year, new-event, update-schedule, update-event-attachments
 .github/ISSUE_TEMPLATE/  new-entry.yml is generated — do not hand-edit it, run `npm run generate`
 catalog/<slug>/index.md  published entries; screenshots live in catalog/<slug>/screenshots/
                          (ten sample entries ship with the template, marked `sample: true`)
 cohorts/<year>/          cohort landing page + event pages (module: cohorts)
-docs/                    admin-guide.md, configuration.md, content-model.md, design-brief.md
+styleguide/              /styleguide/ — live rendering of the design system against your theme (noindex)
+docs/                    admin-guide.md, configuration.md, content-model.md, design-brief.md, design-system.md
+ARCHITECTURE.md          how the pieces fit; CONTRIBUTING.md — working on the template itself; SECURITY.md
 ```
 
 ## License
