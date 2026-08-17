@@ -15,13 +15,16 @@ include_search: true
 <div class="pb-24 lg:pb-0">
   <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div class="max-w-prose">
-      <h1 class="font-heading text-3xl font-semibold leading-9 text-brand-primary-dark">{{ page.title | default: plural }}</h1>
+      <h1 class="page-title">{{ page.title | default: plural }}</h1>
       {% if page.summary %}<p class="mt-1 text-sm leading-6 text-brand-muted">{{ page.summary }}</p>{% endif %}
     </div>
     {% if cfg.modules.submit %}<a class="btn-secondary btn-sm" href="{{ '/submit/' | relative_url }}">{% include icon.html name='plus' size='sm' %} Add a {{ singular | downcase }}</a>{% endif %}
   </div>
 
-  <div class="lg:grid lg:grid-cols-[272px_minmax(0,1fr)] lg:items-start lg:gap-8">
+  {%- comment -%} No `items-start`: the rail column has to stretch to the row's
+  height, otherwise the sticky wrapper inside it (.filter-rail) has nothing to
+  travel through and never sticks. {%- endcomment -%}
+  <div class="lg:grid lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-8">
     <div class="hidden lg:block">{% include filter-rail.html entries=entries %}</div>
 
     <div class="min-w-0">

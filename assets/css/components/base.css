@@ -20,6 +20,10 @@
   ::selection { @apply bg-brand-primary/15; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
+    /* The home carousel's smooth scroll comes from the `scroll-smooth` utility on
+       its track, which sits in a later layer than this rule — hence !important.
+       assets/js/carousel.js also switches scrollBy to behavior: 'instant'. */
+    [data-carousel-track] { scroll-behavior: auto !important; }
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 }

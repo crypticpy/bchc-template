@@ -69,7 +69,7 @@
   /* Zero-count options stay readable (muted = 5.93:1); alpha stacked with the
      count's own opacity used to land at 2.10:1. They are reordered in the DOM,
      not with `order`, so tab order still follows the visual order. */
-  .filter-pill[disabled], .filter-pill.is-empty { @apply border-brand-line text-brand-muted hover:border-brand-line hover:text-brand-muted; }
+  .filter-pill[disabled], .filter-pill.is-empty { @apply border-brand-line-strong text-brand-muted hover:border-brand-line-strong hover:text-brand-muted; }
   .filter-pill > span:first-child { @apply max-w-[13rem] truncate; }
   .filter-count { @apply text-[11px] tabular-nums text-brand-muted; }
   .filter-pill.is-active .filter-count, .filter-pill[aria-pressed="true"] .filter-count { @apply text-white; }
@@ -79,7 +79,7 @@
   .results-header { @apply sticky top-16 z-30 -mx-4 mb-6 border-b border-brand-line bg-surface-base/95 px-4 py-3 shadow-e2 backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:rounded-b-2xl lg:px-4; }
   .results-count { @apply font-heading text-lg font-semibold leading-6 text-brand-primary-dark; }
   .results-total { @apply font-sans text-sm font-normal text-brand-muted; }
-  .results-select { @apply h-9 rounded-full border border-brand-line-strong bg-surface-card py-0 pl-3 pr-8 text-xs font-medium text-brand-ink focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
+  .results-select { @apply h-11 lg:h-9 rounded-full border border-brand-line-strong bg-surface-card py-0 pl-3 pr-8 text-xs font-medium text-brand-ink focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
   .active-pill { @apply inline-flex min-h-[44px] items-center gap-1 rounded-full border border-brand-primary bg-brand-primary/10 px-3 text-xs font-medium text-brand-primary-dark lg:min-h-[32px] transition-colors duration-120 hover:bg-brand-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
   .view-toggle { @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-brand-line-strong text-brand-muted lg:min-h-[32px] lg:min-w-[32px] transition-colors duration-120 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
   .view-toggle[aria-pressed="true"] { @apply border-brand-primary bg-brand-primary text-white; }
@@ -94,8 +94,13 @@
     .results-header { @apply static mb-4 rounded-none shadow-none; }
   }
 
+  /* Without JavaScript the search box, the sort menu, the view switch and every
+     facet control are inert, so they are hidden rather than shipped dead. The
+     inline script in _includes/head.html adds `js` before first paint. */
+  html:not(.js) .results-header-controls, html:not(.js) .filter-rail, html:not(.js) .filter-bar { display: none; }
+
   /* ---------- Search combobox ------------------------------------------ */
-  .search-box { @apply h-9 w-full rounded-full border border-brand-line-strong bg-surface-card pl-9 pr-3 text-sm text-brand-ink placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
+  .search-box { @apply h-11 lg:h-9 w-full rounded-full border border-brand-line-strong bg-surface-card pl-9 pr-3 text-sm text-brand-ink placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
   .search-listbox { @apply absolute left-0 right-0 z-40 mt-1 max-h-72 list-none overflow-y-auto rounded-xl border border-brand-line bg-surface-card p-0 shadow-e2; }
   .search-option { @apply flex cursor-pointer items-center justify-between gap-3 border-b border-l-4 border-brand-line border-l-transparent px-3 py-2 text-sm last:border-b-0; }
   /* A tint alone was 1.18:1 against the neighbouring rows; the rule carries it. */

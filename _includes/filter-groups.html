@@ -15,7 +15,7 @@ Markup contract (assets/js/filters.js):
         <button class="filter-pill" data-filter-key="<key-with-hyphens>"
                 data-filter-mode="single|multi" data-filter-value="<slug>"
                 data-filter-label="<value>" aria-pressed="false">
-          <span>short label</span><span class="filter-count" data-filter-count></span>
+          <span>short label</span><span class="filter-count" data-filter-count aria-hidden="true"></span><span class="sr-only" data-filter-count-sr></span>
         </button>
         … pills past the 8th carry data-overflow and hidden …
         <button data-show-all data-more="N">Show all N</button>
@@ -41,7 +41,7 @@ Local assigns are prefixed `fg_`.
           <span class="filter-chevron">{% include icon.html name='chevron-down' size='sm' %}</span>
         </button>
       </h3>
-      <div class="filter-group-panel" id="{{ fg_id }}" role="region" aria-labelledby="{{ fg_id }}-btn" data-group-panel {% unless fg_open %}hidden{% endunless %}>
+      <div class="filter-group-panel" id="{{ fg_id }}" role="group" aria-labelledby="{{ fg_id }}-btn" data-group-panel {% unless fg_open %}hidden{% endunless %}>
         {%- for fg_f in fg_gfields -%}
           {%- if fg_f.options -%}
             {%- assign fg_options = fg_f.options -%}
@@ -62,7 +62,7 @@ Local assigns are prefixed `fg_`.
                 {%- for fg_opt in fg_options -%}
                   {%- assign fg_om = fg_f | option_meta: fg_opt -%}
                   {%- capture fg_title -%}{{ fg_opt }}{% if fg_om.description != '' %} — {{ fg_om.description }}{% endif %}{%- endcapture -%}
-                  <button type="button" class="filter-pill{% if forloop.index > 8 %} hidden{% endif %}" {% if forloop.index > 8 %}data-overflow {% endif %}data-filter-key="{{ fg_f.key | replace: '_', '-' }}" data-filter-mode="{{ fg_mode }}" data-filter-value="{{ fg_opt | slugify }}" data-filter-label="{{ fg_opt | escape }}" title="{{ fg_title | escape }}" aria-pressed="false"><span>{{ fg_om.short }}</span><span class="filter-count" data-filter-count></span></button>
+                  <button type="button" class="filter-pill{% if forloop.index > 8 %} hidden{% endif %}" {% if forloop.index > 8 %}data-overflow {% endif %}data-filter-key="{{ fg_f.key | replace: '_', '-' }}" data-filter-mode="{{ fg_mode }}" data-filter-value="{{ fg_opt | slugify }}" data-filter-label="{{ fg_opt | escape }}" title="{{ fg_title | escape }}" aria-pressed="false"><span>{{ fg_om.short }}</span><span class="filter-count" data-filter-count aria-hidden="true"></span><span class="sr-only" data-filter-count-sr></span></button>
                 {%- endfor -%}
               </div>
               {%- if fg_options.size > 8 -%}

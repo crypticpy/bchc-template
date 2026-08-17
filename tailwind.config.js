@@ -21,6 +21,7 @@ export default {
     './submit/**/*.{md,html}',
     './setup/**/*.{md,html}',
     './about/**/*.{md,html}',
+    './styleguide/**/*.{md,html}',
     './assets/js/**/*.js',
   ],
   // Tone classes are composed at render time (`badge-{{ tone }}`, `signal-…`),

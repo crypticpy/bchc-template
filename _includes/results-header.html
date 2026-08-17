@@ -16,6 +16,8 @@ Markup contract (assets/js/filters.js + assets/js/search.js):
   [data-view-toggle="grid|list"] aria-pressed buttons
   [data-filter-status]       role="status" live region (one announcement per change)
   [data-filter="search"]     role="combobox" input, [data-search-results] listbox
+  .results-header-controls   the JS-only controls (search, sort, view switch); hidden
+                             by CSS when <html> has no `js` class (see head.html)
 
 Local assigns are prefixed `rh_`.
 {%- endcomment -%}
@@ -40,14 +42,14 @@ Local assigns are prefixed `rh_`.
       <span data-entry-count>{{ rh_total }}</span> <span data-entry-count-label>{{ rh_plural }}</span><span data-total-wrap class="results-total" hidden> of <span data-entry-total>{{ rh_total }}</span></span>
     </h2>
 
-    <div class="relative min-w-[12rem] flex-1 sm:max-w-sm">
+    <div class="results-header-controls relative min-w-[12rem] flex-1 sm:max-w-sm">
       <label class="sr-only" for="catalog-search">Search {{ rh_plural }}</label>
       <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-brand-muted">{% include icon.html name='search' size='sm' %}</span>
       <input id="catalog-search" class="search-box" type="text" role="combobox" aria-expanded="false" aria-controls="search-listbox" aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="Search {{ rh_plural }}…" data-filter="search" data-search-index="{{ '/search.json' | relative_url }}">
       <ul id="search-listbox" class="search-listbox" role="listbox" aria-label="Search suggestions" data-search-results hidden></ul>
     </div>
 
-    <div class="ml-auto flex items-center gap-2">
+    <div class="results-header-controls ml-auto flex items-center gap-2">
       <label class="sr-only" for="catalog-sort">Sort {{ rh_plural }}</label>
       <select id="catalog-sort" class="results-select" data-sort>
         <option value="newest">Newest</option>

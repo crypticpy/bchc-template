@@ -132,7 +132,7 @@ a group with no populated field never claims space in either place.
       {%- if page.featured -%}{% include badge.html label='Featured' tone='accent' size='md' icon='star' %}{%- endif -%}
     </div>
 
-    <h1 class="max-w-prose font-heading text-3xl font-semibold leading-tight text-brand-primary-dark sm:text-4xl">{{ page.title | escape }}</h1>
+    <h1 class="page-title max-w-prose">{{ page.title | escape }}</h1>
 
     {%- for ent_f in ent_line_fields -%}
       {%- assign ent_v = page[ent_f.key] -%}
@@ -168,13 +168,12 @@ a group with no populated field never claims space in either place.
   {%- if ent_facts != '' -%}<div class="mt-8">{{ ent_facts }}</div>{%- endif -%}
   {%- if ent_media != '' -%}<div class="mt-8 space-y-6">{{ ent_media }}</div>{%- endif -%}
 
+  {%- comment -%} The rail comes first in the DOM so a small screen reads the
+  key details (contents, reuse, contact) before the long body; `lg:order-*`
+  puts it back in the right-hand column at desktop widths, where the reading
+  order is rail then article. {%- endcomment -%}
   <div class="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
-    <div class="min-w-0 space-y-10">
-      <div class="prose-body">{{ content }}</div>
-      {{ ent_sections }}
-    </div>
-
-    <aside class="entry-rail space-y-6 lg:sticky lg:top-24 lg:self-start" aria-label="About this {{ ent_singular | downcase | escape }}">
+    <aside class="entry-rail space-y-6 lg:order-2 lg:sticky lg:top-24 lg:self-start" aria-label="About this {{ ent_singular | downcase | escape }}">
       <div class="hidden lg:block">{% include toc.html content=content sections=ent_section_index %}</div>
       {{ ent_rail_cards }}
       <section class="rail-card" aria-labelledby="rail-share-heading">
@@ -189,6 +188,11 @@ a group with no populated field never claims space in either place.
         {%- endif -%}
       </section>
     </aside>
+
+    <div class="min-w-0 space-y-10 lg:order-1">
+      <div class="prose-body">{{ content }}</div>
+      {{ ent_sections }}
+    </div>
   </div>
 </article>
 

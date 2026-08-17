@@ -36,10 +36,12 @@
   let options = [];
   let activeIndex = -1;
 
+  // Unhide before writing: a live region that is still `display:none` when its
+  // text changes is not announced by every screen reader.
   function setStatus(message) {
     if (!statusEl) return;
-    statusEl.textContent = message || '';
     statusEl.classList.toggle('hidden', !message);
+    statusEl.textContent = message || '';
   }
 
   /**
@@ -244,7 +246,9 @@
       const results = query(q);
       const entryIds = results.filter((d) => d.kind === 'entry').map((d) => d.id);
       announce(new Set(entryIds), entryIds);
-      if (showList) renderList(results);
+      // Focus may have left the box while the fetch/debounce was pending
+      // (type, then Tab straight away); don't reopen the popup under it.
+      if (showList && document.activeElement === input) renderList(results);
     });
   }
 
@@ -291,6 +295,16 @@
   document.addEventListener('click', (e) => {
     if (e.target === input) return;
     if (listbox && listbox.contains(e.target)) return;
+    close();
+  });
+
+  // Tab (or any other way focus leaves the box) closes the listbox: an open
+  // combobox popup behind the focus ring is a keyboard trap for screen readers.
+  // Picking an option cannot trip this — optionRow's mousedown preventDefault
+  // keeps focus on the input — but relatedTarget is still checked for safety.
+  input.addEventListener('focusout', (e) => {
+    const to = e.relatedTarget;
+    if (to && (to === input || (listbox && listbox.contains(to)))) return;
     close();
   });
 

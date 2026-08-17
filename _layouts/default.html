@@ -5,7 +5,7 @@
     <a class="sr-only focus:not-sr-only focus:fixed focus:left-1/2 focus:top-4 focus:z-50 focus:-translate-x-1/2 focus:rounded-full focus:bg-brand-primary focus:px-5 focus:py-3 focus:text-white focus:shadow-card" href="#main-content">Skip to content</a>
     <div class="flex min-h-screen flex-col">
       {% include header.html %}
-      <main id="main-content" class="flex-1">
+      <main id="main-content" class="flex-1" tabindex="-1">
         {% if page.full_width or layout.full_width %}
           {{ content }}
         {% else %}
@@ -18,7 +18,10 @@
     </div>
     <script defer src="{{ '/assets/js/site.js' | relative_url }}"></script>
     {% if page.include_filters or layout.include_filters %}
-      <script defer src="{{ '/assets/js/filters.js' | relative_url }}"></script>
+      {%- comment -%} An ES module: it imports ./filter-sheet.js and ./lib/filter-state.js.
+      Module scripts are deferred and stay in document order with the classic
+      deferred scripts around them, so search.js still runs after this one. {%- endcomment -%}
+      <script type="module" src="{{ '/assets/js/filters.js' | relative_url }}"></script>
     {% endif %}
     {% if page.include_search or layout.include_search %}
       <script defer src="{{ '/assets/js/lunr.min.js' | relative_url }}"></script>
