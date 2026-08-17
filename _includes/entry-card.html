@@ -1,57 +1,159 @@
 {%- comment -%}
-Schema-driven catalog card. Usage: {% include entry-card.html entry=entry %}
-- select fields with card:true  -> badges over the image
-- text fields with card:true    -> meta line
-- list/multiselect card:true    -> chips (max 4 total)
-- every facet field             -> data-facet-<key> attribute for client-side filtering
+Catalog card. One <li> for a <ul role="list" data-entry-grid>.
+
+Usage: {% include entry-card.html entry=entry %}
+Params: entry (required).
+
+Everything on the card comes from `_data/schema.yml` presentation hints, resolved by
+_plugins/schema_filters.rb — no field key is named here. Slot caps are enforced by
+this template (design-brief.md → Catalog card):
+  media    16:9 band, rendered only when entry-thumb.html resolves a real image
+  badge    "Featured" + the first `card: badge` field (over the image, or inline
+           at the start of the meta line when there is no image)
+  meta     <= 2 segments from `card: meta` fields in weight order, joined with ·
+  title    h3, the ONLY link on the card; its ::after covers the whole card
+  line     the first `card: line` field (icon + one semibold line)
+  summary  2-line clamp
+  chip     ONE family: the first `card: chip` field, 2 chips + "+n"
+  icon     signal strip: `card: icon` fields in weight order, <= 4 glyphs total,
+           a multiselect shows <= 2 values then "+n"
+
+Data attributes consumed by assets/js/filters.js:
+  data-entry, data-entry-id, data-entry-title, data-entry-date, data-entry-updated,
+  data-facet-<key-with-hyphens>="slug,slug" (every facet field),
+  data-sort-<key-with-hyphens> (text/select meta fields, for the sort menu)
+
+Local assigns are prefixed `ec_`.
 {%- endcomment -%}
-{%- assign entry = include.entry -%}
-{%- assign schema = site.data.schema -%}
-{%- assign fields = schema.fields -%}
-{%- assign facet_fields = fields | where: 'facet', true -%}
-{%- assign card_fields = fields | where: 'card', true -%}
-<article class="group relative flex flex-col overflow-hidden rounded-2xl border border-brand-line bg-surface-card shadow-subtle transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-primary/40 hover:shadow-card focus-within:-translate-y-0.5 focus-within:border-brand-primary/40"
+{%- assign ec_entry = include.entry -%}
+{%- assign ec_fields = site.data.schema.fields -%}
+{%- assign ec_facets = ec_fields | facet_fields -%}
+{%- assign ec_metas = ec_fields | card_fields: 'meta' -%}
+{%- assign ec_badge_field = ec_fields | card_fields: 'badge' | first -%}
+{%- assign ec_line_field = ec_fields | card_fields: 'line' | first -%}
+{%- assign ec_chip_field = ec_fields | card_fields: 'chip' | first -%}
+{%- assign ec_icon_fields = ec_fields | card_fields: 'icon' -%}
+
+{%- capture ec_thumb -%}{% include entry-thumb.html entry=ec_entry %}{%- endcapture -%}
+{%- assign ec_thumb = ec_thumb | strip -%}
+{%- assign ec_has_image = false -%}
+{%- if ec_thumb != '' -%}{%- assign ec_has_image = true -%}{%- endif -%}
+
+{%- comment -%} Badge slot: the first `card: badge` field's value. {%- endcomment -%}
+{%- assign ec_badge_value = '' -%}
+{%- if ec_badge_field -%}
+  {%- assign ec_badge_values = ec_entry[ec_badge_field.key] | as_list -%}
+  {%- if ec_badge_values.size > 0 -%}{%- assign ec_badge_value = ec_badge_values | first -%}{%- endif -%}
+{%- endif -%}
+
+<li class="entry-card card-hover"
   data-entry
-  data-entry-id="{{ entry.slug | default: entry.title | slugify }}"
-  data-entry-title="{{ entry.title | escape }}"
-  data-entry-date="{{ entry.published | date: '%Y-%m-%d' }}"
-  {% for f in facet_fields %}data-facet-{{ f.key | replace: '_', '-' }}="{{ entry[f.key] | facet_values }}" {% endfor %}>
-  <a class="flex h-full flex-col focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40 focus-visible:ring-offset-2" href="{{ entry.url | relative_url }}">
-    <div class="relative h-44 overflow-hidden">
-      {% include entry-thumb.html entry=entry img_class="transition duration-700 ease-out group-hover:scale-105" %}
-      {% if entry.featured %}
-        <span class="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-brand-accent px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-brand-primary-dark shadow-subtle">{% include icon.html name='sparkles' size='xs' %} Featured</span>
-      {% endif %}
-      <div class="absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-1.5 bg-gradient-to-t from-brand-primary-dark/80 to-transparent px-4 pb-3 pt-10">
-        {% for f in card_fields %}
-          {% if f.type == 'select' %}
-            {% assign bl = entry[f.key] %}{% include badge.html label=bl tone='on-dark' size='sm' %}
-          {% endif %}
-        {% endfor %}
+  data-entry-id="{{ ec_entry.slug | default: ec_entry.title | slugify }}"
+  data-entry-title="{{ ec_entry.title | escape }}"
+  data-entry-date="{{ ec_entry.published | date: '%Y-%m-%d' }}"
+  {% if ec_entry.updated %}data-entry-updated="{{ ec_entry.updated | date: '%Y-%m-%d' }}" {% endif %}
+  {%- for ec_f in ec_metas %}{% if ec_f.type == 'text' or ec_f.type == 'select' %} data-sort-{{ ec_f.key | replace: '_', '-' }}="{{ ec_entry[ec_f.key] | escape }}"{% endif %}{% endfor %}
+  {%- for ec_f in ec_facets %} data-facet-{{ ec_f.key | replace: '_', '-' }}="{{ ec_entry[ec_f.key] | facet_values }}"{% endfor %}>
+
+  {%- if ec_has_image -%}
+    <div class="entry-media">
+      {{ ec_thumb }}
+      <div class="entry-badges">
+        {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='accent' icon='star' %}{%- endif -%}
+        {%- if ec_badge_value != '' -%}
+          {%- assign ec_bm = ec_badge_field | option_meta: ec_badge_value -%}
+          {% include badge.html label=ec_bm.short tone='on-dark' icon=ec_bm.icon title=ec_badge_value %}
+        {%- endif -%}
       </div>
     </div>
-    <div class="flex flex-1 flex-col gap-3 p-5">
-      {% capture meta %}{% for f in card_fields %}{% if f.type == 'text' and entry[f.key] and entry[f.key] != '' %}{% unless forloop.first %} · {% endunless %}{{ entry[f.key] }}{% endif %}{% endfor %}{% endcapture %}
-      {% assign meta = meta | strip %}
-      {% if meta != '' %}<p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-primary">{{ meta | replace_first: ' · ', '' }}</p>{% endif %}
-      <h3 class="font-heading text-xl font-semibold leading-tight text-brand-primary-dark transition-colors group-hover:text-brand-primary">{{ entry.title }}</h3>
-      <p class="line-clamp-3 text-sm leading-relaxed text-brand-muted">{{ entry.summary }}</p>
-      {% assign chip_count = 0 %}{% assign overflow = 0 %}
-      <div class="mt-auto flex flex-wrap gap-1.5 pt-1">
-        {% for f in card_fields %}
-          {% if f.type == 'list' or f.type == 'multiselect' %}
-            {% for v in entry[f.key] %}
-              {% if chip_count < 4 %}
-                <span class="{% if forloop.parentloop.index0 == 0 %}chip{% else %}chip-secondary{% endif %}">{{ v }}</span>
-                {% assign chip_count = chip_count | plus: 1 %}
-              {% else %}
-                {% assign overflow = overflow | plus: 1 %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-        {% endfor %}
-        {% if overflow > 0 %}<span class="chip-neutral">+{{ overflow }}</span>{% endif %}
-      </div>
-    </div>
-  </a>
-</article>
+  {%- endif -%}
+
+  <div class="entry-body">
+    {%- capture ec_meta_line -%}
+      {%- assign ec_seg = 0 -%}
+      {%- for ec_f in ec_metas -%}
+        {%- if ec_seg >= 2 -%}{%- break -%}{%- endif -%}
+        {%- assign ec_vals = ec_entry[ec_f.key] | as_list -%}
+        {%- if ec_vals.size > 0 -%}
+          {%- assign ec_raw = ec_vals | first -%}
+          {%- assign ec_text = ec_f | option_short: ec_raw -%}
+          {%- if ec_seg > 0 -%}<span class="entry-meta-sep" aria-hidden="true">·</span>{%- endif -%}
+          <span title="{{ ec_f.label | escape }}: {{ ec_raw | escape }}">{{ ec_text }}</span>
+          {%- assign ec_seg = ec_seg | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- assign ec_meta_line = ec_meta_line | strip -%}
+    {%- assign ec_inline_badges = false -%}
+    {%- unless ec_has_image -%}
+      {%- if ec_entry.featured or ec_badge_value != '' -%}{%- assign ec_inline_badges = true -%}{%- endif -%}
+    {%- endunless -%}
+    {%- if ec_meta_line != '' or ec_inline_badges -%}
+      <p class="entry-meta">
+        {%- if ec_inline_badges -%}
+          {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='accent' icon='star' %}{%- endif -%}
+          {%- if ec_badge_value != '' -%}
+            {%- assign ec_bm2 = ec_badge_field | option_meta: ec_badge_value -%}
+            {% include badge.html label=ec_bm2.short tone='primary' icon=ec_bm2.icon title=ec_badge_value %}
+          {%- endif -%}
+        {%- endif -%}
+        {{ ec_meta_line }}
+      </p>
+    {%- endif -%}
+
+    <h3 class="entry-title line-clamp-2"><a href="{{ ec_entry.url | relative_url }}">{{ ec_entry.title }}</a></h3>
+
+    {%- if ec_line_field -%}
+      {%- assign ec_line_value = ec_entry[ec_line_field.key] -%}
+      {%- if ec_line_value and ec_line_value != '' -%}
+        <p class="entry-line">{% include icon.html name=ec_line_field.icon size='sm' class='mt-0.5 text-brand-primary' %}<span class="line-clamp-2"><span class="sr-only">{{ ec_line_field.label }}: </span>{{ ec_line_value }}</span></p>
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- if ec_entry.summary and ec_entry.summary != '' -%}
+      <p class="entry-summary">{{ ec_entry.summary }}</p>
+    {%- endif -%}
+
+    {%- if ec_chip_field -%}
+      {%- assign ec_chips = ec_entry[ec_chip_field.key] | as_list -%}
+      {%- if ec_chips.size > 0 -%}
+        <ul class="entry-chips" aria-label="{{ ec_chip_field.label | escape }}">
+          {%- for ec_v in ec_chips limit: 2 -%}
+            <li><span class="chip" title="{{ ec_v | escape }}">{{ ec_chip_field | option_short: ec_v }}</span></li>
+          {%- endfor -%}
+          {%- if ec_chips.size > 2 -%}
+            {%- assign ec_chip_more = ec_chips.size | minus: 2 -%}
+            <li><span class="chip-neutral">+{{ ec_chip_more }}<span class="sr-only"> more {{ ec_chip_field.label | downcase }}</span></span></li>
+          {%- endif -%}
+        </ul>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+
+  {%- assign ec_glyphs = 0 -%}
+  {%- capture ec_signals -%}
+    {%- for ec_f in ec_icon_fields -%}
+      {%- if ec_glyphs >= 4 -%}{%- break -%}{%- endif -%}
+      {%- assign ec_vals = ec_entry[ec_f.key] | as_list -%}
+      {%- assign ec_shown = 0 -%}
+      {%- for ec_v in ec_vals -%}
+        {%- if ec_glyphs >= 4 or ec_shown >= 2 -%}{%- break -%}{%- endif -%}
+        {%- assign ec_om = ec_f | option_meta: ec_v -%}
+        {%- assign ec_tone = 'signal' -%}
+        {%- if ec_om.tone == 'warn' -%}{%- assign ec_tone = 'signal-warn' -%}{%- elsif ec_om.tone == 'primary' -%}{%- assign ec_tone = 'signal-primary' -%}{%- endif -%}
+        {%- capture ec_sig_label -%}{{ ec_f.label }}: {{ ec_v }}{%- endcapture -%}
+        <span class="{{ ec_tone }}" title="{{ ec_sig_label | escape }}">{% include icon.html name=ec_om.icon size='xs' %}<span aria-hidden="true">{{ ec_om.short }}</span><span class="sr-only">{{ ec_sig_label }}</span></span>
+        {%- assign ec_shown = ec_shown | plus: 1 -%}
+        {%- assign ec_glyphs = ec_glyphs | plus: 1 -%}
+      {%- endfor -%}
+      {%- assign ec_rest = ec_vals.size | minus: ec_shown -%}
+      {%- if ec_shown > 0 and ec_rest > 0 -%}
+        <span class="signal">+{{ ec_rest }}<span class="sr-only"> more {{ ec_f.label | downcase }}</span></span>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- assign ec_signals = ec_signals | strip -%}
+  {%- if ec_signals != '' -%}
+    <div class="entry-foot"><div class="signal-strip">{{ ec_signals }}</div></div>
+  {%- endif -%}
+</li>

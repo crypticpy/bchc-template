@@ -1,0 +1,16 @@
+{%- comment -%}
+Desktop filter rail (>= lg). Sticky left column beside the results.
+
+Usage: {% include filter-rail.html entries=entries %}
+Params: entries (required) — used for free-text facet options.
+
+Local assigns are prefixed `fr_`.
+{%- endcomment -%}
+{%- assign fr_plural = site.data.schema.entry.plural | default: 'Entries' | downcase -%}
+<div class="filter-rail" data-filter-rail>
+  <div class="flex items-baseline justify-between gap-2 pb-2">
+    <h2 class="text-sm font-semibold text-brand-primary-dark">Filter {{ fr_plural }}</h2>
+    <button type="button" class="filter-showall mt-0 hidden" data-filter-clear>Clear all</button>
+  </div>
+  {% include filter-groups.html entries=include.entries context="rail" %}
+</div>

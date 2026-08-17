@@ -1,0 +1,77 @@
+{%- comment -%}
+Grouped facet controls. Shared verbatim by the desktop rail and the mobile sheet,
+so both drive the same state in assets/js/filters.js.
+
+Usage: {% include filter-groups.html entries=entries context="rail" %}
+Params:
+  entries  the entry pages in scope (free-text / list facets take their options from these)
+  context  "rail" | "sheet" — prefixes every id so the two copies never collide
+
+Markup contract (assets/js/filters.js):
+  <div data-filter-group="<group key>">
+    <button data-group-toggle aria-expanded aria-controls="<ctx>-grp-<key>">
+    <div id="<ctx>-grp-<key>" data-group-panel>
+      <fieldset><legend>…</legend>
+        <button class="filter-pill" data-filter-key="<key-with-hyphens>"
+                data-filter-mode="single|multi" data-filter-value="<slug>"
+                data-filter-label="<value>" aria-pressed="false">
+          <span>short label</span><span class="filter-count" data-filter-count></span>
+        </button>
+        … pills past the 8th carry data-overflow and hidden …
+        <button data-show-all data-more="N">Show all N</button>
+
+Local assigns are prefixed `fg_`.
+{%- endcomment -%}
+{%- assign fg_ctx = include.context | default: 'rail' -%}
+{%- assign fg_entries = include.entries -%}
+{%- assign fg_schema = site.data.schema -%}
+{%- assign fg_facets = fg_schema.fields | facet_fields -%}
+{%- assign fg_groups = fg_schema.groups | groups_for: fg_facets -%}
+{%- for fg_g in fg_groups -%}
+  {%- assign fg_gfields = fg_facets | fields_in_group: fg_g.key -%}
+  {%- if fg_gfields.size > 0 -%}
+    {%- assign fg_id = fg_ctx | append: '-grp-' | append: fg_g.key -%}
+    {%- assign fg_open = false -%}
+    {%- if forloop.first -%}{%- assign fg_open = true -%}{%- endif -%}
+    {%- assign fg_gicon = fg_g.icon | default: fg_gfields.first.icon | default: 'filter' -%}
+    <div class="filter-group" data-filter-group="{{ fg_g.key }}">
+      <h3>
+        <button type="button" class="filter-group-toggle" id="{{ fg_id }}-btn" data-group-toggle aria-expanded="{{ fg_open }}" aria-controls="{{ fg_id }}">
+          <span class="flex items-center gap-2">{% include icon.html name=fg_gicon size='sm' class='text-brand-muted' %}{{ fg_g.title }}</span>
+          <span class="filter-chevron">{% include icon.html name='chevron-down' size='sm' %}</span>
+        </button>
+      </h3>
+      <div class="filter-group-panel" id="{{ fg_id }}" role="region" aria-labelledby="{{ fg_id }}-btn" data-group-panel {% unless fg_open %}hidden{% endunless %}>
+        {%- for fg_f in fg_gfields -%}
+          {%- if fg_f.options -%}
+            {%- assign fg_options = fg_f.options -%}
+          {%- else -%}
+            {%- assign fg_options = "" | split: "" -%}
+            {%- for fg_e in fg_entries -%}
+              {%- assign fg_raw = fg_e[fg_f.key] | as_list -%}
+              {%- for fg_x in fg_raw -%}{%- assign fg_options = fg_options | push: fg_x -%}{%- endfor -%}
+            {%- endfor -%}
+            {%- assign fg_options = fg_options | uniq | sort_natural -%}
+          {%- endif -%}
+          {%- if fg_options.size > 0 -%}
+            {%- assign fg_mode = 'multi' -%}
+            {%- if fg_f.type == 'select' -%}{%- assign fg_mode = 'single' -%}{%- endif -%}
+            <fieldset class="min-w-0">
+              <legend class="filter-legend">{{ fg_f.label }}{% if fg_mode == 'multi' %} <span class="normal-case tracking-normal">(any of)</span>{% endif %}</legend>
+              <div class="filter-options">
+                {%- for fg_opt in fg_options -%}
+                  {%- assign fg_om = fg_f | option_meta: fg_opt -%}
+                  {%- capture fg_title -%}{{ fg_opt }}{% if fg_om.description != '' %} — {{ fg_om.description }}{% endif %}{%- endcapture -%}
+                  <button type="button" class="filter-pill{% if forloop.index > 8 %} hidden{% endif %}" {% if forloop.index > 8 %}data-overflow {% endif %}data-filter-key="{{ fg_f.key | replace: '_', '-' }}" data-filter-mode="{{ fg_mode }}" data-filter-value="{{ fg_opt | slugify }}" data-filter-label="{{ fg_opt | escape }}" title="{{ fg_title | escape }}" aria-pressed="false"><span>{{ fg_om.short }}</span><span class="filter-count" data-filter-count></span></button>
+                {%- endfor -%}
+              </div>
+              {%- if fg_options.size > 8 -%}
+                <button type="button" class="filter-showall" data-show-all data-count="{{ fg_options.size }}">Show all {{ fg_options.size }}</button>
+              {%- endif -%}
+            </fieldset>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+{%- endfor -%}

@@ -1,66 +1,20 @@
 {%- comment -%}
-Schema-driven filter panel. Options for select/multiselect facets come from the schema;
-free-text/list facets compute their options from the entries passed in.
+Backwards-compatible wrapper. `_layouts/catalog.html` composes the pieces itself
+(rail beside results); layouts that just want "filters above the grid" — e.g.
+`_layouts/cohort.html` — keep calling this and get the results header, a stacked
+version of the rail groups, and the mobile sheet.
+
 Usage: {% include facet-filters.html entries=entries %}
+Params: entries (required).
+
+The caller still owns [data-entry-grid], [data-entry-count],
+[data-entry-count-label] and [data-empty-state]; assets/js/filters.js finds them
+anywhere on the page.
+
+Local assigns are prefixed `ff_`.
 {%- endcomment -%}
-{%- assign schema = site.data.schema -%}
-{%- assign facet_fields = schema.fields | where: 'facet', true -%}
-{%- assign entries = include.entries -%}
-{%- assign plural = schema.entry.plural | default: 'entries' | downcase -%}
-<section class="card relative mb-8" data-component="filters" data-entry-plural="{{ plural }}">
-  <div class="flex flex-col gap-6 p-6 sm:p-7">
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div>
-        <h2 class="card-title">Filter {{ plural }}</h2>
-        <p class="text-sm text-brand-muted">Combine filters and keywords to narrow the list.</p>
-      </div>
-      <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center md:max-w-md">
-        <div class="relative flex-1">
-          <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-brand-primary">{% include icon.html name='search' size='md' %}</span>
-          <label for="catalog-search" class="sr-only">Search {{ plural }}</label>
-          <input id="catalog-search" type="search" data-filter="search" data-search-index="{{ '/search.json' | relative_url }}" class="w-full rounded-full border border-brand-line bg-surface-card py-2.5 pl-12 pr-4 text-sm text-brand-ink shadow-subtle placeholder:text-brand-muted/70 focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/20" placeholder="Search {{ plural }}…" autocomplete="off" spellcheck="false" enterkeyhint="search">
-          <div data-search-results class="absolute left-0 right-0 z-50 mt-2 hidden overflow-hidden rounded-xl border border-brand-line bg-surface-card shadow-card">
-            <div class="border-b border-brand-line bg-brand-primary/5 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-brand-primary">Other matches</div>
-            <ul data-search-other class="max-h-64 divide-y divide-brand-line overflow-auto"></ul>
-          </div>
-        </div>
-        <button type="button" data-filter-clear class="btn-secondary !py-2">Clear</button>
-      </div>
-    </div>
-
-    <div class="grid gap-6 md:grid-cols-2">
-      {% for f in facet_fields %}
-        {% if f.options %}
-          {% assign options = f.options %}
-        {% else %}
-          {% assign options = "" | split: "" %}
-          {% for e in entries %}
-            {% assign v = e[f.key] %}
-            {% if v.first %}
-              {% for x in v %}{% assign options = options | push: x %}{% endfor %}
-            {% elsif v and v != '' %}
-              {% assign options = options | push: v %}
-            {% endif %}
-          {% endfor %}
-          {% assign options = options | uniq | sort_natural %}
-        {% endif %}
-        {% if options.size > 0 %}
-          {% assign mode = 'multi' %}{% if f.type == 'select' %}{% assign mode = 'single' %}{% endif %}
-          <fieldset class="min-w-0 {% if options.size > 8 %}md:col-span-2{% endif %}">
-            <legend class="eyebrow flex items-center gap-2">{{ f.label }}{% if mode == 'multi' %}<span class="text-[10px] font-medium normal-case tracking-normal text-brand-muted">(any of)</span>{% endif %}</legend>
-            <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filter by {{ f.label | escape }}">
-              {% for opt in options %}
-                <button type="button" class="filter-pill" data-filter-option="{{ f.key | replace: '_', '-' }}" data-filter-mode="{{ mode }}" data-filter-value="{{ opt | slugify }}" data-filter-label="{{ opt | escape }}" aria-pressed="false">{{ opt }}</button>
-              {% endfor %}
-            </div>
-          </fieldset>
-        {% endif %}
-      {% endfor %}
-    </div>
-
-    <div class="flex flex-col gap-2 rounded-xl bg-brand-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div class="text-sm text-brand-ink" data-filter-summary role="status" aria-live="polite">Showing all {{ plural }}</div>
-      <div class="flex flex-wrap gap-2" data-filter-active-pills></div>
-    </div>
-  </div>
-</section>
+{% include results-header.html entries=include.entries %}
+<div class="card mb-6 hidden px-5 py-2 lg:grid lg:grid-cols-2 lg:gap-x-8" data-filter-rail>
+  {% include filter-groups.html entries=include.entries context="rail" %}
+</div>
+{% include filter-sheet.html entries=include.entries %}

@@ -12,33 +12,42 @@ include_search: true
 {%- assign plural = schema.entry.plural | default: 'Entries' -%}
 {%- assign singular = schema.entry.singular | default: 'Entry' -%}
 
-<section class="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-  <div class="max-w-3xl">
-    <span class="eyebrow">{{ cfg.organization.short_name | default: cfg.organization.name }}</span>
-    <h1 class="mt-2 font-heading text-4xl font-semibold text-brand-primary-dark sm:text-5xl">{{ page.title | default: plural }}</h1>
-    {% if page.summary or content != '' %}
-      <div class="mt-4 max-w-2xl text-lg leading-relaxed text-brand-muted">{{ page.summary | default: content }}</div>
-    {% endif %}
+<div class="pb-24 lg:pb-0">
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div class="max-w-prose">
+      <h1 class="font-heading text-3xl font-semibold leading-9 text-brand-primary-dark">{{ page.title | default: plural }}</h1>
+      {% if page.summary %}<p class="mt-1 text-sm leading-6 text-brand-muted">{{ page.summary }}</p>{% endif %}
+    </div>
+    {% if cfg.modules.submit %}<a class="btn-secondary btn-sm" href="{{ '/submit/' | relative_url }}">{% include icon.html name='plus' size='sm' %} Add a {{ singular | downcase }}</a>{% endif %}
   </div>
-  <div class="flex flex-wrap items-center gap-3">
-    <span class="inline-flex items-center gap-2 rounded-full border border-brand-line bg-surface-card px-4 py-2 text-sm font-semibold text-brand-primary-dark shadow-subtle"><span data-entry-count aria-live="polite" aria-atomic="true">{{ count }}</span> <span data-entry-count-label>{{ plural | downcase }}</span></span>
-    {% if cfg.modules.submit %}<a class="btn-primary" href="{{ '/submit/' | relative_url }}">{% include icon.html name='plus' size='sm' %} Add a {{ singular | downcase }}</a>{% endif %}
-  </div>
-</section>
 
-{% include facet-filters.html entries=entries %}
+  <div class="lg:grid lg:grid-cols-[272px_minmax(0,1fr)] lg:items-start lg:gap-8">
+    <div class="hidden lg:block">{% include filter-rail.html entries=entries %}</div>
 
-<section aria-label="{{ plural | escape }}">
-  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" data-entry-grid>
-    {% for entry in entries %}
-      {% include entry-card.html entry=entry %}
-    {% endfor %}
+    <div class="min-w-0">
+      {% include results-header.html entries=entries %}
+
+      <section aria-labelledby="results-heading">
+        <ul role="list" class="entry-grid" data-entry-grid data-view="grid">
+          {% for entry in entries %}{% include entry-card.html entry=entry %}{% endfor %}
+        </ul>
+
+        <div class="card hidden px-6 py-12 text-center" data-empty-state>
+          <p class="font-heading text-lg font-semibold text-brand-primary-dark" data-empty-cause>No {{ plural | downcase }} match the current filters.</p>
+          <p class="mt-1 text-sm text-brand-muted">Remove a filter to widen the search.</p>
+          <div class="mt-4 flex flex-wrap justify-center gap-2" data-empty-filters></div>
+          <div class="mt-4"><button type="button" class="btn-secondary btn-sm" data-filter-clear>Clear all filters</button></div>
+        </div>
+
+        {% if count == 0 %}
+          {% assign body = 'No ' | append: plural | downcase | append: ' have been published yet.' %}
+          {% include empty-state.html icon='sparkles' title='Coming soon' body=body cta_url='/submit/' cta_label='Be the first to submit' %}
+        {% endif %}
+      </section>
+    </div>
   </div>
-  <div class="hidden" data-empty-state>
-    {% include empty-state.html icon='search' title='No matches' body='Nothing matches the current filters. Try clearing a filter or searching for a different term.' %}
-  </div>
-  {% if count == 0 %}
-    {% assign body = 'No ' | append: plural | downcase | append: ' have been published yet.' %}
-    {% include empty-state.html icon='sparkles' title='Coming soon' body=body cta_url='/submit/' cta_label='Be the first to submit' %}
-  {% endif %}
-</section>
+</div>
+
+{% include filter-sheet.html entries=entries %}
+
+{% if content != '' %}<div class="prose-body mt-12">{{ content }}</div>{% endif %}

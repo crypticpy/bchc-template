@@ -4,6 +4,12 @@ title: "Home"
 include_carousel: true
 full_width: true
 ---
+{%- comment -%}
+Home page. Above the fold: what the collection is, a search box that submits into
+the catalog, and browse-by tiles built from the card-facing facet fields. Then
+featured/recent cards and an honest stat line — every number is counted from the
+entries, never invented. All labels come from _data/schema.yml.
+{%- endcomment -%}
 {%- assign cfg = site.data.site -%}
 {%- assign schema = site.data.schema -%}
 {%- assign plural = schema.entry.plural | default: 'Entries' -%}
@@ -20,97 +26,128 @@ full_width: true
   {%- assign featured = featured | concat: others -%}
 {%- endif -%}
 {%- assign featured = featured | slice: 0, featured_count -%}
-{%- assign facet_fields = schema.fields | where: 'facet', true -%}
-{%- assign first_facet = facet_fields | first -%}
-{%- assign second_facet = facet_fields[1] -%}
-{%- assign browse_facet = nil -%}
-{%- for f in facet_fields -%}{%- if f.options and browse_facet == nil -%}{%- assign browse_facet = f -%}{%- endif -%}{%- endfor -%}
+{%- assign facet_fields = schema.fields | facet_fields -%}
+
+{%- comment -%}
+Browse-by: up to four facet fields with fixed options. Fields that also appear on the
+card as a badge, chip or signal glyph come first, in schema order — those are the taxonomy the site
+leads with; remaining facets fill in only if fewer than four qualify.
+{%- endcomment -%}
+{%- assign browse_fields = "" | split: "" -%}
+{%- for f in schema.fields -%}
+  {%- if f.facet and f.options and f.card and f.card != 'meta' and browse_fields.size < 4 -%}{%- assign browse_fields = browse_fields | push: f -%}{%- endif -%}
+{%- endfor -%}
+{%- for f in facet_fields -%}
+  {%- if f.options and browse_fields.size < 4 -%}
+    {%- unless browse_fields contains f -%}{%- assign browse_fields = browse_fields | push: f -%}{%- endunless -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- comment -%} Honest stats, counted from the entries. {%- endcomment -%}
+{%- assign meta_field = schema.fields | card_fields: 'meta' | first -%}
+{%- assign meta_values = "" | split: "" -%}
+{%- if meta_field -%}
+  {%- for e in entries -%}
+    {%- assign vals = e[meta_field.key] | as_list -%}
+    {%- for x in vals -%}{%- assign meta_values = meta_values | push: x -%}{%- endfor -%}
+  {%- endfor -%}
+{%- endif -%}
+{%- assign meta_count = meta_values | uniq | size -%}
+{%- assign meta_label = meta_field.label | downcase -%}
+{%- assign meta_last = meta_label | slice: -1 -%}
+{%- unless meta_last == 's' -%}{%- assign meta_label = meta_label | append: 's' -%}{%- endunless -%}
+{%- assign url_field = schema.fields | where: 'type', 'url' | first -%}
+{%- assign url_count = 0 -%}
+{%- if url_field -%}
+  {%- for e in entries -%}
+    {%- assign uv = e[url_field.key] -%}
+    {%- if uv and uv != '' -%}{%- assign url_count = url_count | plus: 1 -%}{%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
 {%- assign upcoming = site.data.events_all | where: 'past', false -%}
 
-<!-- Hero -->
-<section class="relative overflow-hidden bg-brand-primary-dark text-brand-on-dark">
-  <div class="absolute -left-32 top-0 h-96 w-96 rounded-full bg-brand-primary/50 blur-3xl" aria-hidden="true"></div>
-  <div class="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-brand-secondary/30 blur-3xl" aria-hidden="true"></div>
-  <div class="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.5fr_minmax(0,1fr)] lg:px-8 lg:py-24">
-    <div class="space-y-6">
-      {% if cfg.hero.eyebrow %}<span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-brand-on-dark">{{ cfg.hero.eyebrow }}</span>{% endif %}
-      <h1 class="font-heading text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">{{ cfg.hero.title | default: cfg.name }}</h1>
-      {% if cfg.hero.lead %}<p class="max-w-2xl text-lg leading-relaxed text-brand-on-dark/90">{{ cfg.hero.lead }}</p>{% endif %}
-      <div class="flex flex-col gap-3 sm:flex-row">
-        {% if cfg.hero.primary_cta.label %}<a class="btn-primary !bg-white !text-brand-primary-dark hover:!bg-brand-on-dark" href="{{ cfg.hero.primary_cta.url | relative_url }}">{{ cfg.hero.primary_cta.label }} {% include icon.html name='arrow-right' size='sm' %}</a>{% endif %}
+<section class="bg-brand-primary-dark text-brand-on-dark">
+  <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+    <div class="max-w-prose">
+      {% if cfg.hero.eyebrow %}<p class="eyebrow !text-brand-on-dark/80">{{ cfg.hero.eyebrow }}</p>{% endif %}
+      <h1 class="mt-3 font-heading text-[40px] font-semibold leading-[44px] tracking-[-0.02em] text-white">{{ cfg.hero.title | default: cfg.name }}</h1>
+      {% if cfg.hero.lead %}<p class="mt-4 text-lg leading-7 text-brand-on-dark/90">{{ cfg.hero.lead }}</p>{% endif %}
+
+      {% if cfg.modules.catalog %}
+      <form class="mt-6 flex flex-col gap-3 sm:flex-row" action="{{ catalog_url | relative_url }}" method="get" role="search">
+        <div class="relative flex-1">
+          <label class="sr-only" for="home-search">Search {{ plural | downcase }}</label>
+          <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-brand-muted">{% include icon.html name='search' size='sm' %}</span>
+          <input class="h-12 w-full rounded-full border border-brand-line bg-surface-card pl-11 pr-4 text-base text-brand-ink placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-white/40" id="home-search" type="search" name="q" placeholder="Search {{ plural | downcase }}…" autocomplete="off">
+        </div>
+        <button class="btn-primary !bg-white !text-brand-primary-dark hover:!bg-brand-on-dark" type="submit">Search</button>
+      </form>
+      {% endif %}
+
+      <div class="mt-5 flex flex-wrap gap-3">
+        {% if cfg.hero.primary_cta.label %}<a class="btn-on-dark" href="{{ cfg.hero.primary_cta.url | relative_url }}">{{ cfg.hero.primary_cta.label }} {% include icon.html name='arrow-right' size='sm' %}</a>{% endif %}
         {% if cfg.hero.secondary_cta.label %}{% assign sec_url = cfg.hero.secondary_cta.url %}{% if sec_url != '/submit/' or cfg.modules.submit %}<a class="btn-on-dark" href="{{ sec_url | relative_url }}">{{ cfg.hero.secondary_cta.label }}</a>{% endif %}{% endif %}
       </div>
-    </div>
-    {% if cfg.modules.stats %}
-    <div class="grid gap-4 sm:grid-cols-2">
-      {% assign l = plural %}{% include stat-block.html value=total label=l description='published so far' %}
-      {% if first_facet %}
-        {% assign vals = "" | split: "" %}
-        {% for e in entries %}{% assign v = e[first_facet.key] %}{% if v.first %}{% for x in v %}{% assign vals = vals | push: x %}{% endfor %}{% elsif v and v != '' %}{% assign vals = vals | push: v %}{% endif %}{% endfor %}
-        {% assign n = vals | uniq | size %}
-        {% assign lbl = first_facet.label %}{% assign last = lbl | slice: -1 %}{% if last != 's' %}{% assign lbl = lbl | append: 's' %}{% endif %}{% include stat-block.html value=n label=lbl description='represented' %}
+
+      {% if cfg.modules.stats and total > 0 %}
+      <p class="mt-8 text-sm text-brand-on-dark/80">
+        <span class="font-semibold text-white tabular">{{ total }}</span> {{ plural | downcase }}
+        {% if meta_field and meta_count > 0 %}<span class="text-brand-on-dark/50" aria-hidden="true"> · </span><span class="font-semibold text-white tabular">{{ meta_count }}</span> {{ meta_label }}{% endif %}
+        {% if url_field and url_count > 0 %}<span class="text-brand-on-dark/50" aria-hidden="true"> · </span><span class="font-semibold text-white tabular">{{ url_count }}</span> with {{ url_field.label | downcase }}{% endif %}
+      </p>
       {% endif %}
-      {% if second_facet %}
-        {% assign vals = "" | split: "" %}
-        {% for e in entries %}{% assign v = e[second_facet.key] %}{% if v.first %}{% for x in v %}{% assign vals = vals | push: x %}{% endfor %}{% elsif v and v != '' %}{% assign vals = vals | push: v %}{% endif %}{% endfor %}
-        {% assign n = vals | uniq | size %}
-        {% assign lbl = second_facet.label %}{% assign last = lbl | slice: -1 %}{% if last != 's' %}{% assign lbl = lbl | append: 's' %}{% endif %}{% include stat-block.html value=n label=lbl description='covered' %}
-      {% endif %}
-      {% if cfg.modules.events %}{% assign n = upcoming | size %}{% include stat-block.html value=n label='Upcoming events' description='on the calendar' %}
-      {% elsif cfg.modules.cohorts %}{% assign n = site.data.cohorts | size %}{% include stat-block.html value=n label='Cohorts' description='published' %}
-      {% else %}{% assign latest = entries | first %}{% if latest %}{% assign d = latest.published | date: '%b %-d' %}{% include stat-block.html value=d label='Latest addition' description=latest.title %}{% endif %}{% endif %}
     </div>
-    {% endif %}
   </div>
 </section>
 
-<div class="mx-auto w-full max-w-7xl space-y-20 px-4 py-14 sm:px-6 lg:px-8">
+<div class="mx-auto w-full max-w-7xl space-y-16 px-4 py-14 sm:px-6 lg:px-8">
 
-  {% if cfg.modules.carousel and featured.size > 0 %}
-  <!-- Featured carousel -->
-  <section aria-labelledby="featured-heading" data-carousel>
-    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div><span class="eyebrow">Featured</span><h2 id="featured-heading" class="section-title mt-1">Spotlight {{ plural | downcase }}</h2></div>
-      <div class="flex items-center gap-2">
-        <button type="button" class="btn-secondary !p-2" data-carousel-prev aria-label="Previous">{% include icon.html name='chevron-left' size='sm' %}</button>
-        <button type="button" class="btn-secondary !p-2" data-carousel-next aria-label="Next">{% include icon.html name='chevron-right' size='sm' %}</button>
-      </div>
-    </div>
-    <div class="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0" data-carousel-track tabindex="0" aria-label="Featured {{ plural | downcase }} carousel">
-      {% for e in featured %}
-        <div class="w-[85%] shrink-0 snap-start sm:w-[48%] xl:w-[32%]">{% include entry-card.html entry=e %}</div>
+  {% if cfg.modules.catalog and browse_fields.size > 0 %}
+  <section aria-labelledby="browse-heading">
+    <h2 id="browse-heading" class="section-title">Browse by</h2>
+    <div class="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {% for bf in browse_fields %}
+        {% assign bkey = bf.key | replace: '_', '-' %}
+        <div class="card p-5">
+          <h3 class="flex items-center gap-2 text-sm font-semibold text-brand-primary-dark">{% include icon.html name=bf.icon size='sm' class='text-brand-muted' %}{{ bf.label }}</h3>
+          <ul role="list" class="mt-3 space-y-1">
+            {% for opt in bf.options limit: 6 %}
+              {% assign om = bf | option_meta: opt %}{% assign own = bf.option_meta[opt] %}
+              <li><a class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-brand-ink transition-colors duration-120 ease-brand hover:bg-brand-primary/5 hover:text-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30" href="{{ catalog_url | relative_url }}?{{ bkey }}={{ opt | slugify }}" title="{{ opt | escape }}">{% if own.icon %}{% include icon.html name=own.icon size='xs' class='text-brand-muted' %}{% endif %}{{ om.short }}</a></li>
+            {% endfor %}
+          </ul>
+          {% if bf.options.size > 6 %}<a class="mt-2 inline-block px-2 text-xs font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">All {{ bf.options.size }} options</a>{% endif %}
+        </div>
       {% endfor %}
     </div>
   </section>
   {% endif %}
 
-  {% if cfg.modules.catalog and browse_facet %}
-  <!-- Browse by first facet with options -->
-  <section aria-labelledby="browse-heading">
-    <div class="mb-6"><span class="eyebrow">Browse</span><h2 id="browse-heading" class="section-title mt-1">By {{ browse_facet.label | downcase }}</h2></div>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {% for opt in browse_facet.options %}
-        {% assign n = 0 %}{% for e in entries %}{% assign v = e[browse_facet.key] %}{% if v == opt %}{% assign n = n | plus: 1 %}{% elsif v.first and v contains opt %}{% assign n = n | plus: 1 %}{% endif %}{% endfor %}
-        <a class="card group flex items-center justify-between gap-3 p-5 transition hover:-translate-y-0.5 hover:border-brand-primary/40" href="{{ catalog_url | relative_url }}?{{ browse_facet.key | replace: '_', '-' }}={{ opt | slugify }}">
-          <span class="font-semibold text-brand-primary-dark group-hover:text-brand-primary">{{ opt }}</span>
-          <span class="chip-neutral">{{ n }}</span>
-        </a>
-      {% endfor %}
+  {% if cfg.modules.carousel and featured.size > 0 %}
+  <section aria-labelledby="featured-heading" data-carousel>
+    <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+      <h2 id="featured-heading" class="section-title">Featured {{ plural | downcase }}</h2>
+      <div class="flex items-center gap-2">
+        <button type="button" class="icon-btn border border-brand-line-strong" data-carousel-prev aria-label="Previous">{% include icon.html name='chevron-left' size='sm' %}</button>
+        <button type="button" class="icon-btn border border-brand-line-strong" data-carousel-next aria-label="Next">{% include icon.html name='chevron-right' size='sm' %}</button>
+      </div>
     </div>
+    <ul role="list" class="no-scrollbar -mx-4 flex list-none snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0 [&>li]:w-[85%] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-[48%] xl:[&>li]:w-[32%]" data-carousel-track tabindex="0" aria-label="Featured {{ plural | downcase }}">
+      {% for e in featured %}{% include entry-card.html entry=e %}{% endfor %}
+    </ul>
   </section>
   {% endif %}
 
   {% if cfg.modules.catalog %}
-  <!-- Recently added -->
   <section aria-labelledby="recent-heading">
-    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div><span class="eyebrow">Latest</span><h2 id="recent-heading" class="section-title mt-1">Recently added</h2></div>
+    <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+      <h2 id="recent-heading" class="section-title">Recently added</h2>
       <a class="inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">Browse all {{ total }} {{ plural | downcase }} {% include icon.html name='arrow-right' size='sm' %}</a>
     </div>
     {% assign recent_count = cfg.home.recent_count | default: 6 %}
-    <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+    <ul role="list" class="entry-grid">
       {% for e in entries limit: recent_count %}{% include entry-card.html entry=e %}{% endfor %}
-    </div>
+    </ul>
     {% if total == 0 %}{% include empty-state.html icon='sparkles' title='Nothing published yet' body='Once the first entries are approved they will show up here.' cta_url='/submit/' cta_label='Submit the first one' %}{% endif %}
   </section>
   {% endif %}
@@ -141,13 +178,13 @@ full_width: true
   {% endif %}
 
   {% if cfg.home.highlights and cfg.home.highlights.size > 0 %}
-  <section aria-label="Why this catalog">
+  <section aria-label="About this catalog">
     <div class="grid gap-6 md:grid-cols-3">
       {% for h in cfg.home.highlights %}
         <div class="card p-6">
-          <span class="eyebrow">{{ h.eyebrow }}</span>
-          <h3 class="mt-3 font-heading text-xl font-semibold text-brand-primary-dark">{{ h.title }}</h3>
-          <p class="mt-2 text-sm leading-relaxed text-brand-muted">{{ h.body }}</p>
+          <p class="eyebrow">{{ h.eyebrow }}</p>
+          <h2 class="mt-3 font-heading text-xl font-semibold text-brand-primary-dark">{{ h.title }}</h2>
+          <p class="mt-2 text-sm leading-6 text-brand-muted">{{ h.body }}</p>
         </div>
       {% endfor %}
     </div>
@@ -155,12 +192,12 @@ full_width: true
   {% endif %}
 
   {% if cfg.modules.submit %}
-  <section class="relative overflow-hidden rounded-3xl bg-brand-primary px-6 py-12 text-white sm:px-10">
-    <div class="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10" aria-hidden="true"></div>
-    <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-      <div><h2 class="font-heading text-2xl font-semibold sm:text-3xl">Have a {{ singular | downcase }} to share?</h2><p class="mt-2 max-w-xl text-white/85">Fill out a short form. Maintainers review every submission before it goes live.</p></div>
-      <a class="btn-primary !bg-white !text-brand-primary-dark hover:!bg-brand-on-dark" href="{{ '/submit/' | relative_url }}">Submit a {{ singular | downcase }} {% include icon.html name='arrow-right' size='sm' %}</a>
+  <section class="card flex flex-col gap-4 p-8 md:flex-row md:items-center md:justify-between">
+    <div class="max-w-prose">
+      <h2 class="font-heading text-2xl font-semibold text-brand-primary-dark">Have a {{ singular | downcase }} to share?</h2>
+      <p class="mt-2 text-sm leading-6 text-brand-muted">Fill out a short form. Maintainers review every submission before it goes live.</p>
     </div>
+    <a class="btn-primary shrink-0" href="{{ '/submit/' | relative_url }}">Submit a {{ singular | downcase }} {% include icon.html name='arrow-right' size='sm' %}</a>
   </section>
   {% endif %}
 </div>
