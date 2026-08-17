@@ -44,7 +44,7 @@ jobs:
 
       - name: Comment with the available event IDs
         if: steps.extract.outputs.event_id == '' || steps.extract.outputs.event_id == 'help'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           LIST_YEAR: ${{ steps.list.outputs.year }}
           LIST_EVENTS: ${{ steps.list.outputs.events_md }}
@@ -73,7 +73,7 @@ jobs:
 
       - name: Create pull request
         if: steps.update.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: ${{ steps.update.outputs.branch }}
           commit-message: "chore: update attachments for event ${{ steps.update.outputs.slug }}"
@@ -86,7 +86,7 @@ jobs:
 
       - name: Comment when nothing changed
         if: steps.update.outputs.changed != 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.createComment({

@@ -65,7 +65,7 @@ jobs:
           COHORT_INTRO: ${{ steps.extract.outputs.intro }}
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: cohort/${{ steps.year.outputs.value }}
           commit-message: "chore: scaffold cohort ${{ steps.year.outputs.value }}"

@@ -33,7 +33,7 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
 
       - name: Comment with the event ID preview
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           PREVIEW_YEAR: ${{ steps.preview.outputs.year }}
           PREVIEW_IDS: ${{ steps.preview.outputs.preview_ids }}
@@ -64,7 +64,7 @@ jobs:
 
       - name: Create pull request
         if: steps.update.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: ${{ steps.update.outputs.branch }}
           commit-message: "chore: update cohort ${{ steps.update.outputs.year }} schedule"
@@ -78,7 +78,7 @@ jobs:
 
       - name: Comment when nothing changed
         if: steps.update.outputs.changed != 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.createComment({

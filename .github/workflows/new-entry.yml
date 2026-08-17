@@ -51,7 +51,7 @@ jobs:
 
       - name: Report the failure on the issue
         if: steps.scaffold.outcome == 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           SCAFFOLD_ERROR: ${{ steps.scaffold.outputs.error }}
         with:
@@ -144,7 +144,7 @@ jobs:
 
       - name: Link the pull request from the issue
         if: steps.pr.outputs.url != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           PR_URL: ${{ steps.pr.outputs.url }}
         with:
