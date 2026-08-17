@@ -58,6 +58,18 @@ jobs:
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
           curl -sf -o /dev/null http://127.0.0.1:4173/ || { echo "server did not start"; exit 1; }
 
+      # pa11y-ci pulls in whatever puppeteer it resolves at run time and that
+      # puppeteer expects its own pinned Chrome build, which `npx --yes` does not
+      # download. Point it at the runner's preinstalled Chrome instead so the
+      # gate does not depend on puppeteer's download step.
+      - name: Locate the runner's Chrome
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium)"
+          test -n "$CHROME" || { echo "no Chrome on this runner"; exit 1; }
+          echo "PUPPETEER_EXECUTABLE_PATH=$CHROME" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME" >> "$GITHUB_ENV"
+          "$CHROME" --version
+
       - name: pa11y-ci (WCAG 2 AA, axe + htmlcs)
         run: npx --yes pa11y-ci@4.0.1 --config .pa11yci.json
 
