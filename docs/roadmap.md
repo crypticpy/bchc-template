@@ -15,8 +15,8 @@ Status legend: ☐ not started · ◐ in progress · ☑ done. Decisions taken a
 
 | # | Phase | Scope | Exit check | Status |
 |---|---|---|---|---|
-| 0 | Design brief | Persona panel → visual direction, principles, review rubric (`docs/design-brief.md`) | direction chosen | ◐ |
-| 1 | Content model v2 + engine | New field types `images`, `links`; option objects (`value/icon/tone/description`); presentation hints (`card`, `icon`, `group`); schema v2 for the AI-use-case preset; every consumer updated (layouts, forms, generator, scaffolder incl. screenshot download, validator, configurator core, search) | `npm run validate`, all presets build, tests green | ☐ |
+| 0 | Design brief | Persona panel → visual direction, principles, review rubric (`docs/design-brief.md`) | direction chosen: “Quiet Instrument” | ☑ |
+| 1 | Content model v2 + engine | New field types `images`, `links`; `option_meta` (short/icon/tone/description); hints `card`/`weight`/`icon`/`group`/`prompt`; theme tokens `warn`/`line_strong`; schema v2 for the AI-use-case preset; every consumer updated (renderers, forms, generator, scaffolder incl. screenshot download, validator, configurator core split + YAML-derived defaults, search); workflow permissions/pins; thumbnails `magick`→IM7 fix | `npm run validate`, all presets build, tests green | ◐ |
 | 2 | Catalog UI | Card redesign with at-a-glance strip; grouped facets with live counts, sort, list/grid, mobile drawer; entry page (fact strip, gallery + lightbox, TOC, reuse card, related); home "browse by" | screenshot + jsdom review, panel #1 | ☐ |
 | 3 | Submit wizard | Schema-driven steps, live card preview, autosave, inline validation, what-happens-next, fallbacks | form → prefilled issue → PR end-to-end | ☐ |
 | 4 | Design system + gates | Tokens, component includes, `/styleguide/`, `docs/design-system.md`, axe/pa11y + Lighthouse CI | Lighthouse ≥95 perf/a11y, axe clean | ☐ |
