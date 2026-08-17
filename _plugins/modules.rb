@@ -9,22 +9,40 @@
 # read all pages/data and before any generator (including the events and
 # search-index generators) runs, so downstream generators never see pages
 # from a disabled module.
-# Input: `site.data["site"]["modules"]` (module name => bool) and `site.pages`.
+# Input: `site.data["site"]["modules"]` (module name => bool), `_data/modules.yml`
+# (module name => path prefixes, see that file), and `site.pages`.
 # Output: mutates `site.pages` in place (rejects the disabled ones).
-Jekyll::Hooks.register :site, :post_read do |site|
-  modules = (site.data["site"] || {})["modules"] || {}
-  scoped = {
-    "cohorts"   => %w[/cohorts/],
-    "events"    => %w[/events/],
-    "resources" => %w[/resources/],
-    "submit"    => %w[/submit/],
-    "catalog"   => ["/#{(site.data.dig('schema', 'entry', 'path') || 'catalog')}/"],
-  }
-  disabled = scoped.select { |name, _| modules.key?(name) && !modules[name] }.values.flatten
-  next if disabled.empty?
+module CatalogTemplate
+  module ModulePages
+    # Path prefixes each module owns, keyed by module name. `catalog` is
+    # derived from the schema's entry path rather than _data/modules.yml,
+    # since it must track the configured entry folder.
+    # @param site_data [Hash] `site.data` (or an equivalent double in tests)
+    # @return [Hash{String => Array<String>}]
+    def self.module_paths(site_data)
+      configured = site_data["modules"] || {}
+      paths = configured.each_with_object({}) { |(name, prefixes), out| out[name.to_s] = Array(prefixes) }
+      paths["catalog"] = ["/#{(site_data.dig('schema', 'entry', 'path') || 'catalog')}/"]
+      paths
+    end
 
-  site.pages.reject! do |page|
-    url = page.url.to_s
-    disabled.any? { |prefix| url.start_with?(prefix) }
+    # Removes every page under a disabled module's path prefixes.
+    # @param site [Jekyll::Site] (or an equivalent double: responds to `data` and `pages`)
+    # @return [void]
+    def self.disable_pages(site)
+      modules = (site.data["site"] || {})["modules"] || {}
+      scoped = module_paths(site.data)
+      disabled = scoped.select { |name, _| modules.key?(name) && !modules[name] }.values.flatten
+      return if disabled.empty?
+
+      site.pages.reject! do |page|
+        url = page.url.to_s
+        disabled.any? { |prefix| url.start_with?(prefix) }
+      end
+    end
   end
+end
+
+Jekyll::Hooks.register :site, :post_read do |site|
+  CatalogTemplate::ModulePages.disable_pages(site)
 end
