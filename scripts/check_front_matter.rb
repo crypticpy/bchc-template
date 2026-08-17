@@ -7,6 +7,12 @@
 #
 # Run directly (`ruby scripts/check_front_matter.rb`) or require it and call
 # FrontMatterCheck.run — test/scripts/check_front_matter_test.rb does the latter.
+#
+# Invoked by: `npm run validate` (scripts/validate.mjs) and directly as a step
+# in .github/workflows/smoke.yml and .github/workflows/validate.yml. No env
+# vars; inputs are `_data/schema.yml` plus every `<entry path>/*/index.md` and
+# `cohorts/*/events/*/index.md` under the repo root. Output: warnings/failures
+# to stderr, "Front matter validation passed." to stdout, exit 1 on failure.
 
 require "yaml"
 require "date"

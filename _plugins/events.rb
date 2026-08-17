@@ -6,11 +6,19 @@ require "date"
 # into a single normalized, date-sorted list exposed as `site.data.events_all`.
 # Each item: name, date (YYYY-MM-DD), end_date, time, location, url, description,
 # type, source ("site" | "cohort"), cohort, page_url (detail page if one exists), past (bool).
+#
+# Runs as a Jekyll::Generator (the `generate` hook, priority :high so it runs
+# before other generators/pages that read `site.data.events_all`, e.g. the
+# events index and search index). Input: `site.data["events"]` and
+# `site.data["cohorts"]`. Output: `site.data["events_all"]`, written in place.
 module CatalogTemplate
   class EventsAggregator < Jekyll::Generator
     safe true
     priority :high
 
+    # Builds and stores the normalized event list.
+    # @param site [Jekyll::Site]
+    # @return [void]
     def generate(site)
       today = Date.today
       events = []
@@ -40,6 +48,14 @@ module CatalogTemplate
 
     private
 
+    # Converts one raw event hash (from either _data/events.yml or a cohort's
+    # `events` list) into the flat shape stored in `events_all`.
+    # @param ev [Hash] raw event data
+    # @param source [String] "site" or "cohort"
+    # @param cohort [String, nil] cohort year, when source is "cohort"
+    # @param page_url [String, nil] detail page URL, when one exists
+    # @param today [Date] used to compute `past`
+    # @return [Hash] normalized event
     def normalize(ev, source, cohort, page_url, today)
       date = parse_date(ev["date"])
       end_date = parse_date(ev["end_date"])
@@ -62,6 +78,10 @@ module CatalogTemplate
       }
     end
 
+    # Parses a date value that may already be a Date (Jekyll's YAML loader
+    # sometimes coerces `YYYY-MM-DD` strings automatically) or a plain string.
+    # @param value [Date, String, nil]
+    # @return [Date, nil] nil when blank or unparsable
     def parse_date(value)
       return nil if value.nil? || value.to_s.strip.empty?
       return value if value.is_a?(Date)

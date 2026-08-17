@@ -4,7 +4,13 @@
 # Scaffold a cohort/program year: the landing page, an events folder and a
 # starter schedule data file. Existing files are never overwritten.
 #
-# Env: COHORT_YEAR (required), COHORT_INTRO (optional)
+# Invoked by: the "Scaffold cohort" step in .github/workflows/new-year.yml,
+# triggered by an issue labeled `content:new-year` (year read from the issue
+# via scripts/extract_event_fields.mjs) or a manual `workflow_dispatch`. That
+# workflow opens a PR with the scaffolded files afterwards.
+# Env: COHORT_YEAR (required, four digits), COHORT_INTRO (optional).
+# Output: writes cohorts/<year>/index.md, cohorts/<year>/events/, and
+# _data/cohorts/<year>.yml under the repo root; prints a summary line.
 
 require "fileutils"
 require "yaml"

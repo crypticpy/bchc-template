@@ -4,7 +4,14 @@
 # Rewrite the `events` list in _data/cohorts/<year>.yml from the YAML block a
 # maintainer pasted into the "Update cohort schedule" issue form.
 #
-# Env: ISSUE_BODY, ISSUE_NUMBER (optional)
+# Invoked by: the "Update schedule data" step in
+# .github/workflows/update-schedule.yml, on `issues: opened|edited` for
+# issues labeled `content:schedule`, after preview_schedule_ids_from_issue.rb
+# has commented the ID preview. That workflow opens a PR with the change
+# when `changed=true`, or comments "nothing changed" otherwise.
+# Env: ISSUE_BODY (required), ISSUE_TITLE (unused here), ISSUE_NUMBER (optional,
+# only used in the final log line). Outputs (via GITHUB_OUTPUT): changed,
+# branch, year, summary. Writes: _data/cohorts/<year>.yml.
 
 require "yaml"
 require "psych"
@@ -20,15 +27,23 @@ if issue_body.strip.empty?
 end
 
 # "Schedule entries (YAML)" -> "schedule_entries"
+# @param key [String] a GitHub issue-form field heading
+# @return [String] snake_case key with any parenthetical suffix removed
 def normalize_key(key)
   key.to_s.sub(/\s*\([^)]*\)\s*\z/, "").strip.downcase.gsub(/[^a-z0-9]+/, "_").gsub(/\A_+|_+\z/, "")
 end
 
 # GitHub wraps a `render: yaml` textarea in a fenced code block.
+# @param text [String] raw issue-form field value
+# @return [String] the text with a leading ```/```lang and trailing ``` removed
 def strip_code_fence(text)
   text.to_s.strip.sub(/\A```[a-zA-Z]*[ \t]*\n/, "").sub(/\n?```\z/, "")
 end
 
+# Turns free text into a URL/id-safe slug (lowercase, hyphen-separated).
+# Used as the event id when the maintainer didn't supply one.
+# @param value [String]
+# @return [String]
 def slugify(value)
   value.to_s.strip.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "")
 end
@@ -126,6 +141,10 @@ data["events"] = processed_events
 
 new_content = Psych.dump(data, line_width: -1)
 
+# Appends `key=value` (or GITHUB_OUTPUT heredoc) lines to $GITHUB_OUTPUT, if set.
+# No-op outside CI (e.g. when run locally), so the script stays runnable by hand.
+# @param pairs [Array<String>] pre-formatted GITHUB_OUTPUT lines
+# @return [void]
 def write_output(pairs)
   output = ENV["GITHUB_OUTPUT"]
   return unless output

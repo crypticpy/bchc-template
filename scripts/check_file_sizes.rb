@@ -3,6 +3,15 @@
 
 # GitHub rejects pushes containing files over 100 MB and Pages artifacts get
 # unwieldy long before that. Fail hard at 50 MB, nudge at 10 MB.
+#
+# Walks the whole repo tree (skipping .git, node_modules, vendor, _site) and
+# reports any file over the thresholds.
+#
+# Invoked by: `npm run validate` (scripts/validate.mjs, via `ruby
+# scripts/check_file_sizes.rb`) and directly as a step in
+# .github/workflows/smoke.yml. No env vars; inputs are the files on disk.
+# Output: warnings/failures to stderr, "File size check passed." to stdout,
+# exit 1 when any file exceeds FAIL_BYTES.
 
 require "find"
 

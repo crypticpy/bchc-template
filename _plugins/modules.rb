@@ -4,6 +4,13 @@
 # pages themselves would still be built and indexed. This hook removes pages
 # that belong to a disabled module so they never ship (or show up in search /
 # the sitemap). Turn a module back on and the pages return on the next build.
+#
+# Registered on Jekyll's `:site, :post_read` hook, i.e. right after Jekyll has
+# read all pages/data and before any generator (including the events and
+# search-index generators) runs, so downstream generators never see pages
+# from a disabled module.
+# Input: `site.data["site"]["modules"]` (module name => bool) and `site.pages`.
+# Output: mutates `site.pages` in place (rejects the disabled ones).
 Jekyll::Hooks.register :site, :post_read do |site|
   modules = (site.data["site"] || {})["modules"] || {}
   scoped = {

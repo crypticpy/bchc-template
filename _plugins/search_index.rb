@@ -8,13 +8,27 @@ require "time"
 # indexed comes from _data/schema.yml (fields with `search: true`), plus
 # title and summary which are always included. Events and cohort pages are
 # indexed too so site search finds them.
+#
+# SearchIndexGenerator runs as a Jekyll::Generator (`generate` hook, priority
+# :low so it runs after other generators/pages have populated `site.pages`,
+# e.g. entry/event/cohort pages). Input: `site.data["schema"]["fields"]` and
+# the rendered `site.pages` (title/summary/body front matter). Output: a
+# SearchIndexFile added to `site.static_files`, written to `/search.json` at
+# `Jekyll::StaticFile#write` time (Jekyll's normal static-file write pass).
 module CatalogTemplate
+  # A Jekyll::StaticFile whose content is computed in memory (the search
+  # index payload) rather than copied from a file on disk.
   class SearchIndexFile < Jekyll::StaticFile
+    # @param site [Jekyll::Site]
+    # @param payload [Hash] the JSON-serializable search index ({generated_at:, docs:})
     def initialize(site, payload)
       super(site, site.source, "", "search.json")
       @payload = payload
     end
 
+    # Writes the payload as JSON to `dest/search.json`.
+    # @param dest [String] destination directory (Jekyll's `_site` by default)
+    # @return [Boolean] true on success (Jekyll::StaticFile#write contract)
     def write(dest)
       dest_path = destination(dest)
       FileUtils.mkdir_p(File.dirname(dest_path))
@@ -27,6 +41,9 @@ module CatalogTemplate
     safe true
     priority :low
 
+    # Builds the search payload from indexable pages and queues it for write.
+    # @param site [Jekyll::Site]
+    # @return [void]
     def generate(site)
       schema = site.data["schema"] || {}
       fields = Array(schema["fields"])

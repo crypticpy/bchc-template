@@ -4,7 +4,12 @@
 # Read-only companion to update_schedule_from_issue.rb: shows the maintainer
 # which event IDs their YAML block will produce before anything is written.
 #
-# Env: ISSUE_BODY. Outputs: year, preview_ids.
+# Invoked by: the "Preview normalized event IDs" step in
+# .github/workflows/update-schedule.yml, on `issues: opened|edited` for
+# issues labeled `content:schedule`, before update_schedule_from_issue.rb
+# writes anything — this step's output is posted back as an issue comment.
+# Env: ISSUE_BODY (the raw GitHub issue form body). Outputs (via
+# GITHUB_OUTPUT): year, preview_ids (a markdown bullet list).
 
 require "yaml"
 require "date"
@@ -12,16 +17,23 @@ require "securerandom"
 
 issue_body = ENV["ISSUE_BODY"].to_s.gsub("\r\n", "\n")
 
+# Turns free text into a URL/id-safe slug (lowercase, hyphen-separated).
+# @param value [String]
+# @return [String]
 def slugify(value)
   value.to_s.strip.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "")
 end
 
 # "Schedule entries (YAML)" -> "schedule_entries"
+# @param key [String] a GitHub issue-form field heading
+# @return [String] snake_case key with any parenthetical suffix removed
 def normalize_key(key)
   key.to_s.sub(/\s*\([^)]*\)\s*\z/, "").strip.downcase.gsub(/[^a-z0-9]+/, "_").gsub(/\A_+|_+\z/, "")
 end
 
 # GitHub wraps a `render: yaml` textarea in a fenced code block.
+# @param text [String] raw issue-form field value
+# @return [String] the text with a leading ```/```lang and trailing ``` removed
 def strip_code_fence(text)
   text.to_s.strip.sub(/\A```[a-zA-Z]*[ \t]*\n/, "").sub(/\n?```\z/, "")
 end
