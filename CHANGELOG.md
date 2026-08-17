@@ -2,11 +2,18 @@
 
 All notable changes to this template are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
-[Semantic Versioning](https://semver.org/). Until 1.0.0 the content model
-(`_data/schema.yml`) may still change between minor versions — each entry says
-so when it does.
+[Semantic Versioning](https://semver.org/): a change to the content model
+(`_data/schema.yml`) that existing entries or presets would have to follow is a
+major version, and each entry says so when it happens.
 
 ## [Unreleased]
+
+## [1.0.0] — 2026-08-17
+
+The first release meant to be forked. Three review panels (visual, interaction,
+accessibility, front-end code, architecture, documentation, pipeline security)
+were held during development; every P1 and P2 finding from the final panel is
+fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
 
 ### Added
 
@@ -49,25 +56,41 @@ so when it does.
   reads it instead of a hand-maintained table.
 - Tests: `test/plugins/*_test.rb` for every Jekyll plugin, a JS↔Ruby parity test
   for the schema constants, `test/scripts/filter_state.test.mjs` for the catalog
-  filter logic, and jsdom tests for the wizard (223 node + 67 Ruby).
+  filter logic, jsdom tests for the wizard and the submit form, and adversarial
+  tests for every issue-driven script (239 node + 77 Ruby).
 - pa11y-ci audits interactive states too: the mobile filter sheet, "Show all"
   expanded, the lightbox, and the wizard's Branding and Entry-model steps.
 - Screenshots in `README.md` and `docs/configuration.md`.
+- `npm run validate` (and the CI gate) fails a fork that still names the
+  template's repository in `_data/site.yml` or the issue chooser, with the fix
+  spelled out; `npm run generate` rewrites the chooser links from `site.yml`.
+- Workflows run on Node 22 (`engines.node >= 22`).
 
 ### Changed
 
-- Panel #2 review fixes. Interaction: the submit form's "open a pre-filled
-  issue" flow works again under `noopener`; `?q=` deep links search on load;
-  the layout still reflows at 400 % zoom; the "Show all" toggle, carousel
-  buttons and search listbox manage focus correctly; live regions stay quiet
-  on boot; the filter sheet closes on Escape from anywhere; filter counts read
-  as "(12 matches)" to assistive tech; the results header and rail hide when
-  JavaScript is off. Layout: one `.page-title` size on every page, `.eyebrow`
-  variants replace ad-hoc tracked capitals, the entry rail comes first in DOM
-  order on small screens, and the home page's "Recently added" grid yields to
-  the hero list at desktop widths. Hero CTAs hide with their module
-  (`module:` on each CTA). Cohort-portal preset: `department` → `area`;
-  resource-library preset copy is organization-neutral.
+- Interaction: the submit form's "open a pre-filled issue" flow works under
+  `noopener`; `?q=` deep links search on load; the layout reflows at 400 %
+  zoom; the "Show all" toggle, carousel buttons and search listbox manage focus
+  correctly; live regions stay quiet on boot; the filter sheet closes on Escape
+  from anywhere; filter counts read as "(12 matches)" to assistive tech; the
+  results header and rail hide when JavaScript is off; the catalog status names
+  the search that is *applied*, not the text being typed; a step pill in the
+  setup wizard validates every step it would skip.
+- Layout: one `.page-title` size on every page, `.eyebrow` variants replace
+  ad-hoc tracked capitals, the entry rail comes first in DOM order on small
+  screens, the entry table of contents also shows on mobile, the home page's
+  "Recently added" grid yields to the hero list at desktop widths, carousel
+  items fill their row exactly with a "Browse all" link beside the controls, the
+  filter rail fades at its bottom edge when it scrolls, text-only cards keep
+  their own height next to image cards, and headings that receive scripted
+  focus use a dashed offset outline instead of the control ring. Hero CTAs hide
+  with their module (`module:` on each CTA). Cohort-portal preset:
+  `department` → `area`; resource-library preset copy is organization-neutral.
+- Accessibility: the submit form's fieldset legends label their selects, every
+  option input has an id the error summary can link to, the images textarea is
+  described by its note, email inputs carry `autocomplete`; the setup wizard's
+  copy buttons announce "Copied" politely, and its select controls keep a
+  current value that is no longer among the options.
 - Code organisation: `filters.js` split into `lib/filter-state.js`,
   `lib/entry-order.js` and `filter-sheet.js`; the wizard into `wizard/*` and
   `steps/*`; the CLI into `scripts/lib/setup-*.mjs`; `_layouts/cohort.html` and
@@ -82,8 +105,10 @@ so when it does.
   body and heading faces preloaded; the TTFs are gone.
 - Focus indication is one solid 2 px `primary` ring with a ground-coloured
   offset everywhere.
-- Scaffolded entries carry `render_with_liquid: false`; the validator warns
-  when it is missing.
+- Scaffolded entries carry `render_with_liquid: false`; the validator fails an
+  entry without it.
+- Both configurators ask the same six colour questions (`line_strong` and
+  `warn` included) and the live preview honours all of them.
 
 ### Security
 
@@ -92,6 +117,15 @@ so when it does.
 - Issue-body parsing takes the first occurrence of each heading and treats
   everything after the write-up as prose, so a submission cannot inject fields.
 - Slugs are validated and writes are confined to `catalog/<slug>/`.
+- The cohort and event scripts share the first-wins issue-form parser, confine
+  every write to `cohorts/<year>/events/<id>/`, emit front matter through the
+  shared YAML emitter, write every `$GITHUB_OUTPUT` value behind a random
+  heredoc delimiter, and their workflows declare `permissions: {}` at the top
+  level, honour `SUBMISSIONS_OPEN`, and report a failed run back on the issue.
+  Adversarial tests spawn each script with hostile issue bodies.
+- `SECURITY.md` says what the automation guarantees, what it does not (the
+  workflow token is repository-wide; branch protection is the backstop; DNS
+  rebinding against a self-hosted runner), and how to report a vulnerability.
 
 ## [0.1.0] — 2026-08-17
 
@@ -102,5 +136,6 @@ so when it does.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/38365a5...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/crypticpy/bchc-template/compare/38365a5...v1.0.0
 [0.1.0]: https://github.com/crypticpy/bchc-template/commits/38365a5
