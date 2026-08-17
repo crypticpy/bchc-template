@@ -1,0 +1,23 @@
+{%- assign cfg = site.data.site -%}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title and page.url != '/' %}{{ page.title }} · {% endif %}{{ cfg.name | default: site.title }}</title>
+  <meta name="description" content="{{ page.summary | default: page.description | default: cfg.description | default: site.description | strip_html | strip_newlines | truncate: 200 }}">
+  {% if page.robots %}<meta name="robots" content="{{ page.robots }}">{% endif %}
+  <link rel="icon" href="{{ '/assets/images/favicon.svg' | relative_url }}" type="image/svg+xml">
+  {% if site.data.theme.fonts.google_fonts_url and site.data.theme.fonts.google_fonts_url != '' %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="{{ site.data.theme.fonts.google_fonts_url }}">
+  {% endif %}
+  {% include theme.html %}
+  <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+  {% if page.include_search or layout.include_search %}
+  <link rel="preload" as="fetch" href="{{ '/search.json' | relative_url }}" type="application/json" crossorigin>
+  {% endif %}
+  {% if cfg.analytics.plausible_domain and cfg.analytics.plausible_domain != '' %}
+  <script defer data-domain="{{ cfg.analytics.plausible_domain }}" src="https://plausible.io/js/script.js"></script>
+  {% endif %}
+  {% seo title=false %}
+</head>

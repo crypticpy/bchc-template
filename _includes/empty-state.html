@@ -1,0 +1,6 @@
+<div class="card flex flex-col items-center gap-3 px-6 py-12 text-center">
+  <span class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">{% include icon.html name=include.icon size='lg' %}</span>
+  <h3 class="font-heading text-lg font-semibold text-brand-primary-dark">{{ include.title | default: 'Nothing here yet' }}</h3>
+  <p class="max-w-md text-sm text-brand-muted">{{ include.body }}</p>
+  {% if include.cta_url %}<a class="btn-primary mt-2" href="{{ include.cta_url | relative_url }}">{{ include.cta_label | default: 'Learn more' }}</a>{% endif %}
+</div>

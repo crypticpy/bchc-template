@@ -1,0 +1,29 @@
+{%- assign theme = site.data.theme -%}
+{%- assign c = theme.colors -%}
+{%- case theme.radius -%}
+  {%- when 'sharp' -%}{%- assign r = '0.25rem|0.375rem|0.5rem|0.75rem|1rem' -%}
+  {%- when 'round' -%}{%- assign r = '0.75rem|1rem|1.5rem|2rem|2.5rem' -%}
+  {%- else -%}{%- assign r = '0.5rem|0.75rem|1rem|1.25rem|1.75rem' -%}
+{%- endcase -%}
+{%- assign radii = r | split: '|' -%}
+<style>
+  :root {
+    --c-primary: {{ c.primary | default: '#1D4E89' | hex_to_rgb }};
+    --c-primary-dark: {{ c.primary_dark | default: '#12305A' | hex_to_rgb }};
+    --c-secondary: {{ c.secondary | default: '#1B8A7A' | hex_to_rgb }};
+    --c-accent: {{ c.accent | default: '#E07A2F' | hex_to_rgb }};
+    --c-ink: {{ c.ink | default: '#1B2430' | hex_to_rgb }};
+    --c-muted: {{ c.muted | default: '#5A6573' | hex_to_rgb }};
+    --c-line: {{ c.line | default: '#D9E0E8' | hex_to_rgb }};
+    --c-surface: {{ c.surface | default: '#F5F7FA' | hex_to_rgb }};
+    --c-card: {{ c.card | default: '#FFFFFF' | hex_to_rgb }};
+    --c-on-dark: {{ c.on_dark | default: '#F7F9FC' | hex_to_rgb }};
+    --font-heading: "{{ theme.fonts.heading | default: 'Source Sans 3' }}";
+    --font-body: "{{ theme.fonts.body | default: 'Inter' }}";
+    --radius-sm: {{ radii[0] }};
+    --radius-md: {{ radii[1] }};
+    --radius-lg: {{ radii[2] }};
+    --radius-xl: {{ radii[3] }};
+    --radius-2xl: {{ radii[4] }};
+  }
+</style>

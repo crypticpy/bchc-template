@@ -1,0 +1,56 @@
+name: Generate entry thumbnails
+
+on:
+  pull_request:
+    paths:
+      - "catalog/**/*.pdf"
+  workflow_dispatch:
+
+jobs:
+  thumbnail:
+    # Pull requests from forks run with a read-only token and cannot be pushed to.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install npm dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Generate thumbnails
+        run: |
+          set -euo pipefail
+          node scripts/thumbnail_sources.mjs | while IFS=$'\t' read -r source thumb; do
+            [ -n "$source" ] || continue
+            if [ ! -s "$source" ]; then
+              echo "Skipping empty placeholder at $source"
+              continue
+            fi
+            signature="$(head -c4 "$source" 2>/dev/null || true)"
+            if [ "$signature" != "%PDF" ]; then
+              echo "Skipping non-PDF file at $source (signature: $signature)"
+              continue
+            fi
+            if [ ! -f "$thumb" ] || [ "$source" -nt "$thumb" ]; then
+              echo "Generating thumbnail for $source"
+              magick -density 150 "$source"[0] -quality 85 -resize 800x -background white -alpha remove -alpha off "$thumb"
+            fi
+          done
+
+      - name: Commit thumbnails
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update entry thumbnails"

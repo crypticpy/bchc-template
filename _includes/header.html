@@ -1,0 +1,43 @@
+{%- assign cfg = site.data.site -%}
+{%- assign nav_links = site.data.navigation -%}
+{%- assign current_url = page.url | default: '/' -%}
+<header class="sticky top-0 z-40 border-b border-brand-line/70 bg-surface-card/95 backdrop-blur" data-component="site-header">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+    <a class="flex min-w-0 items-center gap-3 text-brand-primary-dark transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30 focus-visible:ring-offset-2 rounded-lg" href="{{ '/' | relative_url }}">
+      {% include logo.html size="h-10 w-10" %}
+      <span class="flex min-w-0 flex-col leading-tight">
+        <span class="truncate text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-muted">{{ cfg.organization.name }}</span>
+        <span class="truncate font-heading text-lg font-semibold">{{ cfg.name }}</span>
+      </span>
+    </a>
+
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
+      {% for item in nav_links %}
+        {% if item.module %}{% assign enabled = cfg.modules[item.module] %}{% unless enabled %}{% continue %}{% endunless %}{% endif %}
+        {% assign href = item.url | default: '/' %}
+        {% assign is_active = false %}
+        {% if current_url == href %}{% assign is_active = true %}
+        {% elsif href != '/' and current_url contains href %}{% assign is_active = true %}{% endif %}
+        {% if item.style == 'button' %}
+          <a href="{{ href | relative_url }}" class="btn-primary ml-2 !px-4 !py-2">{{ item.label }}</a>
+        {% else %}
+          <a href="{{ href | relative_url }}" class="rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30 {% if is_active %}bg-brand-primary/10 text-brand-primary-dark{% else %}text-brand-ink hover:bg-brand-primary/5 hover:text-brand-primary-dark{% endif %}" {% if is_active %}aria-current="page"{% endif %}>{{ item.label }}</a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+
+    <button type="button" class="inline-flex items-center justify-center rounded-full border border-brand-line p-2 text-brand-primary-dark transition hover:border-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30 lg:hidden" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle navigation">
+      <span data-nav-icon="open">{% include icon.html name='menu' size='md' %}</span>
+      <span data-nav-icon="close" class="hidden">{% include icon.html name='close' size='md' %}</span>
+    </button>
+  </div>
+  <div id="mobile-nav" class="hidden border-t border-brand-line bg-surface-card lg:hidden" data-nav-panel>
+    <nav class="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 sm:px-6" aria-label="Mobile navigation">
+      {% for item in nav_links %}
+        {% if item.module %}{% assign enabled = cfg.modules[item.module] %}{% unless enabled %}{% continue %}{% endunless %}{% endif %}
+        {% assign href = item.url | default: '/' %}
+        <a href="{{ href | relative_url }}" class="rounded-lg px-3 py-2 text-sm font-medium text-brand-ink hover:bg-brand-primary/5 {% if item.style == 'button' %}mt-2 !bg-brand-primary text-center !text-white{% endif %}">{{ item.label }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+</header>

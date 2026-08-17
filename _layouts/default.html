@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% include head.html %}
+  <body class="bg-surface-base text-brand-ink">
+    <a class="sr-only focus:not-sr-only focus:fixed focus:left-1/2 focus:top-4 focus:z-50 focus:-translate-x-1/2 focus:rounded-full focus:bg-brand-primary focus:px-5 focus:py-3 focus:text-white focus:shadow-card" href="#main-content">Skip to content</a>
+    <div class="flex min-h-screen flex-col">
+      {% include header.html %}
+      <main id="main-content" class="flex-1">
+        {% if page.full_width or layout.full_width %}
+          {{ content }}
+        {% else %}
+          <div class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+            {{ content }}
+          </div>
+        {% endif %}
+      </main>
+      {% include footer.html %}
+    </div>
+    <script defer src="{{ '/assets/js/site.js' | relative_url }}"></script>
+    {% if page.include_filters or layout.include_filters %}
+      <script defer src="{{ '/assets/js/filters.js' | relative_url }}"></script>
+    {% endif %}
+    {% if page.include_search or layout.include_search %}
+      <script defer src="{{ '/assets/js/lunr.min.js' | relative_url }}"></script>
+      <script defer src="{{ '/assets/js/search.js' | relative_url }}"></script>
+    {% endif %}
+    {% if page.include_carousel or layout.include_carousel %}
+      <script defer src="{{ '/assets/js/carousel.js' | relative_url }}"></script>
+    {% endif %}
+  </body>
+</html>

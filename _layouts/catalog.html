@@ -1,0 +1,44 @@
+---
+layout: default
+include_filters: true
+include_search: true
+---
+{%- assign schema = site.data.schema -%}
+{%- assign cfg = site.data.site -%}
+{%- assign sort_key = schema.entry.sort | default: 'published' -%}
+{%- assign entries = site.pages | where: 'layout', 'entry' | sort: sort_key, 'first' -%}
+{%- if schema.entry.sort_order != 'asc' -%}{%- assign entries = entries | reverse -%}{%- endif -%}
+{%- assign count = entries | size -%}
+{%- assign plural = schema.entry.plural | default: 'Entries' -%}
+{%- assign singular = schema.entry.singular | default: 'Entry' -%}
+
+<section class="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+  <div class="max-w-3xl">
+    <span class="eyebrow">{{ cfg.organization.short_name | default: cfg.organization.name }}</span>
+    <h1 class="mt-2 font-heading text-4xl font-semibold text-brand-primary-dark sm:text-5xl">{{ page.title | default: plural }}</h1>
+    {% if page.summary or content != '' %}
+      <div class="mt-4 max-w-2xl text-lg leading-relaxed text-brand-muted">{{ page.summary | default: content }}</div>
+    {% endif %}
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <span class="inline-flex items-center gap-2 rounded-full border border-brand-line bg-surface-card px-4 py-2 text-sm font-semibold text-brand-primary-dark shadow-subtle"><span data-entry-count aria-live="polite" aria-atomic="true">{{ count }}</span> <span data-entry-count-label>{{ plural | downcase }}</span></span>
+    {% if cfg.modules.submit %}<a class="btn-primary" href="{{ '/submit/' | relative_url }}">{% include icon.html name='plus' size='sm' %} Add a {{ singular | downcase }}</a>{% endif %}
+  </div>
+</section>
+
+{% include facet-filters.html entries=entries %}
+
+<section aria-label="{{ plural | escape }}">
+  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" data-entry-grid>
+    {% for entry in entries %}
+      {% include entry-card.html entry=entry %}
+    {% endfor %}
+  </div>
+  <div class="hidden" data-empty-state>
+    {% include empty-state.html icon='search' title='No matches' body='Nothing matches the current filters. Try clearing a filter or searching for a different term.' %}
+  </div>
+  {% if count == 0 %}
+    {% assign body = 'No ' | append: plural | downcase | append: ' have been published yet.' %}
+    {% include empty-state.html icon='sparkles' title='Coming soon' body=body cta_url='/submit/' cta_label='Be the first to submit' %}
+  {% endif %}
+</section>

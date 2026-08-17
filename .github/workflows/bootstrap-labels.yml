@@ -1,0 +1,28 @@
+name: Bootstrap labels
+
+# One-time setup helper. Run it from the Actions tab ("Run workflow") after
+# creating a repository from this template. Issue forms only apply labels that
+# already exist, and the content workflows are triggered by these labels.
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create content labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          create() { gh label create "$1" --color "$2" --description "$3" --force; }
+          create "content:new-entry"          "1D4E89" "Submission from the entry form; automation opens a pull request"
+          create "content:new-event"          "1B8A7A" "Cohort event page request"
+          create "content:schedule"           "1B8A7A" "Cohort schedule update"
+          create "content:event-attachments"  "1B8A7A" "Attach materials to a cohort event"
+          create "content:new-year"           "1B8A7A" "Scaffold a new cohort year"
+          echo "Labels are ready."

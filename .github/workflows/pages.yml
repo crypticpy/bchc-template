@@ -1,0 +1,94 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Regenerate schema-derived files
+        run: node scripts/generate.mjs
+
+      - name: Build CSS
+        run: npm run build:css
+
+      - name: Smoke check configuration
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll doctor
+
+      - name: Build Jekyll site
+        env:
+          JEKYLL_ENV: production
+        run: |
+          set -euo pipefail
+          repo_name="${GITHUB_REPOSITORY#*/}"
+          owner="${GITHUB_REPOSITORY_OWNER}"
+          # Work out where the site will be served from:
+          #  - a CNAME file means a custom domain at the root,
+          #  - a <user>.github.io repository is served from the domain root,
+          #  - anything else lives under /<repo-name>/.
+          if [[ -f CNAME ]]; then
+            site_url="https://$(tr -d '[:space:]' < CNAME)"
+            baseurl=""
+          elif [[ "$repo_name" == *.github.io ]]; then
+            site_url="https://${repo_name}"
+            baseurl=""
+          else
+            site_url="https://${owner}.github.io"
+            baseurl="/$repo_name"
+          fi
+          # An explicit url in _config.yml always wins.
+          configured_url="$(ruby -ryaml -e 'puts YAML.load_file("_config.yml")["url"].to_s')"
+          if [[ -n "$configured_url" ]]; then site_url="$configured_url"; fi
+          printf 'url: "%s"\nbaseurl: "%s"\n' "$site_url" "$baseurl" > _config.ci.yml
+          echo "Building with url='${site_url}' baseurl='${baseurl}'"
+          bundle exec jekyll build --destination _site --config _config.yml,_config.ci.yml
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

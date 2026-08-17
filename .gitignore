@@ -1,0 +1,8 @@
+/_site
+/vendor/
+/node_modules/
+.bundle/
+.jekyll-cache/
+_config.ci.yml
+.DS_Store
+*.log

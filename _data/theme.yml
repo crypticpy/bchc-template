@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------------------
+# Theme: colors and typography.
+# Colors are hex values; they are exposed as CSS variables and consumed by
+# Tailwind, so changing them here re-themes the whole site on the next build.
+# Keep text/background pairs at WCAG AA contrast (4.5:1 for body text).
+# ---------------------------------------------------------------------------
+
+colors:
+  primary: "#1D4E89"        # buttons, links, active states
+  primary_dark: "#12305A"   # hero + footer background, headings on light surfaces
+  secondary: "#1B8A7A"      # secondary badges / accents
+  accent: "#E07A2F"         # highlights, warm accent badges
+  ink: "#1B2430"            # body text
+  muted: "#5A6573"          # secondary text (AA on white)
+  line: "#D9E0E8"           # borders and dividers
+  surface: "#F5F7FA"        # page background
+  card: "#FFFFFF"           # card background
+  on_dark: "#F7F9FC"        # text on primary_dark backgrounds
+
+fonts:
+  # Bundled options: "Inter", "Source Sans 3". Any other family name works if
+  # you also set google_fonts_url (a Google Fonts <link> href) below.
+  heading: "Source Sans 3"
+  body: "Inter"
+  google_fonts_url: ""
+
+# Corner rounding scale: "sharp" | "soft" | "round"
+radius: "soft"

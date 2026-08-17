@@ -1,0 +1,20 @@
+{%- comment -%}
+Usage: {% include badge.html label="Pilot" tone="primary|secondary|accent|neutral|on-dark" size="sm|md|lg" %}
+{%- endcomment -%}
+{%- assign tone = include.tone | default: 'primary' -%}
+{%- assign size = include.size | default: 'md' -%}
+{%- case tone -%}
+  {%- when 'secondary' -%}{%- assign tone_class = 'bg-brand-secondary/12 text-brand-secondary ring-brand-secondary/20' -%}
+  {%- when 'accent' -%}{%- assign tone_class = 'bg-brand-accent/15 text-brand-primary-dark ring-brand-accent/30' -%}
+  {%- when 'neutral' -%}{%- assign tone_class = 'bg-brand-ink/5 text-brand-muted ring-brand-line' -%}
+  {%- when 'on-dark' -%}{%- assign tone_class = 'bg-white/15 text-white ring-white/25 backdrop-blur-sm' -%}
+  {%- else -%}{%- assign tone_class = 'bg-brand-primary/10 text-brand-primary-dark ring-brand-primary/20' -%}
+{%- endcase -%}
+{%- case size -%}
+  {%- when 'sm' -%}{%- assign size_class = 'px-2.5 py-0.5 text-[11px]' -%}
+  {%- when 'lg' -%}{%- assign size_class = 'px-4 py-1.5 text-sm' -%}
+  {%- else -%}{%- assign size_class = 'px-3 py-1 text-xs' -%}
+{%- endcase -%}
+{%- if include.label and include.label != '' -%}
+<span class="inline-flex items-center rounded-full font-semibold ring-1 ring-inset {{ tone_class }} {{ size_class }} {{ include.class }}">{{ include.label }}</span>
+{%- endif -%}

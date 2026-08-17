@@ -1,0 +1,47 @@
+---
+layout: default
+---
+{%- assign year_key = page.cohort | append: '' -%}
+{%- assign data = site.data.cohorts[year_key] -%}
+{%- assign event_obj = nil -%}
+{%- for e in data.events -%}
+  {%- assign s = e.slug | default: e.id | default: e.name | slugify -%}
+  {%- if s == page.event_id -%}{%- assign event_obj = e -%}{%- endif -%}
+{%- endfor -%}
+{%- assign date_val = page.event_date | default: event_obj.date -%}
+{%- assign time_val = page.event_time | default: event_obj.time -%}
+{%- assign location_val = page.event_location | default: event_obj.location -%}
+{%- assign attachments = page.attachments | default: event_obj.attachments -%}
+{%- capture crumbs -%}Cohorts|/cohorts/;;Cohort {{ page.cohort }}|/cohorts/{{ page.cohort }}/;;{{ page.title | default: event_obj.name }}{%- endcapture -%}
+
+<article class="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+  <section class="min-w-0 space-y-6">
+    {% include breadcrumbs.html items=crumbs %}
+    <h1 class="font-heading text-4xl font-semibold text-brand-primary-dark sm:text-5xl">{{ page.title | default: event_obj.name }}</h1>
+    {% if page.summary or event_obj.description %}<p class="text-lg leading-relaxed text-brand-muted">{{ page.summary | default: event_obj.description }}</p>{% endif %}
+    <div class="grid gap-4 sm:grid-cols-3">
+      {% if date_val %}<div class="card p-4"><p class="eyebrow">Date</p><p class="mt-1 text-brand-ink">{{ date_val | date: '%A, %B %-d, %Y' }}</p></div>{% endif %}
+      {% if time_val %}<div class="card p-4"><p class="eyebrow">Time</p><p class="mt-1 text-brand-ink">{{ time_val }}</p></div>{% endif %}
+      {% if location_val %}<div class="card p-4"><p class="eyebrow">Location</p><p class="mt-1 text-brand-ink">{{ location_val }}</p></div>{% endif %}
+    </div>
+    <div class="prose-body">{{ content }}</div>
+  </section>
+  <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
+    <section class="card">
+      <div class="card-header"><h2 class="card-title">Event materials</h2></div>
+      {% if attachments and attachments.size > 0 %}
+        <ul class="space-y-3 px-6 py-6">
+          {% for item in attachments %}
+            <li><a class="link-row" href="{% if item.url contains '://' %}{{ item.url }}{% else %}{{ item.url | relative_url }}{% endif %}" target="_blank" rel="noopener noreferrer">
+              <span class="flex min-w-0 items-center gap-3"><span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">{% include icon.html name='document' size='sm' %}</span><span class="truncate">{{ item.title }}</span></span>
+              {% include icon.html name='arrow-right' size='sm' class='shrink-0 text-brand-primary' %}
+            </a></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="px-6 py-6 text-sm text-brand-muted">No materials attached yet.</p>
+      {% endif %}
+    </section>
+    <a class="btn-secondary" href="{{ '/cohorts/' | append: page.cohort | append: '/' | relative_url }}">{% include icon.html name='arrow-left' size='sm' %} Back to cohort {{ page.cohort }}</a>
+  </aside>
+</article>

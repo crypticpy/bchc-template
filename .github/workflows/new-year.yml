@@ -1,0 +1,80 @@
+name: Scaffold new cohort year
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+  workflow_dispatch:
+    inputs:
+      year:
+        description: "Cohort year to scaffold (YYYY)"
+        required: true
+        type: string
+
+jobs:
+  scaffold:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'content:new-year')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Read the cohort year from the issue
+        if: github.event_name == 'issues'
+        id: extract
+        run: node scripts/extract_event_fields.mjs
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Resolve the year
+        id: year
+        env:
+          DISPATCH_YEAR: ${{ inputs.year }}
+          ISSUE_YEAR: ${{ steps.extract.outputs.cohort_year }}
+        run: |
+          set -euo pipefail
+          year="${DISPATCH_YEAR:-$ISSUE_YEAR}"
+          if ! echo "$year" | grep -Eq '^[0-9]{4}$'; then
+            echo "Could not read a four-digit cohort year (got '$year')." >&2
+            exit 1
+          fi
+          echo "value=$year" >> "$GITHUB_OUTPUT"
+
+      - name: Scaffold cohort
+        run: ruby scripts/scaffold_year.rb
+        env:
+          COHORT_YEAR: ${{ steps.year.outputs.value }}
+          COHORT_INTRO: ${{ steps.extract.outputs.intro }}
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: cohort/${{ steps.year.outputs.value }}
+          commit-message: "chore: scaffold cohort ${{ steps.year.outputs.value }}"
+          title: "Scaffold cohort ${{ steps.year.outputs.value }}"
+          body: |
+            Scaffolds `cohorts/${{ steps.year.outputs.value }}/` and `_data/cohorts/${{ steps.year.outputs.value }}.yml`.
+
+            ### Maintainer checklist
+            - [ ] Replace the placeholder intro on the cohort landing page
+            - [ ] Replace the placeholder events with the real schedule
+            - [ ] Merge to publish
+          delete-branch: true

@@ -1,0 +1,111 @@
+---
+layout: default
+---
+{%- assign schema = site.data.schema -%}
+{%- assign cfg = site.data.site -%}
+{%- assign fields = schema.fields -%}
+{%- assign plural = schema.entry.plural | default: 'Entries' -%}
+{%- assign singular = schema.entry.singular | default: 'Entry' -%}
+{%- assign epath = schema.entry.path | default: 'catalog' -%}
+{%- assign catalog_url = '/' | append: epath | append: '/' -%}
+{%- capture crumbs -%}{{ plural }}|{{ catalog_url }};;{{ page.title }}{%- endcapture -%}
+
+<article class="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+  <section class="min-w-0 space-y-6">
+    {% include breadcrumbs.html items=crumbs %}
+    <div class="flex flex-wrap gap-2">
+      {% for f in fields %}
+        {% if f.type == 'select' and f.facet and page[f.key] and page[f.key] != '' %}
+          {% assign tone = 'primary' %}{% if forloop.index0 == 1 %}{% assign tone = 'secondary' %}{% elsif forloop.index0 > 1 %}{% assign tone = 'accent' %}{% endif %}
+          {% assign bl = page[f.key] %}{% include badge.html label=bl tone=tone size="lg" %}
+        {% endif %}
+      {% endfor %}
+      {% if page.featured %}{% include badge.html label='Featured' tone='accent' size='lg' %}{% endif %}
+    </div>
+    <h1 class="font-heading text-4xl font-semibold leading-tight text-brand-primary-dark sm:text-5xl">{{ page.title }}</h1>
+    {% if page.summary %}<p class="text-lg leading-relaxed text-brand-muted">{{ page.summary }}</p>{% endif %}
+    {% capture meta %}{% for f in fields %}{% if f.type == 'text' and f.card and page[f.key] and page[f.key] != '' %}<span class="inline-flex items-center gap-1.5">{% include icon.html name='building' size='sm' class='text-brand-primary' %}{{ page[f.key] }}</span>{% endif %}{% endfor %}{% endcapture %}
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium text-brand-ink">
+      {{ meta }}
+      {% if page.published %}<span class="inline-flex items-center gap-1.5 text-brand-muted">{% include icon.html name='calendar' size='sm' class='text-brand-primary' %}Published {{ page.published | date: '%B %-d, %Y' }}</span>{% endif %}
+    </div>
+
+    <div class="prose-body">
+      {{ content }}
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 border-t border-brand-line pt-6 text-sm">
+      {% if cfg.github.repository and cfg.github.repository != '' %}
+        <a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ cfg.github.repository }}/edit/{{ cfg.github.branch | default: 'main' }}/{{ page.path }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='edit' size='sm' %} Suggest an edit on GitHub</a>
+        <span class="text-brand-line" aria-hidden="true">|</span>
+        <a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ cfg.github.repository }}/issues/new?title={{ 'Update: ' | append: page.title | query_encode }}&body={{ 'Requested change for ' | append: page.url | append: ':%0A%0A' }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='mail' size='sm' %} Report an issue with this {{ singular | downcase }}</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
+    <div class="card">
+      <div class="h-52 overflow-hidden">{% include entry-thumb.html entry=page %}</div>
+    </div>
+
+    {% comment %} ---- Sections: details / links / contact, computed from field type/section ---- {% endcomment %}
+    {% assign section_keys = 'details,links,contact' | split: ',' %}
+    {% for sec in section_keys %}
+      {% capture section_html %}
+        {% for f in fields %}
+          {% if f.type == 'markdown' or f.key == 'title' or f.key == 'summary' or f.type == 'image' %}{% continue %}{% endif %}
+          {% assign v = page[f.key] %}
+          {% if v == nil or v == '' or v == empty %}{% continue %}{% endif %}
+          {% capture fsec %}{% if f.section %}{{ f.section }}{% elsif f.type == 'url' or f.type == 'file' %}links{% elsif f.type == 'email' or f.key contains 'contact' %}contact{% else %}details{% endif %}{% endcapture %}
+          {% assign fsec = fsec | strip %}
+          {% if fsec != sec %}{% continue %}{% endif %}
+          {% if f.type == 'url' or f.type == 'file' %}
+            <li>{% include field-value.html field=f entry=page %}</li>
+          {% else %}
+            <div class="flex flex-col gap-1.5">
+              <dt class="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-muted">{{ f.label }}</dt>
+              <dd class="text-sm text-brand-ink">{% include field-value.html field=f entry=page %}</dd>
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endcapture %}
+      {% assign section_html = section_html | strip %}
+      {% if section_html != '' %}
+        <section class="card" aria-labelledby="section-{{ sec }}">
+          <div class="card-header"><h2 id="section-{{ sec }}" class="card-title">{{ schema.sections[sec] | default: sec | capitalize }}</h2></div>
+          {% if sec == 'links' %}
+            <ul class="space-y-3 px-6 py-6">{{ section_html }}</ul>
+          {% else %}
+            <dl class="space-y-5 px-6 py-6">{{ section_html }}</dl>
+          {% endif %}
+        </section>
+      {% endif %}
+    {% endfor %}
+
+    {% assign demo = nil %}
+    {% for f in fields %}{% if f.key == 'demo_url' or f.key == 'dashboard_url' %}{% assign demo = page[f.key] %}{% endif %}{% endfor %}
+    {% if page.embed_url and page.embed_url != '' %}
+      <section class="card">
+        <div class="aspect-[16/10]"><iframe src="{{ page.embed_url }}" title="{{ page.embed_title | default: page.title | escape }}" class="h-full w-full" loading="lazy"></iframe></div>
+      </section>
+    {% endif %}
+  </aside>
+</article>
+
+{%- comment -%} Related entries: share the first facet value {%- endcomment -%}
+{%- assign first_facet = fields | where: 'facet', true | first -%}
+{%- assign facet_val = page[first_facet.key] -%}
+{%- if first_facet and facet_val and facet_val != '' and facet_val.first == nil -%}
+  {%- assign related = site.pages | where: 'layout', 'entry' | where: first_facet.key, page[first_facet.key] | where_exp: 'e', 'e.url != page.url' | slice: 0, 3 -%}
+  {%- if related.size > 0 -%}
+  <section class="mt-16">
+    <div class="mb-6 flex items-end justify-between gap-4">
+      <div><h2 class="section-title">More from {{ page[first_facet.key] }}</h2><p class="section-lead">Other {{ plural | downcase }} sharing this {{ first_facet.label | downcase }}.</p></div>
+      <a class="inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}?{{ first_facet.key }}={{ page[first_facet.key] | slugify }}">View all {% include icon.html name='arrow-right' size='sm' %}</a>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      {% for e in related %}{% include entry-card.html entry=e %}{% endfor %}
+    </div>
+  </section>
+  {%- endif -%}
+{%- endif -%}

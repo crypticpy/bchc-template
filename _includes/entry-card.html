@@ -1,0 +1,57 @@
+{%- comment -%}
+Schema-driven catalog card. Usage: {% include entry-card.html entry=entry %}
+- select fields with card:true  -> badges over the image
+- text fields with card:true    -> meta line
+- list/multiselect card:true    -> chips (max 4 total)
+- every facet field             -> data-facet-<key> attribute for client-side filtering
+{%- endcomment -%}
+{%- assign entry = include.entry -%}
+{%- assign schema = site.data.schema -%}
+{%- assign fields = schema.fields -%}
+{%- assign facet_fields = fields | where: 'facet', true -%}
+{%- assign card_fields = fields | where: 'card', true -%}
+<article class="group relative flex flex-col overflow-hidden rounded-2xl border border-brand-line bg-surface-card shadow-subtle transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-primary/40 hover:shadow-card focus-within:-translate-y-0.5 focus-within:border-brand-primary/40"
+  data-entry
+  data-entry-id="{{ entry.slug | default: entry.title | slugify }}"
+  data-entry-title="{{ entry.title | escape }}"
+  data-entry-date="{{ entry.published | date: '%Y-%m-%d' }}"
+  {% for f in facet_fields %}data-facet-{{ f.key | replace: '_', '-' }}="{{ entry[f.key] | facet_values }}" {% endfor %}>
+  <a class="flex h-full flex-col focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40 focus-visible:ring-offset-2" href="{{ entry.url | relative_url }}">
+    <div class="relative h-44 overflow-hidden">
+      {% include entry-thumb.html entry=entry img_class="transition duration-700 ease-out group-hover:scale-105" %}
+      {% if entry.featured %}
+        <span class="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-brand-accent px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-brand-primary-dark shadow-subtle">{% include icon.html name='sparkles' size='xs' %} Featured</span>
+      {% endif %}
+      <div class="absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-1.5 bg-gradient-to-t from-brand-primary-dark/80 to-transparent px-4 pb-3 pt-10">
+        {% for f in card_fields %}
+          {% if f.type == 'select' %}
+            {% assign bl = entry[f.key] %}{% include badge.html label=bl tone='on-dark' size='sm' %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    <div class="flex flex-1 flex-col gap-3 p-5">
+      {% capture meta %}{% for f in card_fields %}{% if f.type == 'text' and entry[f.key] and entry[f.key] != '' %}{% unless forloop.first %} · {% endunless %}{{ entry[f.key] }}{% endif %}{% endfor %}{% endcapture %}
+      {% assign meta = meta | strip %}
+      {% if meta != '' %}<p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-primary">{{ meta | replace_first: ' · ', '' }}</p>{% endif %}
+      <h3 class="font-heading text-xl font-semibold leading-tight text-brand-primary-dark transition-colors group-hover:text-brand-primary">{{ entry.title }}</h3>
+      <p class="line-clamp-3 text-sm leading-relaxed text-brand-muted">{{ entry.summary }}</p>
+      {% assign chip_count = 0 %}{% assign overflow = 0 %}
+      <div class="mt-auto flex flex-wrap gap-1.5 pt-1">
+        {% for f in card_fields %}
+          {% if f.type == 'list' or f.type == 'multiselect' %}
+            {% for v in entry[f.key] %}
+              {% if chip_count < 4 %}
+                <span class="{% if forloop.parentloop.index0 == 0 %}chip{% else %}chip-secondary{% endif %}">{{ v }}</span>
+                {% assign chip_count = chip_count | plus: 1 %}
+              {% else %}
+                {% assign overflow = overflow | plus: 1 %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+        {% if overflow > 0 %}<span class="chip-neutral">+{{ overflow }}</span>{% endif %}
+      </div>
+    </div>
+  </a>
+</article>

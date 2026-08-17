@@ -1,0 +1,89 @@
+name: Update cohort schedule
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+
+jobs:
+  update:
+    if: contains(github.event.issue.labels.*.name, 'content:schedule')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Preview normalized event IDs
+        id: preview
+        run: ruby scripts/preview_schedule_ids_from_issue.rb
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+      - name: Comment with the event ID preview
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_YEAR: ${{ steps.preview.outputs.year }}
+          PREVIEW_IDS: ${{ steps.preview.outputs.preview_ids }}
+        with:
+          script: |
+            const year = process.env.PREVIEW_YEAR;
+            const body = [
+              `### Event ID preview for ${year}`,
+              '',
+              process.env.PREVIEW_IDS,
+              '',
+              `Event pages will live at \`/cohorts/${year}/events/<id>/\` once this is merged.`
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+
+      - name: Update schedule data
+        id: update
+        run: ruby scripts/update_schedule_from_issue.rb
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      - name: Create pull request
+        if: steps.update.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ${{ steps.update.outputs.branch }}
+          commit-message: "chore: update cohort ${{ steps.update.outputs.year }} schedule"
+          title: "Update cohort ${{ steps.update.outputs.year }} schedule"
+          body: |
+            Generated from issue #${{ github.event.issue.number }}.
+
+            ### Updated events
+            ${{ steps.update.outputs.summary }}
+          delete-branch: true
+
+      - name: Comment when nothing changed
+        if: steps.update.outputs.changed != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'No schedule changes were detected — the submitted entries already match the stored schedule.'
+            });

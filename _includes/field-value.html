@@ -1,0 +1,42 @@
+{%- comment -%}
+Render a single schema field value on the entry detail page.
+Usage: {% include field-value.html field=f entry=page %}
+{%- endcomment -%}
+{%- assign f = include.field -%}
+{%- assign entry = include.entry -%}
+{%- assign v = entry[f.key] -%}
+{%- case f.type -%}
+  {%- when 'select' -%}
+    {% include badge.html label=v tone='primary' size='md' %}
+  {%- when 'multiselect' or 'list' -%}
+    <span class="flex flex-wrap gap-1.5">{% for x in v %}<span class="{% if f.type == 'multiselect' %}chip{% else %}chip-secondary{% endif %}">{{ x }}</span>{% endfor %}</span>
+  {%- when 'url' -%}
+    <a class="link-row" href="{{ v }}" target="_blank" rel="noopener noreferrer">
+      <span class="flex min-w-0 items-center gap-3">
+        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">{% if v contains 'github.com' or v contains 'gitlab.com' %}{% include icon.html name='code' size='sm' %}{% else %}{% include icon.html name='link' size='sm' %}{% endif %}</span>
+        <span class="flex min-w-0 flex-col"><span class="truncate">{{ f.label }}</span><span class="truncate text-xs font-medium text-brand-muted">{{ v | link_host }}</span></span>
+      </span>
+      {% include icon.html name='external-link' size='sm' class='shrink-0 text-brand-primary transition group-hover:translate-x-0.5' %}
+    </a>
+  {%- when 'file' -%}
+    {%- assign exists = site.static_files | where: 'path', v | size -%}
+    {%- if exists > 0 -%}
+    <a class="link-row" href="{{ v | relative_url }}" target="_blank" rel="noopener noreferrer">
+      <span class="flex min-w-0 items-center gap-3">
+        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-accent/15 text-brand-primary-dark">{% include icon.html name='document' size='sm' %}</span>
+        <span class="flex min-w-0 flex-col"><span class="truncate">{{ f.label }}</span><span class="text-xs font-medium text-brand-muted">{{ v | split: '.' | last | upcase }}</span></span>
+      </span>
+      {% include icon.html name='download' size='sm' class='shrink-0 text-brand-primary' %}
+    </a>
+    {%- endif -%}
+  {%- when 'email' -%}
+    <a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="mailto:{{ v }}">{% include icon.html name='mail' size='sm' %}<span class="break-all">{{ v }}</span></a>
+  {%- when 'date' -%}
+    <span>{{ v | date: '%B %-d, %Y' }}</span>
+  {%- when 'boolean' -%}
+    <span>{% if v == true or v == 'Yes' or v == 'true' %}Yes{% else %}No{% endif %}</span>
+  {%- when 'textarea' -%}
+    <span class="whitespace-pre-line">{{ v }}</span>
+  {%- else -%}
+    <span>{{ v }}</span>
+{%- endcase -%}

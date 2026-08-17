@@ -1,0 +1,163 @@
+# GitHub issue form for new entries.
+# GENERATED FILE — do not edit by hand.
+# Regenerate with `npm run generate` after changing _data/schema.yml.
+
+name: Submit a use case (creates PR)
+description: "Share an AI use case, tool or project with the coalition. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved."
+title: "[Use case] "
+labels:
+  - "content:new-entry"
+body:
+  - type: markdown
+    attributes:
+      value: "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content."
+  - type: input
+    id: title
+    attributes:
+      label: Title
+      description: "Short, descriptive name of the solution or project."
+      placeholder: Automated 311 call triage with LLM classification
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: One-sentence summary
+      description: "One or two sentences shown on the catalog card. Plain language, no jargon."
+      placeholder: Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first.
+    validations:
+      required: true
+  - type: input
+    id: organization
+    attributes:
+      label: Organization
+      description: "Health department, city, or member organization sharing this entry."
+      placeholder: Chicago Department of Public Health
+    validations:
+      required: true
+  - type: dropdown
+    id: solution_type
+    attributes:
+      label: Solution type
+      description: What kind of thing is being shared? Pick the closest match.
+      options:
+        - Source code (GitHub or similar)
+        - "Cloud deployment (AWS, Azure, GCP)"
+        - Vendor product or partnership
+        - Internal tool (no code shared)
+        - "Playbook, policy or write-up"
+    validations:
+      required: true
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Public health domain
+      description: Select all that apply.
+      multiple: true
+      options:
+        - "Epidemiology & surveillance"
+        - "Communications & outreach"
+        - "Clinical & community services"
+        - Environmental health
+        - Emergency preparedness
+        - "Operations & administration"
+        - "Data, analytics & informatics"
+        - "Policy & planning"
+    validations:
+      required: true
+  - type: textarea
+    id: ai_tools
+    attributes:
+      label: "AI tools & models used"
+      description: "Comma-separated. Name the models, platforms or libraries that matter. (one per line or comma-separated)"
+      placeholder: "Azure OpenAI GPT-4o, LangChain, custom scikit-learn model"
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Stage
+      description: Where is this today?
+      options:
+        - Idea / exploring
+        - Pilot
+        - In production
+        - Paused or retired
+    validations:
+      required: true
+  - type: input
+    id: repo_url
+    attributes:
+      label: Source code repository
+      description: "Public GitHub / GitLab repository, if code is shared."
+      placeholder: "https://github.com/your-org/your-project"
+    validations:
+      required: false
+  - type: input
+    id: demo_url
+    attributes:
+      label: Live deployment or demo
+      placeholder: "https://example.org/app"
+    validations:
+      required: false
+  - type: input
+    id: docs_url
+    attributes:
+      label: Documentation or write-up
+      description: "Slides, a report, a blog post, or a vendor case study."
+      placeholder: "https://example.org/docs"
+    validations:
+      required: false
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor or partner
+      description: "If a vendor built or hosts the solution, name them here."
+      placeholder: Acme Health AI
+    validations:
+      required: false
+  - type: textarea
+    id: data_sources
+    attributes:
+      label: Data sources
+      description: Comma-separated. What data does the solution use? Public / de-identified only. (one per line or comma-separated)
+      placeholder: "Immunization registry, 311 call transcripts, ESSENCE"
+    validations:
+      required: false
+  - type: input
+    id: contact_name
+    attributes:
+      label: Contact name
+      description: Person others can reach out to with questions.
+      placeholder: Jordan Lee
+    validations:
+      required: true
+  - type: input
+    id: contact_email
+    attributes:
+      label: Contact email
+      placeholder: "jordan.lee@city.gov"
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "**Slide deck or one-pager (PDF)** — GitHub issue forms cannot accept file uploads. After the pull request is created, upload `deck.pdf` into the entry folder."
+  - type: textarea
+    id: body
+    attributes:
+      label: Full write-up
+      description: "Markdown is supported. Suggested headings: Problem, Approach, What it took (data, staffing, cost), Results, Lessons learned, How to reuse."
+      value: |
+        ## Problem
+
+        ## Approach
+
+        ## What it took
+
+        ## Results
+
+        ## Lessons learned
+
+        ## How to reuse this
+    validations:
+      required: true

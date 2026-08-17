@@ -1,0 +1,7 @@
+{%- assign cfg = site.data.site -%}
+{%- assign size = include.size | default: 'h-10 w-10' -%}
+{%- if cfg.logo.image and cfg.logo.image != '' -%}
+  <img class="{{ size }} object-contain" src="{{ cfg.logo.image | relative_url }}" alt="{{ cfg.organization.name | escape }} logo">
+{%- else -%}
+  <span class="inline-flex {{ size }} shrink-0 items-center justify-center rounded-xl bg-brand-primary font-heading text-sm font-bold uppercase tracking-wide text-white {{ include.class }}" aria-hidden="true">{{ cfg.logo.text | default: cfg.organization.short_name | default: cfg.name | slice: 0, 4 }}</span>
+{%- endif -%}

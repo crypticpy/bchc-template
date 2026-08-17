@@ -1,0 +1,83 @@
+---
+layout: default
+include_filters: true
+include_search: true
+---
+{%- assign cfg = site.data.site -%}
+{%- assign schema = site.data.schema -%}
+{%- assign year_key = page.year | append: '' -%}
+{%- assign data = site.data.cohorts[year_key] -%}
+{%- assign plural = schema.entry.plural | default: 'Entries' -%}
+{%- assign entries = site.pages | where: 'layout', 'entry' | where: 'cohort', page.year | sort: 'title' -%}
+{%- assign count = entries | size -%}
+{%- assign now_ts = 'now' | date: '%s' | plus: 0 -%}
+{%- assign next_event = nil -%}
+{%- if data.events -%}
+  {%- for ev in data.events -%}
+    {%- assign ts = ev.date | date: '%s' | plus: 0 -%}
+    {%- if ts >= now_ts and next_event == nil -%}{%- assign next_event = ev -%}{%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+<section class="relative mb-10 overflow-hidden rounded-3xl bg-brand-primary-dark px-6 py-12 text-brand-on-dark shadow-card sm:px-10">
+  <div class="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-primary/40 blur-3xl" aria-hidden="true"></div>
+  <div class="relative space-y-5">
+    {% capture crumbs %}Cohorts|/cohorts/;;{{ page.title }}{% endcapture %}
+    <div class="text-brand-on-dark/80 [&_a]:text-brand-on-dark [&_a]:hover:text-white [&_li[aria-current]]:text-white">{% include breadcrumbs.html items=crumbs %}</div>
+    <div class="flex flex-wrap items-center gap-3">
+      <span class="eyebrow !text-brand-on-dark/80">{{ cfg.organization.name }}</span>
+      {% assign yl = page.year | append: '' %}{% include badge.html label=yl tone='on-dark' size='md' %}
+    </div>
+    <h1 class="font-heading text-4xl font-semibold text-white sm:text-5xl">{{ page.title }}</h1>
+    {% if page.intro %}<p class="max-w-3xl text-lg leading-relaxed text-brand-on-dark/90">{{ page.intro }}</p>{% endif %}
+    <div class="flex flex-wrap gap-3 pt-2">
+      {% assign l1 = count | append: ' ' | append: plural | downcase %}{% include badge.html label=l1 tone='on-dark' size='lg' %}
+      {% if data.events %}{% assign l2 = data.events | size | append: ' events' %}{% include badge.html label=l2 tone='on-dark' size='lg' %}{% endif %}
+    </div>
+  </div>
+</section>
+
+{% if content != '' %}<div class="prose-body mb-10 max-w-3xl">{{ content }}</div>{% endif %}
+
+<div class="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+  <div class="order-2 min-w-0 space-y-8 lg:order-1">
+    {% include facet-filters.html entries=entries %}
+    <section aria-labelledby="cohort-entries" class="space-y-6">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 id="cohort-entries" class="section-title">{{ schema.entry.plural | default: "Entries" }}</h2>
+        <span class="inline-flex items-center gap-2 rounded-full border border-brand-line bg-surface-card px-4 py-2 text-sm font-semibold text-brand-primary-dark shadow-subtle"><span data-entry-count aria-live="polite" aria-atomic="true">{{ count }}</span> <span data-entry-count-label>{{ plural | downcase }}</span></span>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2" data-entry-grid>
+        {% for entry in entries %}{% include entry-card.html entry=entry %}{% endfor %}
+      </div>
+      <div class="hidden" data-empty-state>{% include empty-state.html icon='search' title='No matches' body='Nothing matches the current filters. Try clearing a filter or searching for a different term.' %}</div>
+      {% if count == 0 %}{% include empty-state.html icon='sparkles' title='Projects coming soon' body='Entries for this cohort will appear here once they are published.' %}{% endif %}
+    </section>
+  </div>
+
+  <aside class="order-1 space-y-6 lg:order-2">
+    {% if next_event %}
+      {% assign slug = next_event.slug | default: next_event.id | default: next_event.name | slugify %}
+      {% assign href = '/cohorts/' | append: page.year | append: '/events/' | append: slug | append: '/' %}
+      {% assign has_page = site.pages | where: 'url', href | size %}
+      <section class="card border-l-4 !border-l-brand-accent" aria-labelledby="next-milestone">
+        <div class="card-header flex items-center gap-2"><h2 id="next-milestone" class="card-title flex items-center gap-2">{% include icon.html name='calendar' size='sm' class='text-brand-accent' %} Next milestone</h2></div>
+        <div class="px-6 py-5">
+          <p class="font-semibold text-brand-primary-dark">{% if has_page > 0 %}<a class="hover:underline" href="{{ href | relative_url }}">{{ next_event.name }}</a>{% else %}{{ next_event.name }}{% endif %}</p>
+          <p class="mt-1 text-sm text-brand-muted">{{ next_event.date | date: '%B %-d, %Y' }}{% if next_event.time %} · {{ next_event.time }}{% endif %}</p>
+          {% if next_event.location %}<p class="text-sm text-brand-muted">{{ next_event.location }}</p>{% endif %}
+        </div>
+      </section>
+    {% endif %}
+    {% if data.events %}{% include timeline.html events=data.events year=page.year %}{% endif %}
+    {% if data.materials %}{% include materials.html materials=data.materials title='Learning materials' subtitle='Guides and workshops for this cohort' %}{% endif %}
+    {% if data.policies %}
+      <section class="card" aria-labelledby="cohort-policies">
+        <div class="card-header"><h2 id="cohort-policies" class="card-title">Program policies</h2></div>
+        <ul class="space-y-3 px-6 py-6 text-sm text-brand-ink">
+          {% for policy in data.policies %}<li class="flex gap-3"><span class="mt-1.5 inline-flex h-2 w-2 shrink-0 rounded-full bg-brand-primary"></span><span>{{ policy }}</span></li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  </aside>
+</div>

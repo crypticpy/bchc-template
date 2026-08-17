@@ -1,0 +1,25 @@
+name: Validate Content
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Validate front matter
+        run: ruby scripts/check_front_matter.rb
+
+      - name: Validate file sizes
+        run: ruby scripts/check_file_sizes.rb

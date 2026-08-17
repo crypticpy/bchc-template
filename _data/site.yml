@@ -1,0 +1,86 @@
+# ---------------------------------------------------------------------------
+# Site configuration
+# Edit this file (or run `npm run setup` / open /setup/ on the deployed site)
+# to configure branding, contact details, and which modules are turned on.
+# ---------------------------------------------------------------------------
+
+name: "AI Use Case Catalog"
+tagline: "Shared AI solutions from big-city health departments"
+description: "A shared catalog of AI use cases, tools, and lessons learned from Big Cities Health Coalition member health departments."
+
+organization:
+  name: "Big Cities Health Coalition"
+  short_name: "BCHC"
+  url: "https://www.bigcitieshealth.org"
+  contact_email: "info@bigcitieshealth.org"
+
+# Logo shown in the header/footer. Provide an image path (SVG/PNG under assets/images)
+# or leave `image` blank to show a text mark built from `text`.
+logo:
+  image: ""
+  text: "BCHC"
+
+# GitHub repository that hosts this site, as "owner/repo".
+# Used to build the "Submit" form links, "Edit this page" links, and issue URLs.
+github:
+  repository: "crypticpy/bchc-template"
+  branch: "main"
+
+# Modules: turn site sections on or off. Navigation, home page blocks and
+# workflows adapt automatically.
+modules:
+  catalog: true      # Browsable, filterable catalog of entries (the core)
+  submit: true       # Public "Submit an entry" web form -> GitHub issue -> PR
+  carousel: true     # Featured entries carousel on the home page
+  stats: true        # Headline numbers on the home page
+  events: false      # Events calendar (agenda list) from _data/events.yml
+  cohorts: false     # Cohort / program-year pages with timelines & materials
+  resources: false   # Curated resource library from _data/resources.yml
+
+# Home page copy
+hero:
+  eyebrow: "Big Cities Health Coalition · AI Community of Practice"
+  title: "What health departments are building with AI"
+  lead: "Browse real solutions from member cities — source code, cloud deployments, vendor implementations and write-ups — and share your own so others can learn, reuse and adapt."
+  primary_cta:
+    label: "Browse the catalog"
+    url: "/catalog/"
+  secondary_cta:
+    label: "Share your use case"
+    url: "/submit/"
+
+home:
+  featured_count: 6         # entries in the carousel (featured: true first, then newest)
+  recent_count: 6           # entries in the "Recently added" grid
+  highlights:               # optional 3-up value proposition blocks (leave empty to hide)
+    - eyebrow: "Reuse, don't rebuild"
+      title: "Start from what already works"
+      body: "Every entry links to code, deployments or vendor details so your team can evaluate and adapt quickly."
+    - eyebrow: "Learn from peers"
+      title: "Honest notes on what it took"
+      body: "Entries capture data sources, tools, staffing and lessons learned — not just the demo."
+    - eyebrow: "Contribute"
+      title: "Sharing takes five minutes"
+      body: "Fill out the submission form. Maintainers review it in a pull request and it goes live automatically."
+
+# Submission form settings (module: submit)
+submit:
+  intro: "Share an AI use case, tool or project with the coalition. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved."
+  review_note: "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content."
+  fallback_email: "info@bigcitieshealth.org"   # used when the submitter cannot use GitHub
+
+# Footer
+footer:
+  about: "A collaborative catalog maintained by the coalition's AI community of practice. Content is contributed by member health departments and reviewed before publication."
+  links:
+    - label: "Big Cities Health Coalition"
+      url: "https://www.bigcitieshealth.org"
+    - label: "Submit an entry"
+      url: "/submit/"
+    - label: "Maintainer guide"
+      url: "https://github.com/crypticpy/bchc-template/blob/main/docs/admin-guide.md"
+  copyright: "Big Cities Health Coalition"
+
+# Optional analytics snippet id (leave blank to disable). Example: Plausible domain.
+analytics:
+  plausible_domain: ""

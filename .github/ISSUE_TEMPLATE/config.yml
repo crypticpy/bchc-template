@@ -1,0 +1,6 @@
+# Update the contact link URL to point at your own repository after forking.
+blank_issues_enabled: true
+contact_links:
+  - name: Maintainer guide
+    url: https://github.com/crypticpy/bchc-template/blob/main/docs/admin-guide.md
+    about: How submissions become pull requests, how to review them, and how to configure the site.
