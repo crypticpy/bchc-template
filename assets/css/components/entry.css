@@ -1,8 +1,52 @@
-/* Entry detail page: fact strip, gallery, TOC, reuse card.
-   Owned by the entry-page workstream (see docs/design-brief.md → Entry page). */
+/* Entry detail page: fact strip, gallery + lightbox, table of contents, sidebar rail.
+   Owned by the entry-page workstream (see docs/design-brief.md → Entry page).
+   Structure comes from hairlines and spacing only — no shadow below E1. */
 @layer components {
-  .fact-strip { @apply grid grid-cols-2 overflow-hidden rounded-xl border border-brand-line bg-surface-card sm:grid-cols-4; }
-  .fact { @apply flex min-w-0 flex-col gap-1 border-b border-r border-brand-line p-4 last:border-r-0 sm:border-b-0; }
+  /* ---- Fact strip ----------------------------------------------------- */
+  /* gap-px over a line-coloured ground draws the internal rules, so the grid
+     stays clean at any number of facts (unlike per-cell borders). */
+  .fact-strip { @apply grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-brand-line bg-brand-line sm:grid-cols-4; }
+  .fact { @apply flex min-w-0 flex-col gap-1 bg-surface-card p-4; }
   .fact-label { @apply text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-muted; }
-  .fact-value { @apply flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-brand-ink; }
+  .fact-value { @apply flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold leading-5 text-brand-ink; }
+  .fact-item { @apply inline-flex min-w-0 items-center gap-1.5; }
+  .fact-item-warn { @apply fact-item text-brand-warn; }
+
+  /* ---- Sidebar rail --------------------------------------------------- */
+  .rail-card { @apply card p-5; }
+  .rail-title { @apply text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-muted; }
+  .rail-list { @apply mt-3 space-y-3 text-sm; }
+  .rail-term { @apply text-xs font-semibold text-brand-muted; }
+  .rail-def { @apply mt-0.5 text-sm text-brand-ink; }
+
+  /* ---- Table of contents ---------------------------------------------- */
+  .toc-link { @apply block border-l-2 border-brand-line py-1 pl-3 text-sm text-brand-muted transition-colors duration-120 ease-brand hover:text-brand-primary; }
+  .toc-link[aria-current="true"] { @apply border-brand-primary font-semibold text-brand-primary; }
+
+  /* ---- Gallery -------------------------------------------------------- */
+  .gallery-item { @apply relative block w-full overflow-hidden rounded-lg border border-brand-line bg-surface-card transition-colors duration-120 ease-brand hover:border-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30; }
+  .gallery-item > img { @apply h-full w-full object-cover; }
+  .gallery-lead { @apply gallery-item aspect-[16/9]; }
+  .gallery-thumb { @apply gallery-item aspect-[4/3]; }
+
+  /* ---- Lightbox ------------------------------------------------------- */
+  .lightbox { @apply w-[min(94vw,1080px)] max-w-none rounded-xl border border-brand-line bg-surface-card p-0 text-brand-ink; }
+  .lightbox::backdrop { background: rgb(0 0 0 / 0.72); }
+  .lightbox-stage { @apply flex items-center justify-center bg-brand-primary-dark; }
+  .lightbox-stage img { @apply max-h-[70vh] w-auto max-w-full object-contain; }
+  .lightbox-bar { @apply flex items-center justify-between gap-3 border-t border-brand-line px-4 py-3; }
+  .lightbox-nav { @apply inline-flex h-11 w-11 items-center justify-center rounded-full border border-brand-line-strong bg-surface-card text-brand-primary transition-colors duration-120 hover:border-brand-primary hover:bg-brand-primary/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30 disabled:opacity-40; }
+
+  /* Component classes set `display`, which outranks preflight's `[hidden]`
+     because they sit in a later cascade layer. Buttons that JS reveals must
+     honour the attribute, so restate it at higher specificity. */
+  .entry-rail [hidden], .lightbox [hidden] { display: none !important; }
+
+  /* ---- Print ---------------------------------------------------------- */
+  /* The rail is a normal block after the prose; interactive chrome disappears. */
+  @media print {
+    .entry-rail { position: static !important; width: auto !important; }
+    .entry-no-print { display: none !important; }
+    .fact-strip { break-inside: avoid; }
+  }
 }

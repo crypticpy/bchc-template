@@ -1,0 +1,46 @@
+{%- comment -%}
+One sidebar card for a schema group — "Reuse this", "Contact", or any other group
+the entry page hands it. Renders every field of that group that has a value and
+has not already been shown elsewhere on the page, as a label/value list.
+Emits nothing when nothing is left, so the rail never shows a labelled void.
+
+Usage:
+  {% include reuse-card.html fields=ent_fields entry=page group='reuse' title='Reuse this' icon='rocket' shown=ent_shown %}
+    fields  schema.fields
+    entry   the entry page object
+    group   group key from schema.groups
+    title   card heading (defaults to the group key)
+    icon    optional icon name shown beside the heading
+    shown   optional "|key|key|" string of field keys already rendered elsewhere
+    id      optional element id for the <section> (defaults to "rail-<group>")
+
+Local assigns are prefixed `rc_` so nothing leaks into the caller's scope.
+{%- endcomment -%}
+{%- assign rc_fields = include.fields | fields_in_group: include.group -%}
+{%- assign rc_entry = include.entry -%}
+{%- assign rc_shown = include.shown | default: '' -%}
+{%- capture rc_default_id -%}rail-{{ include.group }}{%- endcapture -%}
+{%- assign rc_id = include.id | default: rc_default_id -%}
+
+{%- capture rc_rows -%}
+  {%- for rc_f in rc_fields -%}
+    {%- assign rc_key = '|' | append: rc_f.key | append: '|' -%}
+    {%- if rc_shown contains rc_key -%}{%- continue -%}{%- endif -%}
+    {%- comment -%} Long-form link lists belong in the body, not a 280px rail. {%- endcomment -%}
+    {%- if rc_f.type == 'markdown' or rc_f.type == 'links' -%}{%- continue -%}{%- endif -%}
+    {%- assign rc_v = rc_entry[rc_f.key] -%}
+    {%- if rc_v == nil or rc_v == '' or rc_v == empty -%}{%- continue -%}{%- endif -%}
+    <div>
+      <dt class="rail-term">{{ rc_f.label | escape }}</dt>
+      <dd class="rail-def">{% include field-value.html field=rc_f value=rc_v %}</dd>
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- assign rc_rows = rc_rows | strip -%}
+{%- if rc_rows != '' -%}
+<section class="rail-card" aria-labelledby="{{ rc_id }}-heading" id="{{ rc_id }}">
+  <h2 class="rail-title flex items-center gap-1.5" id="{{ rc_id }}-heading">{%- if include.icon -%}{% include icon.html name=include.icon size='xs' %}{%- endif -%}{{ include.title | default: include.group }}</h2>
+  <dl class="rail-list">{{ rc_rows }}</dl>
+</section>
+{%- endif -%}

@@ -1,16 +1,23 @@
-{%- comment -%} Usage: {% include breadcrumbs.html items="Catalog|/catalog/;;Entry title" %} (segments separated by ;; label|url; last item has no url) {%- endcomment -%}
-{%- assign items = include.items | split: ';;' -%}
-<nav class="text-sm" aria-label="Breadcrumb">
-  <ol class="flex flex-wrap items-center gap-2 text-brand-muted">
-    <li><a class="inline-flex items-center gap-1 text-brand-primary transition hover:text-brand-primary-dark hover:underline" href="{{ '/' | relative_url }}">{% include icon.html name='home' size='xs' %} Home</a></li>
-    {% for item in items %}
-      {% assign parts = item | split: '|' %}
+{%- comment -%}
+Breadcrumb trail. Usage:
+  {% include breadcrumbs.html items="Catalog|/catalog/;;Entry title" %}
+Segments are separated by `;;`, each is `label|url`; the last item has no url and
+becomes `aria-current="page"`. A "Home" crumb is always prepended.
+Optional: class="" (extra classes on the <nav>).
+Local assigns are prefixed `bc_` so nothing leaks into the caller's scope.
+{%- endcomment -%}
+{%- assign bc_items = include.items | split: ';;' -%}
+<nav class="text-sm {{ include.class }}" aria-label="Breadcrumb">
+  <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-brand-muted">
+    <li><a class="inline-flex items-center gap-1 text-brand-primary transition-colors duration-120 hover:text-brand-primary-dark hover:underline" href="{{ '/' | relative_url }}">{% include icon.html name='home' size='xs' %} Home</a></li>
+    {%- for bc_item in bc_items -%}
+      {%- assign bc_parts = bc_item | split: '|' -%}
       <li aria-hidden="true">/</li>
-      {% if parts[1] %}
-        <li><a class="text-brand-primary transition hover:text-brand-primary-dark hover:underline" href="{{ parts[1] | relative_url }}">{{ parts[0] }}</a></li>
-      {% else %}
-        <li class="truncate max-w-[16rem] text-brand-ink" aria-current="page">{{ parts[0] }}</li>
-      {% endif %}
-    {% endfor %}
+      {%- if bc_parts[1] -%}
+        <li><a class="text-brand-primary transition-colors duration-120 hover:text-brand-primary-dark hover:underline" href="{{ bc_parts[1] | relative_url }}">{{ bc_parts[0] }}</a></li>
+      {%- else -%}
+        <li class="max-w-[18rem] truncate text-brand-ink" aria-current="page">{{ bc_parts[0] }}</li>
+      {%- endif -%}
+    {%- endfor -%}
   </ol>
 </nav>

@@ -1,0 +1,45 @@
+{%- comment -%}
+"Is this reusable for us?" — the at-a-glance strip at the top of an entry page.
+
+Renders every field whose effective card slot is `icon` (the signal fields), plus
+any `card: meta` field that has not already been shown in the page header. Values
+carry their `option_meta` icon, `description` (as a tooltip) and `warn` tone.
+Facts with no value are skipped; the whole strip disappears when nothing is left.
+
+Usage:
+  {% include fact-strip.html fields=ent_fields entry=page shown=ent_shown %}
+    fields  schema.fields
+    entry   the entry page object
+    shown   optional "|key|key|" string of field keys already rendered elsewhere
+
+Local assigns are prefixed `fs_` so nothing leaks into the caller's scope.
+{%- endcomment -%}
+{%- assign fs_fields = include.fields -%}
+{%- assign fs_entry = include.entry -%}
+{%- assign fs_shown = include.shown | default: '' -%}
+{%- assign fs_icon_fields = fs_fields | card_fields: 'icon' -%}
+{%- assign fs_meta_fields = fs_fields | card_fields: 'meta' -%}
+{%- assign fs_candidates = fs_icon_fields | concat: fs_meta_fields -%}
+
+{%- capture fs_items -%}
+  {%- for fs_f in fs_candidates -%}
+    {%- assign fs_key = '|' | append: fs_f.key | append: '|' -%}
+    {%- if fs_shown contains fs_key -%}{%- continue -%}{%- endif -%}
+    {%- assign fs_values = fs_entry[fs_f.key] | as_list -%}
+    {%- if fs_values.size == 0 -%}{%- continue -%}{%- endif -%}
+    <div class="fact">
+      <dt class="fact-label">{{ fs_f.label | escape }}</dt>
+      <dd class="fact-value">
+        {%- for fs_v in fs_values -%}
+          {%- assign fs_om = fs_f | option_meta: fs_v -%}
+          <span class="{% if fs_om.tone == 'warn' %}fact-item-warn{% else %}fact-item{% endif %}"{% if fs_om.description != '' %} title="{{ fs_om.description | escape }}"{% endif %}>{%- if fs_om.icon != '' -%}{% include icon.html name=fs_om.icon size='sm' %}{%- endif -%}<span class="min-w-0">{{ fs_v | escape }}</span></span>
+        {%- endfor -%}
+      </dd>
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- assign fs_items = fs_items | strip -%}
+{%- if fs_items != '' -%}
+<dl class="fact-strip">{{ fs_items }}</dl>
+{%- endif -%}

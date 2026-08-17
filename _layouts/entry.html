@@ -1,111 +1,201 @@
 ---
 layout: default
+scripts:
+  - /assets/js/gallery.js
+  - /assets/js/entry.js
 ---
-{%- assign schema = site.data.schema -%}
-{%- assign cfg = site.data.site -%}
-{%- assign fields = schema.fields -%}
-{%- assign plural = schema.entry.plural | default: 'Entries' -%}
-{%- assign singular = schema.entry.singular | default: 'Entry' -%}
-{%- assign epath = schema.entry.path | default: 'catalog' -%}
-{%- assign catalog_url = '/' | append: epath | append: '/' -%}
-{%- capture crumbs -%}{{ plural }}|{{ catalog_url }};;{{ page.title }}{%- endcapture -%}
+{%- comment -%}
+Entry detail page. Every block is driven by _data/schema.yml — no field key is
+named here. Which block a field lands in comes from its `card` slot, `type` and
+`group`:
 
-<article class="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-  <section class="min-w-0 space-y-6">
-    {% include breadcrumbs.html items=crumbs %}
-    <div class="flex flex-wrap gap-2">
-      {% for f in fields %}
-        {% if f.type == 'select' and f.facet and page[f.key] and page[f.key] != '' %}
-          {% assign tone = 'primary' %}{% if forloop.index0 == 1 %}{% assign tone = 'secondary' %}{% elsif forloop.index0 > 1 %}{% assign tone = 'accent' %}{% endif %}
-          {% assign bl = page[f.key] %}{% include badge.html label=bl tone=tone size="lg" %}
-        {% endif %}
-      {% endfor %}
-      {% if page.featured %}{% include badge.html label='Featured' tone='accent' size='lg' %}{% endif %}
-    </div>
-    <h1 class="font-heading text-4xl font-semibold leading-tight text-brand-primary-dark sm:text-5xl">{{ page.title }}</h1>
-    {% if page.summary %}<p class="text-lg leading-relaxed text-brand-muted">{{ page.summary }}</p>{% endif %}
-    {% capture meta %}{% for f in fields %}{% if f.type == 'text' and f.card and page[f.key] and page[f.key] != '' %}<span class="inline-flex items-center gap-1.5">{% include icon.html name='building' size='sm' class='text-brand-primary' %}{{ page[f.key] }}</span>{% endif %}{% endfor %}{% endcapture %}
-    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium text-brand-ink">
-      {{ meta }}
-      {% if page.published %}<span class="inline-flex items-center gap-1.5 text-brand-muted">{% include icon.html name='calendar' size='sm' class='text-brand-primary' %}Published {{ page.published | date: '%B %-d, %Y' }}</span>{% endif %}
-    </div>
+  header      title, summary, `card: line`, `card: badge`, `card: meta`, `url` fields
+  fact strip  `card: icon` fields (+ any `card: meta` field the header did not use)
+  gallery     `images` and `file` fields
+  rail        the `reuse` and `contact` groups, then the TOC and provenance
+  sections    every remaining group, in schema `groups` order, as a <dl>
 
-    <div class="prose-body">
-      {{ content }}
-    </div>
+Blocks are captured in claim order at the top of the file and printed further
+down in reading order. `ent_shown` accumulates the keys already rendered
+("|a|b|") so no field appears twice and empty blocks disappear instead of
+leaving a labelled void. All assigns are prefixed `ent_`.
+{%- endcomment -%}
+{%- assign ent_schema = site.data.schema -%}
+{%- assign ent_cfg = site.data.site -%}
+{%- assign ent_fields = ent_schema.fields -%}
+{%- assign ent_plural = ent_schema.entry.plural | default: 'Entries' -%}
+{%- assign ent_singular = ent_schema.entry.singular | default: 'Entry' -%}
+{%- assign ent_path = ent_schema.entry.path | default: 'catalog' -%}
+{%- assign ent_catalog_url = '/' | append: ent_path | append: '/' -%}
+{%- capture ent_crumbs -%}{{ ent_plural }}|{{ ent_catalog_url }};;{{ page.title }}{%- endcapture -%}
 
-    <div class="flex flex-wrap items-center gap-3 border-t border-brand-line pt-6 text-sm">
-      {% if cfg.github.repository and cfg.github.repository != '' %}
-        <a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ cfg.github.repository }}/edit/{{ cfg.github.branch | default: 'main' }}/{{ page.path }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='edit' size='sm' %} Suggest an edit on GitHub</a>
-        <span class="text-brand-line" aria-hidden="true">|</span>
-        <a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ cfg.github.repository }}/issues/new?title={{ 'Update: ' | append: page.title | query_encode }}&body={{ 'Requested change for ' | append: page.url | append: ':%0A%0A' }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='mail' size='sm' %} Report an issue with this {{ singular | downcase }}</a>
-      {% endif %}
-    </div>
-  </section>
+{%- comment -%} Group keys the sidebar rail claims before the body sections run. {%- endcomment -%}
+{%- assign ent_rail_groups = 'reuse,contact' | split: ',' -%}
 
-  <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
-    <div class="card">
-      <div class="h-52 overflow-hidden">{% include entry-thumb.html entry=page %}</div>
-    </div>
+{%- comment -%} 1. Engine keys the page furniture renders itself (schema contract §4). {%- endcomment -%}
+{%- assign ent_shown = '|title|slug|summary|published|updated|thumbnail|featured|' -%}
+{%- for ent_f in ent_fields -%}
+  {%- if ent_f.type == 'markdown' or ent_f.type == 'image' -%}
+    {%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}
+  {%- endif -%}
+{%- endfor -%}
 
-    {% comment %} ---- Sections: details / links / contact, computed from field type/section ---- {% endcomment %}
-    {% assign section_keys = 'details,links,contact' | split: ',' %}
-    {% for sec in section_keys %}
-      {% capture section_html %}
-        {% for f in fields %}
-          {% if f.type == 'markdown' or f.key == 'title' or f.key == 'summary' or f.type == 'image' %}{% continue %}{% endif %}
-          {% assign v = page[f.key] %}
-          {% if v == nil or v == '' or v == empty %}{% continue %}{% endif %}
-          {% capture fsec %}{% if f.section %}{{ f.section }}{% elsif f.type == 'url' or f.type == 'file' %}links{% elsif f.type == 'email' or f.key contains 'contact' %}contact{% else %}details{% endif %}{% endcapture %}
-          {% assign fsec = fsec | strip %}
-          {% if fsec != sec %}{% continue %}{% endif %}
-          {% if f.type == 'url' or f.type == 'file' %}
-            <li>{% include field-value.html field=f entry=page %}</li>
-          {% else %}
-            <div class="flex flex-col gap-1.5">
-              <dt class="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-muted">{{ f.label }}</dt>
-              <dd class="text-sm text-brand-ink">{% include field-value.html field=f entry=page %}</dd>
-            </div>
-          {% endif %}
-        {% endfor %}
-      {% endcapture %}
-      {% assign section_html = section_html | strip %}
-      {% if section_html != '' %}
-        <section class="card" aria-labelledby="section-{{ sec }}">
-          <div class="card-header"><h2 id="section-{{ sec }}" class="card-title">{{ schema.sections[sec] | default: sec | capitalize }}</h2></div>
-          {% if sec == 'links' %}
-            <ul class="space-y-3 px-6 py-6">{{ section_html }}</ul>
-          {% else %}
-            <dl class="space-y-5 px-6 py-6">{{ section_html }}</dl>
-          {% endif %}
-        </section>
-      {% endif %}
-    {% endfor %}
+{%- comment -%} 2. Header slots. {%- endcomment -%}
+{%- assign ent_badge_fields = ent_fields | card_fields: 'badge' -%}
+{%- assign ent_meta_fields = ent_fields | card_fields: 'meta' -%}
+{%- assign ent_line_fields = ent_fields | card_fields: 'line' -%}
+{%- assign ent_url_fields = ent_fields | where: 'type', 'url' | sort_by_weight -%}
+{%- assign ent_header_fields = ent_badge_fields | concat: ent_meta_fields | concat: ent_line_fields | concat: ent_url_fields -%}
+{%- for ent_f in ent_header_fields -%}
+  {%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}
+{%- endfor -%}
 
-    {% assign demo = nil %}
-    {% for f in fields %}{% if f.key == 'demo_url' or f.key == 'dashboard_url' %}{% assign demo = page[f.key] %}{% endif %}{% endfor %}
-    {% if page.embed_url and page.embed_url != '' %}
-      <section class="card">
-        <div class="aspect-[16/10]"><iframe src="{{ page.embed_url }}" title="{{ page.embed_title | default: page.title | escape }}" class="h-full w-full" loading="lazy"></iframe></div>
+{%- comment -%} 3. Fact strip: the `card: icon` signal fields. {%- endcomment -%}
+{%- capture ent_facts -%}{% include fact-strip.html fields=ent_fields entry=page shown=ent_shown %}{%- endcapture -%}
+{%- assign ent_facts = ent_facts | strip -%}
+{%- for ent_f in ent_fields -%}
+  {%- assign ent_slot = ent_f | card_slot -%}
+  {%- if ent_slot == 'icon' -%}{%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}{%- endif -%}
+{%- endfor -%}
+
+{%- comment -%} 4. Media: image galleries and downloadable files. {%- endcomment -%}
+{%- capture ent_media -%}
+  {%- for ent_f in ent_fields -%}
+    {%- if ent_f.type != 'images' and ent_f.type != 'file' -%}{%- continue -%}{%- endif -%}
+    {%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}
+    {%- assign ent_v = page[ent_f.key] -%}
+    {%- if ent_v == nil or ent_v == '' or ent_v == empty -%}{%- continue -%}{%- endif -%}
+    <div class="{% if ent_f.type == 'file' %}max-w-md{% endif %}">{% include gallery.html field=ent_f entry=page %}</div>
+  {%- endfor -%}
+{%- endcapture -%}
+{%- assign ent_media = ent_media | strip -%}
+
+{%- comment -%} 5. Rail cards, captured before the keys are claimed. {%- endcomment -%}
+{%- capture ent_rail_cards -%}
+  {%- for ent_gkey in ent_rail_groups -%}
+    {%- assign ent_g = ent_schema.groups | where: 'key', ent_gkey | first -%}
+    {%- if ent_g == nil -%}{%- continue -%}{%- endif -%}
+    {% include reuse-card.html fields=ent_fields entry=page group=ent_gkey title=ent_g.title icon=ent_g.icon shown=ent_shown %}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- for ent_gkey in ent_rail_groups -%}
+  {%- assign ent_gf = ent_fields | fields_in_group: ent_gkey -%}
+  {%- for ent_f in ent_gf -%}
+    {%- comment -%} reuse-card.html leaves link lists to the body; don't claim them here. {%- endcomment -%}
+    {%- if ent_f.type == 'links' -%}{%- continue -%}{%- endif -%}
+    {%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}
+  {%- endfor -%}
+{%- endfor -%}
+
+{%- comment -%} 6. Body sections, one per remaining schema group. {%- endcomment -%}
+{%- assign ent_groups = ent_schema.groups | groups_for: ent_fields -%}
+{%- assign ent_section_index = '' -%}
+{%- capture ent_sections -%}
+  {%- for ent_g in ent_groups -%}
+    {%- assign ent_gf = ent_fields | fields_in_group: ent_g.key -%}
+    {%- capture ent_rows -%}
+      {%- for ent_f in ent_gf -%}
+        {%- assign ent_k = '|' | append: ent_f.key | append: '|' -%}
+        {%- if ent_shown contains ent_k -%}{%- continue -%}{%- endif -%}
+        {%- assign ent_v = page[ent_f.key] -%}
+        {%- if ent_v == nil or ent_v == '' or ent_v == empty -%}{%- continue -%}{%- endif -%}
+        <div class="grid gap-1 py-3 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-4">
+          <dt class="text-sm font-semibold text-brand-muted">{{ ent_f.label | escape }}</dt>
+          <dd class="min-w-0 text-sm text-brand-ink">{% include field-value.html field=ent_f value=ent_v %}</dd>
+        </div>
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- assign ent_rows = ent_rows | strip -%}
+    {%- if ent_rows != '' -%}
+      {%- assign ent_section_index = ent_section_index | append: 'section-' | append: ent_g.key | append: '|' | append: ent_g.title | append: ';;' -%}
+      <section class="scroll-mt-24" id="section-{{ ent_g.key }}" aria-labelledby="section-{{ ent_g.key }}-heading">
+        <h2 class="font-heading text-2xl font-semibold leading-tight text-brand-primary-dark" id="section-{{ ent_g.key }}-heading">{{ ent_g.title | escape }}</h2>
+        <dl class="mt-2 divide-y divide-brand-line">{{ ent_rows }}</dl>
       </section>
-    {% endif %}
-  </aside>
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- comment -%} 7. Eyebrow: the `card: meta` values joined with a middot. {%- endcomment -%}
+{%- assign ent_meta_bits = '' -%}
+{%- for ent_f in ent_meta_fields -%}
+  {%- assign ent_v = page[ent_f.key] | as_list | join: ', ' -%}
+  {%- if ent_v != '' -%}{%- assign ent_meta_bits = ent_meta_bits | append: ent_v | append: ' · ' -%}{%- endif -%}
+{%- endfor -%}
+{%- assign ent_eyebrow = ent_meta_bits | split: ' · ' | join: ' · ' -%}
+
+<article>
+  <header class="space-y-5">
+    {% include breadcrumbs.html items=ent_crumbs %}
+
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+      {%- if ent_eyebrow != '' -%}<p class="eyebrow">{{ ent_eyebrow | escape }}</p>{%- endif -%}
+      {%- for ent_f in ent_badge_fields -%}
+        {%- assign ent_v = page[ent_f.key] -%}
+        {%- if ent_v and ent_v != '' -%}{% include field-value.html field=ent_f value=ent_v %}{%- endif -%}
+      {%- endfor -%}
+      {%- if page.featured -%}{% include badge.html label='Featured' tone='accent' size='md' icon='star' %}{%- endif -%}
+    </div>
+
+    <h1 class="max-w-prose font-heading text-3xl font-semibold leading-tight text-brand-primary-dark sm:text-4xl">{{ page.title | escape }}</h1>
+
+    {%- for ent_f in ent_line_fields -%}
+      {%- assign ent_v = page[ent_f.key] -%}
+      {%- if ent_v and ent_v != '' -%}
+        <p class="flex max-w-prose items-start gap-2 text-lg font-semibold leading-snug text-brand-ink">{% include icon.html name=ent_f.icon size='md' class='mt-0.5 text-brand-primary' %}<span><span class="sr-only">{{ ent_f.label | escape }}: </span>{{ ent_v | escape }}</span></p>
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if page.summary -%}<p class="max-w-prose text-base leading-relaxed text-brand-muted">{{ page.summary }}</p>{%- endif -%}
+
+    <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-brand-muted">
+      {%- if page.published -%}<span class="inline-flex items-center gap-1.5">{% include icon.html name='calendar' size='sm' %}Published {{ page.published | date: '%B %-d, %Y' }}</span>{%- endif -%}
+      {%- if page.updated -%}<span class="inline-flex items-center gap-1.5">{% include icon.html name='clock' size='sm' %}Updated {{ page.updated | date: '%B %-d, %Y' }}</span>{%- endif -%}
+    </p>
+
+    {%- capture ent_actions -%}
+      {%- assign ent_action_index = 0 -%}
+      {%- for ent_f in ent_url_fields -%}
+        {%- assign ent_v = page[ent_f.key] -%}
+        {%- if ent_v == nil or ent_v == '' -%}{%- continue -%}{%- endif -%}
+        {%- if ent_action_index == 0 -%}{%- assign ent_btn = 'btn-primary' -%}{%- else -%}{%- assign ent_btn = 'btn-secondary' -%}{%- endif -%}
+        {%- assign ent_action_index = ent_action_index | plus: 1 -%}
+        {%- assign ent_action_icon = ent_f.icon | default: 'external-link' -%}
+        <a class="{{ ent_btn }}" href="{{ ent_v }}" target="_blank" rel="noopener noreferrer">{% include icon.html name=ent_action_icon size='sm' %}{{ ent_f.label | escape }}<span class="hidden text-xs font-normal opacity-70 sm:inline">{{ ent_v | link_host }}</span><span class="sr-only"> (opens in a new tab)</span>{% include icon.html name='external-link' size='xs' %}</a>
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- assign ent_actions = ent_actions | strip -%}
+    {%- if ent_actions != '' -%}
+    <div class="entry-no-print flex flex-wrap gap-3">{{ ent_actions }}</div>
+    {%- endif -%}
+  </header>
+
+  {%- if ent_facts != '' -%}<div class="mt-8">{{ ent_facts }}</div>{%- endif -%}
+  {%- if ent_media != '' -%}<div class="mt-8 space-y-6">{{ ent_media }}</div>{%- endif -%}
+
+  <div class="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
+    <div class="min-w-0 space-y-10">
+      <div class="prose-body">{{ content }}</div>
+      {{ ent_sections }}
+    </div>
+
+    <aside class="entry-rail space-y-6 lg:sticky lg:top-24 lg:self-start" aria-label="About this {{ ent_singular | downcase }}">
+      <div class="hidden lg:block">{% include toc.html content=content sections=ent_section_index %}</div>
+      {{ ent_rail_cards }}
+      <section class="rail-card" aria-labelledby="rail-share-heading">
+        <h2 class="rail-title" id="rail-share-heading">Share &amp; provenance</h2>
+        <button type="button" class="btn-secondary btn-sm entry-no-print mt-3 w-full" data-copy-link hidden>{% include icon.html name='copy' size='sm' %}Copy link</button>
+        <p class="mt-2 text-xs text-brand-muted" data-copy-status role="status"></p>
+        {%- if ent_cfg.github.repository and ent_cfg.github.repository != '' -%}
+        <ul class="entry-no-print mt-3 space-y-2 text-sm" role="list">
+          <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/edit/{{ ent_cfg.github.branch | default: 'main' }}/{{ page.path }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='edit' size='sm' %}Suggest an edit<span class="sr-only"> (opens in a new tab)</span></a></li>
+          <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/issues/new?title={{ 'Update: ' | append: page.title | query_encode }}&amp;body={{ 'Requested change for ' | append: page.url | append: ':%0A%0A' }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='flag' size='sm' %}Report an issue<span class="sr-only"> (opens in a new tab)</span></a></li>
+        </ul>
+        {%- endif -%}
+      </section>
+    </aside>
+  </div>
 </article>
 
-{%- comment -%} Related entries: share the first facet value {%- endcomment -%}
-{%- assign first_facet = fields | where: 'facet', true | first -%}
-{%- assign facet_val = page[first_facet.key] -%}
-{%- if first_facet and facet_val and facet_val != '' and facet_val.first == nil -%}
-  {%- assign related = site.pages | where: 'layout', 'entry' | where: first_facet.key, page[first_facet.key] | where_exp: 'e', 'e.url != page.url' | slice: 0, 3 -%}
-  {%- if related.size > 0 -%}
-  <section class="mt-16">
-    <div class="mb-6 flex items-end justify-between gap-4">
-      <div><h2 class="section-title">More from {{ page[first_facet.key] }}</h2><p class="section-lead">Other {{ plural | downcase }} sharing this {{ first_facet.label | downcase }}.</p></div>
-      <a class="inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}?{{ first_facet.key }}={{ page[first_facet.key] | slugify }}">View all {% include icon.html name='arrow-right' size='sm' %}</a>
-    </div>
-    <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-      {% for e in related %}{% include entry-card.html entry=e %}{% endfor %}
-    </div>
-  </section>
-  {%- endif -%}
-{%- endif -%}
+{%- assign ent_pool = site.pages | where: 'layout', 'entry' -%}
+{% include related-entries.html entry=page fields=ent_fields entries=ent_pool title='Related' limit=3 %}

@@ -1,0 +1,81 @@
+{%- comment -%}
+"Related" — the other entries that share the most facet values with this one.
+
+Scoring is deliberately simple and schema-driven: for every other entry, count the
+values it shares with this entry across all `facet: true` fields. The highest
+scores win; when fewer than `limit` entries share anything, the most recently
+published entries top the list up. Bounded to one pass over the pool per field —
+fine for a few hundred entries, which is the size this template targets.
+
+Usage:
+  {% include related-entries.html entry=page fields=ent_fields entries=ent_pool title="Related" limit=3 %}
+    entry    the current entry page
+    fields   schema.fields
+    entries  the pool to search (e.g. site.pages | where: 'layout', 'entry')
+    title    heading text
+    limit    how many to show (default 3)
+
+Cards come from entry-card.html, which renders an <li>. Local assigns are
+prefixed `rel_` so nothing leaks into the caller's scope.
+{%- endcomment -%}
+{%- assign rel_self = include.entry -%}
+{%- assign rel_pool = include.entries -%}
+{%- assign rel_limit = include.limit | default: 3 -%}
+{%- assign rel_facets = include.fields | facet_fields -%}
+
+{%- assign rel_rows = '' -%}
+{%- for rel_e in rel_pool -%}
+  {%- if rel_e.url == rel_self.url -%}{%- continue -%}{%- endif -%}
+  {%- assign rel_score = 0 -%}
+  {%- for rel_f in rel_facets -%}
+    {%- assign rel_mine = rel_self[rel_f.key] | as_list -%}
+    {%- if rel_mine.size == 0 -%}{%- continue -%}{%- endif -%}
+    {%- assign rel_theirs = rel_e[rel_f.key] | as_list | join: '|' -%}
+    {%- if rel_theirs == '' -%}{%- continue -%}{%- endif -%}
+    {%- assign rel_theirs = '|' | append: rel_theirs | append: '|' -%}
+    {%- for rel_v in rel_mine -%}
+      {%- assign rel_needle = '|' | append: rel_v | append: '|' -%}
+      {%- if rel_theirs contains rel_needle -%}{%- assign rel_score = rel_score | plus: 1 -%}{%- endif -%}
+    {%- endfor -%}
+  {%- endfor -%}
+  {%- if rel_score > 0 -%}
+    {%- assign rel_padded = rel_score | plus: 100 -%}
+    {%- capture rel_rows -%}{{ rel_rows }}{{ rel_padded }}~{{ rel_e.url }};;{%- endcapture -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- comment -%} Highest score first; the 3-digit pad keeps the string sort numeric. {%- endcomment -%}
+{%- assign rel_sorted = rel_rows | split: ';;' | sort | reverse -%}
+{%- assign rel_urls = '' -%}
+{%- assign rel_n = 0 -%}
+{%- for rel_r in rel_sorted limit: rel_limit -%}
+  {%- assign rel_u = rel_r | split: '~' | last -%}
+  {%- capture rel_urls -%}{{ rel_urls }}{{ rel_u }};;{%- endcapture -%}
+  {%- assign rel_n = rel_n | plus: 1 -%}
+{%- endfor -%}
+
+{%- if rel_n < rel_limit -%}
+  {%- assign rel_recent = rel_pool | sort: 'published' | reverse -%}
+  {%- for rel_e in rel_recent -%}
+    {%- if rel_n >= rel_limit -%}{%- break -%}{%- endif -%}
+    {%- if rel_e.url == rel_self.url -%}{%- continue -%}{%- endif -%}
+    {%- assign rel_mark = rel_e.url | append: ';;' -%}
+    {%- unless rel_urls contains rel_mark -%}
+      {%- capture rel_urls -%}{{ rel_urls }}{{ rel_e.url }};;{%- endcapture -%}
+      {%- assign rel_n = rel_n | plus: 1 -%}
+    {%- endunless -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- assign rel_final = rel_urls | split: ';;' -%}
+{%- if rel_final.size > 0 -%}
+<section class="mt-16 border-t border-brand-line pt-10" aria-labelledby="related-heading">
+  <h2 class="section-title" id="related-heading">{{ include.title | default: 'Related' }}</h2>
+  <ul class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
+    {%- for rel_u in rel_final -%}
+      {%- assign rel_hit = rel_pool | where: 'url', rel_u | first -%}
+      {%- if rel_hit -%}{% include entry-card.html entry=rel_hit %}{%- endif -%}
+    {%- endfor -%}
+  </ul>
+</section>
+{%- endif -%}
