@@ -114,7 +114,7 @@ test('downloadImages caps the file count and the total size', async () => {
   assert.ok(result.warnings.some((w) => /add up to more than/.test(w)));
 });
 
-test('downloadImages keeps the remote URL when a fetch fails', async () => {
+test('downloadImages leaves a failed URL out of the items and warns', async () => {
   const files = stubFs();
   const result = await downloadImages([{ url: 'https://e.org/gone.png', alt: 'Gone' }], {
     destDir: '/d',
@@ -123,8 +123,9 @@ test('downloadImages keeps the remote URL when a fetch fails', async () => {
     fetchImpl: async () => stubResponse(PNG, 'image/png', false, 404),
   });
 
-  assert.deepEqual(result.items, [{ src: 'https://e.org/gone.png', alt: 'Gone' }]);
+  assert.deepEqual(result.items, []);
   assert.match(result.warnings[0], /HTTP 404/);
+  assert.match(result.warnings[0], /gone\.png/);
 });
 
 test('downloadImages refuses non-http URLs and returns early with no refs', async () => {

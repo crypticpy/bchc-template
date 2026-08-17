@@ -7,8 +7,9 @@
  *   - PNG, JPEG, GIF or WebP only, verified by BOTH the response content-type
  *     and the file's magic bytes;
  *   - one request per URL, `timeoutMs` each, redirects followed;
- *   - a failure is a warning, never a fatal error: the remote URL is kept so a
- *     maintainer can fix it in the pull request.
+ *   - a failure is a warning, never a fatal error: the URL is left out of the
+ *     front matter (so the page never shows a broken image) and named in the
+ *     pull request so a maintainer can re-add it.
  */
 
 import fs from 'node:fs';
@@ -132,8 +133,7 @@ export async function downloadImages(refs, options) {
       }
 
       if (!response || !response.ok) {
-        warnings.push(`Could not download ${url} (HTTP ${response ? response.status : 'error'}). Kept the link instead.`);
-        items.push({ src: url, alt: alt || altFallback });
+        warnings.push(`Could not download ${url} (HTTP ${response ? response.status : 'error'}). Left it out — re-add it in this pull request if it should be included.`);
         continue;
       }
 
@@ -161,8 +161,7 @@ export async function downloadImages(refs, options) {
       fsImpl.writeFileSync(path.join(destDir, name), bytes);
       items.push({ src: `${publicPrefix}/${name}`, alt: alt || altFallback });
     } catch (error) {
-      warnings.push(`Could not download ${url} (${error.message}). Kept the link instead.`);
-      items.push({ src: url, alt: alt || altFallback });
+      warnings.push(`Could not download ${url} (${error.message}). Left it out — re-add it in this pull request if it should be included.`);
     }
   }
 

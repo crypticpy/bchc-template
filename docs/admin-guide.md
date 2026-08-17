@@ -84,7 +84,7 @@ Files are numbered in the order they were attached (`01.png`, `02.jpg`, …) and
 - **PNG, JPEG, GIF or WebP only**, verified against both the response content type and the file's magic bytes — anything else is skipped;
 - one 30-second request per URL, redirects followed.
 
-A failure never fails the scaffold. If an image cannot be downloaded, the remote URL is kept in `src` and the reason is written into the workflow summary and the pull request body, so you can fix it during review. Front-matter validation warns about any remote `src` for the same reason: the page stops working when someone else's host changes.
+A failure never fails the scaffold. If an image cannot be downloaded it is left out of the front matter (so the page never shows a broken image) and the URL plus the reason are written into the workflow summary and the pull request body, so you can re-add it during review — download it yourself and commit it under `screenshots/`. Front-matter validation warns about any remote `src` because the page stops working when someone else's host changes.
 
 **Adding or replacing images later.** There is no issue flow for this — do it in a pull request:
 
