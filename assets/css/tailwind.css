@@ -13,5 +13,6 @@
 @import "./components/catalog.css";
 @import "./components/entry.css";
 @import "./components/site.css";
+@import "./components/setup.css";
 @import "tailwindcss/utilities";
 @import "./components/utilities.css";

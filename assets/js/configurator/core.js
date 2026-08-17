@@ -29,6 +29,7 @@ export {
   FIELD_TYPES,
   RESERVED_KEYS,
   CARD_SLOTS,
+  CARD_SLOT_TYPES,
   OPTION_TONES,
 } from './schema-validate.js';
 export { applyAnswers, answersFromConfig, navigationFromSite, COLOR_QUESTIONS } from './answers.js';

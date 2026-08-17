@@ -18,10 +18,13 @@ import {
   renderFiles,
   snakeKey,
   validateSchema,
+  CARD_SLOT_TYPES,
   FIELD_TYPES,
   RESERVED_KEYS,
 } from './core.js';
 import { presets } from './presets.js';
+import { el } from './dom.js';
+import { renderThemePreview } from './theme-preview.js';
 
 const STORAGE_KEY = 'catalog-setup-wizard-v1';
 const STEPS = ['start', 'branding', 'modules', 'fields', 'review'];
@@ -54,35 +57,6 @@ const OPTION_TYPES = new Set(['select', 'multiselect']);
 /* -------------------------------------------------------------------------- */
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
-
-/**
- * Minimal hyperscript-style element builder used throughout this file instead
- * of innerHTML, so every value (labels, field keys, pasted URLs) is set via
- * `.textContent`/`.value`/`.setAttribute` and never parsed as markup.
- * @param {string} tag
- * @param {Object<string, *>} [attrs] DOM attributes; `class`/`text`/`html` are
- *   special-cased, `on*` values become event listeners, `true` renders as a
- *   bare attribute, and `null`/`undefined`/`false` are skipped entirely.
- * @param {Node|Node[]} [children]
- * @returns {HTMLElement}
- */
-function el(tag, attrs = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [name, value] of Object.entries(attrs)) {
-    if (value === null || value === undefined || value === false) continue;
-    if (name === 'class') node.className = value;
-    else if (name === 'text') node.textContent = value;
-    else if (name === 'html') node.innerHTML = value;
-    else if (name.startsWith('on') && typeof value === 'function')
-      node.addEventListener(name.slice(2), value);
-    else node.setAttribute(name, value === true ? '' : String(value));
-  }
-  for (const child of [].concat(children)) {
-    if (child === null || child === undefined || child === false) continue;
-    node.append(child);
-  }
-  return node;
-}
 
 /**
  * Parse a Liquid-rendered `<script type="application/json" id="…">` block.
@@ -433,6 +407,7 @@ function textField(key, label, { help, type = 'text', textarea = false, placehol
   control.addEventListener('input', () => {
     state.answers[key] = control.value;
     save();
+    if (PREVIEW_TEXT_KEYS.has(key)) renderPalette();
   });
   return el('div', {}, [
     el('label', { class: 'field-label', for: id, text: label }),
@@ -503,6 +478,7 @@ function selectField(key, label, options, help) {
   select.addEventListener('change', () => {
     state.answers[key] = select.value;
     save();
+    renderPalette();
   });
   return el('div', {}, [
     el('label', { class: 'field-label', for: id, text: label }),
@@ -512,12 +488,30 @@ function selectField(key, label, options, help) {
 }
 
 let paletteNode = null;
+let previewNode = null;
+
+/** Text answers the live preview echoes; changes to these re-render it too. */
+const PREVIEW_TEXT_KEYS = new Set([
+  'siteName',
+  'orgName',
+  'orgShort',
+  'logoText',
+  'heroEyebrow',
+  'heroTitle',
+  'heroLead',
+]);
 
 /**
  * Repaint the color swatches and WCAG contrast checks under the color fields.
  * Called on boot and after every color field change; no-ops before `paletteNode` exists.
  */
 function renderPalette() {
+  if (previewNode) {
+    renderThemePreview(previewNode, state.answers, {
+      singular: (state.answers.entrySingular || 'entry').toLowerCase(),
+      plural: (state.answers.entryPlural || 'entries').toLowerCase(),
+    });
+  }
   if (!paletteNode) return;
   const { primary, primaryDark, secondary, accent } = state.answers;
   const base = baseConfigFor(state.startId).theme.colors;
@@ -580,6 +574,7 @@ function renderPalette() {
 /** @returns {HTMLElement} step 2 body — site/org, GitHub, colors/type and home-page copy fields. */
 function renderBranding() {
   paletteNode = el('div', { class: 'px-6 py-5' });
+  previewNode = el('div', { class: 'p-4 sm:p-6' });
   const node = el('div', { class: 'space-y-6' }, [
     el('fieldset', { class: 'space-y-4' }, [
       el('legend', { class: 'section-title', text: 'Site & organization' }),
@@ -620,7 +615,15 @@ function renderBranding() {
       ]),
       el('div', { class: 'card' }, [
         el('div', { class: 'card-header' }, [
-          el('p', { class: 'card-title', text: 'Palette preview & contrast' }),
+          el('p', { class: 'card-title', text: 'Live preview' }),
+          el('p', {
+            class: 'section-lead mt-1',
+            text: 'The real components under your palette, type and rounding — header, hero, an entry card and controls. Updates as you type.',
+          }),
+        ]),
+        previewNode,
+        el('div', { class: 'card-header border-t' }, [
+          el('p', { class: 'card-title', text: 'Palette & contrast' }),
         ]),
         paletteNode,
       ]),
@@ -673,7 +676,7 @@ function renderModules() {
       const input = el('input', {
         id,
         type: 'checkbox',
-        class: 'mt-1 h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30',
+        class: 'mt-1 h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary',
       });
       input.checked = Boolean(state.answers.modules[key]);
       input.addEventListener('change', () => {
@@ -710,12 +713,70 @@ function fieldRow(field, index) {
   const rowId = `schema-field-${index}`;
   const isCore = field.key === 'title' || field.key === 'summary';
 
+  /**
+   * "Show on card" is a checkbox plus, when on, a slot picker: `card: true`
+   * lets the renderer choose the slot from the type; a named slot pins it. The
+   * picker only offers slots that fit the field's type (CARD_SLOT_TYPES) and the
+   * checkbox never flattens an explicit slot to `true` when toggled off and on.
+   */
+  const cardControl = () => {
+    const id = `${rowId}-card`;
+    const fits = Object.entries(CARD_SLOT_TYPES)
+      .filter(([, types]) => types.includes(field.type))
+      .map(([slot]) => slot);
+    let remembered = typeof field.card === 'string' ? field.card : null;
+    const input = el('input', {
+      id,
+      type: 'checkbox',
+      class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary',
+    });
+    input.checked = Boolean(field.card);
+    const select = el(
+      'select',
+      {
+        id: `${id}-slot`,
+        class: 'field-input !mt-0 !h-8 !w-auto !py-0 !text-xs',
+        'aria-label': `Card slot for ${field.key}`,
+      },
+      [
+        el('option', { value: '', text: 'Automatic' }),
+        ...fits.map((slot) => el('option', { value: slot, text: slot })),
+      ]
+    );
+    select.value = typeof field.card === 'string' && fits.includes(field.card) ? field.card : '';
+    // `.field-input` sets display, so the `hidden` attribute alone would lose; toggle the utility class.
+    const showSelect = () => select.classList.toggle('hidden', !input.checked || fits.length === 0);
+    showSelect();
+    input.addEventListener('change', () => {
+      if (input.checked) field.card = remembered && fits.includes(remembered) ? remembered : true;
+      else {
+        if (typeof field.card === 'string') remembered = field.card;
+        field.card = false;
+      }
+      showSelect();
+      save();
+    });
+    select.addEventListener('change', () => {
+      field.card = select.value || true;
+      remembered = select.value || remembered;
+      save();
+    });
+    return el('span', { class: 'inline-flex items-center gap-1.5' }, [
+      el(
+        'label',
+        { class: 'inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-brand-muted', for: id },
+        [input, el('span', { text: 'Show on card' })]
+      ),
+      select,
+    ]);
+  };
+
   const toggle = (prop, label) => {
     const id = `${rowId}-${prop}`;
     const input = el('input', {
       id,
       type: 'checkbox',
-      class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30',
+      class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary',
     });
     input.checked = Boolean(field[prop]);
     input.disabled = isCore && prop === 'required';
@@ -723,10 +784,11 @@ function fieldRow(field, index) {
       field[prop] = input.checked;
       save();
     });
-    return el('label', { class: 'inline-flex items-center gap-1.5 text-xs text-brand-muted', for: id }, [
-      input,
-      el('span', { text: label }),
-    ]);
+    return el(
+      'label',
+      { class: 'inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-brand-muted', for: id },
+      [input, el('span', { text: label })]
+    );
   };
 
   const labelInput = el('input', { id: `${rowId}-label`, class: 'field-input !mt-0', type: 'text' });
@@ -739,7 +801,7 @@ function fieldRow(field, index) {
   const enabled = el('input', {
     id: `${rowId}-enabled`,
     type: 'checkbox',
-    class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary/30',
+    class: 'h-4 w-4 rounded border-brand-line text-brand-primary focus:ring-brand-primary',
   });
   enabled.checked = field.enabled !== false;
   enabled.disabled = isCore;
@@ -761,7 +823,7 @@ function fieldRow(field, index) {
       el('div', { class: 'ml-auto flex flex-wrap gap-3' }, [
         toggle('required', 'Required'),
         toggle('facet', 'Filter'),
-        toggle('card', 'Show on card'),
+        cardControl(),
         toggle('search', 'Searchable'),
       ]),
     ]),

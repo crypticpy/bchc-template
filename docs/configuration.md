@@ -186,6 +186,8 @@ A no-terminal step-by-step wizard on the deployed site (`setup/index.md` + `asse
 - Loads the site's current configuration (embedded as JSON in the page) so you're editing forward from what's live, not starting over.
 - Offers the same four presets as the CLI: **AI use case catalog**, **Program / cohort portal**, **Resource library**, **Blank catalog**.
 - Lets you edit branding, colors/fonts, module toggles, and the schema's field list (including adding/renaming/removing fields) with validation.
+- Shows a **live preview** on the Branding step — a miniature of the real header, hero, entry card and controls, rendered from the production stylesheet under your palette, type and corner rounding — next to the palette swatches and WCAG contrast checks. It updates as you type.
+- Lets each field's **Show on card** toggle also pick the card slot (`badge`, `meta`, `line`, `chip`, `signal`, `icon`) when the field's type fits one; leave it on **Automatic** to let the card choose from the type. See `card` in `docs/content-model.md`.
 - Saves your answers in the browser as you go (a resume banner appears if you return with unfinished progress).
 - Produces copy/download/"open in GitHub, pre-filled" links for each generated file — nothing is pushed automatically; you commit the files yourself via the GitHub UI or by pulling them locally.
 

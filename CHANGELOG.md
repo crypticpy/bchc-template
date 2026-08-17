@@ -35,7 +35,10 @@ so when it does.
   Psych, per-issue concurrency, a `SUBMISSIONS_OPEN` repository variable to
   pause public intake, SHA-pinned actions.
 - Configurator: shared `core.js` split into modules; presets carry schema v2;
-  `defaults.generated.js` is derived from the YAML by `npm run generate`.
+  `defaults.generated.js` is derived from the YAML by `npm run generate`. The
+  `/setup/` Branding step shows a live preview of the real components under
+  the chosen palette, type and rounding; the field builder's "Show on card"
+  toggle can pin a card slot.
 - Ten sample AI use cases across health programmes and back-office functions,
   each with a screenshot.
 

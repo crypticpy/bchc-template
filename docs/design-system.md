@@ -150,6 +150,13 @@ text) and `.hero-latest` / `-item` / `-link` / `-title` / `-meta` — the "Lates
 additions" panel in the hero's right column at ≥1024 px (`home.hero_latest_count`;
 white / on-dark ink on `primary-dark`, 15 % white hairlines).
 
+### Setup wizard (`setup.css`)
+
+`.theme-preview` (root; the wizard re-declares `--c-*`, `--font-*` and `--radius-*` inline on it
+so the miniature is themed like the built site), `.theme-preview-header`, `-mark`, `-hero`,
+`-body` (two columns from `sm`), `-controls`. Everything inside the preview is a production
+component class (`.entry-card`, `.btn-*`, `.badge-*`, `.filter-pill`, `.signal-*`) — never a copy.
+
 ## Accessibility baseline
 
 WCAG 2.2 AA is the floor and `quality.yml` checks it (axe + HTML_CodeSniffer, Lighthouse

@@ -20,6 +20,20 @@
     "http://127.0.0.1:4173/submit/",
     "http://127.0.0.1:4173/about/",
     "http://127.0.0.1:4173/setup/",
+    {
+      "url": "http://127.0.0.1:4173/setup/",
+      "actions": [
+        "click element #wizard-steps button:nth-child(2)",
+        "wait for element .theme-preview to be visible"
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:4173/setup/",
+      "actions": [
+        "click element #wizard-steps button:nth-child(4)",
+        "wait for element #schema-field-0-card to be visible"
+      ]
+    },
     "http://127.0.0.1:4173/styleguide/",
     {
       "url": "http://127.0.0.1:4173/catalog/",

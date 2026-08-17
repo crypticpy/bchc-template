@@ -102,7 +102,10 @@ run identically in tests.
 | `bootstrap-labels.yml` | manual | — | creates the labels the automation relies on |
 
 `scripts/setup.mjs` and `setup/` share `assets/js/configurator/core.js`; `renderFiles()` is the single
-place that turns answers into files, so both configurators cannot drift.
+place that turns answers into files, so both configurators cannot drift. Browser-only helpers sit
+beside it — `dom.js` (element builder), `theme-preview.js` (the Branding step's live miniature,
+which re-declares the same CSS variables `_includes/theme.html` writes) — and are not imported by
+the CLI.
 
 ### Styling
 

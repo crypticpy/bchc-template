@@ -1,0 +1,12 @@
+/* /setup/ wizard: the live theme preview (assets/js/configurator/theme-preview.js).
+   The preview root re-declares the theme's CSS variables inline, so every
+   production class inside it (btn-*, badge-*, entry-card, filter-pill…) picks up
+   the admin's palette; these rules only frame the miniature. */
+@layer components {
+  .theme-preview { @apply overflow-hidden rounded-2xl border border-brand-line bg-surface-base font-sans text-brand-ink; }
+  .theme-preview-header { @apply flex items-center gap-2.5 border-b border-brand-line bg-surface-card px-4 py-2.5; }
+  .theme-preview-mark { @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-primary font-heading text-[10px] font-bold uppercase tracking-wide text-white; }
+  .theme-preview-hero { @apply bg-brand-primary-dark px-4 py-5 text-brand-on-dark; }
+  .theme-preview-body { @apply grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]; }
+  .theme-preview-controls { @apply flex flex-col justify-center gap-3; }
+}

@@ -42,7 +42,7 @@ export const CARD_SLOTS = ['badge', 'chip', 'meta', 'icon', 'line'];
 export const GROUP_PLACEMENTS = ['main', 'rail'];
 
 /** Which types each explicit card slot can render. */
-const CARD_SLOT_TYPES = {
+export const CARD_SLOT_TYPES = {
   badge: ['select'],
   chip: ['list', 'multiselect'],
   icon: ['select', 'multiselect'],
