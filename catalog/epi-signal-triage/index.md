@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Syndromic surveillance signal triage assistant"
 slug: epi-signal-triage
 summary: "Reads the daily syndromic alert export, drafts a plain-language note for each signal, and ranks the ones an epidemiologist should open first."

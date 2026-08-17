@@ -3,15 +3,15 @@
   .field { @apply space-y-1.5; }
   .field-label { @apply block text-sm font-semibold text-brand-ink; }
   .field-help { @apply text-sm text-brand-muted; }
-  .field-input { @apply block w-full rounded-lg border-brand-line-strong bg-surface-card text-base text-brand-ink placeholder:text-brand-muted/70 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/20 sm:text-sm; }
+  .field-input { @apply block w-full rounded-lg border-brand-line-strong bg-surface-card text-base text-brand-ink placeholder:text-brand-muted/70 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary sm:text-sm; }
   .field-input[aria-invalid="true"] { @apply border-brand-warn focus:ring-brand-warn/25; }
   .field-error { @apply flex items-start gap-1.5 text-sm font-medium text-brand-warn; }
   .field-option { @apply flex cursor-pointer items-start gap-3 rounded-lg border border-brand-line bg-surface-card px-3 py-2.5 text-sm text-brand-ink transition-colors duration-120 hover:border-brand-line-strong has-[:checked]:border-brand-primary has-[:checked]:bg-brand-primary/5; }
   .field-option-desc { @apply block text-xs font-normal text-brand-muted; }
   /* A fixed 3px corner, not the theme radius: on a 16px box the "soft"/"round"
      tokens read as a circle, which says "pick one" when you may pick several. */
-  .checkbox { @apply mt-0.5 h-4 w-4 rounded-[3px] border-brand-line-strong text-brand-primary focus:ring-brand-primary/30; }
-  .radio { @apply mt-0.5 h-4 w-4 border-brand-line-strong text-brand-primary focus:ring-brand-primary/30; }
+  .checkbox { @apply mt-0.5 h-4 w-4 rounded-[3px] border-brand-line-strong text-brand-primary focus:ring-brand-primary; }
+  .radio { @apply mt-0.5 h-4 w-4 border-brand-line-strong text-brand-primary focus:ring-brand-primary; }
 
   /* ---- Submit page ------------------------------------------------------ */
   /* Tailwind's display utilities outrank the plain [hidden] attribute, so every
@@ -26,11 +26,12 @@
   .field-note { @apply rounded-lg border border-dashed border-brand-line-strong bg-surface-base px-4 py-3 text-sm text-brand-muted; }
 
   /* A numbered form step. */
-  .form-section { @apply scroll-mt-28 border-t border-brand-line pt-8 first:border-0 first:pt-0; }
+  /* first-of-type, not first: the error summary <div> precedes the first <section>. */
+  .form-section { @apply scroll-mt-28 border-t border-brand-line pt-8 first-of-type:border-0 first-of-type:pt-0; }
 
   /* Sticky section navigation (>= lg). E2 is allowed here: it floats. */
   .progress-rail { @apply rounded-2xl border border-brand-line bg-surface-card p-4 shadow-e2; }
-  .progress-link { @apply flex items-start gap-2.5 rounded-lg px-2 py-1.5 text-sm text-brand-muted transition-colors duration-120 hover:bg-brand-primary/5 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30; }
+  .progress-link { @apply flex items-start gap-2.5 rounded-lg px-2 py-1.5 text-sm text-brand-muted transition-colors duration-120 hover:bg-brand-primary/5 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
   .progress-link[aria-current="true"] { @apply bg-brand-primary/5 font-semibold text-brand-primary-dark; }
   .progress-dot { @apply mt-1.5 h-2 w-2 shrink-0 rounded-full border border-brand-line-strong bg-surface-card; }
   .progress-link[data-done="true"] .progress-dot { @apply border-brand-primary bg-brand-primary; }
@@ -39,7 +40,7 @@
   /* Error summary shown after a failed submit. */
   .error-summary { @apply rounded-2xl border border-brand-warn/40 bg-brand-warn/5 p-4; }
   .error-summary-title { @apply flex items-center gap-2 text-sm font-semibold text-brand-warn; }
-  .error-summary-link { @apply text-sm font-medium text-brand-warn underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-warn/30; }
+  .error-summary-link { @apply text-sm font-medium text-brand-warn underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-warn focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
 
   /* Repeatable "Label + URL" rows for a `links` field. */
   .links-row { @apply grid gap-2 rounded-lg border border-brand-line bg-surface-base p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:items-end; }

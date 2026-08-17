@@ -87,6 +87,7 @@ class CheckFrontMatterTest < Minitest::Test
     dir = write_entry("good", <<~FM)
       title: A good entry
       slug: good
+      render_with_liquid: false
       summary: It does a thing.
       published: "2026-01-05"
       updated: "2026-02-01"
@@ -139,7 +140,7 @@ class CheckFrontMatterTest < Minitest::Test
     FM
 
     failures, = run_check
-    assert(failures.any? { |f| f.include?("`summary` is missing or empty") }, failures.inspect)
+    assert(failures.any? { |f| f.include?("`summary` (Summary) is required but missing or empty") }, failures.inspect)
     assert(failures.any? { |f| f.include?("`stage` value \"Prototype\" is not one of the allowed options") }, failures.inspect)
     assert(failures.any? { |f| f.include?("`area` has values outside the allowed options: Nonsense") }, failures.inspect)
     assert(failures.any? { |f| f.include?("the page body is empty") }, failures.inspect)
@@ -226,6 +227,75 @@ class CheckFrontMatterTest < Minitest::Test
     failures, = run_check
     assert(failures.any? { |f| f.include?("`repo_url` must start with http://") }, failures.inspect)
     assert(failures.any? { |f| f.include?("`contact_email` does not look like an email address") }, failures.inspect)
+  end
+
+  def test_a_missing_render_with_liquid_flag_is_a_warning_not_a_failure
+    write_entry("liquid", <<~FM, "{% raw %}Body{% endraw %}")
+      title: T
+      slug: liquid
+      summary: S
+      published: "2026-01-05"
+    FM
+
+    failures, warnings = run_check
+    assert(failures.none? { |f| f.include?("render_with_liquid") }, failures.inspect)
+    assert(warnings.any? { |w| w.include?("add `render_with_liquid: false`") }, warnings.inspect)
+  end
+
+  def test_render_with_liquid_true_is_still_warned_about
+    write_entry("liquid-true", <<~FM)
+      title: T
+      slug: liquid-true
+      render_with_liquid: true
+      summary: S
+      published: "2026-01-05"
+    FM
+
+    _, warnings = run_check
+    assert(warnings.any? { |w| w.include?("add `render_with_liquid: false`") }, warnings.inspect)
+  end
+
+  def test_summary_is_only_required_because_the_schema_says_so
+    # `summary` used to be hardcoded alongside title/slug. With it optional in
+    # the schema, an entry without one must pass.
+    File.write(File.join(@root, "_data", "schema.yml"), SCHEMA.sub(/^  - key: summary\n(?:    .*\n)+/, ""))
+    write_entry("no-summary", <<~FM)
+      title: T
+      slug: no-summary
+      render_with_liquid: false
+      published: "2026-01-05"
+    FM
+
+    failures, = run_check
+    assert(failures.none? { |f| f.include?("summary") }, failures.inspect)
+  end
+
+  def test_front_matter_that_is_not_a_mapping_is_reported_not_crashed
+    dir = File.join(@root, "catalog", "listy")
+    FileUtils.mkdir_p(dir)
+    File.write(File.join(dir, "index.md"), "---\n- one\n- two\n---\n\nBody\n")
+
+    failures, = run_check
+    assert_equal 1, failures.length
+    assert_includes failures.first, "front matter must be a mapping of keys to values"
+  end
+
+  def test_urls_with_attribute_breaking_characters_are_rejected
+    write_entry("nasty-url", <<~FM)
+      title: T
+      slug: nasty-url
+      render_with_liquid: false
+      summary: S
+      published: "2026-01-05"
+      repo_url: "https://example.org/a b"
+      resources:
+        - label: Quote
+          url: 'https://example.org/"onload=x'
+    FM
+
+    failures, = run_check
+    assert(failures.any? { |f| f.include?("`repo_url` must start with http://") }, failures.inspect)
+    assert(failures.any? { |f| f.include?("`resources[0]` must be an http(s) or mailto: URL") }, failures.inspect)
   end
 
   def test_a_broken_front_matter_header_is_reported_once

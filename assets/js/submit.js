@@ -10,8 +10,16 @@
 (function (ns) {
   'use strict';
 
-  /** GitHub rejects very long URLs; well below that we switch to copy-paste. */
-  const MAX_URL = 7500;
+  /**
+   * GitHub rejects very long URLs; well below that we switch to copy-paste.
+   * Keep this in step with `prefillNoticeIfTooLong` in
+   * assets/js/configurator/strings.js, which warns at the same length for the
+   * configurator's prefilled "new file" links.
+   */
+  const MAX_URL = 7000;
+
+  /** Warn the submitter once the prefilled URL is this close to the ceiling. */
+  const URL_WARN_AT = Math.round(MAX_URL * 0.85);
 
   /**
    * Copy text to the clipboard, falling back to a selection when the
@@ -63,10 +71,11 @@
     const links = Array.from(root.querySelectorAll('[data-progress-link]'));
     const count = root.querySelector('[data-progress-count]');
     const lineText = form.querySelector('[data-progress-line]');
+    const lineSection = form.querySelector('[data-progress-section]');
     const total = links.length;
 
     const sections = Array.from(form.querySelectorAll('[data-section]'));
-    if (typeof IntersectionObserver === 'function' && links.length > 0) {
+    if (typeof IntersectionObserver === 'function' && sections.length > 0) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
@@ -74,6 +83,10 @@
           links.forEach((link) => {
             link.setAttribute('aria-current', String(link.dataset.progressLink === key));
           });
+          // The sticky mobile bar is the only place a small screen shows which
+          // section it is in, so it tracks the same observer as the rail.
+          const heading = entry.target.querySelector('h2');
+          if (lineSection && heading) lineSection.textContent = heading.textContent.trim();
         });
       }, { rootMargin: '-20% 0px -70% 0px' });
       sections.forEach((section) => observer.observe(section));
@@ -107,6 +120,8 @@
     const status = form.querySelector('[data-submit-status]');
     const fallback = form.querySelector('[data-fallback]');
     const fallbackBody = form.querySelector('[data-fallback-body]');
+    const fallbackLink = form.querySelector('[data-fallback-link]');
+    const lengthNote = form.querySelector('[data-length-note]');
 
     const paintPreview = ns.initPreview(root.documentElement || root, fields);
     const paintProgress = initProgress(root.documentElement || root, form, fields);
@@ -119,10 +134,28 @@
 
     let draft = { save: function () {}, clear: function () {}, flush: function () {} };
 
+    /**
+     * Warn while there is still time to do something about it: once the
+     * prefilled link is near the ceiling, say so instead of waiting for the
+     * submitter to press the button and be handed a copy-paste box.
+     */
+    function paintLength() {
+      if (!lengthNote) return;
+      const length = ns.issueUrl(form, fields, entryTitle()).length;
+      const near = length >= URL_WARN_AT;
+      if (near) {
+        lengthNote.textContent = length > MAX_URL
+          ? 'Your answers are now too long to carry in a link. Pressing the button below will hand you the text to paste into a blank issue instead.'
+          : 'Your answers are getting long. A little more and they will not fit in a link — you will be given text to paste into a blank issue instead.';
+      }
+      lengthNote.hidden = !near;
+    }
+
     /** Repaint everything that mirrors the answers. */
     function refresh() {
       paintPreview();
       paintProgress();
+      paintLength();
       draft.save();
     }
 
@@ -130,6 +163,7 @@
       fields.filter((field) => field.type === 'images').forEach(ns.renderImagePreviews);
       paintPreview();
       paintProgress();
+      paintLength();
     });
 
     ns.initRepeatables(fields, refresh);
@@ -164,10 +198,7 @@
 
       const url = ns.issueUrl(form, fields, entryTitle());
       if (url.length > MAX_URL) {
-        if (fallbackBody) fallbackBody.value = ns.markdownBody(fields);
-        if (fallback) fallback.hidden = false;
-        say(status, 'Your answers are too long to carry in a link. Copy the text below into a blank issue instead — the box is right under these buttons.');
-        if (fallbackBody) fallbackBody.focus();
+        showFallback('Your answers are too long to carry in a link. Copy the text below into a blank issue instead — the box is right under these buttons.', '');
         return;
       }
 
@@ -175,10 +206,36 @@
       const note = missed.length > 0
         ? ' GitHub cannot prefill tick boxes, so re-answer ' + missed.join(', ') + ' on that page.'
         : '';
+
+      // Only drop the draft once the new tab actually exists. A blocked popup
+      // used to clear it anyway, so the answers were gone and nothing had
+      // opened; now the copy-paste route appears and the draft stays put.
+      const opened = window.open(url, '_blank', 'noopener');
+      if (!opened) {
+        showFallback('Your browser blocked the new tab. Use the link below to open the prefilled issue, or copy the text and paste it into a blank issue.', url);
+        return;
+      }
       say(status, 'Opening GitHub with your answers filled in. Check them over and press “Submit new issue”.' + note);
       draft.clear();
-      window.open(url, '_blank', 'noopener');
     });
+
+    /**
+     * Reveal the copy-paste route, optionally with a direct link to the
+     * prefilled issue (present when a popup was blocked, absent when the URL
+     * was too long to exist).
+     * @param {string} message
+     * @param {string} url
+     */
+    function showFallback(message, url) {
+      if (fallbackBody) fallbackBody.value = ns.markdownBody(fields);
+      if (fallbackLink) {
+        if (url) fallbackLink.href = url;
+        fallbackLink.hidden = !url;
+      }
+      if (fallback) fallback.hidden = false;
+      say(status, message);
+      if (fallbackBody) fallbackBody.focus();
+    }
 
     form.addEventListener('click', (event) => {
       const button = event.target.closest ? event.target.closest('[data-action]') : null;
@@ -221,6 +278,7 @@
     fields.filter((field) => field.type === 'images').forEach(ns.renderImagePreviews);
     paintPreview();
     paintProgress();
+    paintLength();
   }
 
   if (document.readyState === 'loading') {

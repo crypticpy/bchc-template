@@ -46,7 +46,10 @@ module FrontMatterCheck
     match = content.match(/\A---\s*\n(.*?)\n---\s*(?:\n(.*))?\z/m)
     raise "#{path} is missing YAML front matter" unless match
 
-    [load_yaml(match[1], path), (match[2] || ""), match[1]]
+    parsed = load_yaml(match[1], path)
+    raise "#{path}: front matter must be a mapping of keys to values, got #{parsed.class}" unless parsed.is_a?(Hash)
+
+    [parsed, (match[2] || ""), match[1]]
   end
 
   # @return [Boolean] true for nil, an empty array/hash, or whitespace-only text
@@ -85,8 +88,12 @@ module FrontMatterCheck
   end
 
   # @return [Boolean] true for http:// or https:// URLs
+  #
+  # These values are printed into `href`/`src` attributes, so a quote, angle
+  # bracket or space would break out of the attribute. Reject them here rather
+  # than relying on every template to escape.
   def http_url?(value)
-    value.to_s.match?(%r{\Ahttps?://\S})
+    value.to_s.match?(%r{\Ahttps?://[^\s"'<>]+\z})
   end
 
   # Normalise an `images` item to {"src" =>, "alt" =>}; nil when unusable.
@@ -190,8 +197,17 @@ module FrontMatterCheck
       return [[e.message], warnings]
     end
 
-    %w[title slug summary].each do |key|
+    # `summary` is a schema field and is checked by the field loop below; only
+    # the two keys the site itself relies on are hardcoded here.
+    %w[title slug].each do |key|
       failures << "#{where(rel, front_matter, key)}: `#{key}` is missing or empty" if blank?(data[key])
+    end
+
+    # Entry bodies are markdown a submitter wrote. Without this flag Jekyll runs
+    # them through Liquid at build time, so a `{% include %}` in a write-up
+    # would execute. The scaffolder emits it; hand-written entries should too.
+    unless data["render_with_liquid"] == false
+      warnings << "#{where(rel, front_matter, 'render_with_liquid')}: add `render_with_liquid: false` so the page body is not run through Liquid"
     end
 
     if data["slug"].to_s != folder

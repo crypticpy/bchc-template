@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Meeting notes to action items for a partner coalition"
 slug: coalition-meeting-notes
 summary: "A short playbook for turning regional coalition meeting recordings into a reviewed action list that partner organizations receive the next day."

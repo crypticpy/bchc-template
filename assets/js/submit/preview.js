@@ -15,10 +15,17 @@
 (function (ns) {
   'use strict';
 
-  /** Card slot caps, from the design brief's card contract. */
+  /**
+   * Card slot caps, from the design brief's card contract. These mirror
+   * _includes/entry-card.html exactly — the whole point of the preview is that
+   * it truncates where the real card truncates.
+   */
   const MAX_META = 2;
   const MAX_CHIPS = 2;
+  /** Signal strip: four items in total, counting the trailing "+n". */
   const MAX_SIGNALS = 4;
+  /** …and no more than two glyphs from any one field. */
+  const MAX_SIGNALS_PER_FIELD = 2;
 
   /**
    * Options currently chosen in a select/multiselect field.
@@ -89,6 +96,7 @@
     const summary = root.querySelector('[data-preview-summary]');
     const chips = root.querySelector('[data-preview-chips]');
     const signals = root.querySelector('[data-preview-signals]');
+    const foot = root.querySelector('[data-preview-foot]');
     if (!templates) return function noop() {};
 
     const bySlot = (slot) => fields.filter((field) => field.slot === slot);
@@ -127,7 +135,11 @@
       toggle(media, Boolean(src));
     }
 
-    /** Meta line: badge first, then up to two meta values separated by a dot. */
+    /**
+     * Meta line: badge first, then up to two meta values. The separator is
+     * drawn by the stylesheet (`.entry-meta > * + *`), so no element for it is
+     * emitted here — same as the real card.
+     */
     function paintMeta() {
       if (!meta) return;
       meta.textContent = '';
@@ -148,14 +160,12 @@
         const text = Array.isArray(value) ? value[0] : String(value);
         if (text) parts.push(typeof text === 'string' ? text : String(text));
       });
+      // Same element and classes as the card's meta line, so the separator
+      // comes from `.entry-meta-seg + .entry-meta-seg::before` rather than
+      // from a dot this file would have to draw itself.
       parts.forEach((part, index) => {
-        if (index > 0) {
-          const dot = document.createElement('span');
-          dot.setAttribute('aria-hidden', 'true');
-          dot.textContent = '·';
-          meta.appendChild(dot);
-        }
         const span = document.createElement('span');
+        span.className = index === 0 ? 'entry-meta-seg entry-meta-seg--lead' : 'entry-meta-seg';
         span.textContent = part;
         meta.appendChild(span);
       });
@@ -211,23 +221,52 @@
       toggle(chips, picked.length > 0);
     }
 
-    /** Signal strip: short glyphs for the `card: icon` fields. */
+    /**
+     * Signal strip: short glyphs for the `card: icon` fields, capped the way
+     * the card caps them — at most two glyphs per field, at most four items on
+     * the strip, and the single trailing "+n" is one of those four.
+     */
     function paintSignals() {
       if (!signals) return;
       signals.textContent = '';
-      let count = 0;
+
+      let picked = 0;
+      const candidates = [];
       iconFields.forEach((field) => {
-        if (count >= MAX_SIGNALS) return;
-        chosenOptions(field).forEach((option) => {
-          if (count >= MAX_SIGNALS) return;
-          const view = optionView(templates, field.key, option.index);
-          if (view) {
-            signals.appendChild(view);
-            count += 1;
-          }
+        const options = chosenOptions(field);
+        picked += options.length;
+        options.slice(0, MAX_SIGNALS_PER_FIELD).forEach((option) => {
+          candidates.push({ key: field.key, index: option.index });
         });
       });
-      toggle(signals, count > 0);
+
+      // Room for the overflow chip has to be reserved before anything is drawn,
+      // otherwise a full strip plus "+n" would be five items wide.
+      let shown = candidates;
+      if (candidates.length + (picked > candidates.length ? 1 : 0) > MAX_SIGNALS) {
+        shown = candidates.slice(0, MAX_SIGNALS - 1);
+      }
+
+      let drawn = 0;
+      shown.forEach((candidate) => {
+        const view = optionView(templates, candidate.key, candidate.index);
+        if (view) {
+          signals.appendChild(view);
+          drawn += 1;
+        }
+      });
+
+      const hidden = picked - drawn;
+      if (drawn > 0 && hidden > 0) {
+        const tpl = templates.querySelector('[data-signal-overflow]');
+        if (tpl) {
+          const view = tpl.content.cloneNode(true);
+          const slot = view.querySelector('[data-overflow-text]');
+          if (slot) slot.textContent = '+' + hidden;
+          signals.appendChild(view);
+        }
+      }
+      toggle(foot || signals, drawn > 0);
     }
 
     return function update() {

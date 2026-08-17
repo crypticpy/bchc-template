@@ -13,6 +13,7 @@ import {
   parseImageRefs,
   parseLinks,
   parseList,
+  parseIssueForm,
   parseMultiselect,
   parseSections,
   rawValue,
@@ -23,6 +24,7 @@ import {
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fixtures');
 const basic = fs.readFileSync(path.join(FIXTURES, 'issue-basic.md'), 'utf8');
 const minimal = fs.readFileSync(path.join(FIXTURES, 'issue-minimal.md'), 'utf8');
+const adversarial = fs.readFileSync(path.join(FIXTURES, 'issue-adversarial.md'), 'utf8');
 
 const LABELS = [
   'Title', 'One-sentence summary', 'Result in one line', 'Organization', 'What is being shared',
@@ -51,6 +53,46 @@ test('parseSections tolerates CRLF and treats every ### as a break with no known
   const sections = parseSections('### A\r\n\r\nfirst\r\n\r\n### B\r\n\r\nsecond');
   assert.equal(sections.get('a'), 'first');
   assert.equal(sections.get('b'), 'second');
+});
+
+test('a heading inside the write-up cannot overwrite a real answer', () => {
+  const { sections } = parseIssueForm(adversarial, [...LABELS, 'Slug'], 'Full write-up');
+
+  assert.equal(sections.get('organization'), 'City of Testville');
+  assert.equal(sections.get('contact email'), 'real.person@testville.gov');
+  assert.equal(sections.get('title'), 'Legitimate entry title');
+  // The forged "### Slug" only exists inside the write-up, so no slug section
+  // is produced at all — the scaffolder falls back to slugifying the title.
+  assert.equal(sections.has('slug'), false);
+
+  const writeUp = sections.get('full write-up');
+  assert.match(writeUp, /### Organization/);
+  assert.match(writeUp, /Attacker Industries/);
+  assert.match(writeUp, /attacker@example\.net/);
+  assert.match(writeUp, /Everything after the write-up heading stays in the write-up\./);
+});
+
+test('a repeated heading before the write-up is ignored with a warning', () => {
+  const { sections, warnings } = parseIssueForm(adversarial, LABELS, 'Full write-up');
+  assert.equal(sections.get('organization'), 'City of Testville');
+  assert.deepEqual(warnings, ['Duplicate section "organization" ignored.']);
+});
+
+test('duplicate headings inside the write-up raise no warning at all', () => {
+  const body = [
+    '### Title', '', 'Real', '',
+    '### Full write-up', '', '### Title', '', 'Forged', '', '### Title', '', 'Forged again',
+  ].join('\n');
+  const { sections, warnings } = parseIssueForm(body, ['Title', 'Full write-up'], 'Full write-up');
+  assert.equal(sections.get('title'), 'Real');
+  assert.deepEqual(warnings, []);
+});
+
+test('headings with trailing whitespace and CRLF line endings still match', () => {
+  const body = '### Title   \r\n\r\nCRLF entry\r\n\r\n###\tOrganization  \r\n\r\nCity\r\n';
+  const { sections } = parseIssueForm(body, ['Title', 'Organization'], 'Full write-up');
+  assert.equal(sections.get('title'), 'CRLF entry');
+  assert.equal(sections.get('organization'), 'City');
 });
 
 test('rawValue matches by label, then key, and blanks _No response_', () => {

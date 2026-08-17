@@ -11,20 +11,30 @@
  */
 
 /**
- * A plain (unquoted) scalar is only safe when it starts with a non-indicator
- * character, carries no `: ` or ` #` (which would start a mapping or comment)
- * and has no leading/trailing whitespace or control characters.
+ * Plain (unquoted) scalars are an allow-list, not a deny-list.
+ *
+ * The values here come from an issue anyone can open, and the file they land in
+ * is read back by Psych (Ruby/Jekyll, YAML 1.1) as well as by the `yaml` npm
+ * package (YAML 1.2). The two disagree about a long tail of forms — `0x1F`,
+ * `1_000`, `12:30`, `.inf`, `.nan`, `~`, `y`, `on` — so listing the dangerous
+ * shapes is a losing game. Instead a value is emitted plain only when it looks
+ * like ordinary prose: it starts with a letter and uses nothing but letters,
+ * digits and a short set of harmless punctuation. Everything else is quoted,
+ * which is always correct and merely a little noisier.
  */
-const UNSAFE_PLAIN = [
-  /^[\s\-?:,[\]{}#&*!|>'"%@`]/, // an indicator in first position
-  /:(\s|$)/, //                    looks like a mapping key
-  / #/, //                         looks like a comment
-  /[\n\r\t]/, //                   needs escaping
-  /\s$/, //                        trailing whitespace is silently eaten
-];
+const PLAIN_SAFE = /^[A-Za-z][A-Za-z0-9 _.,()&/'-]*$/;
 
 /**
- * Escape a string for a double-quoted YAML scalar.
+ * Words a YAML 1.1 loader retypes to a boolean or null even though they match
+ * the plain-safe shape above.
+ */
+const RESERVED_WORDS = /^(y|n|yes|no|true|false|on|off|null)$/i;
+
+/**
+ * Escape a string for a double-quoted YAML scalar. Beyond the obvious `\` and
+ * `"`, every C0/C1 control character and the three Unicode line breaks YAML
+ * treats as line breaks (U+0085, U+2028, U+2029) are escaped: left raw they
+ * would either break the document or silently change the value.
  * @param {string} value
  * @returns {string} the quoted scalar, including the surrounding quotes
  */
@@ -32,15 +42,29 @@ export function quote(value) {
   const escaped = String(value ?? '')
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
-    .replace(/\r/g, '\\r')
-    .replace(/\n/g, '\\n')
-    .replace(/\t/g, '\\t');
+    // Every C0 control, DEL, the C1 block (U+0085 included) and the Unicode
+    .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, (char) => {
+      const code = char.codePointAt(0);
+      switch (code) {
+        case 0x09: return '\\t';
+        case 0x0a: return '\\n';
+        case 0x0d: return '\\r';
+        case 0x1b: return '\\e';
+        case 0x85: return '\\N';
+        case 0x2028: return '\\L';
+        case 0x2029: return '\\P';
+        default:
+          return code <= 0xff
+            ? `\\x${code.toString(16).padStart(2, '0')}`
+            : `\\u${code.toString(16).padStart(4, '0')}`;
+      }
+    });
   return `"${escaped}"`;
 }
 
 /**
  * Render one scalar value (string, number, boolean, null) as YAML.
- * Strings are double-quoted unless they are unambiguously safe as plain text.
+ * Strings are double-quoted unless they are provably plain (see PLAIN_SAFE).
  * @param {unknown} value
  * @returns {string}
  */
@@ -51,14 +75,21 @@ export function scalar(value) {
 
   const text = String(value);
   if (text === '') return '""';
-  // Reserved words and number-lookalikes must stay quoted or YAML retypes them.
-  if (/^(true|false|null|yes|no|on|off|~)$/i.test(text)) return quote(text);
-  if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(text)) return quote(text);
-  // Dates and timestamps would be retyped to a Date by a YAML 1.1 loader.
-  if (/^\d{4}-\d{1,2}-\d{1,2}([Tt ].*)?$/.test(text)) return quote(text);
-  if (UNSAFE_PLAIN.some((pattern) => pattern.test(text))) return quote(text);
+  if (!PLAIN_SAFE.test(text)) return quote(text);
+  if (RESERVED_WORDS.test(text)) return quote(text);
+  // PLAIN_SAFE allows interior spaces, so a trailing one still has to be
+  // caught: YAML silently eats it and the value changes on the round trip.
+  if (/ $/.test(text)) return quote(text);
   return text;
 }
+
+/**
+ * Characters a literal block scalar cannot carry: the C0 controls other than
+ * tab and newline, DEL, the C1 block, and the Unicode line separators (which a
+ * YAML 1.1 loader such as Psych treats as line breaks). A multi-line value
+ * containing any of them is double-quoted instead of blocked.
+ */
+const BLOCK_UNSAFE = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u2028\u2029]/;
 
 /**
  * Render a multi-line string as a literal block scalar (`|-`), which keeps
@@ -104,7 +135,7 @@ export function pair(key, value, indent = '') {
     return `${indent}${key}:\n${items.join('\n')}`;
   }
 
-  if (typeof value === 'string' && /\n/.test(value.trim()) ) {
+  if (typeof value === 'string' && /\n/.test(value.trim()) && !BLOCK_UNSAFE.test(value)) {
     return blockScalar(key, value, indent);
   }
 

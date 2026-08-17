@@ -4,8 +4,18 @@ name: New entry from issue
 # the issue form). This scaffolds catalog/<slug>/index.md plus any screenshots
 # the submitter attached, and opens a pull request that closes the issue.
 #
-# Issue content is NEVER interpolated into a `run:` script — it only ever
-# reaches a step through `env:`, so a title containing shell syntax is inert.
+# Trust model (see SECURITY.md): anyone can open the issue that starts this job,
+# so the job is written to be safe with hostile input rather than to keep hostile
+# input out.
+#   * Issue content is NEVER interpolated into a `run:` script — it only ever
+#     reaches a step through `env:`, so a title containing shell syntax is inert.
+#   * The scaffolder refuses to write outside `catalog/<slug>/`, and the slug is
+#     re-checked against `^[a-z0-9]+(?:-[a-z0-9]+)*$` before any path is built.
+#   * The result is a pull request. Nothing reaches the site without a
+#     maintainer merging it.
+#
+# Set the repository variable SUBMISSIONS_OPEN to `false` to accept submissions
+# only from members and collaborators; leaving it unset keeps submissions open.
 
 on:
   issues:
@@ -18,19 +28,28 @@ permissions:
   issues: write
   pull-requests: write
 
+# One run per issue: editing an issue three times in a minute must not leave
+# three jobs force-pushing the same branch at each other.
+concurrency:
+  group: new-entry-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   scaffold:
-    if: contains(github.event.issue.labels.*.name, 'content:new-entry')
+    if: >-
+      contains(github.event.issue.labels.*.name, 'content:new-entry')
+      && (vars.SUBMISSIONS_OPEN != 'false'
+          || contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association))
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "20"
           cache: npm
@@ -51,7 +70,7 @@ jobs:
 
       - name: Report the failure on the issue
         if: steps.scaffold.outcome == 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         env:
           SCAFFOLD_ERROR: ${{ steps.scaffold.outputs.error }}
         with:
@@ -144,7 +163,7 @@ jobs:
 
       - name: Link the pull request from the issue
         if: steps.pr.outputs.url != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         env:
           PR_URL: ${{ steps.pr.outputs.url }}
         with:

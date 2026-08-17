@@ -30,7 +30,7 @@ import {
   NO_RESPONSE,
   coerce,
   parseImageRefs,
-  parseSections,
+  parseIssueForm,
   rawValue,
   slugify,
   uniqueSlug,
@@ -42,10 +42,15 @@ const DRY_RUN = process.argv.includes('--dry-run');
 
 /** Keys written by the fixed header block; a schema field with one of these
  * keys must not be emitted twice (duplicate YAML keys are invalid). */
-const HEADER_KEYS = new Set(['title', 'slug', 'published', 'featured', 'thumbnail']);
+const HEADER_KEYS = new Set(['title', 'slug', 'published', 'featured', 'thumbnail', 'render_with_liquid']);
 
-/** Extra headings the form may carry that are not schema fields. */
+/** Extra headings the form may carry that are not schema fields. Put a
+ * `### Slug` block BEFORE the write-up section: everything after the write-up
+ * heading is treated as prose (see parseIssueForm). */
 const SLUG_HEADING = 'slug';
+
+/** A slug is a folder name under the entry path, so keep it to this shape. */
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /**
  * Append a `key<<EOF … EOF` pair to $GITHUB_OUTPUT (no-op outside Actions).
@@ -104,7 +109,19 @@ for (const field of fields) {
   if (field?.key) knownHeadings.push(field.key);
   if (field?.prompt) knownHeadings.push(field.prompt);
 }
-const sections = parseSections(issueBody, knownHeadings);
+
+// The free-form write-up is the last `markdown` field of the schema, so it is
+// also the last section of the generated issue form. Naming it lets the parser
+// treat everything after its heading as prose: a `### Organization` the
+// submitter types inside their write-up can no longer overwrite a real answer.
+const writeUpField = [...fields].reverse().find((f) => f?.type === 'markdown');
+const writeUpLabel = writeUpField ? (writeUpField.label || writeUpField.key || '') : '';
+
+/** @type {string[]} */
+const warnings = [];
+
+const { sections, warnings: parseWarnings } = parseIssueForm(issueBody, knownHeadings, writeUpLabel);
+warnings.push(...parseWarnings);
 
 // --- title and slug --------------------------------------------------------
 
@@ -123,13 +140,30 @@ if (!slugSeed) fail(`Could not derive a URL slug from the title ${JSON.stringify
 
 const slug = uniqueSlug(slugSeed, (candidate) => fs.existsSync(path.join(ROOT, entryPath, candidate)));
 if (!slug) fail(`Too many entries already exist under ${entryPath}/${slugSeed}*. Add a "### Slug" section with a different slug.`);
+// `slugify` already strips everything outside [a-z0-9-], but this job runs with
+// `contents: write` on issue text from anyone, so the folder name it is about
+// to create is re-checked rather than trusted.
+if (!SLUG_PATTERN.test(slug)) fail(`Refusing to use ${JSON.stringify(slug)} as a folder name.`);
 
 const entryDir = path.join(ROOT, entryPath, slug);
 
+/**
+ * Guard every write: the scaffolder may only create files inside this entry's
+ * own folder, never anywhere else in the checkout.
+ * @param {string} target absolute path about to be written
+ * @returns {string} the same path
+ */
+function insideEntryDir(target) {
+  const resolved = path.resolve(target);
+  const base = path.resolve(entryDir);
+  if (resolved !== base && !resolved.startsWith(`${base}${path.sep}`)) {
+    fail(`Refusing to write outside ${entryPath}/${slug}/ (${resolved}).`);
+  }
+  return resolved;
+}
+
 // --- images ----------------------------------------------------------------
 
-/** @type {string[]} */
-const warnings = [];
 /** @type {Record<string, Array<{src: string, alt: string}>>} */
 const imageValues = {};
 
@@ -153,6 +187,10 @@ for (const field of fields.filter((f) => f.type === 'images')) {
     altFallback: `${title} — screenshot`,
     maxFiles: maxImages,
     token: process.env.GITHUB_TOKEN || '',
+    fsImpl: {
+      mkdirSync: (dir, opts) => fs.mkdirSync(insideEntryDir(dir), opts),
+      writeFileSync: (file, data) => fs.writeFileSync(insideEntryDir(file), data),
+    },
   });
   imageValues[field.key] = result.items;
   warnings.push(...result.warnings);
@@ -164,6 +202,12 @@ const published = new Date().toISOString().slice(0, 10);
 /** @type {Array<[string, unknown]>} */
 const entries = [
   ['layout', 'entry'],
+  // The page body is markdown someone we do not know typed into an issue.
+  // Without this, Jekyll would run it through Liquid at build time and a
+  // `{% include %}` or `{{ site… }}` in the write-up would execute. Jekyll 4
+  // honours the flag per document (Jekyll::Convertible#render_with_liquid?);
+  // hand-written entries should carry it too.
+  ['render_with_liquid', false],
   ['title', title],
   ['slug', slug],
   ['published', published],
@@ -208,8 +252,8 @@ if (DRY_RUN) {
   process.exit(0);
 }
 
-fs.mkdirSync(entryDir, { recursive: true });
-fs.writeFileSync(path.join(entryDir, 'index.md'), content, 'utf8');
+fs.mkdirSync(insideEntryDir(entryDir), { recursive: true });
+fs.writeFileSync(insideEntryDir(path.join(entryDir, 'index.md')), content, 'utf8');
 
 const summaryLines = [
   `## Scaffolded \`${entryPath}/${slug}/index.md\``,

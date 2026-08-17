@@ -18,6 +18,12 @@ Day-to-day operation of a site built from this template: repository setup, revie
 - [ ] Configure branding/theme/schema via `/setup/` or `npm run setup` (see the [README](../README.md) quick start and [configuration reference](configuration.md)).
 - [ ] Optional: custom domain — add a `CNAME` file at the repo root; the `pages.yml` build detects it and serves from the domain root.
 
+## Who can submit
+
+By default anyone with a GitHub account can open a `content:new-entry` issue and have the automation draft a pull request from it. That is the point of the template — the catalog collects work from people who do not have write access to the repository. The safety comes from what the job is allowed to do, not from who is allowed to start it: issue text never reaches a shell, the scaffolder refuses to write outside `catalog/<slug>/`, the page body is written with `render_with_liquid: false` so it is never executed at build time, images are fetched through an SSRF guard and re-checked against their magic bytes, and the output is a pull request that only a maintainer can merge. [SECURITY.md](../SECURITY.md) sets this out in full.
+
+If you need to close submissions for a while, add a repository variable `SUBMISSIONS_OPEN` (Settings → Secrets and variables → Actions → Variables) set to `false`. The workflow then runs only for issues opened by the repository owner, an organization member or a collaborator. Delete the variable, or set it to anything else, to reopen. Nobody is stopped from opening the issue either way — it simply does not scaffold a pull request, so you can still triage by hand.
+
 ## Reviewing a submission
 
 1. A submission arrives as a GitHub issue labelled `content:new-entry` (opened via `/submit/` or the issue form directly).
@@ -149,7 +155,7 @@ All four cohort/event workflows follow the same pattern as new-entry: issue → 
 
 **Front-matter validation failing on a PR**
 - `check_front_matter.rb` checks: `title`/`slug`/`summary` present, `slug` matches the folder name, `published` (and `updated` when present) is a valid `YYYY-MM-DD` date, every `required` field is present, `select`/`multiselect` values are within `options`, `url` fields start with `http(s)://`, `email` fields contain `@`, `images` items have a `src` that exists inside the entry folder, and `links` items have both a label and an `http(s)` or `mailto:` URL. The error message names the file, the line and the field.
-- Warnings (a remote image `src`, a missing `alt`) are printed but do not fail the check. Fix them anyway — they are the two things most likely to make the published page worse.
+- Warnings (a remote image `src`, a missing `alt`, a missing `render_with_liquid: false`) are printed but do not fail the check. Fix them anyway. `render_with_liquid: false` in particular belongs on every entry, hand-written ones included: without it Jekyll runs the page body through Liquid at build time, so a Liquid `include` tag someone typed into their write-up would execute. The scaffolder emits it automatically.
 
 **Weekly smoke build failing**
 - `smoke.yml` runs every Monday and does a full validate + build without deploying, to catch drift (e.g. a stale dependency, a broken external asset) between real deploys. Treat a red run the same as a failing `Build & Deploy`.

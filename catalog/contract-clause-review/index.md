@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Contract clause summaries for procurement review"
 slug: contract-clause-review
 summary: "Vendor tool that extracts clauses from scanned agreements, summarizes them in plain language, and flags gaps against our standard terms."

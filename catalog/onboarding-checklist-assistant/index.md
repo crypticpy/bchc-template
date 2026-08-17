@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "New hire onboarding checklist assistant"
 slug: onboarding-checklist-assistant
 summary: "Builds a personalized checklist for each new hire, opens the access requests it can, and answers policy questions from the staff handbook."

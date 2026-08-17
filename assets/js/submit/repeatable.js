@@ -15,6 +15,25 @@
   'use strict';
 
   /**
+   * Renumber the per-row controls so a screen reader hears "Remove link 2"
+   * rather than five buttons all called "Remove". Runs after every add and
+   * every removal, because the numbers shift.
+   * @param {object} field descriptor from readFields
+   */
+  function renumber(field) {
+    const rows = field.wrap.querySelector('[data-links-rows]');
+    if (!rows) return;
+    Array.from(rows.children).forEach((row, index) => {
+      const remove = row.querySelector('[data-links-remove]');
+      if (remove) remove.setAttribute('aria-label', 'Remove link ' + (index + 1));
+      const label = row.querySelector('[data-links-label]');
+      if (label) label.setAttribute('aria-label', 'Link ' + (index + 1) + ' label');
+      const url = row.querySelector('[data-links-url]');
+      if (url) url.setAttribute('aria-label', 'Link ' + (index + 1) + ' address');
+    });
+  }
+
+  /**
    * Append one blank row to a links field.
    * @param {object} field descriptor from readFields
    * @param {{label?: string, url?: string}} [values]
@@ -33,6 +52,7 @@
       if (url) url.value = values.url || '';
     }
     rows.appendChild(row);
+    renumber(field);
     return row;
   }
 
@@ -85,10 +105,14 @@
       const rows = field.wrap.querySelector('[data-links-rows]');
       if (rows && rows.children.length === 0) addRow(field);
 
+      renumber(field);
+
       const add = field.wrap.querySelector('[data-links-add]');
       if (add) {
         add.addEventListener('click', () => {
           const row = addRow(field);
+          // Moving focus into the new row is what announces it: the label the
+          // renumber pass just wrote ("Link 3 label") is read on arrival.
           const first = row ? row.querySelector('input') : null;
           if (first) first.focus();
           onChange();
@@ -103,6 +127,7 @@
         const container = row.parentElement;
         row.remove();
         if (container && container.children.length === 0) addRow(field);
+        renumber(field);
         if (add) add.focus();
         onChange();
       });

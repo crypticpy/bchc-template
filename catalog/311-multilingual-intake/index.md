@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Multilingual environmental complaint intake"
 slug: 311-multilingual-intake
 summary: "Translates and classifies resident complaints about rodents, mold, noise and air quality from the 311 feed and web forms into inspector work orders."

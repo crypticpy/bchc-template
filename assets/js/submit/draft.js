@@ -53,6 +53,10 @@
     const status = form.querySelector('[data-draft-status]');
     const bar = form.querySelector('[data-draft-restore]');
     let timer = null;
+    // True between "you have an unfinished draft" appearing and the submitter
+    // answering it. Autosaving while the bar is up would overwrite the very
+    // draft the bar is offering — one keystroke and it is gone.
+    let pending = false;
 
     /** @returns {object} the current answers, keyed by schema key */
     function snapshot() {
@@ -65,7 +69,7 @@
 
     /** Write the current answers to storage and announce it. */
     function write() {
-      if (!memory) return;
+      if (!memory || pending) return;
       const data = snapshot();
       if (Object.keys(data).length === 0) {
         memory.removeItem(key);
@@ -81,8 +85,9 @@
       if (status) status.textContent = 'Draft saved on this device.';
     }
 
-    /** Debounced autosave. */
+    /** Debounced autosave. Inert while a restore decision is outstanding. */
     function save() {
+      if (pending) return;
       if (timer) window.clearTimeout(timer);
       timer = window.setTimeout(write, DEBOUNCE_MS);
     }
@@ -90,6 +95,7 @@
     /** Drop the saved draft. */
     function clear() {
       if (timer) window.clearTimeout(timer);
+      pending = false;
       if (memory) memory.removeItem(key);
       if (status) status.textContent = '';
       if (bar) bar.hidden = true;
@@ -109,6 +115,7 @@
     /** Write the stored answers back into the form. */
     function restore() {
       const data = read();
+      pending = false;
       if (!data) return;
       fields.forEach((field) => {
         if (Object.prototype.hasOwnProperty.call(data, field.key)) ns.setValue(field, data[field.key]);
@@ -116,9 +123,13 @@
       if (bar) bar.hidden = true;
       if (status) status.textContent = 'Draft restored.';
       onRestore();
+      save();
     }
 
-    if (bar && read()) bar.hidden = false;
+    if (bar && read()) {
+      bar.hidden = false;
+      pending = true;
+    }
 
     form.addEventListener('click', (event) => {
       const button = event.target.closest ? event.target.closest('[data-draft-action]') : null;

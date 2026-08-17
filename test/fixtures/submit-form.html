@@ -55,19 +55,19 @@
 
       </summary>
       <p class="mt-3 hidden text-xs font-semibold uppercase tracking-[0.12em] text-brand-muted lg:block">Card preview</p>
-      <p class="mt-1 text-xs text-brand-muted">This is how your entry will look in the catalog.</p>
-
-      <article class="card mt-3 overflow-hidden" data-preview="">
-        <div class="aspect-[16/9] w-full bg-brand-ink/5" data-preview-media="" hidden="">
+      <p class="mt-1 text-xs text-brand-muted">This is how your entry will look in the catalog.</p><article class="entry-card mt-3" data-preview="">
+        <div class="entry-media" data-preview-media="" hidden="">
           <img class="h-full w-full object-cover" alt="" referrerpolicy="no-referrer" data-preview-image="" />
         </div>
-        <div class="p-4">
-          <p class="eyebrow flex flex-wrap items-center gap-x-2 gap-y-1 text-brand-muted" data-preview-meta="" hidden=""></p>
-          <h3 class="card-title mt-2 line-clamp-2" data-preview-title="">Your title appears here</h3>
-          <p class="mt-2 flex items-start gap-1.5 text-sm font-semibold text-brand-ink" data-preview-line="" hidden=""></p>
-          <p class="mt-2 line-clamp-2 text-sm text-brand-muted" data-preview-summary="" hidden="">Your one-sentence summary appears here.</p>
-          <ul class="mt-3 flex flex-wrap gap-1.5" data-preview-chips="" hidden=""></ul>
-          <div class="signal-strip mt-4" data-preview-signals="" hidden=""></div>
+        <div class="entry-body">
+          <p class="entry-meta" data-preview-meta="" hidden=""></p>
+          <p class="entry-title line-clamp-2" data-preview-title="">Your title appears here</p>
+          <p class="entry-line" data-preview-line="" hidden=""></p>
+          <p class="entry-summary" data-preview-summary="" hidden="">Your one-sentence summary appears here.</p>
+          <ul class="entry-chips" data-preview-chips="" hidden=""></ul>
+        </div>
+        <div class="entry-foot" data-preview-foot="" hidden="">
+          <div class="signal-strip" data-preview-signals=""></div>
         </div>
       </article>
 
@@ -76,9 +76,11 @@
         <ol class="space-y-1.5">
           <li>1. Your answers open a pre-filled GitHub issue. Review it and press <em>Submit new issue</em>.</li>
           <li>2. Automation drafts the page and opens a pull request.</li>
-          <li>3. Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content.</li>
-        </ol>
-      </div>
+          <li>3. A maintainer reviews it — usually within a few days.</li>
+        </ol><p class="mt-3 flex items-start gap-1.5 rounded-md bg-brand-accent/10 p-2 text-brand-ink">
+          <svg class="shrink-0 h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+<span>Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content.</span>
+        </p></div>
     </details>
   </div>
 
@@ -90,9 +92,10 @@
         <button type="button" class="btn-secondary btn-sm" data-draft-action="restore">Restore it</button>
         <button type="button" class="btn-ghost btn-sm" data-draft-action="discard">Start fresh</button>
       </div>
+    </div><div class="sticky top-16 z-20 -mx-4 border-b border-brand-line bg-surface-base/95 px-4 py-2 shadow-e2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+      <p class="truncate font-heading text-sm font-semibold text-brand-primary-dark" data-progress-section="">About</p>
+      <p class="progress-count" data-progress-line="">0 of 6 sections complete</p>
     </div>
-
-    <p class="progress-count lg:hidden" data-progress-line="">0 of 6 sections complete</p>
 
     <div class="error-summary" role="alert" tabindex="-1" data-error-summary="" hidden="">
       <p class="error-summary-title"><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
@@ -183,7 +186,7 @@
 <span data-error-text=""></span></p>
         </div><div class="field" data-field="stage" data-type="select" data-required="true" data-label="Stage" data-slot="meta" data-weight="7" data-prefill="true" data-role=""><fieldset>
               <legend class="field-label">Where is it today?<span class="field-required">Required</span></legend>
-              <p class="field-help mt-1" id="f-stage-help">Where is this today? <span class="text-brand-muted/80">Shown as “Stage”.</span></p><div class="field-options mt-2"><label class="field-option">
+              <p class="field-help mt-1" id="f-stage-help">How far along it is — pick the stage that best matches real use. <span class="text-brand-muted/80">Shown as “Stage”.</span></p><div class="field-options mt-2"><label class="field-option">
                     <input class="radio" type="radio" name="stage" value="Idea / exploring" data-option-index="0" data-short="Exploring" aria-required="true" aria-describedby="f-stage-help f-stage-error" />
                     <span><span class="font-medium">Idea / exploring</span><span class="field-option-desc">Scoping or prototyping; nothing in regular use yet.</span></span>
                   </label><label class="field-option">
@@ -381,7 +384,7 @@
             </fieldset><p class="field-error" id="f-resources-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
 <span data-error-text=""></span></p>
         </div><div class="field" data-field="screenshots" data-type="images" data-required="false" data-label="Screenshots" data-slot="" data-weight="7" data-prefill="true" data-role=""><label class="field-label" for="f-screenshots">Can you show it in use?</label>
-            <p class="field-help" id="f-screenshots-help">Up to six PNG or JPG images of the tool in use. Make sure no personal or protected information is visible.</p>
+            <p class="field-help" id="f-screenshots-help">Up to eight PNG, JPEG, GIF or WebP images of the tool in use (15 MB total). Make sure no personal or protected information is visible.</p>
             <p class="field-note">You can drag image files straight into the GitHub issue on the next screen. If your images are already online, paste their addresses here instead — one per line, optionally followed by <code>| alt text</code>. PNG, JPEG, GIF and WebP images are copied into the repository; anything else is left as a link for a maintainer.</p>
             <textarea class="field-input min-h-[6rem]" id="f-screenshots" name="screenshots" rows="3" aria-describedby="f-screenshots-help f-screenshots-error" placeholder="https://example.org/screenshot.png | The daily brief queue"></textarea>
             <ul class="image-previews" data-image-previews="" hidden=""></ul><p class="field-error" id="f-screenshots-error" hidden=""><svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
@@ -480,6 +483,8 @@
     <div class="space-y-4 border-t border-brand-line pt-6">
       <div class="rounded-lg border border-brand-line bg-surface-base p-4 text-sm text-brand-muted" role="status" data-submit-status="" hidden=""></div>
 
+      <p class="field-note" role="status" data-length-note="" hidden=""></p>
+
       <div class="flex flex-wrap items-center gap-3">
         <button type="submit" class="btn-primary">Review and send on GitHub <svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
 </button>
@@ -497,9 +502,12 @@
 
       <div class="space-y-2" data-fallback="" hidden="">
         <label class="field-label" for="fallback-body">Copy this and paste it into a blank GitHub issue</label>
-        <p class="field-help">Your answers are longer than a link can carry. Open a blank issue, add the label <code>content:new-entry</code>, and paste the text below — the automation reads exactly this format.</p>
+        <p class="field-help">Open a blank issue, add the label <code>content:new-entry</code>, and paste the text below — the automation reads exactly this format.</p>
         <textarea class="field-input min-h-[10rem] font-mono text-xs" id="fallback-body" readonly="" rows="10" data-fallback-body=""></textarea>
-        <button type="button" class="btn-secondary btn-sm" data-action="copy-fallback">Copy to clipboard</button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" class="btn-secondary btn-sm" data-action="copy-fallback">Copy to clipboard</button><a class="btn-ghost btn-sm" href="#" target="_blank" rel="noopener" data-fallback-link="" hidden="">Open the prefilled issue <svg class="shrink-0 h-4 w-4 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+</a>
+        </div>
       </div>
     </div>
   </form>
@@ -509,7 +517,7 @@
 <span>Cloud deployment</span></span></template><template data-option-view="solution_type__2"><span class="badge-neutral"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>
 <span>Vendor product</span></span></template><template data-option-view="solution_type__3"><span class="badge-neutral"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
 <span>Internal tool</span></span></template><template data-option-view="solution_type__4"><span class="badge-neutral"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
-<span>Playbook or write-up</span></span></template><template data-option-view="area__0"><li class="chip">Epi &amp; surveillance</li></template><template data-option-view="area__1"><li class="chip">Clinical</li></template><template data-option-view="area__2"><li class="chip">Environmental</li></template><template data-option-view="area__3"><li class="chip">Preparedness</li></template><template data-option-view="area__4"><li class="chip">Communications</li></template><template data-option-view="area__5"><li class="chip">Data</li></template><template data-option-view="area__6"><li class="chip">Policy</li></template><template data-option-view="area__7"><li class="chip">HR &amp; workforce</li></template><template data-option-view="area__8"><li class="chip">Procurement</li></template><template data-option-view="area__9"><li class="chip">IT &amp; ops</li></template><template data-option-view="area__10"><li class="chip">Legal</li></template><template data-option-view="area__11"><li class="chip">Coordination</li></template><template data-option-view="area__12"><li class="chip">Leadership</li></template><template data-option-view="expertise__0"><span class="signal" title="Skills needed to set it up: Anyone on staff"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+<span>Playbook or write-up</span></span></template><template data-option-view="area__0"><li><span class="chip" title="Epidemiology &amp; surveillance">Epi &amp; surveillance</span></li></template><template data-option-view="area__1"><li><span class="chip" title="Clinical &amp; community services">Clinical</span></li></template><template data-option-view="area__2"><li><span class="chip" title="Environmental health">Environmental</span></li></template><template data-option-view="area__3"><li><span class="chip" title="Emergency preparedness">Preparedness</span></li></template><template data-option-view="area__4"><li><span class="chip" title="Communications &amp; outreach">Communications</span></li></template><template data-option-view="area__5"><li><span class="chip" title="Data &amp; informatics">Data</span></li></template><template data-option-view="area__6"><li><span class="chip" title="Policy &amp; planning">Policy</span></li></template><template data-option-view="area__7"><li><span class="chip" title="HR &amp; workforce">HR &amp; workforce</span></li></template><template data-option-view="area__8"><li><span class="chip" title="Finance, procurement &amp; contracts">Procurement</span></li></template><template data-option-view="area__9"><li><span class="chip" title="IT &amp; operations">IT &amp; ops</span></li></template><template data-option-view="area__10"><li><span class="chip" title="Legal &amp; compliance">Legal</span></li></template><template data-option-view="area__11"><li><span class="chip" title="Staff &amp; partner coordination">Coordination</span></li></template><template data-option-view="area__12"><li><span class="chip" title="Leadership &amp; administration">Leadership</span></li></template><template data-option-view="expertise__0"><span class="signal" title="Skills needed to set it up: Anyone on staff"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
 <span aria-hidden="true">Anyone</span><span class="sr-only">Skills needed to set it up: Anyone on staff</span></span></template><template data-option-view="expertise__1"><span class="signal" title="Skills needed to set it up: Power user"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
 <span aria-hidden="true">Power user</span><span class="sr-only">Skills needed to set it up: Power user</span></span></template><template data-option-view="expertise__2"><span class="signal" title="Skills needed to set it up: Analyst or data scientist"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>
 <span aria-hidden="true">Analyst</span><span class="sr-only">Skills needed to set it up: Analyst or data scientist</span></span></template><template data-option-view="expertise__3"><span class="signal" title="Skills needed to set it up: Developer"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" /></svg>
@@ -532,5 +540,5 @@
 <span aria-hidden="true">Public</span><span class="sr-only">Who sees the output: Public-facing</span></span></template><template data-option-view="audience__1"><span class="signal" title="Who sees the output: Internal staff"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
 <span aria-hidden="true">Internal</span><span class="sr-only">Who sees the output: Internal staff</span></span></template><template data-option-view="audience__2"><span class="signal" title="Who sees the output: Partner organizations"><svg class="shrink-0 h-3 w-3 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
 <span aria-hidden="true">Partners</span><span class="sr-only">Who sees the output: Partner organizations</span></span></template><template data-line-view="impact"><svg class="shrink-0 h-4 w-4 mt-0.5 text-brand-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" /></svg>
-<span data-line-text=""></span></template><template data-chip-overflow=""><li class="chip-neutral" data-overflow-text=""></li></template>
+<span class="line-clamp-2" data-line-text=""></span></template><template data-chip-overflow=""><li><span class="chip-neutral" data-overflow-text=""></span></li></template><template data-signal-overflow=""><span class="signal" data-overflow-text=""></span></template>
 </div>

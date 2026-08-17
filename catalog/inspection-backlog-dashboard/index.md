@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Inspection backlog dashboard built with an AI coding assistant"
 slug: inspection-backlog-dashboard
 summary: "A nightly operations dashboard for environmental health backlogs, built in three weeks by one developer working with an AI coding assistant."

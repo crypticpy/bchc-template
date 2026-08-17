@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Plain-language restaurant inspection summaries"
 slug: restaurant-inspection-summaries
 summary: "Nightly job that rewrites inspector code citations into two-sentence summaries a resident can understand, for the public inspection lookup site."

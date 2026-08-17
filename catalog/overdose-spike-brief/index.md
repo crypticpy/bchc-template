@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Overdose spike situational brief generator"
 slug: overdose-spike-brief
 summary: "Assembles naloxone runs, emergency department visits and medical examiner reports into a one-page situational brief within an hour of a spike alert."

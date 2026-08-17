@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Plain-language rewrites for public notices"
 slug: plain-language-notices
 summary: "A prompt kit and review checklist staff use to rewrite public notices at a sixth-grade reading level without changing what the notice requires."

@@ -1,5 +1,6 @@
 ---
 layout: entry
+render_with_liquid: false
 title: "Grant narrative copilot"
 slug: grant-narrative-copilot
 summary: "A vendor-hosted assistant grounded in our own program library, used by staff to draft first-pass narratives for federal funding applications."

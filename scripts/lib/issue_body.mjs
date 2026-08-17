@@ -33,38 +33,72 @@ export function normalizeLabel(value) {
 /**
  * Split an issue body into `normalized heading -> raw value`.
  *
- * Only headings the caller recognises start a new section, so a `###` inside a
- * submitter's write-up does not silently truncate it. Pass an empty set to
- * treat every `###` as a boundary.
+ * A GitHub issue form renders its fields as `### <label>` sections in template
+ * order, so the structure — not just the text — tells us where a section ends.
+ * Three rules make the split un-spoofable by whatever the submitter typed:
+ *
+ *   1. Only headings the caller recognises start a section. A `###` the
+ *      submitter invented is body text.
+ *   2. The FIRST occurrence of a known heading wins. A later `### Organization`
+ *      cannot overwrite the answer GitHub itself collected; it is reported as
+ *      an ignored duplicate instead.
+ *   3. `finalLabel` names the last field of the template — the free-form
+ *      markdown write-up. Once its heading is seen, every remaining line
+ *      belongs to it, `###` lines included. Nothing after the write-up can be
+ *      re-read as a field answer.
+ *
+ * Pass an empty `knownLabels` to treat every `###` as a boundary (used by the
+ * "paste a blank issue" fallback, where no template order exists).
  *
  * @param {string} body raw issue body (CRLF tolerated)
  * @param {Iterable<string>} [knownLabels] labels that may start a section
- * @returns {Map<string, string>}
+ * @param {string} [finalLabel] label of the trailing free-form field
+ * @returns {{sections: Map<string, string>, warnings: string[]}}
  */
-export function parseSections(body, knownLabels = []) {
+export function parseIssueForm(body, knownLabels = [], finalLabel = '') {
   const known = new Set(Array.from(knownLabels, normalizeLabel).filter(Boolean));
+  const terminal = normalizeLabel(finalLabel);
   const sections = new Map();
+  /** @type {string[]} */
+  const warnings = [];
+  const seen = new Set();
   const lines = String(body ?? '').replace(/\r\n?/g, '\n').split('\n');
 
   let heading = null;
   let buffer = [];
+  let sealed = false;
   const flush = () => {
-    if (heading !== null) sections.set(heading, buffer.join('\n').trim());
+    // First occurrence wins; a duplicate's body is discarded, not merged.
+    if (heading !== null && !sections.has(heading)) sections.set(heading, buffer.join('\n').trim());
     buffer = [];
   };
 
   for (const line of lines) {
-    const match = /^###[ \t]+(.*)$/.exec(line);
+    const match = sealed ? null : /^###[ \t]+(.*)$/.exec(line);
     const candidate = match ? normalizeLabel(match[1]) : null;
     if (candidate !== null && (known.size === 0 || known.has(candidate))) {
       flush();
+      if (seen.has(candidate)) warnings.push(`Duplicate section "${candidate}" ignored.`);
+      seen.add(candidate);
       heading = candidate;
+      if (terminal && candidate === terminal) sealed = true;
       continue;
     }
     if (heading !== null) buffer.push(line);
   }
   flush();
-  return sections;
+  return { sections, warnings };
+}
+
+/**
+ * `parseIssueForm` when only the sections are wanted.
+ * @param {string} body
+ * @param {Iterable<string>} [knownLabels]
+ * @param {string} [finalLabel]
+ * @returns {Map<string, string>}
+ */
+export function parseSections(body, knownLabels = [], finalLabel = '') {
+  return parseIssueForm(body, knownLabels, finalLabel).sections;
 }
 
 /**

@@ -82,17 +82,26 @@ scripts:
       <p class="mt-3 hidden text-xs font-semibold uppercase tracking-[0.12em] text-brand-muted lg:block">Card preview</p>
       <p class="mt-1 text-xs text-brand-muted">This is how your entry will look in the catalog.</p>
 
-      <article class="card mt-3 overflow-hidden" data-preview>
-        <div class="aspect-[16/9] w-full bg-brand-ink/5" data-preview-media hidden>
+      {%- comment -%}
+        Structure and class names are copied from _includes/entry-card.html so
+        the preview inherits the real card's styling, including the meta-line
+        separator the stylesheet draws. The title is a <p>, not an <h3>: this is
+        a picture of a card, and a heading here would sit under the panel's own
+        heading level and break the page's heading order.
+      {%- endcomment -%}
+      <article class="entry-card mt-3" data-preview>
+        <div class="entry-media" data-preview-media hidden>
           <img class="h-full w-full object-cover" alt="" referrerpolicy="no-referrer" data-preview-image>
         </div>
-        <div class="p-4">
-          <p class="eyebrow flex flex-wrap items-center gap-x-2 gap-y-1 text-brand-muted" data-preview-meta hidden></p>
-          <h3 class="card-title mt-2 line-clamp-2" data-preview-title>Your title appears here</h3>
-          <p class="mt-2 flex items-start gap-1.5 text-sm font-semibold text-brand-ink" data-preview-line hidden></p>
-          <p class="mt-2 line-clamp-2 text-sm text-brand-muted" data-preview-summary hidden>Your one-sentence summary appears here.</p>
-          <ul class="mt-3 flex flex-wrap gap-1.5" data-preview-chips hidden></ul>
-          <div class="signal-strip mt-4" data-preview-signals hidden></div>
+        <div class="entry-body">
+          <p class="entry-meta" data-preview-meta hidden></p>
+          <p class="entry-title line-clamp-2" data-preview-title>Your title appears here</p>
+          <p class="entry-line" data-preview-line hidden></p>
+          <p class="entry-summary" data-preview-summary hidden>Your one-sentence summary appears here.</p>
+          <ul class="entry-chips" data-preview-chips hidden></ul>
+        </div>
+        <div class="entry-foot" data-preview-foot hidden>
+          <div class="signal-strip" data-preview-signals></div>
         </div>
       </article>
 
@@ -101,8 +110,13 @@ scripts:
         <ol class="space-y-1.5">
           <li>1. Your answers open a pre-filled GitHub issue. Review it and press <em>Submit new issue</em>.</li>
           <li>2. Automation drafts the page and opens a pull request.</li>
-          <li>3. {{ cfg.submit.review_note | default: 'A maintainer reviews the draft, may ask follow-up questions on the issue, and merges it.' }}</li>
+          <li>3. {{ cfg.submit.turnaround | default: 'A maintainer reviews it — usually within a few days.' }}</li>
         </ol>
+        {%- if cfg.submit.review_note -%}
+        <p class="mt-3 flex items-start gap-1.5 rounded-md bg-brand-accent/10 p-2 text-brand-ink">
+          {% include icon.html name='warning' size='sm' class='mt-0.5 shrink-0' %}<span>{{ cfg.submit.review_note }}</span>
+        </p>
+        {%- endif -%}
       </div>
     </details>
   </div>
@@ -127,7 +141,15 @@ scripts:
       </div>
     </div>
 
-    <p class="progress-count lg:hidden" data-progress-line>0 of {{ form_groups.size }} sections complete</p>
+    {%- comment -%}
+      Small screens have no sticky rail, so this is the only place the
+      submitter can see where they are in a long form. It rides just under the
+      site header (h-16), below it in the stacking order.
+    {%- endcomment -%}
+    <div class="sticky top-16 z-20 -mx-4 border-b border-brand-line bg-surface-base/95 px-4 py-2 shadow-e2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+      <p class="truncate font-heading text-sm font-semibold text-brand-primary-dark" data-progress-section>{{ form_groups.first.title }}</p>
+      <p class="progress-count" data-progress-line>0 of {{ form_groups.size }} sections complete</p>
+    </div>
 
     <div class="error-summary" role="alert" tabindex="-1" data-error-summary hidden>
       <p class="error-summary-title">{% include icon.html name='warning' size='sm' %}<span data-error-summary-title>There is a problem</span></p>
@@ -156,7 +178,7 @@ scripts:
           {%- when 'select' or 'multiselect' -%}
             <fieldset>
               <legend class="field-label">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</legend>
-              <p class="field-help mt-1" id="{{ fid }}-help">{{ f.description }}{% if f.label != question %} <span class="text-brand-muted/80">Shown as “{{ f.label }}”.</span>{% endif %}</p>
+              <p class="field-help mt-1" id="{{ fid }}-help">{{ f.description }}{% if f.label != question %} <span>Shown as “{{ f.label }}”.</span>{% endif %}</p>
               {%- if f.type == 'select' and f.options.size > 6 -%}
                 <select class="field-input mt-2" id="{{ fid }}" name="{{ f.key }}" aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}>
                   <option value="">Choose one…</option>
@@ -268,6 +290,8 @@ scripts:
     <div class="space-y-4 border-t border-brand-line pt-6">
       <div class="rounded-lg border border-brand-line bg-surface-base p-4 text-sm text-brand-muted" role="status" data-submit-status hidden></div>
 
+      <p class="field-note" role="status" data-length-note hidden></p>
+
       <div class="flex flex-wrap items-center gap-3">
         <button type="submit" class="btn-primary">Review and send on GitHub {% include icon.html name='arrow-right' size='sm' %}</button>
         <button type="button" class="btn-secondary" data-action="email">Email it instead</button>
@@ -284,9 +308,13 @@ scripts:
 
       <div class="space-y-2" data-fallback hidden>
         <label class="field-label" for="fallback-body">Copy this and paste it into a blank GitHub issue</label>
-        <p class="field-help">Your answers are longer than a link can carry. Open a blank issue, add the label <code>content:new-entry</code>, and paste the text below — the automation reads exactly this format.</p>
+        <p class="field-help">Open a blank issue, add the label <code>content:new-entry</code>, and paste the text below — the automation reads exactly this format.</p>
         <textarea class="field-input min-h-[10rem] font-mono text-xs" id="fallback-body" readonly rows="10" data-fallback-body></textarea>
-        <button type="button" class="btn-secondary btn-sm" data-action="copy-fallback">Copy to clipboard</button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" class="btn-secondary btn-sm" data-action="copy-fallback">Copy to clipboard</button>
+          {%- comment -%}Shown only when a blocked popup left us with a working prefilled link.{%- endcomment -%}
+          <a class="btn-ghost btn-sm" href="#" target="_blank" rel="noopener" data-fallback-link hidden>Open the prefilled issue {% include icon.html name='arrow-right' size='sm' %}</a>
+        </div>
       </div>
     </div>
   </form>
@@ -306,7 +334,7 @@ scripts:
 
   {%- if chip_field -%}
   {%- for o in chip_field.options -%}{%- assign om = chip_field | option_meta: o -%}
-  <template data-option-view="{{ chip_field.key }}__{{ forloop.index0 }}"><li class="chip">{{ om.short }}</li></template>
+  <template data-option-view="{{ chip_field.key }}__{{ forloop.index0 }}"><li><span class="chip" title="{{ o | escape }}">{{ om.short }}</span></li></template>
   {%- endfor -%}
   {%- endif -%}
 
@@ -317,8 +345,10 @@ scripts:
   {%- endfor -%}
 
   {%- for f in line_fields -%}
-  <template data-line-view="{{ f.key }}">{% include icon.html name=f.icon size='sm' class='mt-0.5 text-brand-primary' %}<span data-line-text></span></template>
+  <template data-line-view="{{ f.key }}">{% include icon.html name=f.icon size='sm' class='mt-0.5 text-brand-primary' %}<span class="line-clamp-2" data-line-text></span></template>
   {%- endfor -%}
 
-  <template data-chip-overflow><li class="chip-neutral" data-overflow-text></li></template>
+  <template data-chip-overflow><li><span class="chip-neutral" data-overflow-text></span></li></template>
+  {%- comment -%}One trailing "+n" for the signal strip, matching the card's cap of four items in total.{%- endcomment -%}
+  <template data-signal-overflow><span class="signal" data-overflow-text></span></template>
 </div>

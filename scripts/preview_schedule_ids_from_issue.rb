@@ -8,6 +8,7 @@
 
 require "yaml"
 require "date"
+require "securerandom"
 
 issue_body = ENV["ISSUE_BODY"].to_s.gsub("\r\n", "\n")
 
@@ -65,11 +66,15 @@ md = if events.empty?
      end
 
 if (output = ENV["GITHUB_OUTPUT"])
+  # `md` is built from issue text, so a fixed heredoc delimiter would let a
+  # submitter close the block early and inject their own step outputs. A random
+  # delimiter per write cannot be guessed from the issue.
+  delimiter = "GHEOF_preview_ids_#{SecureRandom.hex(8)}"
   File.open(output, "a") do |f|
-    f.puts("year=#{year}")
-    f.puts("preview_ids<<MD")
+    f.puts("year=#{year.gsub(/[^0-9]/, '')}")
+    f.puts("preview_ids<<#{delimiter}")
     f.puts(md)
-    f.puts("MD")
+    f.puts(delimiter)
   end
 end
 

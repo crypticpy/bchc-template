@@ -45,7 +45,11 @@ export function githubEditFileUrl(repository, branch, path) {
     .join('/')}`;
 }
 
-/** True when a prefilled URL is long enough that GitHub/browsers may reject it. */
+/**
+ * True when a prefilled URL is long enough that GitHub/browsers may reject it.
+ * The same 7000 is the `MAX_URL` of assets/js/submit.js (a classic script, so
+ * it cannot import this module); change one and change the other.
+ */
 export function prefillNoticeIfTooLong(url) {
   return String(url ?? '').length > 7000;
 }
