@@ -1,0 +1,8 @@
+/* Catalog surfaces: cards, list rows, filter rail, results header, mobile sheet.
+   Owned by the catalog UI workstream (see docs/design-brief.md → Catalog card, Filter & browse). */
+@layer components {
+  .filter-pill { @apply inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-brand-line-strong bg-surface-card px-3.5 text-sm font-medium text-brand-ink transition-colors duration-120 hover:border-brand-primary hover:text-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30 lg:min-h-[32px] lg:text-xs; }
+  .filter-pill.is-active, .filter-pill[aria-pressed="true"] { @apply border-brand-primary bg-brand-primary text-white; }
+  .filter-pill[disabled], .filter-pill.is-empty { @apply text-brand-muted/70 hover:border-brand-line-strong hover:text-brand-muted/70; }
+  .filter-count { @apply text-[11px] tabular-nums opacity-70; }
+}

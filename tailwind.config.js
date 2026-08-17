@@ -34,7 +34,9 @@ export default {
           ink: rgb("ink"),
           muted: rgb("muted"),
           line: rgb("line"),
-          "on-dark": rgb("on-dark")
+          "line-strong": rgb("line-strong"),
+          "on-dark": rgb("on-dark"),
+          warn: rgb("warn")
         },
         surface: {
           base: rgb("surface"),
@@ -53,10 +55,17 @@ export default {
         "2xl": "var(--radius-xl)",
         "3xl": "var(--radius-2xl)"
       },
+      // Elevation: E0 = hairline only (no shadow). E1 = hover lift. E2 = sticky bars, sheets, popovers.
       boxShadow: {
-        card: "0 18px 50px -24px rgb(var(--c-ink) / 0.35)",
-        subtle: "0 10px 30px -20px rgb(var(--c-primary-dark) / 0.35)"
+        e1: "0 1px 2px rgb(var(--c-ink) / 0.06), 0 8px 16px -8px rgb(var(--c-ink) / 0.12)",
+        e2: "0 2px 4px rgb(var(--c-ink) / 0.06), 0 16px 32px -12px rgb(var(--c-ink) / 0.18)",
+        // Legacy aliases kept for older layouts; prefer e1/e2.
+        card: "0 1px 2px rgb(var(--c-ink) / 0.06), 0 8px 16px -8px rgb(var(--c-ink) / 0.12)",
+        subtle: "none"
       },
+      transitionTimingFunction: { brand: "cubic-bezier(0.2, 0, 0, 1)" },
+      transitionDuration: { 120: "120ms", 180: "180ms", 240: "240ms" },
+      maxWidth: { prose: "68ch" },
       typography: () => ({
         DEFAULT: {
           css: {

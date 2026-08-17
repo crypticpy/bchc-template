@@ -1,0 +1,8 @@
+/* Entry detail page: fact strip, gallery, TOC, reuse card.
+   Owned by the entry-page workstream (see docs/design-brief.md → Entry page). */
+@layer components {
+  .fact-strip { @apply grid grid-cols-2 overflow-hidden rounded-xl border border-brand-line bg-surface-card sm:grid-cols-4; }
+  .fact { @apply flex min-w-0 flex-col gap-1 border-b border-r border-brand-line p-4 last:border-r-0 sm:border-b-0; }
+  .fact-label { @apply text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-muted; }
+  .fact-value { @apply flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-brand-ink; }
+}

@@ -8,14 +8,16 @@
 colors:
   primary: "#1D4E89"        # buttons, links, active states
   primary_dark: "#12305A"   # hero + footer background, headings on light surfaces
-  secondary: "#1B8A7A"      # secondary badges / accents
+  secondary: "#0F6357"      # taxonomy identity (chip dots, secondary icons); AA on white
   accent: "#E07A2F"         # highlights, warm accent badges
   ink: "#1B2430"            # body text
   muted: "#5A6573"          # secondary text (AA on white)
-  line: "#D9E0E8"           # borders and dividers
+  line: "#D9E0E8"           # dividers and card borders
+  line_strong: "#7C8A9B"    # borders of interactive controls (inputs, pills) — keep >= 3:1 on card
   surface: "#F5F7FA"        # page background
   card: "#FFFFFF"           # card background
   on_dark: "#F7F9FC"        # text on primary_dark backgrounds
+  warn: "#B45309"           # caution only: sensitive-data indicators, validation errors
 
 fonts:
   # Bundled options: "Inter", "Source Sans 3". Any other family name works if

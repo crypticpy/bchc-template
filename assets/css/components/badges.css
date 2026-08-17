@@ -1,0 +1,32 @@
+/*
+ * Badges, chips and signal glyphs.
+ * - .badge      : categorical label (solution type, stage). Tones are semantic only.
+ * - .chip       : ONE taxonomy family per card (area of work) — hairline, ink text, secondary dot.
+ * - .chip-neutral: overflow "+n" and de-emphasised lists.
+ * - .signal     : at-a-glance glyph + short text; monochrome, `warn` only for caution.
+ * Never colour-only: every badge/chip/signal carries visible or sr-only text.
+ */
+@layer components {
+  .badge { @apply inline-flex max-w-full items-center gap-1 truncate rounded-full px-2.5 py-0.5 text-[11px] font-semibold leading-4 ring-1 ring-inset; }
+  .badge-primary { @apply badge bg-brand-primary/10 text-brand-primary-dark ring-brand-primary/20; }
+  .badge-secondary { @apply badge bg-brand-secondary/10 text-brand-ink ring-brand-secondary/25; }
+  .badge-accent { @apply badge bg-brand-accent/15 text-brand-ink ring-brand-accent/40; }
+  .badge-neutral { @apply badge bg-brand-ink/5 text-brand-ink ring-brand-line; }
+  .badge-warn { @apply badge bg-brand-warn/10 text-brand-warn ring-brand-warn/30; }
+  .badge-on-dark { @apply badge bg-white/15 text-white ring-white/30 backdrop-blur-sm; }
+  .badge-md { @apply px-3 py-1 text-xs leading-4; }
+  .badge-lg { @apply px-4 py-1.5 text-sm leading-5; }
+
+  .chip { @apply inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-brand-line bg-surface-card px-2.5 py-0.5 text-xs font-medium leading-5 text-brand-ink; }
+  .chip::before { content: ""; @apply inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand-secondary; }
+  .chip-plain { @apply chip; }
+  .chip-plain::before { content: none; }
+  .chip-neutral { @apply inline-flex items-center rounded-full bg-brand-ink/5 px-2.5 py-0.5 text-xs font-medium leading-5 text-brand-muted; }
+  /* legacy alias */
+  .chip-secondary { @apply chip; }
+
+  .signal { @apply inline-flex min-w-0 items-center gap-1 text-xs font-medium leading-4 text-brand-muted; }
+  .signal-warn { @apply signal text-brand-warn; }
+  .signal-primary { @apply signal text-brand-primary; }
+  .signal-strip { @apply flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-brand-line pt-3; }
+}

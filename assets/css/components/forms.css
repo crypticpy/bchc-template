@@ -1,0 +1,13 @@
+/* Form controls: help text ABOVE the input, errors below, control borders use line_strong (>= 3:1). */
+@layer components {
+  .field { @apply space-y-1.5; }
+  .field-label { @apply block text-sm font-semibold text-brand-ink; }
+  .field-help { @apply text-sm text-brand-muted; }
+  .field-input { @apply block w-full rounded-lg border-brand-line-strong bg-surface-card text-base text-brand-ink placeholder:text-brand-muted/70 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/20 sm:text-sm; }
+  .field-input[aria-invalid="true"] { @apply border-brand-warn focus:ring-brand-warn/25; }
+  .field-error { @apply flex items-start gap-1.5 text-sm font-medium text-brand-warn; }
+  .field-option { @apply flex cursor-pointer items-start gap-3 rounded-lg border border-brand-line bg-surface-card px-3 py-2.5 text-sm text-brand-ink transition-colors duration-120 hover:border-brand-line-strong has-[:checked]:border-brand-primary has-[:checked]:bg-brand-primary/5; }
+  .field-option-desc { @apply block text-xs font-normal text-brand-muted; }
+  .checkbox { @apply mt-0.5 h-4 w-4 rounded border-brand-line-strong text-brand-primary focus:ring-brand-primary/30; }
+  .radio { @apply mt-0.5 h-4 w-4 border-brand-line-strong text-brand-primary focus:ring-brand-primary/30; }
+}

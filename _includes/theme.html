@@ -1,29 +1,31 @@
-{%- assign theme = site.data.theme -%}
-{%- assign c = theme.colors -%}
-{%- case theme.radius -%}
-  {%- when 'sharp' -%}{%- assign r = '0.25rem|0.375rem|0.5rem|0.75rem|1rem' -%}
-  {%- when 'round' -%}{%- assign r = '0.75rem|1rem|1.5rem|2rem|2.5rem' -%}
-  {%- else -%}{%- assign r = '0.5rem|0.75rem|1rem|1.25rem|1.75rem' -%}
+{%- assign th_theme = site.data.theme -%}
+{%- assign th_c = th_theme.colors -%}
+{%- case th_theme.radius -%}
+  {%- when 'sharp' -%}{%- assign th_r = '0.25rem|0.375rem|0.5rem|0.75rem|1rem' -%}
+  {%- when 'round' -%}{%- assign th_r = '0.75rem|1rem|1.5rem|2rem|2.5rem' -%}
+  {%- else -%}{%- assign th_r = '0.5rem|0.75rem|1rem|1.25rem|1.75rem' -%}
 {%- endcase -%}
-{%- assign radii = r | split: '|' -%}
+{%- assign th_radii = th_r | split: '|' -%}
 <style>
   :root {
-    --c-primary: {{ c.primary | default: '#1D4E89' | hex_to_rgb }};
-    --c-primary-dark: {{ c.primary_dark | default: '#12305A' | hex_to_rgb }};
-    --c-secondary: {{ c.secondary | default: '#1B8A7A' | hex_to_rgb }};
-    --c-accent: {{ c.accent | default: '#E07A2F' | hex_to_rgb }};
-    --c-ink: {{ c.ink | default: '#1B2430' | hex_to_rgb }};
-    --c-muted: {{ c.muted | default: '#5A6573' | hex_to_rgb }};
-    --c-line: {{ c.line | default: '#D9E0E8' | hex_to_rgb }};
-    --c-surface: {{ c.surface | default: '#F5F7FA' | hex_to_rgb }};
-    --c-card: {{ c.card | default: '#FFFFFF' | hex_to_rgb }};
-    --c-on-dark: {{ c.on_dark | default: '#F7F9FC' | hex_to_rgb }};
-    --font-heading: "{{ theme.fonts.heading | default: 'Source Sans 3' }}";
-    --font-body: "{{ theme.fonts.body | default: 'Inter' }}";
-    --radius-sm: {{ radii[0] }};
-    --radius-md: {{ radii[1] }};
-    --radius-lg: {{ radii[2] }};
-    --radius-xl: {{ radii[3] }};
-    --radius-2xl: {{ radii[4] }};
+    --c-primary: {{ th_c.primary | default: '#1D4E89' | hex_to_rgb }};
+    --c-primary-dark: {{ th_c.primary_dark | default: '#12305A' | hex_to_rgb }};
+    --c-secondary: {{ th_c.secondary | default: '#0F6357' | hex_to_rgb }};
+    --c-accent: {{ th_c.accent | default: '#E07A2F' | hex_to_rgb }};
+    --c-ink: {{ th_c.ink | default: '#1B2430' | hex_to_rgb }};
+    --c-muted: {{ th_c.muted | default: '#5A6573' | hex_to_rgb }};
+    --c-line: {{ th_c.line | default: '#D9E0E8' | hex_to_rgb }};
+    --c-line-strong: {{ th_c.line_strong | default: '#7C8A9B' | hex_to_rgb }};
+    --c-surface: {{ th_c.surface | default: '#F5F7FA' | hex_to_rgb }};
+    --c-card: {{ th_c.card | default: '#FFFFFF' | hex_to_rgb }};
+    --c-on-dark: {{ th_c.on_dark | default: '#F7F9FC' | hex_to_rgb }};
+    --c-warn: {{ th_c.warn | default: '#B45309' | hex_to_rgb }};
+    --font-heading: "{{ th_theme.fonts.heading | default: 'Source Sans 3' }}";
+    --font-body: "{{ th_theme.fonts.body | default: 'Inter' }}";
+    --radius-sm: {{ th_radii[0] }};
+    --radius-md: {{ th_radii[1] }};
+    --radius-lg: {{ th_radii[2] }};
+    --radius-xl: {{ th_radii[3] }};
+    --radius-2xl: {{ th_radii[4] }};
   }
 </style>
