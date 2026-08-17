@@ -15,6 +15,8 @@
  *   --preset <id>   start from a preset instead of asking
  *   --yes           accept every default, ask nothing (CI / smoke tests)
  *   --dry-run       print the file list and a diff summary, write nothing
+ *   --out <dir>     write into <dir> instead of the repository (implies --yes);
+ *                   nothing in the working tree is touched
  */
 
 import fs from 'node:fs';
@@ -41,16 +43,20 @@ const green = (text) => paint('32', text);
 const red = (text) => paint('31', text);
 
 function parseArgs(argv) {
-  const args = { preset: null, yes: false, dryRun: false };
+  const args = { preset: null, yes: false, dryRun: false, out: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--yes' || arg === '-y') args.yes = true;
     else if (arg === '--dry-run' || arg === '--dry') args.dryRun = true;
     else if (arg === '--preset') args.preset = argv[++i];
     else if (arg.startsWith('--preset=')) args.preset = arg.slice('--preset='.length);
+    else if (arg === '--out') args.out = argv[++i];
+    else if (arg.startsWith('--out=')) args.out = arg.slice('--out='.length);
     else if (arg === '--help' || arg === '-h') args.help = true;
     else console.warn(`Ignoring unknown argument ${JSON.stringify(arg)}.`);
   }
+  // Writing somewhere else is a scripted use: never stop for a prompt.
+  if (args.out) args.yes = true;
   return args;
 }
 
@@ -264,6 +270,7 @@ async function main() {
         '  --preset <id>   ' + presets.map((p) => p.id).join(' | '),
         '  --yes           accept every default without prompting',
         '  --dry-run       show what would be written, write nothing',
+        '  --out <dir>     write into <dir> instead of the repository (implies --yes)',
         '',
       ].join('\n')
     );
@@ -389,10 +396,12 @@ async function main() {
 
     const files = core.renderFiles(config, { url: '', baseurl: '' });
 
+    const target = args.out ? path.resolve(ROOT, args.out) : ROOT;
+
     // _config.yml holds build mechanics the wizard does not manage (excludes,
     // plugins, defaults). When it already exists, patch the two lines we own
     // instead of overwriting whatever the maintainers have added to it.
-    const configFile = path.join(ROOT, '_config.yml');
+    const configFile = path.join(target, '_config.yml');
     if (fs.existsSync(configFile)) {
       files['_config.yml'] = core.patchJekyllConfig(fs.readFileSync(configFile, 'utf8'), config.site).text;
     }
@@ -400,7 +409,7 @@ async function main() {
     // --- summary ------------------------------------------------------------
     console.log(bold('\nFiles to write:\n'));
     for (const [relative, content] of Object.entries(files)) {
-      console.log(`  ${relative.padEnd(42)} ${diffSummary(relative, content)}`);
+      console.log(`  ${relative.padEnd(42)} ${args.out ? green('new file') : diffSummary(relative, content)}`);
     }
     console.log('');
     console.log(`  Site        ${bold(config.site.name)}`);
@@ -416,17 +425,25 @@ async function main() {
       return 0;
     }
 
-    const proceed = await asker.confirm('Write these files?', true);
-    if (!proceed) {
-      console.log(dim('\nNothing was written.\n'));
-      return 0;
+    if (!args.out) {
+      const proceed = await asker.confirm('Write these files?', true);
+      if (!proceed) {
+        console.log(dim('\nNothing was written.\n'));
+        return 0;
+      }
     }
 
     const previousFields = currentSchemaFields();
     for (const [relative, content] of Object.entries(files)) {
-      const file = path.join(ROOT, relative);
+      const file = path.join(target, relative);
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, content, 'utf8');
+    }
+
+    // Writing elsewhere never touches the working tree, so stop here.
+    if (args.out) {
+      console.log(green(bold('\nDone.')) + ` Wrote ${Object.keys(files).length} files to ${target}\n`);
+      return 0;
     }
 
     // --- sample content -----------------------------------------------------

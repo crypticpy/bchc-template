@@ -1,0 +1,177 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import jsYaml from 'js-yaml';
+
+import { issueTemplateFromSchema, groupedFormFields } from '../../assets/js/configurator/issue-template.js';
+import { defaultConfig } from '../../assets/js/configurator/default-config.js';
+
+const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+const TEMPLATE_PATH = '.github/ISSUE_TEMPLATE/new-entry.yml';
+
+const shipped = defaultConfig();
+
+/** The generated template, parsed. */
+function generate(schema = shipped.schema, site = shipped.site) {
+  return jsYaml.load(issueTemplateFromSchema(schema, site));
+}
+
+test('the committed issue template matches what the schema generates', () => {
+  const committed = fs.readFileSync(path.join(ROOT, TEMPLATE_PATH), 'utf8');
+  assert.equal(
+    issueTemplateFromSchema(shipped.schema, shipped.site),
+    committed,
+    `${TEMPLATE_PATH} is stale. Run \`npm run generate\` and commit the result.`
+  );
+});
+
+test('the template keeps its GitHub top-level keys', () => {
+  const doc = generate();
+  assert.deepEqual(Object.keys(doc), ['name', 'description', 'title', 'labels', 'body']);
+  assert.equal(doc.name, 'Submit a use case (creates PR)');
+  assert.equal(doc.title, '[Use case] ');
+  assert.deepEqual(doc.labels, ['content:new-entry']);
+  assert.equal(doc.description, shipped.site.submit.intro);
+});
+
+test('the header names the generator and forbids hand-editing', () => {
+  const text = issueTemplateFromSchema(shipped.schema, shipped.site);
+  assert.match(text, /^# GitHub issue form for new entries\./);
+  assert.match(text, /Generated from _data\/schema\.yml by scripts\/generate\.mjs — do not hand-edit\./);
+});
+
+test('every non-file field becomes one control keyed by its schema key', () => {
+  const doc = generate();
+  const controls = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
+  for (const field of shipped.schema.fields) {
+    if (field.form === false || field.type === 'file') continue;
+    assert.ok(controls.has(field.key), `${field.key} has a control`);
+    assert.equal(controls.get(field.key).attributes.label, field.label, `${field.key} keeps its label verbatim`);
+  }
+});
+
+test('types map to the right GitHub controls', () => {
+  const doc = generate();
+  const byId = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
+  assert.equal(byId.get('title').type, 'input');
+  assert.equal(byId.get('summary').type, 'textarea');
+  assert.equal(byId.get('solution_type').type, 'dropdown', 'select -> dropdown');
+  assert.equal(byId.get('area').type, 'checkboxes', 'multiselect -> checkboxes');
+  assert.equal(byId.get('ai_tools').type, 'textarea', 'list -> textarea');
+  assert.equal(byId.get('screenshots').type, 'textarea', 'images -> textarea');
+  assert.equal(byId.get('resources').type, 'textarea', 'links -> textarea');
+  assert.equal(byId.get('body').type, 'textarea', 'markdown -> textarea');
+  assert.equal(byId.get('contact_email').type, 'input');
+});
+
+test('select options are copied verbatim; checkboxes become label objects', () => {
+  const doc = generate();
+  const byId = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
+  const select = shipped.schema.fields.find((f) => f.key === 'solution_type');
+  assert.deepEqual(byId.get('solution_type').attributes.options, select.options);
+
+  const multi = shipped.schema.fields.find((f) => f.key === 'area');
+  assert.deepEqual(
+    byId.get('area').attributes.options,
+    multi.options.map((option) => ({ label: option }))
+  );
+});
+
+test('required is set from the schema, except on checkboxes where GitHub forbids it', () => {
+  const doc = generate();
+  const byId = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
+  assert.equal(byId.get('title').validations.required, true);
+  assert.equal(byId.get('impact').validations.required, false);
+  assert.equal(byId.get('area').validations, undefined, 'checkboxes carry no validations block');
+  assert.match(byId.get('area').attributes.description, /Required — choose at least one/);
+});
+
+test('prompt comes before description in the help text', () => {
+  const doc = generate();
+  const summary = doc.body.find((item) => item.id === 'summary');
+  const field = shipped.schema.fields.find((f) => f.key === 'summary');
+  assert.ok(summary.attributes.description.startsWith(field.prompt), 'prompt first');
+  assert.ok(summary.attributes.description.includes(field.description), 'description second');
+});
+
+test('images and links controls explain their line format', () => {
+  const doc = generate();
+  const byId = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
+  assert.match(byId.get('screenshots').attributes.description, /one image URL per line/i);
+  assert.match(byId.get('screenshots').attributes.description, /alt text/i);
+  assert.match(byId.get('resources').attributes.description, /`Label \| URL`/);
+});
+
+test('groups become markdown separators in schema order', () => {
+  const doc = generate();
+  const headings = doc.body
+    .filter((item) => item.type === 'markdown' && String(item.attributes.value).startsWith('### '))
+    .map((item) => String(item.attributes.value).split('\n')[0].replace('### ', ''));
+  assert.deepEqual(headings, shipped.schema.groups.map((group) => group.title));
+});
+
+test('fields are ordered by weight inside their group', () => {
+  const sections = groupedFormFields(shipped.schema);
+  for (const section of sections) {
+    const weights = section.fields.map((field) => field.weight ?? 5);
+    assert.deepEqual([...weights].sort((a, b) => a - b), weights, `${section.group.key} is weight-ordered`);
+  }
+});
+
+test('ungrouped fields land in a trailing "More" group', () => {
+  const sections = groupedFormFields({
+    groups: [{ key: 'about', title: 'About' }],
+    fields: [
+      { key: 'title', label: 'Title', type: 'text', group: 'about' },
+      { key: 'stray', label: 'Stray', type: 'text' },
+    ],
+  });
+  assert.deepEqual(sections.map((s) => s.group.key), ['about', 'other']);
+  assert.equal(sections[1].group.title, 'More');
+});
+
+test('file fields become an upload instruction, not a control', () => {
+  const doc = generate();
+  const note = doc.body.find(
+    (item) => item.type === 'markdown' && String(item.attributes.value).includes('deck.pdf')
+  );
+  assert.ok(note, 'the deck field explains the upload step');
+  assert.equal(doc.body.some((item) => item.id === 'deck_pdf'), false);
+});
+
+test('form: false fields are left out entirely', () => {
+  const schema = {
+    groups: [{ key: 'about', title: 'About' }],
+    entry: { singular: 'Entry' },
+    fields: [
+      { key: 'title', label: 'Title', type: 'text', group: 'about', required: true },
+      { key: 'internal', label: 'Internal note', type: 'text', group: 'about', form: false },
+    ],
+  };
+  const doc = jsYaml.load(issueTemplateFromSchema(schema));
+  assert.equal(doc.body.some((item) => item.id === 'internal'), false);
+});
+
+test('a schema with no title field gets one synthesised', () => {
+  const doc = jsYaml.load(
+    issueTemplateFromSchema({
+      entry: { singular: 'Resource' },
+      fields: [{ key: 'note', label: 'Note', type: 'text' }],
+    })
+  );
+  const title = doc.body.find((item) => item.id === 'title');
+  assert.ok(title, 'a title input is always present');
+  assert.equal(title.validations.required, true);
+});
+
+test('a single group does not get a redundant separator', () => {
+  const doc = jsYaml.load(
+    issueTemplateFromSchema({
+      groups: [{ key: 'about', title: 'About' }],
+      fields: [{ key: 'title', label: 'Title', type: 'text', group: 'about', required: true }],
+    })
+  );
+  assert.equal(doc.body.some((item) => item.type === 'markdown'), false);
+});

@@ -1,0 +1,202 @@
+/**
+ * Build `.github/ISSUE_TEMPLATE/new-entry.yml` from the content model.
+ *
+ * The generated form keeps `label: <field.label>` verbatim — the scaffolder
+ * (scripts/new_entry_from_issue.mjs) matches the rendered `### <label>`
+ * headings back to schema keys. The friendlier `prompt` goes into the field's
+ * description instead, so both wizards and the issue form ask the same
+ * question without breaking the parser.
+ */
+
+import { toYaml, isPlainObject } from './yaml-emit.js';
+import { sortByWeight } from './schema-validate.js';
+
+/** Field types that render as a single-line GitHub `input`. */
+const INPUT_TYPES = new Set(['text', 'url', 'email', 'date', 'number', 'image']);
+
+/** Group used by fields that declare no `group`. */
+const OTHER_GROUP = { key: 'other', title: 'More' };
+
+/** Extra guidance appended to a field's description, by type. */
+const TYPE_GUIDANCE = {
+  list: 'One per line, or separated by commas.',
+  images: 'Drag images into this box to upload them, or paste one image URL per line — optionally as `URL | alt text`.',
+  links: 'One per line as `Label | URL`.',
+};
+
+function capitalizeFirst(str) {
+  const s = String(str ?? '').trim();
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+function lowercaseFirst(str) {
+  const s = String(str ?? '').trim();
+  return s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+}
+
+/** Join sentence fragments into one help string, punctuating as it goes. */
+function joinSentences(parts) {
+  return parts
+    .map((part) => String(part ?? '').trim())
+    .filter(Boolean)
+    .map((part) => (/[.!?:)\]]$/.test(part) ? part : `${part}.`))
+    .join(' ');
+}
+
+/**
+ * Fields grouped for display: declared groups in order, then anything
+ * ungrouped under "More". Fields inside a group are ordered by `weight`.
+ *
+ * @param {object} schema
+ * @returns {{group: {key: string, title: string, description?: string}, fields: object[]}[]}
+ */
+export function groupedFormFields(schema) {
+  const fields = (Array.isArray(schema?.fields) ? schema.fields : []).filter(
+    (field) => isPlainObject(field) && field.form !== false
+  );
+  const declared = Array.isArray(schema?.groups) ? schema.groups.filter(isPlainObject) : [];
+  const order = [...declared, OTHER_GROUP];
+
+  const buckets = new Map(order.map((group) => [String(group.key), []]));
+  for (const field of fields) {
+    const key = String(field.group ?? '').trim();
+    const bucket = buckets.has(key) ? buckets.get(key) : buckets.get(OTHER_GROUP.key);
+    bucket.push(field);
+  }
+
+  return order
+    .map((group) => ({ group, fields: sortByWeight(buckets.get(String(group.key)) || []) }))
+    .filter((section) => section.fields.length > 0);
+}
+
+/** The one control this field becomes in the issue form, or null to skip it. */
+function controlFor(field) {
+  const key = String(field.key ?? '').trim();
+  const label = String(field.label ?? '').trim();
+  const type = String(field.type ?? '').trim();
+  if (!key || !label || !type) return null;
+
+  const required = field.required === true;
+  const placeholder = String(field.placeholder ?? '');
+  const attributes = { label };
+
+  // GitHub file uploads only exist inside a textarea, so a `file` field becomes
+  // an instruction instead of a control.
+  if (type === 'file') {
+    const filename = String(field.filename ?? `${key}.pdf`).trim();
+    const note = String(field.description ?? '').trim();
+    const extra = note && !note.includes(filename) ? ` ${note}` : '';
+    return {
+      type: 'markdown',
+      attributes: {
+        value:
+          `**${label}** — GitHub issue forms cannot accept file uploads. ` +
+          `After the pull request is created, upload \`${filename}\` into the entry folder.${extra}`,
+      },
+    };
+  }
+
+  const description = joinSentences([
+    field.prompt,
+    field.description,
+    TYPE_GUIDANCE[type],
+    // Per-option `required` is not expressible on GitHub checkboxes.
+    required && type === 'multiselect' ? 'Required — choose at least one' : '',
+  ]);
+  if (description) attributes.description = description;
+
+  const item = { type: 'input', id: key, attributes };
+
+  if (INPUT_TYPES.has(type)) {
+    if (placeholder.trim()) attributes.placeholder = placeholder;
+  } else if (type === 'textarea' || type === 'list' || type === 'images' || type === 'links') {
+    item.type = 'textarea';
+    if (placeholder.trim()) attributes.placeholder = placeholder;
+  } else if (type === 'markdown') {
+    item.type = 'textarea';
+    if (placeholder.includes('\n')) attributes.value = placeholder;
+    else if (placeholder.trim()) attributes.placeholder = placeholder;
+  } else if (type === 'multiselect') {
+    item.type = 'checkboxes';
+    attributes.options = (Array.isArray(field.options) ? field.options : [])
+      .map((option) => String(option))
+      .filter((option) => option.trim() !== '')
+      .map((option) => ({ label: option }));
+  } else if (type === 'select') {
+    item.type = 'dropdown';
+    attributes.options = (Array.isArray(field.options) ? field.options : [])
+      .map((option) => String(option))
+      .filter((option) => option.trim() !== '');
+  } else if (type === 'boolean') {
+    item.type = 'dropdown';
+    attributes.options = ['Yes', 'No'];
+  } else if (placeholder.trim()) {
+    attributes.placeholder = placeholder;
+  }
+
+  // `checkboxes` has no `validations` block on GitHub; the note above covers it.
+  if (item.type !== 'checkboxes') item.validations = { required };
+  return item;
+}
+
+/**
+ * Render the GitHub issue form.
+ *
+ * @param {object} schema parsed `_data/schema.yml`
+ * @param {object} [site] parsed `_data/site.yml` (submit copy, site name)
+ * @returns {string} YAML text ending in a newline.
+ */
+export function issueTemplateFromSchema(schema, site = {}) {
+  const singular = String(schema?.entry?.singular ?? 'Entry').trim() || 'Entry';
+  const siteName = String(site?.name ?? '').trim();
+  const body = [];
+
+  const reviewNote = String(site?.submit?.review_note ?? '').trim();
+  if (reviewNote) body.push({ type: 'markdown', attributes: { value: reviewNote } });
+
+  const sections = groupedFormFields(schema);
+  const hasTitleField = sections.some((section) => section.fields.some((field) => field.key === 'title'));
+
+  // Every entry needs a title. Only synthesise one when the schema has no
+  // `title` field of its own.
+  if (!hasTitleField) {
+    body.push({
+      type: 'input',
+      id: 'title',
+      attributes: { label: 'Title', description: `A short, specific name for this ${lowercaseFirst(singular)}.` },
+      validations: { required: true },
+    });
+  }
+
+  const multipleSections = sections.length > 1;
+  for (const section of sections) {
+    if (multipleSections) {
+      const heading = String(section.group.title ?? '').trim();
+      const blurb = String(section.group.description ?? '').trim();
+      if (heading) {
+        body.push({ type: 'markdown', attributes: { value: blurb ? `### ${heading}\n\n${blurb}` : `### ${heading}` } });
+      }
+    }
+    for (const field of section.fields) {
+      const control = controlFor(field);
+      if (control) body.push(control);
+    }
+  }
+
+  const template = {
+    name: `Submit a ${lowercaseFirst(singular)} (creates PR)`,
+    description:
+      String(site?.submit?.intro ?? '').trim() ||
+      `Propose a new ${lowercaseFirst(singular)}${siteName ? ` for ${siteName}` : ''}. A maintainer reviews it as a pull request.`,
+    title: `[${capitalizeFirst(singular)}] `,
+    labels: ['content:new-entry'],
+    body,
+  };
+
+  return toYaml(template, {
+    header:
+      'GitHub issue form for new entries.\n' +
+      'Generated from _data/schema.yml by scripts/generate.mjs — do not hand-edit.\n' +
+      'Regenerate with `npm run generate` after changing _data/schema.yml.',
+  });
+}

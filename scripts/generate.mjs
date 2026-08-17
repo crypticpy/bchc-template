@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
- * Regenerate the files derived from _data/schema.yml and _data/site.yml.
+ * Regenerate everything derived from _data/*.yml.
  *
- *   npm run generate
+ *   npm run generate            write the files that changed
+ *   npm run generate -- --check exit 1 if anything would change (CI gate)
  *
- * Writes  .github/ISSUE_TEMPLATE/new-entry.yml  (the public submission form)
- * Syncs   _config.yml  title/description  from _data/site.yml (SEO fallbacks)
+ * Writes  assets/js/configurator/defaults.generated.js  (wizard defaults)
+ * Writes  .github/ISSUE_TEMPLATE/new-entry.yml          (public submission form)
+ * Syncs   _config.yml title/description from _data/site.yml (SEO fallbacks)
  *
- * Run this after hand-editing _data/schema.yml. CI runs it before the Jekyll
- * build, so a stale issue form never ships. It is idempotent: a second run
- * reports no changes.
+ * Run this after hand-editing _data/schema.yml or _data/site.yml. It is
+ * idempotent: a second run reports no changes.
  */
 
 import fs from 'node:fs';
@@ -17,12 +18,15 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import yaml from 'js-yaml';
+import { renderDefaults, OUTPUT_PATH as DEFAULTS_PATH } from './build_defaults.mjs';
 
 const ROOT = process.cwd();
-const core = await import(pathToFileURL(path.join(ROOT, 'assets/js/configurator/core.js')).href);
-
 const ISSUE_TEMPLATE_PATH = '.github/ISSUE_TEMPLATE/new-entry.yml';
 const CONFIG_PATH = '_config.yml';
+
+const check = process.argv.slice(2).some((arg) => arg === '--check');
+const changes = [];
+const stale = [];
 
 function abort(message) {
   console.error(`\n${message}\n`);
@@ -39,57 +43,73 @@ function readData(relative) {
   }
 }
 
-/** Write only when the content differs. Returns true when the file changed. */
-function writeIfChanged(relative, content) {
+/**
+ * Write when the content differs — or, under `--check`, just record it.
+ * @returns {boolean} true when the file was already up to date.
+ */
+function sync(relative, content, note = '') {
   const file = path.join(ROOT, relative);
   const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
-  if (existing === content) return false;
+  if (existing === content) return true;
+  if (check) {
+    stale.push(relative);
+    return false;
+  }
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, content, 'utf8');
-  return existing === null ? 'created' : 'updated';
+  changes.push(`${existing === null ? 'created' : 'updated'} ${relative}${note ? ` (${note})` : ''}`);
+  return false;
 }
 
-// --- load -------------------------------------------------------------------
+// --- 1. wizard defaults, compiled from _data/*.yml --------------------------
+// Written first: core.js imports the generated module.
+
+sync(DEFAULTS_PATH, renderDefaults(ROOT));
+
+const core = await import(pathToFileURL(path.join(ROOT, 'assets/js/configurator/core.js')).href);
+
+// --- 2. schema check --------------------------------------------------------
 
 const schema = readData('_data/schema.yml');
 const site = readData('_data/site.yml');
 
-const errors = core.validateSchema(schema);
-if (errors.length > 0) {
+const result = core.checkSchema(schema);
+if (!result.ok) {
   console.error('\n_data/schema.yml is not valid:\n');
-  for (const error of errors) console.error(`  • ${error}`);
+  for (const { path: where, message } of result.errors) console.error(`  • ${where}: ${message}`);
   console.error('\nFix the field definitions and run `npm run generate` again.\n');
   process.exit(1);
 }
+for (const { path: where, message } of result.warnings) console.warn(`  ! ${where}: ${message}`);
 
-// --- issue form -------------------------------------------------------------
+// --- 3. issue form ----------------------------------------------------------
 
-const changes = [];
+const fieldCount = (Array.isArray(schema.fields) ? schema.fields : []).filter((f) => f.form !== false).length;
+sync(ISSUE_TEMPLATE_PATH, core.issueTemplateFromSchema(schema, site), `${fieldCount} fields`);
 
-const issueForm = core.issueTemplateFromSchema(schema, site);
-const issueResult = writeIfChanged(ISSUE_TEMPLATE_PATH, issueForm);
-if (issueResult) {
-  const fieldCount = (Array.isArray(schema.fields) ? schema.fields : []).filter((f) => f.form !== false).length;
-  changes.push(`${issueResult} ${ISSUE_TEMPLATE_PATH} (${fieldCount} fields)`);
-}
-
-// --- _config.yml title/description ------------------------------------------
+// --- 4. _config.yml title/description ---------------------------------------
 
 const configFile = path.join(ROOT, CONFIG_PATH);
 if (fs.existsSync(configFile)) {
   const original = fs.readFileSync(configFile, 'utf8');
   const patched = core.patchJekyllConfig(original, site);
-  if (patched.text !== original) {
-    fs.writeFileSync(configFile, patched.text, 'utf8');
-    changes.push(`updated ${CONFIG_PATH} (${patched.changed.join(' and ')} synced from _data/site.yml)`);
-  }
+  sync(CONFIG_PATH, patched.text, `${patched.changed.join(' and ')} synced from _data/site.yml`);
 } else {
   console.warn(`Warning: ${CONFIG_PATH} not found; skipped the title/description sync.`);
 }
 
 // --- report -----------------------------------------------------------------
 
-if (changes.length === 0) {
+if (check) {
+  if (stale.length === 0) {
+    console.log('Generated files are in sync.');
+  } else {
+    console.error('\nThese generated files are out of date:\n');
+    for (const file of stale) console.error(`  • ${file}`);
+    console.error('\nRun `npm run generate` and commit the result.\n');
+    process.exit(1);
+  }
+} else if (changes.length === 0) {
   console.log('Everything is up to date — no changes.');
 } else {
   for (const change of changes) console.log(change);
