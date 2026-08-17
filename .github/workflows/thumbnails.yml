@@ -1,6 +1,13 @@
 name: Generate entry thumbnails
 
-# Renders the first page of every entry PDF to catalog/<slug>/thumb.jpg.
+# Renders the first page of every PDF whose schema field is flagged
+# `thumbnail: true` (shipped: `deck_pdf` -> deck.pdf) to <entry>/<slug>/thumb.jpg,
+# where <entry> is _data/schema.yml's `entry.path` (default catalog/) -- see
+# scripts/thumbnail_sources.mjs, which is the source of truth for that path.
+#
+# The `paths:` trigger below can't read the schema (GitHub evaluates it
+# statically before checkout), so it matches any PDF anywhere; the job itself
+# is a no-op when nothing schema-relevant changed.
 #
 # Uses `pdftoppm` (poppler-utils) rather than ImageMagick: ubuntu-latest ships
 # ImageMagick 6, whose `magick` command does not exist, and its PDF delegate is
@@ -9,8 +16,14 @@ name: Generate entry thumbnails
 on:
   pull_request:
     paths:
-      - "catalog/**/*.pdf"
+      - "**/*.pdf"
   workflow_dispatch:
+
+# One run per PR: a second push while a render/commit is in flight should
+# queue behind it, not race it for the same branch push.
+concurrency:
+  group: thumbnails-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -40,6 +53,11 @@ jobs:
       - name: Install poppler-utils
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
 
+      - name: Read entry path from schema
+        id: entry-path
+        run: |
+          echo "path=$(node -e "console.log((require('js-yaml').load(require('fs').readFileSync('_data/schema.yml', 'utf8')).entry || {}).path || 'catalog')")" >> "$GITHUB_OUTPUT"
+
       - name: Generate thumbnails
         run: |
           set -euo pipefail
@@ -67,11 +85,12 @@ jobs:
       - name: Commit thumbnails
         env:
           BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          ENTRY_PATH: ${{ steps.entry-path.outputs.path }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A "catalog"
+          git add -A "$ENTRY_PATH"
           if git diff --cached --quiet; then
             echo "No thumbnail changes."
             exit 0

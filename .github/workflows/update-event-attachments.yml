@@ -6,6 +6,12 @@ on:
       - opened
       - edited
 
+# One run per issue: editing an issue three times in a minute must not leave
+# three jobs force-pushing the same branch at each other.
+concurrency:
+  group: update-event-attachments-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   update:
     if: contains(github.event.issue.labels.*.name, 'content:event-attachments')

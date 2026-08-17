@@ -12,6 +12,13 @@ on:
         required: true
         type: string
 
+# One run per issue (or per manually-dispatched year): editing an issue three
+# times in a minute must not leave three jobs force-pushing the same branch
+# at each other.
+concurrency:
+  group: new-year-${{ github.event.issue.number || inputs.year || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   scaffold:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'content:new-year')
