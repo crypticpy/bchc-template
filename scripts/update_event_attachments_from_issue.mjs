@@ -4,10 +4,17 @@
  *
  * Input (env): ISSUE_BODY
  * Output:      rewrites cohorts/<year>/events/<event_id>/index.md
- *              $GITHUB_OUTPUT: changed, and (when changed) slug, year, branch
+ *              $GITHUB_OUTPUT: changed, and (when changed) slug, year, branch;
+ *              error, when the year or event id is not a usable path segment.
  *
  * The rest of the front matter is spliced through untouched rather than
  * re-serialized, so hand-written keys, ordering and comments survive.
+ *
+ * Anyone can open the issue that starts this job. The year and event id come
+ * from that issue and are turned into a path, so both are pattern-checked and
+ * the resolved folder is re-checked against `cohorts/<year>/events/` before any
+ * file is read or written; headings are read first-occurrence-wins
+ * (scripts/lib/event_issue.mjs) and outputs use random heredoc delimiters.
  */
 
 import fs from 'node:fs';
@@ -15,12 +22,14 @@ import path from 'node:path';
 import process from 'node:process';
 import yaml from 'js-yaml';
 
-const body = (process.env.ISSUE_BODY || '').replace(/\r\n/g, '\n');
+import { fail, setOutput } from './lib/actions_output.mjs';
+import { FIELD, FINAL_LABEL, readEventForm, resolveEventDir } from './lib/event_issue.mjs';
+import { slugify } from './lib/issue_body.mjs';
+import { pair } from './lib/yaml.mjs';
 
-function setOutput(key, value) {
-  if (!process.env.GITHUB_OUTPUT) return;
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
-}
+const ROOT = process.cwd();
+
+const body = String(process.env.ISSUE_BODY ?? '').replace(/\r\n?/g, '\n');
 
 /** Report "nothing changed" and exit cleanly — the workflow comments instead of failing. */
 function noChange(reason) {
@@ -29,36 +38,15 @@ function noChange(reason) {
   process.exit(0);
 }
 
-function yamlString(value) {
-  const escaped = String(value ?? '')
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n');
-  return `"${escaped}"`;
-}
-
 if (!body.trim()) noChange('The issue body is empty; nothing to update.');
 
-const values = {};
-for (const section of body.split(/^###[ \t]+/m).slice(1)) {
-  const [heading, ...rest] = section.split('\n');
-  const key = heading
-    .replace(/\s*\([^)]*\)\s*$/, '') // drop trailing hints like "(optional)"
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
-  const value = rest.join('\n').trim();
-  values[key] = value.toLowerCase() === '_no response_' ? '' : value;
-}
+const { value } = readEventForm(body, FINAL_LABEL.attachments);
 
-const year = (values.cohort_year || '').trim();
-const eventId = (values.event_id || '').trim();
-const mode = (values.update_mode || values.mode || 'REPLACE').toUpperCase().includes('APPEND')
-  ? 'APPEND'
-  : 'REPLACE';
+const year = value(...FIELD.year);
+const requestedId = value(...FIELD.eventId);
+const mode = (value(...FIELD.mode) || 'REPLACE').toUpperCase().includes('APPEND') ? 'APPEND' : 'REPLACE';
 
-const newItems = (values.attachments || '')
+const newItems = value(...FIELD.attachments)
   .split('\n')
   .map((line) => line.trim())
   .filter(Boolean)
@@ -72,11 +60,20 @@ const newItems = (values.attachments || '')
   })
   .filter(Boolean);
 
-if (!year || !eventId) noChange('The cohort year and event id are both required.');
+if (!year || !requestedId) noChange('The cohort year and event id are both required.');
 if (newItems.length === 0) noChange('No attachments could be parsed. Use one "Title | URL" pair per line.');
 
-const relPath = path.join('cohorts', year, 'events', eventId, 'index.md');
-const absPath = path.join(process.cwd(), relPath);
+// The id is a folder name, so it is normalized the same way new_event_from_issue.mjs
+// derives one, then re-checked together with the year before a path is built.
+const eventId = slugify(requestedId);
+const { dir, relative, error } = resolveEventDir(ROOT, year, eventId);
+if (error) fail(error);
+if (eventId !== requestedId) {
+  console.error(`Read the event id ${JSON.stringify(requestedId)} as ${JSON.stringify(eventId)}.`);
+}
+
+const absPath = path.join(dir, 'index.md');
+const relPath = `${relative}/index.md`;
 if (!fs.existsSync(absPath)) noChange(`No event page at ${relPath}.`);
 
 const content = fs.readFileSync(absPath, 'utf8').replace(/\r\n/g, '\n');
@@ -116,15 +113,9 @@ if (mode === 'APPEND') {
   }
 }
 
-const rendered = ['attachments:'];
-for (const item of merged) {
-  rendered.push(`  - title: ${yamlString(item.title)}`);
-  rendered.push(`    url: ${yamlString(item.url)}`);
-}
-
 while (kept.length > 0 && kept[kept.length - 1].trim() === '') kept.pop();
 
-const updated = `---\n${[...kept, ...rendered].join('\n')}\n---\n\n${pageBody.replace(/^\n+/, '')}`;
+const updated = `---\n${[...kept, pair('attachments', merged)].join('\n')}\n---\n\n${pageBody.replace(/^\n+/, '')}`;
 
 if (updated === content) noChange('The attachments already match what was submitted.');
 

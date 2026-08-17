@@ -59,6 +59,21 @@ a request timeout that covers the response body, and each file must be a PNG,
 JPEG, GIF or WebP by both its `Content-Type` and its magic bytes before it is
 written.
 
+**The cohort and event automation holds to the same rules.**
+It reads issue bodies with the same first-occurrence-wins heading parser: only
+a heading belonging to the relevant issue form starts a section, and
+everything after the form's trailing free-text field is treated as prose, so a
+`###` heading typed inside an answer does not replace the answer GitHub itself
+collected. Every cohort year and event id is checked against `^\d{4}$` and
+`^[a-z0-9]+(?:-[a-z0-9]+)*$`, and the resolved path is re-checked to be inside
+`cohorts/<year>/events/` before any file is read or written. The front matter
+these scripts generate comes from the shared YAML emitter, so quotes, control
+characters and Unicode line separators survive a round trip through both Psych
+and js-yaml. Every `$GITHUB_OUTPUT` value is written as a heredoc whose
+delimiter is random per write, so no answer can forge an additional step
+output, and the four workflows declare `permissions: {}` at the top level and
+honour the `SUBMISSIONS_OPEN` repository variable.
+
 **Values written into YAML are quoted unless provably safe.**
 `scripts/lib/yaml.mjs` emits a plain scalar only for prose-shaped values and
 double-quotes everything else, escaping control characters. A submitted value
@@ -83,8 +98,9 @@ tag in a trailing comment. Dependabot proposes updates weekly.
 
 Open by default: the catalog is meant to collect work from people without
 write access. To restrict it, set the repository variable `SUBMISSIONS_OPEN` to
-`false` (Settings → Secrets and variables → Actions → Variables). The
-`new-entry` workflow then scaffolds only for issues opened by the repository
+`false` (Settings → Secrets and variables → Actions → Variables). Every
+issue-driven workflow (`new-entry`, `new-event`, `new-year`, `update-schedule`,
+`update-event-attachments`) then runs only for issues opened by the repository
 owner, an organization member or a collaborator. See
 [docs/admin-guide.md](docs/admin-guide.md) for the maintainer view.
 

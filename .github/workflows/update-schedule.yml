@@ -6,6 +6,12 @@ on:
       - opened
       - edited
 
+# Set the repository variable SUBMISSIONS_OPEN to `false` to accept issues from
+# members and collaborators only; leaving it unset keeps them open.
+#
+# The jobs below declare exactly the scopes they need; nothing is granted by default.
+permissions: {}
+
 # One run per issue: editing an issue three times in a minute must not leave
 # three jobs force-pushing the same branch at each other.
 concurrency:
@@ -14,7 +20,10 @@ concurrency:
 
 jobs:
   update:
-    if: contains(github.event.issue.labels.*.name, 'content:schedule')
+    if: >-
+      contains(github.event.issue.labels.*.name, 'content:schedule')
+      && (vars.SUBMISSIONS_OPEN != 'false'
+          || contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association))
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -6,6 +6,12 @@ on:
       - opened
       - edited
 
+# Set the repository variable SUBMISSIONS_OPEN to `false` to accept issues from
+# members and collaborators only; leaving it unset keeps them open.
+#
+# The jobs below declare exactly the scopes they need; nothing is granted by default.
+permissions: {}
+
 # One run per issue: editing an issue three times in a minute must not leave
 # three jobs force-pushing the same branch at each other.
 concurrency:
@@ -14,7 +20,10 @@ concurrency:
 
 jobs:
   scaffold:
-    if: contains(github.event.issue.labels.*.name, 'content:new-event')
+    if: >-
+      contains(github.event.issue.labels.*.name, 'content:new-event')
+      && (vars.SUBMISSIONS_OPEN != 'false'
+          || contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -64,12 +73,36 @@ jobs:
 
       - name: Scaffold event page
         id: scaffold
+        continue-on-error: true
         run: node scripts/new_event_from_issue.mjs
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
 
+      - name: Report the failure on the issue
+        if: steps.scaffold.outcome == 'failure'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          STEP_ERROR: ${{ steps.scaffold.outputs.error }}
+        with:
+          script: |
+            const detail = process.env.STEP_ERROR || 'The step failed; see the workflow logs for details.';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                'This event could not be turned into a pull request yet.',
+                '',
+                '> ' + detail.split('\n').join('\n> '),
+                '',
+                'Edit this issue to fix the problem and the automation will try again.'
+              ].join('\n')
+            });
+            core.setFailed(detail);
+
       - name: Create pull request
+        if: steps.scaffold.outcome == 'success'
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
         with:
           branch: ${{ steps.scaffold.outputs.branch }}

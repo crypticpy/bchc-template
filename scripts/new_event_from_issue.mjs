@@ -4,66 +4,53 @@
  *
  * Input (env): ISSUE_BODY, ISSUE_TITLE
  * Output:      cohorts/<year>/events/<event_id>/index.md
- *              $GITHUB_OUTPUT: slug, year, branch
+ *              $GITHUB_OUTPUT: slug, year, branch (or error, on failure)
+ *
+ * Anyone can open the issue that starts this job, so nothing here trusts the
+ * body: headings are read first-occurrence-wins (scripts/lib/event_issue.mjs),
+ * the folder is confined to `cohorts/<year>/events/`, values are serialized by
+ * the shared YAML emitter, and every step output is written with a random
+ * heredoc delimiter.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
-const body = (process.env.ISSUE_BODY || '').replace(/\r\n/g, '\n');
-const issueTitle = (process.env.ISSUE_TITLE || '').trim();
+import { fail, setOutput } from './lib/actions_output.mjs';
+import { FIELD, FINAL_LABEL, readEventForm, resolveEventDir } from './lib/event_issue.mjs';
+import { slugify } from './lib/issue_body.mjs';
+import { frontMatter } from './lib/yaml.mjs';
 
-if (!body.trim()) {
-  console.error('The issue body is empty, so there is nothing to scaffold.');
-  process.exit(1);
-}
+const ROOT = process.cwd();
 
-function yamlString(value) {
-  const escaped = String(value ?? '')
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n');
-  return `"${escaped}"`;
-}
+const body = String(process.env.ISSUE_BODY ?? '').replace(/\r\n?/g, '\n');
+const issueTitle = String(process.env.ISSUE_TITLE ?? '').trim();
 
-function slugify(input) {
-  return String(input || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+if (!body.trim()) fail('The issue body is empty, so there is nothing to scaffold.');
 
-const values = {};
-for (const section of body.split(/^###[ \t]+/m).slice(1)) {
-  const [heading, ...rest] = section.split('\n');
-  const key = heading
-    .replace(/\s*\([^)]*\)\s*$/, '') // drop trailing hints like "(Markdown, optional)"
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
-  const value = rest.join('\n').trim();
-  values[key] = value.toLowerCase() === '_no response_' ? '' : value;
-}
+const { value } = readEventForm(body, FINAL_LABEL.newEvent);
 
-const year = (values.cohort_year || '').trim();
-const title = (values.event_title || issueTitle).trim();
-const details = (values.event_details || values.details || '').trim();
+const year = value(...FIELD.year);
+const title = value(...FIELD.title) || issueTitle;
+const details = value(...FIELD.details);
 
 if (!/^\d{4}$/.test(year) || !title) {
-  console.error('A four-digit cohort year and an event title are both required.');
-  process.exit(1);
+  fail('A four-digit cohort year and an event title are both required.');
 }
 
-const eventId = slugify(values.event_id || title);
-if (!eventId) {
-  console.error(`Could not derive an event id from ${JSON.stringify(values.event_id || title)}.`);
-  process.exit(1);
-}
+const requestedId = value(...FIELD.eventId);
+const eventId = slugify(requestedId || title);
+if (!eventId) fail(`Could not derive an event id from ${JSON.stringify(requestedId || title)}.`);
+
+// `slugify` already strips everything outside [a-z0-9-], but this job runs with
+// `contents: write` on issue text from anyone, so the folder it is about to
+// create is re-checked rather than trusted.
+const { dir, relative, error } = resolveEventDir(ROOT, year, eventId);
+if (error) fail(error);
 
 // "Title | URL" per line; also tolerates "Title - URL".
-const attachments = (values.attachments || '')
+const attachments = value(...FIELD.attachments)
   .split('\n')
   .map((line) => line.trim())
   .filter(Boolean)
@@ -77,54 +64,39 @@ const attachments = (values.attachments || '')
   })
   .filter(Boolean);
 
-const lines = [
-  '---',
-  'layout: event',
-  `title: ${yamlString(title)}`,
-  `cohort: ${year}`,
-  `event_id: ${eventId}`,
+/** @type {Array<[string, unknown]>} */
+const entries = [
+  ['layout', 'event'],
+  ['title', title],
+  ['cohort', year],
+  ['event_id', eventId],
 ];
 
-const optional = [
-  ['summary', values.event_summary],
-  ['event_date', values.event_date],
-  ['event_time', values.event_time],
-  ['event_location', values.event_location],
-];
-for (const [key, value] of optional) {
-  if (value && value.trim()) lines.push(`${key}: ${yamlString(value.trim())}`);
+for (const [key, labels] of [
+  ['summary', FIELD.summary],
+  ['event_date', FIELD.date],
+  ['event_time', FIELD.time],
+  ['event_location', FIELD.location],
+]) {
+  const text = value(...labels);
+  if (text) entries.push([key, text]);
 }
 
-if (attachments.length > 0) {
-  lines.push('attachments:');
-  for (const item of attachments) {
-    lines.push(`  - title: ${yamlString(item.title)}`);
-    lines.push(`    url: ${yamlString(item.url)}`);
-  }
-}
+if (attachments.length > 0) entries.push(['attachments', attachments]);
 
-lines.push('---');
-
-const dir = path.join(process.cwd(), 'cohorts', year, 'events', eventId);
 if (fs.existsSync(dir)) {
-  console.error(
-    `An event already exists at cohorts/${year}/events/${eventId}. Aborting rather than overwriting it.`
-  );
-  process.exit(1);
+  fail(`An event already exists at ${relative}. Aborting rather than overwriting it.`);
 }
 
 fs.mkdirSync(dir, { recursive: true });
 fs.writeFileSync(
   path.join(dir, 'index.md'),
-  `${lines.join('\n')}\n\n${details || 'Event details will be added here.'}\n`,
+  `${frontMatter(entries)}\n${details || 'Event details will be added here.'}\n`,
   'utf8'
 );
 
-if (process.env.GITHUB_OUTPUT) {
-  fs.appendFileSync(
-    process.env.GITHUB_OUTPUT,
-    `slug=${eventId}\nyear=${year}\nbranch=event/${year}-${eventId}\n`
-  );
-}
+setOutput('slug', eventId);
+setOutput('year', year);
+setOutput('branch', `event/${year}-${eventId}`);
 
-console.log(`Scaffolded cohorts/${year}/events/${eventId}/index.md.`);
+console.log(`Scaffolded ${relative}/index.md.`);

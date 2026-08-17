@@ -18,26 +18,22 @@ require "psych"
 require "date"
 require "time"
 
+require_relative "lib/issue_form"
+
+# The headings the "Update a cohort schedule" issue form emits, in template
+# order. Only these start a section, the first occurrence of each wins, and
+# everything after the trailing free-text field is that field's answer — so a
+# `### Cohort year` typed into the notes or the YAML block cannot replace the
+# answer GitHub itself collected. See scripts/lib/issue_form.rb.
+FORM_HEADINGS = ["Cohort year", "Schedule entries (YAML)", "Notes for reviewers"].freeze
+FINAL_HEADING = "Notes for reviewers"
+
 issue_body = ENV["ISSUE_BODY"].to_s.gsub("\r\n", "\n")
 issue_number = ENV["ISSUE_NUMBER"].to_s.strip
 
 if issue_body.strip.empty?
   warn "Issue body is empty; cannot update the schedule."
   exit 1
-end
-
-# "Schedule entries (YAML)" -> "schedule_entries"
-# @param key [String] a GitHub issue-form field heading
-# @return [String] snake_case key with any parenthetical suffix removed
-def normalize_key(key)
-  key.to_s.sub(/\s*\([^)]*\)\s*\z/, "").strip.downcase.gsub(/[^a-z0-9]+/, "_").gsub(/\A_+|_+\z/, "")
-end
-
-# GitHub wraps a `render: yaml` textarea in a fenced code block.
-# @param text [String] raw issue-form field value
-# @return [String] the text with a leading ```/```lang and trailing ``` removed
-def strip_code_fence(text)
-  text.to_s.strip.sub(/\A```[a-zA-Z]*[ \t]*\n/, "").sub(/\n?```\z/, "")
 end
 
 # Turns free text into a URL/id-safe slug (lowercase, hyphen-separated).
@@ -48,16 +44,10 @@ def slugify(value)
   value.to_s.strip.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "")
 end
 
-values = {}
-issue_body.split(/^###\s+/).drop(1).each do |section|
-  heading_line, *rest = section.lines
-  next unless heading_line
-
-  values[normalize_key(heading_line)] = rest.join.strip
-end
+values = IssueForm.sections(issue_body, FORM_HEADINGS, FINAL_HEADING)
 
 cohort_year = values["cohort_year"].to_s.strip
-schedule_yaml = strip_code_fence(values["schedule_entries"])
+schedule_yaml = IssueForm.strip_code_fence(values["schedule_entries"])
 
 unless cohort_year.match?(/\A\d{4}\z/)
   warn "The cohort year is required and must be a four-digit year."
@@ -141,20 +131,9 @@ data["events"] = processed_events
 
 new_content = Psych.dump(data, line_width: -1)
 
-# Appends `key=value` (or GITHUB_OUTPUT heredoc) lines to $GITHUB_OUTPUT, if set.
-# No-op outside CI (e.g. when run locally), so the script stays runnable by hand.
-# @param pairs [Array<String>] pre-formatted GITHUB_OUTPUT lines
-# @return [void]
-def write_output(pairs)
-  output = ENV["GITHUB_OUTPUT"]
-  return unless output
-
-  File.open(output, "a") { |f| pairs.each { |line| f.puts(line) } }
-end
-
 if new_content == original_content
   puts "No schedule changes detected for cohort #{cohort_year}."
-  write_output(["changed=false"])
+  IssueForm.write_output("changed" => "false")
   exit 0
 end
 
@@ -163,13 +142,15 @@ File.write(data_path, new_content)
 summary_lines = processed_events.map { |event| "- #{event['name']} (#{event['date']})" }
 branch = "schedule/#{cohort_year}-#{Time.now.utc.strftime('%Y%m%d%H%M%S')}"
 
-write_output([
-  "changed=true",
-  "branch=#{branch}",
-  "year=#{cohort_year}",
-  "summary<<SUMMARY",
-  summary_lines.join("\n"),
-  "SUMMARY"
-])
+# `summary` is built from event names the submitter typed, so it is written
+# with a random heredoc delimiter (see IssueForm.write_output): a name
+# containing a delimiter line would otherwise close the block early and inject
+# its own `branch=` output.
+IssueForm.write_output(
+  "changed" => "true",
+  "branch" => branch,
+  "year" => cohort_year,
+  "summary" => summary_lines.join("\n")
+)
 
 puts "Updated the schedule for cohort #{cohort_year}#{issue_number.empty? ? '' : " (issue ##{issue_number})"}."

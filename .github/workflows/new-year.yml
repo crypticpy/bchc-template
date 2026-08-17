@@ -12,6 +12,12 @@ on:
         required: true
         type: string
 
+# Set the repository variable SUBMISSIONS_OPEN to `false` to accept issues from
+# members and collaborators only; leaving it unset keeps them open.
+#
+# The jobs below declare exactly the scopes they need; nothing is granted by default.
+permissions: {}
+
 # One run per issue (or per manually-dispatched year): editing an issue three
 # times in a minute must not leave three jobs force-pushing the same branch
 # at each other.
@@ -21,7 +27,11 @@ concurrency:
 
 jobs:
   scaffold:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'content:new-year')
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (contains(github.event.issue.labels.*.name, 'content:new-year')
+          && (vars.SUBMISSIONS_OPEN != 'false'
+              || contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)))
     runs-on: ubuntu-latest
     permissions:
       contents: write

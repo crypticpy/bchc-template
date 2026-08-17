@@ -16,6 +16,21 @@ require "fileutils"
 require "yaml"
 require "psych"
 
+# Render one value as the YAML scalar node Psych itself would write for it
+# (plain, quoted or a literal block, whichever the value needs).
+#
+# COHORT_INTRO reaches this script from an issue form. It used to be emitted
+# with String#inspect, which produces escapes YAML does not define (`\#{`,
+# `\u{1f600}`) and leaves DEL and the C1 block raw — a crafted intro could
+# write a cohort landing page Psych then refuses to parse. Letting Psych do the
+# escaping makes every input round-trip.
+#
+# @param value [Object]
+# @return [String] a YAML scalar, safe to interpolate after `key: `
+def yaml_scalar(value)
+  Psych.dump(value, line_width: -1).sub(/\A---[ \n]/, "").chomp
+end
+
 year = ENV["COHORT_YEAR"].to_s.strip
 
 unless year.match?(/\A\d{4}\z/)
@@ -40,7 +55,7 @@ unless File.exist?(index_path)
     layout: cohort
     title: "Cohort #{year}"
     year: #{year}
-    intro: #{intro.inspect}
+    intro: #{yaml_scalar(intro)}
     ---
 
     Add background, goals and participant information for the #{year} cohort here.

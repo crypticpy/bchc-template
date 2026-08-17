@@ -4,37 +4,30 @@
  * branch on them before doing any real work.
  *
  * Env: ISSUE_BODY. Outputs: cohort_year, event_id, intro.
+ *
+ * The body comes from an issue anyone can open: headings are read
+ * first-occurrence-wins (scripts/lib/event_issue.mjs) so a `### Event ID`
+ * typed inside a free-text answer cannot replace the real one, and each output
+ * is written as a heredoc with a random delimiter so a multi-line answer cannot
+ * forge a second output.
  */
 
-import fs from 'node:fs';
 import process from 'node:process';
 
-const body = (process.env.ISSUE_BODY || '').replace(/\r\n/g, '\n');
+import { setOutput } from './lib/actions_output.mjs';
+import { FIELD, FINAL_LABEL, readEventForm } from './lib/event_issue.mjs';
 
-const values = {};
-for (const section of body.split(/^###[ \t]+/m).slice(1)) {
-  const [heading, ...rest] = section.split('\n');
-  const key = heading
-    .replace(/\s*\([^)]*\)\s*$/, '') // drop trailing hints like "(optional)"
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
-  values[key] = rest.join('\n').trim();
-}
+const body = String(process.env.ISSUE_BODY ?? '').replace(/\r\n?/g, '\n');
 
-function clean(value) {
-  const trimmed = (value || '').trim();
-  return trimmed.toLowerCase() === '_no response_' ? '' : trimmed;
-}
+const { value } = readEventForm(body, FINAL_LABEL.newYear);
 
-const year = clean(values.cohort_year);
-const eventId = clean(values.event_id);
-// Collapsed to a single line so it is safe to pass through a workflow output.
-const intro = clean(values.intro_paragraph || values.intro).replace(/\s*\n+\s*/g, ' ');
+const year = value(...FIELD.year);
+const eventId = value(...FIELD.eventId);
+// Collapsed to a single line so it reads well as a one-paragraph intro.
+const intro = value(...FIELD.intro).replace(/\s*\n+\s*/g, ' ');
 
-if (process.env.GITHUB_OUTPUT) {
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, `cohort_year=${year}\nevent_id=${eventId}\nintro=${intro}\n`);
-}
+setOutput('cohort_year', year);
+setOutput('event_id', eventId);
+setOutput('intro', intro);
 
 console.log(`Extracted cohort_year='${year}', event_id='${eventId}'.`);
