@@ -145,6 +145,11 @@ drop interactive chrome and flow the rail after the prose.
 `.card`, `.card-hover`, `.card-header`, `.card-title`, `.eyebrow`, `.section-title`,
 `.section-lead`, `.link-row`, `.prose-body`, `.sr-only-focusable`.
 
+Home hero: `.hero-stat` (stat-line segment; its `·` separator is a `::before`, never
+text) and `.hero-latest` / `-item` / `-link` / `-title` / `-meta` — the "Latest
+additions" panel in the hero's right column at ≥1024 px (`home.hero_latest_count`;
+white / on-dark ink on `primary-dark`, 15 % white hairlines).
+
 ## Accessibility baseline
 
 WCAG 2.2 AA is the floor and `quality.yml` checks it (axe + HTML_CodeSniffer, Lighthouse

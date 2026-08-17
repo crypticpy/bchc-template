@@ -11,6 +11,17 @@
   /* Home hero stat line: separators are decorative pseudo-elements, so they are
      never read out and never audited as low-contrast text. */
   .hero-stat::before { content: "\00b7"; @apply mx-1.5 text-brand-on-dark/60; }
+  /* Home hero, right column at lg+: the newest entries as a quiet list on the dark
+     ground. Ink is white or on-dark (>= 4.5:1 on primary-dark); the row separator is
+     a 10% white hairline, never text. */
+  .hero-latest { @apply rounded-2xl border border-white/15 bg-white/5 p-6; }
+  .hero-latest-item { @apply py-3 first:pt-0 last:pb-0; }
+  .hero-latest-link { @apply -mx-2 flex flex-col gap-1 rounded-lg px-2 py-1 transition-colors duration-120 ease-brand hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-primary-dark; }
+  .hero-latest-title { @apply line-clamp-2 font-heading text-[15px] font-semibold leading-5 text-white; }
+  .hero-latest-meta { @apply flex min-w-0 items-center gap-2 text-xs text-brand-on-dark/80; }
+  .hero-latest-meta > span { @apply min-w-0 truncate; }
+  .hero-latest-meta > time { @apply shrink-0 whitespace-nowrap; }
+  .hero-latest-meta > * + *::before { content: "\00b7"; @apply mr-2; }
   .prose-body { @apply prose prose-slate max-w-prose prose-headings:font-heading prose-headings:scroll-mt-24; }
   .sr-only-focusable:not(:focus):not(:active) { @apply sr-only; }
 }

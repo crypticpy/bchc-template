@@ -66,8 +66,13 @@ leads with; remaining facets fill in only if fewer than four qualify.
 {%- endif -%}
 {%- assign upcoming = site.data.events_all | where: 'past', false -%}
 
+{%- assign hero_latest_count = cfg.home.hero_latest_count | default: 3 -%}
+{%- assign hero_latest = "" | split: "" -%}
+{%- if cfg.modules.catalog and hero_latest_count > 0 -%}{%- assign hero_latest = entries | slice: 0, hero_latest_count -%}{%- endif -%}
+{%- assign hero_meta_field = schema.fields | card_fields: 'meta' | first -%}
+
 <section class="bg-brand-primary-dark text-brand-on-dark">
-  <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+  <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-16 lg:px-8 lg:py-20">
     <div class="max-w-prose">
       {% if cfg.hero.eyebrow %}<p class="eyebrow !text-brand-on-dark/80">{{ cfg.hero.eyebrow }}</p>{% endif %}
       <h1 class="mt-3 font-heading text-[40px] font-semibold leading-[44px] tracking-[-0.02em] text-white">{{ cfg.hero.title | default: cfg.name }}</h1>
@@ -97,6 +102,25 @@ leads with; remaining facets fill in only if fewer than four qualify.
       </p>
       {% endif %}
     </div>
+
+    {%- if hero_latest.size > 0 %}
+    <aside class="hero-latest hidden lg:block" aria-labelledby="hero-latest-heading">
+      <p class="eyebrow !text-brand-on-dark/80" id="hero-latest-heading">Latest additions</p>
+      <ul role="list" class="mt-3 divide-y divide-white/10">
+        {%- for hl in hero_latest %}
+        {%- assign hl_meta = '' -%}
+        {%- if hero_meta_field -%}{%- assign hl_vals = hl[hero_meta_field.key] | as_list -%}{%- if hl_vals.size > 0 -%}{%- assign hl_meta = hero_meta_field | option_short: hl_vals[0] -%}{%- endif -%}{%- endif -%}
+        <li class="hero-latest-item">
+          <a class="hero-latest-link" href="{{ hl.url | relative_url }}">
+            <span class="hero-latest-title">{{ hl.title | escape }}</span>
+            <span class="hero-latest-meta">{% if hl_meta != '' %}<span>{{ hl_meta | escape }}</span>{% endif %}<time datetime="{{ hl.published | date: '%Y-%m-%d' }}">{{ hl.published | date: '%b %-d, %Y' }}</time></span>
+          </a>
+        </li>
+        {%- endfor %}
+      </ul>
+      <a class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-white underline-offset-4 hover:underline" href="{{ catalog_url | relative_url }}">See all {{ total }} {{ plural | downcase }} {% include icon.html name='arrow-right' size='sm' %}</a>
+    </aside>
+    {%- endif %}
   </div>
 </section>
 

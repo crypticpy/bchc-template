@@ -52,6 +52,7 @@ export const SITE = {
   "home": {
     "featured_count": 6,
     "recent_count": 6,
+    "hero_latest_count": 3,
     "highlights": [
       {
         "eyebrow": "Reuse, don't rebuild",

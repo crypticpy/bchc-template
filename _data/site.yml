@@ -52,6 +52,7 @@ hero:
 home:
   featured_count: 6         # entries in the carousel (featured: true first, then newest)
   recent_count: 6           # entries in the "Recently added" grid
+  hero_latest_count: 3      # newest entries listed beside the hero on wide screens (0 hides the panel)
   highlights:               # optional 3-up value proposition blocks (leave empty to hide)
     - eyebrow: "Reuse, don't rebuild"
       title: "Start from what already works"

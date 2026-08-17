@@ -61,6 +61,7 @@ hero:
 home:
   featured_count: 6   # entries shown in the carousel (featured: true first, then newest, until this many)
   recent_count: 6     # entries shown in the "Recently added" grid
+  hero_latest_count: 3 # newest entries listed beside the hero at ≥1024px (0 hides the panel)
   highlights:          # optional 3-up value-proposition cards; leave the list empty to hide the section
     - eyebrow: "…"
       title: "…"
