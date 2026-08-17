@@ -120,13 +120,13 @@ export function renderReview() {
     ...Object.entries(files).map(([relative, text]) => {
       const editUrl = repository ? githubEditFileUrl(repository, branch, relative) : '';
       return el('section', { class: 'card' }, [
-        el('div', { class: 'card-header flex flex-wrap items-center justify-between gap-3' }, [
-          el('div', {}, [
+        el('div', { class: 'card-header flex flex-wrap items-start justify-between gap-3' }, [
+          el('div', { class: 'min-w-0 flex-1 basis-64' }, [
             el('span', { class: 'eyebrow', text: 'File' }),
             el('p', { class: 'card-title font-mono', text: relative }),
             el('p', { class: 'field-help', text: FILE_HELP[relative] || '' }),
           ]),
-          el('div', { class: 'flex flex-wrap gap-2' }, [
+          el('div', { class: 'flex shrink-0 flex-wrap gap-2' }, [
             copyButton(text),
             downloadButton(relative, text),
             editUrl
@@ -140,8 +140,12 @@ export function renderReview() {
               : el('span', { class: 'chip-neutral', text: 'Set a repository to get a GitHub link' }),
           ]),
         ]),
-        el('div', { class: 'max-h-80 overflow-auto' }, [
-          el('pre', { class: 'px-6 py-4 text-xs leading-relaxed text-brand-ink' }, [el('code', { text })]),
+        // max-h in line units so the clamp ends on a line boundary; long lines
+        // scroll sideways inside the card rather than clipping.
+        el('div', { class: 'max-h-[calc(0.75rem*1.625*12+2rem)] overflow-auto' }, [
+          el('pre', { class: 'w-max min-w-full px-6 py-4 text-xs leading-relaxed text-brand-ink' }, [
+            el('code', { text }),
+          ]),
         ]),
       ]);
     }),

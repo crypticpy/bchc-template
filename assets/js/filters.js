@@ -165,6 +165,17 @@ import {
 
   /* -------------------------------------------------------------- matching */
 
+  /**
+   * The search text that is actually narrowing the grid: empty until
+   * search.js has published matches for it (index still loading, or failed),
+   * so the count line never claims a filter that is not applied.
+   * @returns {string}
+   */
+  function appliedQuery() {
+    if (!searchInput || !window.__searchMatches) return '';
+    return searchInput.value.trim();
+  }
+
   function searchOk(i) {
     const set = window.__searchMatches;
     return !(set instanceof Set) || set.has(cards[i].dataset.entryId);
@@ -198,7 +209,7 @@ import {
     clearTimeout(announceTimer);
     announceTimer = setTimeout(() => {
       const names = activeList().map((a) => a.label);
-      const q = searchInput ? searchInput.value.trim() : '';
+      const q = appliedQuery();
       if (q) names.push('“' + q + '”');
       statusEl.textContent = statusText(shown, total, singular, plural, names);
     }, 500);
@@ -306,12 +317,14 @@ import {
     });
 
     const active = activeList();
-    const q = searchInput ? searchInput.value.trim() : '';
+    const q = appliedQuery();
     const filtered = active.length > 0 || q !== '';
     document.querySelectorAll('[data-total-wrap]').forEach((el) => {
       el.hidden = !filtered;
     });
-    clearButtons.forEach((b) => b.classList.toggle('hidden', !filtered));
+    // Clear stays available while text sits in the box, applied or not.
+    const typed = searchInput ? searchInput.value.trim() : '';
+    clearButtons.forEach((b) => b.classList.toggle('hidden', !filtered && typed === ''));
     renderActivePills(active);
 
     document.querySelectorAll('[data-filter-count-badge]').forEach((el) => {

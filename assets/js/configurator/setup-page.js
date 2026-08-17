@@ -159,7 +159,7 @@ function render() {
   root.replaceChildren(
     el('header', { class: 'mb-6' }, [
       el('p', { class: 'eyebrow', text: `Step ${state.step + 1} of ${STEPS.length}` }),
-      el('h2', { id: 'step-heading', class: 'section-title', tabindex: '-1', text: meta.title }),
+      el('h2', { id: 'step-heading', class: 'section-title focus-target', tabindex: '-1', text: meta.title }),
       el('p', { class: 'section-lead', text: meta.lead }),
     ]),
     body,

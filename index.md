@@ -143,7 +143,9 @@ leads with; remaining facets fill in only if fewer than four qualify.
               <li><a class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-brand-primary transition-colors duration-120 ease-brand hover:bg-brand-primary/5 hover:underline" href="{{ catalog_url | relative_url }}?{{ bkey }}={{ opt | slugify }}" title="{{ opt | escape }}">{% if own.icon %}{% include icon.html name=own.icon size='xs' class='text-brand-muted' %}{% endif %}{{ om.short }}</a></li>
             {% endfor %}
           </ul>
-          {% if bf.options.size > 6 %}<a class="mt-2 inline-block px-2 text-xs font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">All {{ bf.options.size }} options</a>{% endif %}
+          {%- comment -%} Always present so the tiles line up; the label says
+          whether the list above is complete. {%- endcomment -%}
+          <a class="mt-2 inline-block px-2 text-xs font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">{% if bf.options.size > 6 %}All {{ bf.options.size }} options{% else %}Open the catalog{% endif %}</a>
         </div>
       {% endfor %}
     </div>
@@ -154,12 +156,17 @@ leads with; remaining facets fill in only if fewer than four qualify.
   <section aria-labelledby="featured-heading" data-carousel>
     <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
       <h2 id="featured-heading" class="section-title">Featured {{ plural | downcase }}</h2>
-      <div class="flex items-center gap-2">
-        <button type="button" class="icon-btn border border-brand-line-strong" data-carousel-prev aria-label="Previous">{% include icon.html name='chevron-left' size='sm' %}</button>
-        <button type="button" class="icon-btn border border-brand-line-strong" data-carousel-next aria-label="Next">{% include icon.html name='chevron-right' size='sm' %}</button>
+      <div class="flex items-center gap-4">
+        {%- comment -%} The only browse-all link above the fold at lg+, where the
+        "Recently added" section (which also carries one) is hidden. {%- endcomment -%}
+        <a class="inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">Browse all {{ total }} {{ plural | downcase }} {% include icon.html name='arrow-right' size='sm' %}</a>
+        <div class="flex items-center gap-2">
+          <button type="button" class="icon-btn border border-brand-line-strong" data-carousel-prev aria-label="Previous">{% include icon.html name='chevron-left' size='sm' %}</button>
+          <button type="button" class="icon-btn border border-brand-line-strong" data-carousel-next aria-label="Next">{% include icon.html name='chevron-right' size='sm' %}</button>
+        </div>
       </div>
     </div>
-    <ul role="list" class="no-scrollbar -mx-4 flex list-none snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0 [&>li]:w-[85%] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-[48%] xl:[&>li]:w-[32%]" data-carousel-track tabindex="0" aria-label="Featured {{ plural | downcase }}">
+    <ul role="list" class="no-scrollbar -mx-4 flex list-none snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0 [&>li]:w-[85%] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-[calc((100%-1.5rem)/2)] xl:[&>li]:w-[calc((100%-3rem)/3)]" data-carousel-track tabindex="0" aria-label="Featured {{ plural | downcase }}">
       {% for e in featured %}{% assign home_eager = false %}{% if forloop.index <= 3 %}{% assign home_eager = true %}{% endif %}{% include entry-card.html entry=e eager=home_eager %}{% endfor %}
     </ul>
   </section>

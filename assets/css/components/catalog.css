@@ -5,7 +5,9 @@
   /* ---------- Grid + view switch -------------------------------------- */
   /* The same <li> cards render as a grid or as compact rows; the only
      difference is data-view on the <ul>, so nothing re-renders on toggle. */
-  .entry-grid { @apply grid list-none grid-cols-1 gap-6 p-0 transition-opacity duration-120 ease-brand sm:grid-cols-2 xl:grid-cols-3; }
+  /* items-start: a text-only card next to an image card keeps its own height instead
+     of stretching to match and leaving dead space between its chips and its foot. */
+  .entry-grid { @apply grid list-none grid-cols-1 items-start gap-6 p-0 transition-opacity duration-120 ease-brand sm:grid-cols-2 xl:grid-cols-3; }
   .entry-grid[data-view="list"] { @apply grid-cols-1 gap-0 border-t border-brand-line sm:grid-cols-1 xl:grid-cols-1; }
   .entry-grid.is-fading { @apply opacity-0; }
 
@@ -39,6 +41,9 @@
   .entry-foot { @apply px-5 pb-5 sm:px-6; }
   /* No media band: the summary takes the space the picture would have used
      (the card renders a third chip too — see _includes/entry-card.html). */
+  /* h-auto: with items-start on the grid a text-only card keeps its own height (h-full
+     on .entry-card would still resolve against the row track and stretch it). */
+  .entry-card--text { @apply h-auto; }
   .entry-card--text .entry-summary { @apply line-clamp-4; }
 
   /* List view: the card collapses into one row, media and summary drop out. */
@@ -56,7 +61,13 @@
   .entry-row-title a { @apply after:absolute after:inset-0 after:content-[''] hover:text-brand-primary; }
 
   /* ---------- Filter rail + groups ------------------------------------- */
-  .filter-rail { @apply lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:w-[272px] lg:overflow-y-auto lg:pb-8 lg:pr-1; }
+  .filter-rail { @apply lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:w-[272px] lg:overflow-y-auto lg:pb-12 lg:pr-1; }
+  /* The rail scrolls internally on tall facet sets; fade its bottom edge so a cut-off
+     pill row reads as "more below" (overlay scrollbars give no other cue). pb-12
+     above keeps the last row clear of the fade when scrolled to the end. */
+  @media (min-width: 1024px) {
+    .filter-rail { mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent); }
+  }
   .filter-group { @apply border-b border-brand-line py-1 last:border-b-0; }
   .filter-group-toggle { @apply flex w-full items-center justify-between gap-2 rounded-lg py-3 text-left text-sm font-semibold text-brand-primary-dark transition-colors duration-120 ease-brand hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
   .filter-group-toggle .filter-chevron { @apply transition-transform duration-180 ease-brand; }

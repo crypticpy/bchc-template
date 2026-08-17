@@ -174,7 +174,9 @@ a group with no populated field never claims space in either place.
   order is rail then article. {%- endcomment -%}
   <div class="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
     <aside class="entry-rail space-y-6 lg:order-2 lg:sticky lg:top-24 lg:self-start" aria-label="About this {{ ent_singular | downcase | escape }}">
-      <div class="hidden lg:block">{% include toc.html content=content sections=ent_section_index %}</div>
+      {%- comment -%} Shown at every width: on a phone the rail sits above the
+      body, so this is the in-page navigation for a long entry. {%- endcomment -%}
+      {% include toc.html content=content sections=ent_section_index %}
       {{ ent_rail_cards }}
       <section class="rail-card" aria-labelledby="rail-share-heading">
         <h2 class="rail-title" id="rail-share-heading">Share &amp; provenance</h2>
