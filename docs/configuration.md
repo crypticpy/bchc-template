@@ -46,7 +46,7 @@ Each toggle does three things:
 2. Shows or hides the module's block on the home page (`index.md` checks `cfg.modules.<name>`).
 3. **Removes the module's pages from the build entirely.** `_plugins/modules.rb` runs on `post_read` and drops any page whose URL starts with the module's path (`/cohorts/`, `/events/`, `/resources/`, `/submit/`, or the catalog's `entry.path`) when that module is off — those pages are not built, not in the sitemap, and not in `search.json`. Turning the module back on brings them back on the next build without further changes.
 
-The shipped BCHC configuration has `catalog`, `submit`, `carousel`, `stats`, `events` and `cohorts` on and `resources` off.
+The shipped BCHC configuration has `catalog`, `submit`, `carousel` and `stats` on, and `events`, `cohorts` and `resources` off. Sample data for the three off-by-default modules still ships in `_data/`, so turning one on gives you something to look at immediately.
 
 ### Home page copy
 
@@ -101,16 +101,18 @@ When set, `_includes/head.html` injects the Plausible `<script data-domain>` sni
 
 ```yaml
 colors:
-  primary: "#1D4E89"        # buttons, links, active states
-  primary_dark: "#12305A"    # hero + footer background, headings on light surfaces
-  secondary: "#1B8A7A"       # secondary badges / accents
-  accent: "#E07A2F"          # highlights, warm accent badges
-  ink: "#1B2430"             # body text
-  muted: "#5A6573"           # secondary text
-  line: "#D9E0E8"            # borders and dividers
-  surface: "#F5F7FA"         # page background
-  card: "#FFFFFF"            # card background
-  on_dark: "#F7F9FC"         # text on primary_dark backgrounds
+  primary: "#1D4E89"        # interactive only: links, buttons, active filters, focus ring
+  primary_dark: "#12305A"   # hero + footer ground, headings on light surfaces
+  secondary: "#0F6357"      # taxonomy identity (chip dots, secondary icons); AA on white
+  accent: "#E07A2F"         # "Featured" only
+  ink: "#1B2430"            # body text
+  muted: "#5A6573"          # secondary text (AA on white)
+  line: "#D9E0E8"           # dividers and card borders
+  line_strong: "#7C8A9B"    # borders of interactive controls — inputs, pills, checkboxes
+  surface: "#F5F7FA"        # page background
+  card: "#FFFFFF"           # card background
+  on_dark: "#F7F9FC"        # text on primary_dark backgrounds
+  warn: "#B45309"           # caution only: sensitive-data indicators, validation errors
 
 fonts:
   heading: "Source Sans 3"   # bundled: "Inter" or "Source Sans 3"; any other name needs google_fonts_url
@@ -120,9 +122,30 @@ fonts:
 radius: "soft"                # sharp | soft | round
 ```
 
-Colors are hex values. `_includes/theme.html` converts each one to an `R G B` triple (via the `hex_to_rgb` Liquid filter in `_plugins/theme_filters.rb`) and emits them as CSS custom properties (`--c-primary`, etc.) that Tailwind's `rgb(var(--c-x) / <alpha>)` utility classes read — so changing a hex value here re-themes the whole site on the next build, no CSS edits required. Keep text/background pairs at WCAG AA contrast (4.5:1 for body text); the setup wizards warn if `on_dark` on `primary_dark` falls under 4.5:1.
+Colors are hex values. `_includes/theme.html` converts each one to an `R G B` triple (via the `hex_to_rgb` Liquid filter in `_plugins/theme_filters.rb`) and emits them as CSS custom properties (`--c-primary`, `--c-line-strong`, `--c-warn`, …) that Tailwind's `rgb(var(--c-x) / <alpha>)` utility classes read — so changing a hex value here re-themes the whole site on the next build, no CSS edits required. Keep text/background pairs at WCAG AA contrast (4.5:1 for body text); the setup wizards warn if `on_dark` on `primary_dark` falls under 4.5:1.
+
+Each color has one job, and the templates rely on that (see [`docs/design-brief.md`](design-brief.md)):
+
+| Token | Used for | Do not use it for |
+|---|---|---|
+| `primary` | Links, primary buttons, the active filter state, focus rings | Decorative fills or headings |
+| `secondary` | Taxonomy identity — a chip's dot or icon | Tinted text on a tinted background |
+| `accent` | The "Featured" marker | General emphasis |
+| `warn` | Sensitive-data indicators, validation errors, anything a reader must not miss | Emphasis. If everything warns, nothing does. |
+| `line` | Dividers and resting card borders | Input borders — they need `line_strong` |
+| `line_strong` | Borders of controls the user can operate: inputs, filter pills, checkboxes | Dividers |
+
+`line_strong` and `warn` exist for contrast reasons. WCAG requires non-text UI boundaries to reach 3:1, which `line` deliberately does not — it is a hairline. Any control a user can click or type into needs `line_strong` or darker.
 
 `radius` maps to a five-step scale (`--radius-sm` … `--radius-2xl`) used across cards, buttons and inputs.
+
+### Elevation and motion
+
+Not configurable in `_data/theme.yml`, but worth knowing before you write custom CSS: the design system uses exactly two shadows (`shadow-e1` for card hover, `shadow-e2` for sticky bars, sheets and popovers) and nothing else — structure comes from `line` and spacing. Motion is 120ms for state changes, 180ms for hover and expand, 240ms for a sheet, easing `ease-brand`, animating only `transform` and `opacity`. `prefers-reduced-motion` turns transforms and slides instant and stops carousel autoplay; colour and opacity transitions stay, and focus rings never animate.
+
+### Light mode only
+
+There is no dark palette and no `prefers-color-scheme` handling. A single set of tokens keeps every preset verifiable for contrast, and a template that re-skins for six different organizations is hard enough to keep accessible in one mode. If you need a dark site, invert the tokens themselves — `surface`, `card`, `ink`, `on_dark` — rather than adding a second theme.
 
 ## `_data/navigation.yml`
 
@@ -153,6 +176,8 @@ Regenerated by both setup wizards from your module toggles and entry naming, but
 
 Both read/write the same six files (`_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`, `_config.yml`, `.github/ISSUE_TEMPLATE/new-entry.yml`) using the same shared logic in `assets/js/configurator/core.js`, so they always produce equivalent output.
 
+Their starting point — the defaults both wizards open with — is not hand-maintained JavaScript. `assets/js/configurator/defaults.generated.js` is produced from `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml` and `_data/navigation.yml` by `npm run generate`, so the wizards can never drift from the YAML that actually builds the site. Do not edit it; a `--check` run in CI fails the build if it is stale.
+
 ### `/setup/` — browser wizard
 
 A no-terminal step-by-step wizard on the deployed site (`setup/index.md` + `assets/js/configurator/setup-page.js`), for maintainers without local dev tooling. It:
@@ -175,4 +200,4 @@ npm run setup -- --help
 
 Same four presets (`ai-use-cases`, `cohort-portal`, `resource-library`, `blank`). Detects `owner/repo` from your git remote as the default for the repository question. Writes files directly to disk after you confirm a diff summary. Preserves any hand-added lines in `_config.yml` outside the title/description fields it owns.
 
-After hand-editing `_data/schema.yml` directly (without going through either wizard), run `npm run generate` to regenerate `.github/ISSUE_TEMPLATE/new-entry.yml` and resync `_config.yml`.
+After hand-editing any `_data/*.yml` file directly (without going through either wizard), run `npm run generate`. It regenerates `.github/ISSUE_TEMPLATE/new-entry.yml` and `assets/js/configurator/defaults.generated.js`, and resyncs `_config.yml`'s title and description. It is idempotent, and `npm run generate -- --check` is the CI gate that fails when a generated file is out of date — so regenerate and commit in the same change.
