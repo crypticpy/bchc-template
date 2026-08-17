@@ -27,6 +27,7 @@ exclude:
   - postcss.config.js
   - assets/css/tailwind.css
   - scripts
+  - test
   - docs
   - Gemfile
   - Gemfile.lock

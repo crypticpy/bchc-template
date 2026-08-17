@@ -1,5 +1,5 @@
 # GitHub issue form for new entries.
-# GENERATED FILE — do not edit by hand.
+# Generated from _data/schema.yml by scripts/generate.mjs — do not hand-edit.
 # Regenerate with `npm run generate` after changing _data/schema.yml.
 
 name: Submit a use case (creates PR)
@@ -11,11 +11,17 @@ body:
   - type: markdown
     attributes:
       value: "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content."
+  - type: markdown
+    attributes:
+      value: |-
+        ### About
+
+        What it is, who built it, and what it changed.
   - type: input
     id: title
     attributes:
       label: Title
-      description: "Short, descriptive name of the solution or project."
+      description: "What is it called? Short, descriptive name of the solution or project."
       placeholder: Automated 311 call triage with LLM classification
     validations:
       required: true
@@ -23,61 +29,63 @@ body:
     id: summary
     attributes:
       label: One-sentence summary
-      description: "One or two sentences shown on the catalog card. Plain language, no jargon."
+      description: "In one or two sentences, what does it do? One or two sentences shown on the catalog card. Plain language, no jargon."
       placeholder: Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first.
     validations:
       required: true
   - type: input
+    id: impact
+    attributes:
+      label: Result in one line
+      description: What is the single most concrete result so far? Optional. The single most concrete outcome so far — a number if you have one.
+      placeholder: Cut brief turnaround from 3 days to 1 hour
+    validations:
+      required: false
+  - type: input
     id: organization
     attributes:
       label: Organization
-      description: "Health department, city, or member organization sharing this entry."
+      description: "Which organization is sharing this? The organization sharing this entry — a health department, city, agency or member organization."
       placeholder: Chicago Department of Public Health
     validations:
       required: true
   - type: dropdown
     id: solution_type
     attributes:
-      label: Solution type
-      description: What kind of thing is being shared? Pick the closest match.
+      label: What is being shared
+      description: What are you sharing? Pick the closest match.
       options:
-        - Source code (GitHub or similar)
-        - "Cloud deployment (AWS, Azure, GCP)"
-        - Vendor product or partnership
-        - Internal tool (no code shared)
-        - "Playbook, policy or write-up"
+        - Source code
+        - Cloud deployment
+        - Vendor product
+        - Internal tool
+        - Playbook or write-up
     validations:
       required: true
-  - type: dropdown
-    id: domain
+  - type: checkboxes
+    id: area
     attributes:
-      label: Public health domain
-      description: Select all that apply.
-      multiple: true
+      label: Area of work
+      description: "Which areas of work does it apply to? Program areas and business functions this applies to. Select all that fit — it doesn't have to be a health program. Required — choose at least one."
       options:
-        - "Epidemiology & surveillance"
-        - "Communications & outreach"
-        - "Clinical & community services"
-        - Environmental health
-        - Emergency preparedness
-        - "Operations & administration"
-        - "Data, analytics & informatics"
-        - "Policy & planning"
-    validations:
-      required: true
-  - type: textarea
-    id: ai_tools
-    attributes:
-      label: "AI tools & models used"
-      description: "Comma-separated. Name the models, platforms or libraries that matter. (one per line or comma-separated)"
-      placeholder: "Azure OpenAI GPT-4o, LangChain, custom scikit-learn model"
-    validations:
-      required: true
+        - label: "Epidemiology & surveillance"
+        - label: "Clinical & community services"
+        - label: Environmental health
+        - label: Emergency preparedness
+        - label: "Communications & outreach"
+        - label: "Data & informatics"
+        - label: "Policy & planning"
+        - label: "HR & workforce"
+        - label: "Finance, procurement & contracts"
+        - label: "IT & operations"
+        - label: "Legal & compliance"
+        - label: "Staff & partner coordination"
+        - label: "Leadership & administration"
   - type: dropdown
     id: stage
     attributes:
       label: Stage
-      description: Where is this today?
+      description: Where is it today? How far along it is — pick the stage that best matches real use.
       options:
         - Idea / exploring
         - Pilot
@@ -85,18 +93,115 @@ body:
         - Paused or retired
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: |-
+        ### How it's built
+
+        The AI involved and where it runs.
+  - type: dropdown
+    id: ai_role
+    attributes:
+      label: How AI is involved
+      description: "Is the AI in the product, or was AI used to build it? Is the AI in the product, or was it used to make the product?"
+      options:
+        - AI is part of the solution
+        - AI was used to build it
+        - Both
+    validations:
+      required: true
+  - type: checkboxes
+    id: ai_types
+    attributes:
+      label: Types of AI
+      description: What kinds of AI does it use? Select all that apply.
+      options:
+        - label: Generative text (LLM)
+        - label: Chat assistant
+        - label: "Document Q&A (RAG)"
+        - label: "Classification & NLP"
+        - label: "Prediction & forecasting"
+        - label: Computer vision
+        - label: "Speech & transcription"
+        - label: Translation
+        - label: "Agents & automation"
+        - label: Rules-based (no ML)
+  - type: textarea
+    id: ai_tools
+    attributes:
+      label: "AI tools & models"
+      description: "Which AI tools, models or services does it use? Comma-separated. Name the models, platforms or libraries that matter. One per line, or separated by commas."
+      placeholder: "Azure OpenAI GPT-4o, LangChain, custom scikit-learn model"
+    validations:
+      required: false
+  - type: checkboxes
+    id: platform
+    attributes:
+      label: Where it runs
+      description: Where does it run? Select all that apply.
+      options:
+        - label: AWS
+        - label: Microsoft Azure
+        - label: Google Cloud
+        - label: On-premises
+        - label: Vendor / SaaS hosted
+        - label: Enterprise AI workspace
+        - label: Low-code platform
+        - label: Desktop or local
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor or partner
+      description: "Is a vendor or partner involved? If a vendor built or hosts the solution, name them here."
+      placeholder: Acme Health AI
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |-
+        ### Reuse
+
+        What it would take for another team to use this.
+  - type: dropdown
+    id: expertise
+    attributes:
+      label: Skills needed to set it up
+      description: Who would need to be involved to set this up? The least technical person who could get this running.
+      options:
+        - Anyone on staff
+        - Power user
+        - Analyst or data scientist
+        - Developer
+        - Contractor or vendor
+    validations:
+      required: true
+  - type: checkboxes
+    id: readiness
+    attributes:
+      label: Readiness
+      description: "Before someone reuses this, what should they know? How much work is left between finding this and running it? Select all that apply."
+      options:
+        - label: Ready to deploy
+        - label: Guided setup
+        - label: Needs customization
+        - label: Needs a contractor
+        - label: Needs a paid license
+        - label: Needs a data agreement
+        - label: Human review built in
+        - label: Reference only
   - type: input
     id: repo_url
     attributes:
-      label: Source code repository
-      description: "Public GitHub / GitLab repository, if code is shared."
+      label: Source code
+      description: "Where is the source code? GitHub, GitLab, Azure DevOps or any public repository."
       placeholder: "https://github.com/your-org/your-project"
     validations:
       required: false
   - type: input
     id: demo_url
     attributes:
-      label: Live deployment or demo
+      label: Live site or demo
+      description: Is there a live site or demo?
       placeholder: "https://example.org/app"
     validations:
       required: false
@@ -104,31 +209,76 @@ body:
     id: docs_url
     attributes:
       label: Documentation or write-up
-      description: "Slides, a report, a blog post, or a vendor case study."
+      description: "Is there documentation or a write-up? Slides, a report, a blog post, or a vendor case study."
       placeholder: "https://example.org/docs"
     validations:
       required: false
-  - type: input
-    id: vendor
+  - type: textarea
+    id: resources
     attributes:
-      label: Vendor or partner
-      description: "If a vendor built or hosts the solution, name them here."
-      placeholder: Acme Health AI
+      label: Other resources
+      description: "Anything else worth linking? Anything else worth linking — shared drives, SharePoint, model cards, container images, vendor pages. One per line as “Label | URL”. One per line as `Label | URL`."
+      placeholder: "Evaluation report | https://drive.google.com/…"
     validations:
       required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: "Can you show it in use? Up to eight PNG, JPEG, GIF or WebP images of the tool in use (15 MB total). Make sure no personal or protected information is visible. Drag images into this box to upload them, or paste one image URL per line — optionally as `URL | alt text`."
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: "**Slide deck or one-pager (PDF)** — GitHub issue forms cannot accept file uploads. After the pull request is created, upload `deck.pdf` into the entry folder."
+  - type: markdown
+    attributes:
+      value: |-
+        ### Data & access
+
+        What data it touches and who sees the output.
+  - type: checkboxes
+    id: data_sensitivity
+    attributes:
+      label: Data it touches
+      description: What kind of data does it touch? Select all that apply. This helps others judge governance and approval effort. Required — choose at least one.
+      options:
+        - label: Public data only
+        - label: De-identified data
+        - label: "Internal, non-public data"
+        - label: Personal information (PII)
+        - label: Health information (PHI)
+        - label: Criminal justice data (CJIS)
   - type: textarea
     id: data_sources
     attributes:
       label: Data sources
-      description: Comma-separated. What data does the solution use? Public / de-identified only. (one per line or comma-separated)
+      description: "Which data sources does it use? Comma-separated. What data does the solution use? Describe — do not paste — sensitive data. One per line, or separated by commas."
       placeholder: "Immunization registry, 311 call transcripts, ESSENCE"
     validations:
       required: false
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Who sees the output
+      description: Who sees the output?
+      options:
+        - Public-facing
+        - Internal staff
+        - Partner organizations
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |-
+        ### Contact
+
+        Someone others can reach out to.
   - type: input
     id: contact_name
     attributes:
       label: Contact name
-      description: Person others can reach out to with questions.
+      description: Who can people contact? Person others can reach out to with questions.
       placeholder: Jordan Lee
     validations:
       required: true
@@ -136,17 +286,21 @@ body:
     id: contact_email
     attributes:
       label: Contact email
+      description: What is their email?
       placeholder: "jordan.lee@city.gov"
     validations:
       required: true
   - type: markdown
     attributes:
-      value: "**Slide deck or one-pager (PDF)** — GitHub issue forms cannot accept file uploads. After the pull request is created, upload `deck.pdf` into the entry folder."
+      value: |-
+        ### The story
+
+        Problem, approach, what it took, results and lessons.
   - type: textarea
     id: body
     attributes:
       label: Full write-up
-      description: "Markdown is supported. Suggested headings: Problem, Approach, What it took (data, staffing, cost), Results, Lessons learned, How to reuse."
+      description: "Tell the full story. Markdown is supported. Suggested headings: Problem, Approach, What it took (data, staffing, cost), Results, Lessons learned, How to reuse."
       value: |
         ## Problem
 

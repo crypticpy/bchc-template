@@ -225,7 +225,7 @@ fields:
       "Pilot": { description: "In limited use with real users while it is evaluated." }
       "In production": { short: "In production", tone: primary, description: "In regular, supported use." }
       "Paused or retired": { short: "Retired", description: "No longer active — shared for the lessons." }
-    description: "Where is this today?"
+    description: "How far along it is — pick the stage that best matches real use."
 
   - key: ai_role
     label: "How AI is involved"
@@ -431,7 +431,7 @@ fields:
     group: reuse
     weight: 7
     icon: image
-    description: "Up to six PNG or JPG images of the tool in use. Make sure no personal or protected information is visible."
+    description: "Up to eight PNG, JPEG, GIF or WebP images of the tool in use (15 MB total). Make sure no personal or protected information is visible."
 
   - key: deck_pdf
     label: "Slide deck or one-pager (PDF)"

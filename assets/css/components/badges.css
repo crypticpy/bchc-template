@@ -21,6 +21,7 @@
   .chip::before { content: ""; @apply inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand-secondary; }
   .chip-plain { @apply chip; }
   .chip-plain::before { content: none; }
+  .chip-warn { @apply chip-plain border-brand-warn/40 text-brand-warn; }
   .chip-neutral { @apply inline-flex items-center rounded-full bg-brand-ink/5 px-2.5 py-0.5 text-xs font-medium leading-5 text-brand-muted; }
   /* legacy alias */
   .chip-secondary { @apply chip; }

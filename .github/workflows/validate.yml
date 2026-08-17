@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   checks:
@@ -17,9 +21,32 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
+          bundler-cache: true
 
-      - name: Validate front matter
-        run: ruby scripts/check_front_matter.rb
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
 
-      - name: Validate file sizes
-        run: ruby scripts/check_file_sizes.rb
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Generated files are in sync with _data/schema.yml
+        # Fails when .github/ISSUE_TEMPLATE/new-entry.yml, _config.yml or the
+        # configurator defaults would change. Fix locally with `npm run generate`.
+        run: node scripts/generate.mjs --check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Validate data files, front matter and file sizes
+        run: npm run validate
+
+      - name: Build CSS
+        run: npm run build:css
+
+      - name: Build site
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --destination _site

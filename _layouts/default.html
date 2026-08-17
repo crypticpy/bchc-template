@@ -27,5 +27,14 @@
     {% if page.include_carousel or layout.include_carousel %}
       <script defer src="{{ '/assets/js/carousel.js' | relative_url }}"></script>
     {% endif %}
+    {%- comment -%}
+    Extra per-page/per-layout scripts. Declare `scripts:` (a list of paths under
+    /assets/js/) in a page's or layout's front matter; each is emitted as a
+    deferred script tag in order, after site.js and the module scripts above.
+    {%- endcomment -%}
+    {%- assign dl_scripts = page.scripts | default: layout.scripts -%}
+    {%- for dl_script in dl_scripts %}
+      <script defer src="{{ dl_script | relative_url }}"></script>
+    {%- endfor %}
   </body>
 </html>

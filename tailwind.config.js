@@ -23,6 +23,9 @@ export default {
     "./about/**/*.{md,html}",
     "./assets/js/**/*.js"
   ],
+  // Tone classes are composed at render time (`badge-{{ tone }}`, `signal-…`),
+  // so the scanner cannot see the literals; keep every tone variant.
+  safelist: [{ pattern: /^(badge|chip|signal)-/ }],
   theme: {
     extend: {
       colors: {
