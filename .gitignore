@@ -9,3 +9,5 @@ _config.ci.yml
 .claude/
 # Build output — regenerate with `npm run build:css` (CI does this on every build).
 /assets/css/site.css
+_config.quality.yml
+.lighthouseci/

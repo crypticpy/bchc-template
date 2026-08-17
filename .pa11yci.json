@@ -1,0 +1,58 @@
+{
+  "defaults": {
+    "standard": "WCAG2AA",
+    "runners": [
+      "axe",
+      "htmlcs"
+    ],
+    "timeout": 60000,
+    "wait": 500,
+    "chromeLaunchConfig": {
+      "args": [
+        "--no-sandbox",
+        "--disable-dev-shm-usage"
+      ]
+    },
+    "concurrency": 1,
+    "levelCapWhenNeedsReview": "warning",
+    "ignore": []
+  },
+  "urls": [
+    "http://127.0.0.1:4173/",
+    "http://127.0.0.1:4173/catalog/",
+    "http://127.0.0.1:4173/catalog/?q=triage",
+    "http://127.0.0.1:4173/catalog/epi-signal-triage/",
+    "http://127.0.0.1:4173/catalog/coalition-meeting-notes/",
+    "http://127.0.0.1:4173/submit/",
+    "http://127.0.0.1:4173/about/",
+    "http://127.0.0.1:4173/setup/",
+    "http://127.0.0.1:4173/styleguide/",
+    {
+      "url": "http://127.0.0.1:4173/catalog/",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "isMobile": true,
+        "hasTouch": true
+      }
+    },
+    {
+      "url": "http://127.0.0.1:4173/catalog/epi-signal-triage/",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "isMobile": true,
+        "hasTouch": true
+      }
+    },
+    {
+      "url": "http://127.0.0.1:4173/submit/",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "isMobile": true,
+        "hasTouch": true
+      }
+    }
+  ]
+}

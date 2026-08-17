@@ -1,0 +1,65 @@
+# Accessibility + Lighthouse gate. Runs on every pull request and on pushes to main.
+# Builds the site with url set to the local server, serves _site, then:
+#   * pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in .pa11yci.json — FAILS the job on any issue
+#   * Lighthouse CI over lighthouserc.json — accessibility >= 0.95 is an error, other categories warn
+# Neither tool is in package.json so `npm ci` in the other workflows stays fast; versions are pinned here.
+name: Quality (a11y + Lighthouse)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      # url/baseurl point at the local server so canonical links, robots.txt and the
+      # sitemap resolve the way they will on Pages (Lighthouse's SEO audits check them).
+      - name: Build site (served from 127.0.0.1:4173)
+        env:
+          JEKYLL_ENV: production
+        run: |
+          node scripts/generate.mjs
+          npm run build:css
+          printf 'url: "http://127.0.0.1:4173"\nbaseurl: ""\n' > _config.quality.yml
+          bundle exec jekyll build --destination _site --config _config.yml,_config.quality.yml
+
+      - name: Serve _site
+        run: |
+          python3 -m http.server 4173 --directory _site >/dev/null 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          curl -sf -o /dev/null http://127.0.0.1:4173/ || { echo "server did not start"; exit 1; }
+
+      - name: pa11y-ci (WCAG 2 AA, axe + htmlcs)
+        run: npx --yes pa11y-ci@4.0.1 --config .pa11yci.json
+
+      - name: Lighthouse CI
+        run: npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.json

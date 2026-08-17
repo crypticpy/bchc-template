@@ -1,0 +1,15 @@
+_site/
+node_modules/
+vendor/
+assets/css/site.css
+assets/js/lunr.min.js
+assets/js/configurator/defaults.generated.js
+_includes/icon.html
+.github/ISSUE_TEMPLATE/new-entry.yml
+package-lock.json
+dive-portal/
+catalog/
+docs/
+*.md
+*.yml
+*.html
