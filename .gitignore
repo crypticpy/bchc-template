@@ -6,3 +6,4 @@
 _config.ci.yml
 .DS_Store
 *.log
+.claude/
