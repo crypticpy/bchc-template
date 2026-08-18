@@ -9,6 +9,8 @@
   "description": "GitHub Pages catalog / resource portal template managed entirely through GitHub issues and pull requests.",
   "scripts": {
     "setup": "node scripts/setup.mjs",
+    "eject:samples": "node scripts/eject_samples.mjs",
+    "upgrade:check": "node scripts/upgrade_check.mjs",
     "generate": "node scripts/generate.mjs",
     "validate": "node scripts/validate.mjs",
     "test": "node --test",

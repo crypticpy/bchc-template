@@ -29,6 +29,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
+import { ejectSamples, ejectSummary } from './eject_samples.mjs';
 import { helpText, parseArgs } from './lib/setup-args.mjs';
 import {
   bold,
@@ -165,9 +166,10 @@ async function main() {
       return 0;
     }
 
-    // --- 6. sample content --------------------------------------------------
+    // --- 6. demo content ----------------------------------------------------
     // The shipped sample entries were written for the previous entry model. If
-    // the schema changed, they will fail validation, so offer to remove them.
+    // the schema changed, they will fail validation, so offer to remove them —
+    // along with the rest of the demo content and the banner that announces it.
     const schemaChanged =
       JSON.stringify(schemaFieldKeys(previousSchema)) !==
       JSON.stringify(config.schema.fields.map((field) => field.key));
@@ -175,16 +177,13 @@ async function main() {
     if (sampleEntries.length && (schemaChanged || preset.id !== 'current')) {
       const count = `${sampleEntries.length} sample ${sampleEntries.length === 1 ? 'entry' : 'entries'}`;
       const remove = await asker.confirm(
-        `Remove the ${count} under ${entryPathFrom(previousSchema)}/ (they use the previous field set)?`,
+        `Remove the demo content — ${count} under ${entryPathFrom(previousSchema)}/, the sample events, cohort and resources?`,
         schemaChanged
       );
       if (remove) {
-        for (const dir of sampleEntries) fs.rmSync(dir, { recursive: true, force: true });
-        console.log(
-          dim(
-            `  Removed ${count}. Sample data in _data/events.yml, _data/cohorts/ and _data/resources.yml is left in place — edit or clear it as needed.`
-          )
-        );
+        for (const line of ejectSummary(ejectSamples(ROOT))) console.log(dim(`  ${line}`));
+      } else {
+        console.log(dim('  Kept. Run `npm run eject:samples` when you are ready to clear it.'));
       }
     }
 
