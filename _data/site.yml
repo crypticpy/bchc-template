@@ -26,6 +26,11 @@ github:
   repository: "crypticpy/bchc-template"
   branch: "main"
 
+# Demo mode. `true` puts a banner on every page saying the content is the
+# template's sample data. `npm run eject:samples` removes that content and sets
+# this to false; delete the line once the catalog is yours.
+demo: true
+
 # Modules: turn site sections on or off. Navigation, home page blocks and
 # workflows adapt automatically.
 modules:

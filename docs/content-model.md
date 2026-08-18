@@ -109,10 +109,20 @@ Each item under `fields` is a hash:
 | `date` | `YYYY-MM-DD` | Rendered as "March 9, 2026". |
 | `number` | number | No range validation. |
 | `boolean` | `true`/`false` | Rendered as Yes/No. |
-| `file` | string (path) | An attachment added to the entry folder in the pull request; front matter stores `/<entry.path>/<slug>/<filename>`. |
-| `image` | string (path or URL) | A single image. When the key is `thumbnail`, it is the card image. |
+| `file` | string (path) | One attachment, uploaded on the form; front matter stores `/<entry.path>/<slug>/<filename>`. |
+| `image` | string (path or URL) | One image, uploaded on the form. When the key is `thumbnail`, it is the card image. |
 | `images` | list — see below | A gallery. |
 | `links` | list of `{label, url}` — see below | Labelled links. |
+
+#### Attachments (`file` and `image`)
+
+A `file` or `image` field is a GitHub **`upload`** control on the issue form, so the deck or the photo arrives with the submission rather than waiting for a maintainer to add it afterwards:
+
+- `validations.accept` comes from the schema — the extension of `filename` for a `file` (shipped: `deck.pdf` → `.pdf`), and `.png,.jpg,.jpeg,.gif,.webp` for an `image`.
+- The scaffolder downloads the attachment into the entry folder under exactly that `filename`, through the same guards as screenshots: public hosts only (every redirect re-checked), a 25 MB streaming cap, and a magic-byte check — a `.pdf` that does not start with `%PDF` is refused and reported on the pull request instead of being committed.
+- Nothing attached is not an error. A `file` field still records the path the schema expects, so a maintainer can drop the file into the folder later exactly as before.
+- **`validations.required` on an upload is enforced on public repositories only.** On a private fork a required attachment is a prompt, not a gate.
+- A gallery stays a `textarea`: `upload` holds one file and has nowhere to put per-image alt text, so `images` keeps the drag-into-the-box control that preserves `URL | alt text`.
 
 ### `images`
 

@@ -8,8 +8,9 @@
  *     <value>
  *
  * where `<value>` is `_No response_` when the submitter left it blank, a
- * comma-joined string for a multi-select dropdown, and `- [x] Option` lines
- * when the field was rendered as checkboxes. Every function here is pure and
+ * comma-joined string for a multi-select dropdown, `- [x] Option` lines when
+ * the field was rendered as checkboxes, and a markdown link or image embed
+ * when the field was an `upload`. Every function here is pure and
  * schema-driven — no field key is ever named. See test/scripts/issue_body.test.mjs.
  */
 
@@ -234,6 +235,40 @@ export function parseLinks(raw) {
     links.push({ label: label.trim() || hostOf(url), url });
   }
   return links;
+}
+
+/**
+ * The one attachment behind a `file`/`image` answer.
+ *
+ * GitHub's `upload` element renders its answer into the issue body as a
+ * markdown link (`[deck.pdf](https://github.com/.../deck.pdf)`) for documents
+ * and as an image embed (`![shot.png](…)`) for pictures, so both spellings are
+ * accepted — as is a bare URL, which is what a hand-written or copy-pasted body
+ * carries. Everything after the first attachment is ignored: the control holds
+ * one file.
+ *
+ * @param {string} raw
+ * @returns {{url: string, name: string}|null}
+ */
+export function parseAttachmentRef(raw) {
+  const text = String(raw ?? '').trim();
+  if (!text || text.toLowerCase() === NO_RESPONSE) return null;
+
+  // The image form first — `![a](b)` also matches the plain-link pattern.
+  const embedded = /!\[([^\]]*)\]\((\S+?)\)/.exec(text) ?? /\[([^\]]*)\]\((\S+?)\)/.exec(text);
+  if (embedded && isHttpUrl(embedded[2])) return { url: embedded[2].trim(), name: embedded[1].trim() };
+
+  const tag = /<img\b[^>]*>/i.exec(text);
+  if (tag) {
+    const src = /\bsrc\s*=\s*["']([^"']+)["']/i.exec(tag[0]);
+    if (src && isHttpUrl(src[1])) return { url: src[1].trim(), name: '' };
+  }
+
+  for (const line of text.split('\n')) {
+    const bare = line.replace(/^\s*[-*]\s+/, '').trim();
+    if (isHttpUrl(bare)) return { url: bare, name: '' };
+  }
+  return null;
 }
 
 /**

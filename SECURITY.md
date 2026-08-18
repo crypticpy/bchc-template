@@ -118,6 +118,13 @@ issue-driven workflow (`new-entry`, `new-event`, `new-year`, `update-schedule`,
 owner, an organization member or a collaborator. See
 [docs/admin-guide.md](docs/admin-guide.md) for the maintainer view.
 
+`apply-setup` is the exception, and is not governed by that variable: the YAML
+it applies *becomes* the site's configuration, so the workflow refuses to run
+for anyone outside `OWNER`/`MEMBER`/`COLLABORATOR` whatever `SUBMISSIONS_OPEN`
+says. Its blast radius is bounded the same way everything else is —
+`renderFiles()` returns a fixed set of six repo-relative paths, so the script
+cannot write outside them, and the result is still only a pull request.
+
 ## What you should still do
 
 - **Protect the default branch.** Require a pull request before merging

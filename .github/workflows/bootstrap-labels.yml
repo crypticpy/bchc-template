@@ -19,6 +19,8 @@ jobs:
       issues: write
       # Reading the Pages configuration in the preflight below.
       pages: read
+      # Reading _data/site.yml in the preflight below.
+      contents: read
     steps:
       - name: Create content labels
         env:
@@ -32,6 +34,7 @@ jobs:
           create "content:schedule"           "1B8A7A" "Cohort schedule update"
           create "content:event-attachments"  "1B8A7A" "Attach materials to a cohort event"
           create "content:new-year"           "1B8A7A" "Scaffold a new cohort year"
+          create "content:site-config"        "5B3E96" "Apply a site configuration from the /setup/ wizard (maintainers only)"
           echo "Labels are ready."
 
       - name: Preflight the repository settings
@@ -58,6 +61,31 @@ jobs:
                   ? `Pages is not enabled. Turn it on, source "GitHub Actions", at ${settings}/pages`
                   : `Could not read the Pages settings (${error.status}). Check ${settings}/pages`,
               ]);
+            }
+
+            // A fork that never ran the wizard still carries the template's own
+            // `github.repository`, and every "Submit", "Edit this page" and
+            // "Report an issue" link on the site then points at someone else's
+            // repository. Nothing else notices; the links just quietly go
+            // somewhere wrong.
+            const setup = `https://github.com/${owner}/${repo}/issues/new?template=apply-setup.yml`;
+            try {
+              const { data: file } = await github.rest.repos.getContent({ owner, repo, path: '_data/site.yml' });
+              const text = Buffer.from(file.content, 'base64').toString('utf8');
+              // The one top-level `repository:` line, matched rather than parsed:
+              // github-script has no YAML parser and this is a preflight hint.
+              const declared = /^\s{2}repository:\s*["']?([^"'\s#]+)/m.exec(text)?.[1] ?? '';
+              rows.push(
+                declared.toLowerCase() === `${owner}/${repo}`.toLowerCase()
+                  ? ['Site configuration', '✅', `_data/site.yml points at ${declared}.`]
+                  : [
+                      'Site configuration',
+                      '⚠️',
+                      `_data/site.yml still says "${declared || 'nothing'}" — the submit and edit links will go there. Fix it at ${setup}`,
+                    ]
+              );
+            } catch (error) {
+              rows.push(['Site configuration', '⚠️', `Could not read _data/site.yml (${error.status}). Configure the site at ${setup}`]);
             }
 
             // GITHUB_TOKEN cannot be granted `administration: read`, so this one

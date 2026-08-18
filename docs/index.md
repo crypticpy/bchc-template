@@ -1,6 +1,6 @@
 # Documentation
 
-Ten documents, four different readers. Find your row.
+Eleven documents, four different readers. Find your row.
 
 | Page | Who it is for | When to read it |
 |---|---|---|
@@ -8,6 +8,7 @@ Ten documents, four different readers. Find your row.
 | [configuration.md](configuration.md) | Whoever owns `_data/*.yml` | When you want to change a setting and need to know the key, or what a key does. |
 | [content-model.md](content-model.md) | Whoever decides what an entry holds | When the shipped fields are not your fields — designing a schema, adding a field type, choosing a taxonomy people will actually filter by. |
 | [admin-guide.md](admin-guide.md) | The maintainer of a live site | Day to day: reviewing submissions, editing and removing entries, screenshots, cohorts and events, troubleshooting. |
+| [upgrading.md](upgrading.md) | The maintainer of a fork | When a new template release is out: what is yours, what is the template's, and the merge recipe that keeps the two apart. |
 | [incidents.md](incidents.md) | The maintainer, under pressure | The day something is public that should not be: a takedown request, a leaked screenshot, a credential in an entry. |
 | [glossary.md](glossary.md) | Anyone hitting a word they do not use this way | Entry, slug, facet, card slot, module, preset, scaffold. |
 | [decisions.md](decisions.md) | Someone changing the template | Before arguing with a choice — the reasoning is here, not in the commit log. |

@@ -53,11 +53,29 @@ same six files:
 | Path | How | Good for |
 |---|---|---|
 | Browser | Open `/setup/` on your deployed site | No terminal. Copy each generated file into GitHub's editor at the end. |
+| Browser → pull request | Open `/setup/`, then paste its files into an **Apply setup** issue | No terminal, and no hand-editing files: the answer comes back as a reviewable pull request. |
 | Terminal | `npm install && npm run setup` | Anyone with a checkout. Writes the files directly; `npm run setup -- --preset <id> --yes` skips every prompt. |
 
 Both write `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`,
 `_config.yml` and `.github/ISSUE_TEMPLATE/new-entry.yml`. Four starting presets ship: AI use case
 catalog, cohort/program portal, resource library, and blank.
+
+### The no-terminal path, end to end
+
+The browser wizard hands you finished files but cannot commit them, and pasting six of them into
+GitHub's file editor is where a launch usually goes wrong. Instead:
+
+1. Open **Issues → New issue → Apply setup (creates PR)**.
+2. Paste `_data/site.yml`, `_data/theme.yml` and `_data/schema.yml` from the wizard's review step
+   into the three boxes. You only paste three — `_data/navigation.yml`, `_config.yml` and the
+   submission form are rebuilt from them, so they cannot end up out of step with what you pasted.
+3. Tick **Remove the demo content** if you are ready to lose the sample entries (step 4).
+4. Submit. Within a minute the automation replies with a pull request; review the diff and merge.
+
+If something is wrong — a typo in the YAML, a colour pair that fails contrast, a schema field with
+no key — the automation says so as a comment on the issue instead of opening a broken pull request.
+Edit the issue and it tries again. The workflow only runs for repository owners, members and
+collaborators, so the form is safe to leave enabled on a public repository.
 
 The wizard asks for your repository as `owner/repo` and writes it to `github.repository` in
 `_data/site.yml`. Get this right: it drives the submit form's issue links, every "Suggest an edit on
@@ -67,33 +85,45 @@ this step will not merge.
 
 Commit and push. Wait for `Build & Deploy`, then look at the site.
 
-## 4. Remove the sample entries
+## 4. Remove the demo content
 
-The template ships with **ten worked examples** so the site looks real before you have content.
-They are fictional organizations — Baytown Metro, Prairie Ridge County, Lakeshore City — and they
-stay live on your public site until you delete them. Every one of them carries `sample: true` in
-its front matter:
+The template ships with **ten worked examples**, a sample events calendar, a sample cohort and a
+sample resource library, so the site looks real before you have content. They are fictional
+organizations — Baytown Metro, Prairie Ridge County, Lakeshore City — and they stay live on your
+public site until you delete them.
+
+Until they are gone, every page carries a **Demo content** banner saying so. That banner is driven
+by one line, `demo: true` in `_data/site.yml`, and it goes away when the content does. Leave it up
+while the samples are there: it is the only thing telling a visitor that "Baytown Metro Health
+District" is not a real health department.
+
+Three ways to clear it, all of which do the same thing:
+
+| How | What happens |
+|---|---|
+| `npm run eject:samples` | Removes it all and sets `demo: false`. `--dry-run` first if you want to see the list. |
+| The **Apply setup** issue (step 3) | Tick **Remove the demo content**; it arrives in the same pull request as your configuration. |
+| `npm run setup` | Offers it as the last question, when you changed the entry model or picked a different preset. |
+
+What "all of it" means: every entry folder whose front matter says `sample: true` (never one you
+wrote), each `_data/cohorts/<year>.yml` together with its `cohorts/<year>/` page, and the rows in
+`_data/events.yml` and `_data/resources.yml` — those two files stay, emptied, with their header
+comments intact, so you still have somewhere to put your own.
+
+To see exactly what would go before you run anything:
 
 ```sh
-grep -rl 'sample: true' catalog/     # lists exactly the folders to delete
+npm run eject:samples -- --dry-run
 ```
 
-No terminal? Search your repository on GitHub for `sample: true` (the search box at the top of the
-repository, scoped to "In this repository") — the results are the same list.
-
-- **If you ran `npm run setup`** it offered to delete them for you, but only when you changed the
-  entry model or picked a different preset. Run the `grep` above to see what is actually left.
-- **If you used `/setup/` in the browser** the wizard cannot touch your content, so delete them
-  yourself: open `catalog/` on GitHub, then for each folder that is not yours use the **⋯** menu →
-  **Delete directory**. Do it in one pull request so one click undoes the lot.
+No terminal and not ready for the Apply setup issue? Search your repository on GitHub for
+`sample: true` (the search box at the top of the repository, scoped to "In this repository") — the
+results are the same list of folders. Delete them with the **⋯** menu → **Delete directory**, in
+one pull request so one click undoes the lot, then set `demo: false` in `_data/site.yml`.
 
 Keep one sample until you have published your own first entry. An empty catalog is harder to
 sanity-check than a catalog with one thing in it, and step 6 gives you a real entry to replace it
 with.
-
-The other modules carry sample data too, in `_data/events.yml`, `_data/cohorts/2026.yml` and
-`_data/resources.yml`. If you left the `events`, `cohorts` or `resources` modules on in step 3,
-empty those files as well.
 
 ## 5. Optional repository settings
 

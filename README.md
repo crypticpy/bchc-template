@@ -29,8 +29,8 @@ This repository is shipped configured as the **Big Cities Health Coalition (BCHC
 
 1. **Use this template** on GitHub (or clone it) to create your own repository.
 2. **Turn on the three settings**: Pages source (Settings → Pages → Source → **GitHub Actions**), pull requests for Actions (Settings → Actions → General → Workflow permissions → **Allow GitHub Actions to create and approve pull requests**), and the content labels (Actions tab → **Bootstrap labels** → *Run workflow*).
-3. **Configure the site** — open `/setup/` on the deployed site for the browser wizard (no terminal), or run `npm install && npm run setup` locally. Both write `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`, `_config.yml` and `.github/ISSUE_TEMPLATE/new-entry.yml`, from the same four presets.
-4. **Delete the ten sample entries** — they are fictional organizations and they go live with your site. `grep -rl 'sample: true' catalog/` lists them.
+3. **Configure the site** — open `/setup/` on the deployed site for the browser wizard (no terminal), or run `npm install && npm run setup` locally. Both write `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`, `_config.yml` and `.github/ISSUE_TEMPLATE/new-entry.yml`, from the same four presets. With no terminal, paste the wizard's three `_data/*.yml` files into the **Apply setup** issue form and the automation opens the pull request for you.
+4. **Clear the demo content** — ten fictional organizations, a sample events calendar, a sample cohort. Until they are gone every page carries a *Demo content* banner saying so. `npm run eject:samples` removes it all and turns the banner off; the Apply setup issue has a checkbox that does the same thing.
 5. **Commit and push.** `Build & Deploy` publishes to `https://<owner>.github.io/<repo>/`, working out `url`/`baseurl` on its own (root domain for a `<owner>.github.io` repo or a `CNAME` file, `/<repo>` otherwise); an explicit `url` in `_config.yml` always wins.
 
 Each of those steps has a detail you will want on the day: **[`docs/launch.md`](docs/launch.md)** is the full tutorial — the same path with what breaks if you skip a step, a first test submission end to end, and the pre-launch checklist.
@@ -70,6 +70,19 @@ Cohorts and events follow the same issue → automation → pull request pattern
 - **Events, cohort years, resource library** — `_data/events.yml`, `_data/cohorts/<year>.yml`, `_data/resources.yml`
 
 Full reference for every setting: [`docs/configuration.md`](docs/configuration.md). Every other document, and who each one is for: [`docs/index.md`](docs/index.md).
+
+## Staying up to date
+
+A fork is a copy, not a subscription: template releases do not reach you on their own. `.gitattributes` marks everything a fork owns — `_config.yml`, `_data/*.yml`, your content, your images, your README — as `merge=ours`, so a template merge updates the code and leaves your site alone.
+
+```bash
+git remote add template https://github.com/crypticpy/bchc-template.git
+git config merge.ours.driver true    # required — without it .gitattributes is inert
+git fetch template --tags
+npm run upgrade:check                # read-only: what the next release would change, in two lists
+```
+
+The whole recipe, including what a merge cannot adopt for you: [`docs/upgrading.md`](docs/upgrading.md).
 
 ## Local development
 

@@ -12,7 +12,13 @@ import { toYaml, isPlainObject } from './yaml-emit.js';
 import { sortByWeight } from './schema-validate.js';
 
 /** Field types that render as a single-line GitHub `input`. */
-const INPUT_TYPES = new Set(['text', 'url', 'email', 'date', 'number', 'image']);
+const INPUT_TYPES = new Set(['text', 'url', 'email', 'date', 'number']);
+
+/** Field types that become GitHub's `upload` control (one attachment each). */
+const UPLOAD_TYPES = new Set(['file', 'image']);
+
+/** `validations.accept` for an `image` upload — everything the scaffolder stores. */
+const IMAGE_EXTENSIONS = '.png,.jpg,.jpeg,.gif,.webp';
 
 /** Group used by fields that declare no `group`. */
 const OTHER_GROUP = { key: 'other', title: 'More' };
@@ -23,6 +29,8 @@ const TYPE_GUIDANCE = {
   images:
     'Drag images into this box to upload them, or paste one image URL per line — optionally as `URL | alt text`.',
   links: 'One per line as `Label | URL`.',
+  file: 'Attach the file here and the automation commits it with the entry.',
+  image: 'Attach the image here and the automation commits it with the entry.',
 };
 
 function capitalizeFirst(str) {
@@ -70,6 +78,20 @@ export function groupedFormFields(schema) {
     .filter((section) => section.fields.length > 0);
 }
 
+/**
+ * File extensions an `upload` control accepts, as GitHub's comma-separated
+ * `validations.accept` string. A `file` field names its own extension through
+ * `filename`; an `image` field takes everything the scaffolder can store.
+ *
+ * @param {{type?: string, filename?: string, key?: string}} field
+ * @returns {string}
+ */
+function acceptFor(field) {
+  if (String(field?.type ?? '') === 'image') return IMAGE_EXTENSIONS;
+  const match = /\.[a-z0-9]+$/i.exec(String(field?.filename ?? '').trim());
+  return match ? match[0].toLowerCase() : '.pdf';
+}
+
 /** The one control this field becomes in the issue form, or null to skip it. */
 function controlFor(field) {
   const key = String(field.key ?? '').trim();
@@ -81,24 +103,18 @@ function controlFor(field) {
   const placeholder = String(field.placeholder ?? '');
   const attributes = { label };
 
-  // GitHub file uploads only exist inside a textarea, so a `file` field becomes
-  // an instruction instead of a control.
-  if (type === 'file') {
-    const filename = String(field.filename ?? `${key}.pdf`).trim();
-    const note = String(field.description ?? '').trim();
-    const extra = note && !note.includes(filename) ? ` ${note}` : '';
-    return {
-      type: 'markdown',
-      attributes: {
-        value:
-          `**${label}** — GitHub issue forms cannot accept file uploads. ` +
-          `After the pull request is created, upload \`${filename}\` into the entry folder.${extra}`,
-      },
-    };
-  }
-
   const description = joinSentences([field.prompt, field.description, TYPE_GUIDANCE[type]]);
   if (description) attributes.description = description;
+
+  // GitHub issue forms accept attachments through an `upload` element, so a
+  // `file`/`image` field is a real control and the submission arrives with its
+  // deck or photo. It carries no placeholder and holds exactly one file, which
+  // is why `images` (a gallery, with alt text per line) stays a textarea.
+  // `validations.required` on an upload is only enforced on public
+  // repositories — see docs/content-model.md.
+  if (UPLOAD_TYPES.has(type)) {
+    return { type: 'upload', id: key, attributes, validations: { required, accept: acceptFor(field) } };
+  }
 
   const item = { type: 'input', id: key, attributes };
 

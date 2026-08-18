@@ -5,6 +5,7 @@
  * Input (env):   ISSUE_BODY, ISSUE_TITLE, ISSUE_NUMBER, GITHUB_TOKEN (optional)
  * Output:        <entry path>/<slug>/index.md
  *                <entry path>/<slug>/screenshots/NN.<ext>  (downloaded images)
+ *                <entry path>/<slug>/<filename>            (uploaded attachments)
  *                $GITHUB_OUTPUT:  slug, entry_dir, branch, title, images,
  *                                 warnings, preview
  *                $GITHUB_STEP_SUMMARY: a human-readable report
@@ -27,10 +28,12 @@ import * as yaml from 'js-yaml';
 
 import { fail, setOutput } from './lib/actions_output.mjs';
 import { frontMatter } from './lib/yaml.mjs';
+import { downloadAttachment } from './lib/attachments.mjs';
 import { downloadImages, MAX_FILES } from './lib/images.mjs';
 import {
   NO_RESPONSE,
   coerce,
+  parseAttachmentRef,
   parseImageRefs,
   parseIssueForm,
   rawValue,
@@ -190,6 +193,53 @@ for (const field of fields.filter((f) => f.type === 'images')) {
   warnings.push(...result.warnings);
 }
 
+// --- attachments -----------------------------------------------------------
+// A `file`/`image` question is an `upload` control on the issue form, so the
+// deck or the photo is already on GitHub by the time this runs: fetch it into
+// the entry folder and the pull request carries the file, not a promise that a
+// maintainer will add it. Nothing attached keeps the previous behaviour — the
+// front matter still names the path the schema expects.
+
+/** @type {Record<string, string>} */
+const attachmentValues = {};
+/** Files pulled in for the run report. */
+const savedAttachments = [];
+
+for (const field of fields.filter((f) => f.type === 'file' || f.type === 'image')) {
+  const filename = String(field.filename || `${field.key}.pdf`).trim();
+  const publicPath = `/${entryPath}/${slug}/${filename}`;
+  const ref = parseAttachmentRef(rawValue(sections, field));
+
+  // No attachment: a `file` keeps naming the path a maintainer uploads into
+  // (docs/admin-guide.md), an `image` has nothing to point at.
+  if (!ref) {
+    attachmentValues[field.key] = field.type === 'file' ? publicPath : '';
+    continue;
+  }
+  if (DRY_RUN) {
+    attachmentValues[field.key] = publicPath;
+    warnings.push(`Dry run: ${ref.url} was parsed but not downloaded.`);
+    continue;
+  }
+
+  const result = await downloadAttachment(ref.url, {
+    destDir: entryDir,
+    filename,
+    token: process.env.GITHUB_TOKEN || '',
+    fsImpl: {
+      mkdirSync: (dir, opts) => fs.mkdirSync(insideEntryDir(dir), opts),
+      writeFileSync: (file, data) => fs.writeFileSync(insideEntryDir(file), data),
+    },
+  });
+  if (result.saved) {
+    attachmentValues[field.key] = publicPath;
+    savedAttachments.push(publicPath);
+  } else {
+    attachmentValues[field.key] = field.type === 'file' ? publicPath : '';
+    warnings.push(`${result.warning} Re-upload it in this pull request if it should be included.`);
+  }
+}
+
 // --- front matter ----------------------------------------------------------
 
 const published = new Date().toISOString().slice(0, 10);
@@ -226,8 +276,8 @@ for (const field of fields) {
     entries.push([key, imageValues[key] ?? []]);
     continue;
   }
-  if (field.type === 'file') {
-    entries.push([key, `/${entryPath}/${slug}/${field.filename || `${key}.pdf`}`]);
+  if (field.type === 'file' || field.type === 'image') {
+    entries.push([key, attachmentValues[key] ?? '']);
     continue;
   }
   entries.push([key, coerce(field, raw)]);
@@ -296,13 +346,16 @@ const summaryLines = [
   '',
   `- Source: issue #${issueNumber || '?'}`,
   `- Slug: \`${slug}\``,
-  `- Files written: ${1 + savedImages.length} (1 page, ${savedImages.length} screenshot${savedImages.length === 1 ? '' : 's'})`,
+  `- Files written: ${1 + savedImages.length + savedAttachments.length} (1 page, ${savedImages.length} screenshot${savedImages.length === 1 ? '' : 's'}, ${savedAttachments.length} attachment${savedAttachments.length === 1 ? '' : 's'})`,
 ];
 if (preview) {
   summaryLines.push('', `### ${title}`, '', preview);
 }
 if (savedImages.length > 0) {
   summaryLines.push('', '### Screenshots saved', ...savedImages.map((item) => `- \`${item.src}\``));
+}
+if (savedAttachments.length > 0) {
+  summaryLines.push('', '### Attachments saved', ...savedAttachments.map((item) => `- \`${item}\``));
 }
 summaryLines.push(
   '',
