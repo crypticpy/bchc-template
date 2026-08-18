@@ -192,6 +192,8 @@ Deliberately not on the card: platform, tools, vendor, data sources, contact, li
 ## Search and facets
 
 - **`search: true`** adds the field's text to `/search.json`. `title`, `summary` and every facet field are always indexed, so set `search` only for free-text fields worth matching on — tool names, vendors, data sources.
+- The **body** of every entry is indexed too, split per heading, so a suggestion can say which section matched and deep-link to it. A top-level `search.body_chars: <n>` in the schema caps how much of each section is indexed (`0` or unset = unlimited); the shipped catalog leaves it unlimited because "Lessons learned" and "How to reuse" are exactly what a reuse catalog is searched for.
+- **Related entries** are scored from the facet fields two entries share, weighted by how rare the shared value is (a value every entry carries counts for nothing) and by the field's `weight` — a lower-weight (more important) field contributes more, the same direction as the card slots.
 - **`facet: true`** puts the field in the filter rail, grouped by `group` and ordered by `weight`. Filters work best on fields with a bounded set of values: `select` and `multiselect` from `options`, or a `list` whose values repeat across entries. A facet over free text produces a filter with one option per entry, which helps nobody.
 
 ## Shipped fields (AI use case catalog)
@@ -346,7 +348,7 @@ policies:
 - `policies` is a flat list of strings.
 - `events` here are merged with `_data/events.yml` by `_plugins/events.rb` into `site.data.events_all`.
 - Entries join a cohort through a schema field whose value matches the year (e.g. a `cohort` `select` with `facet: true`). The shipped AI-catalog schema does not define one — add it if you want cohort filtering.
-- Cohort event detail pages live at `cohorts/<year>/events/<event-id>/index.md` (`layout: event`) and inherit date/time/location from the matching cohort event unless overridden.
+- Every cohort event gets a detail page generated from this file at `cohorts/<year>/events/<event-id>/` (`event-id` = `id`, else `slug`, else the slugified name). A hand-written `cohorts/<year>/events/<event-id>/index.md` (`layout: event`) overrides the generated page and inherits any field it leaves blank — date, time, location, description — from the matching cohort event.
 
 ## Events data (module: `events`)
 

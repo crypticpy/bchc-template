@@ -142,6 +142,7 @@ A failure never fails the scaffold. If an image cannot be downloaded it is left 
 
 **Add an event to a cohort:**
 - Open the **Add event details** issue (label `content:new-event`). The workflow first comments back the events already scheduled for that year (so the submitter can reuse or avoid an ID), then scaffolds `cohorts/<year>/events/<event-id>/index.md` and opens a PR.
+- Every event in `_data/cohorts/<year>.yml` already has a generated page at `cohorts/<year>/events/<event-id>/`; the scaffolded file overrides it and inherits any field it leaves blank, so you only need one when an event has an agenda, materials or attachments of its own.
 
 **Update a cohort's schedule in bulk:**
 - Open the **Update a cohort schedule** issue (label `content:schedule`) — replaces the event list for a cohort year without hand-editing YAML. The workflow previews normalized event IDs as a comment before writing changes, and only opens a PR if something actually changed.

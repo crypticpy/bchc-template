@@ -75,6 +75,7 @@ export const SITE = {
   },
   "submit": {
     "intro": "Share an AI use case, tool or project with the coalition. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved.",
+    "turnaround": "A maintainer reviews it, usually within two weeks.",
     "review_note": "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content.",
     "fallback_email": "info@bigcitieshealth.org"
   },
@@ -87,7 +88,8 @@ export const SITE = {
       },
       {
         "label": "Submit an entry",
-        "url": "/submit/"
+        "url": "/submit/",
+        "module": "submit"
       },
       {
         "label": "Maintainer guide",
@@ -182,31 +184,7 @@ export const SCHEMA = {
       "group": "about",
       "weight": 1,
       "placeholder": "Automated 311 call triage with LLM classification",
-      "description": "Short, descriptive name of the solution or project."
-    },
-    {
-      "key": "summary",
-      "label": "One-sentence summary",
-      "prompt": "In one or two sentences, what does it do?",
-      "type": "textarea",
-      "required": true,
-      "group": "about",
-      "weight": 2,
-      "description": "One or two sentences shown on the catalog card. Plain language, no jargon.",
-      "placeholder": "Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first."
-    },
-    {
-      "key": "impact",
-      "label": "Result in one line",
-      "prompt": "What is the single most concrete result so far?",
-      "type": "text",
-      "group": "about",
-      "weight": 3,
-      "card": "line",
-      "icon": "trending-up",
-      "search": true,
-      "placeholder": "Cut brief turnaround from 3 days to 1 hour",
-      "description": "Optional. The single most concrete outcome so far — a number if you have one."
+      "description": "Specific enough that someone scanning a list of names knows what it is."
     },
     {
       "key": "organization",
@@ -215,13 +193,13 @@ export const SCHEMA = {
       "type": "text",
       "required": true,
       "group": "about",
-      "weight": 4,
+      "weight": 2,
       "facet": true,
       "card": "meta",
       "search": true,
       "icon": "building",
       "placeholder": "Chicago Department of Public Health",
-      "description": "The organization sharing this entry — a health department, city, agency or member organization."
+      "description": "A health department, city, agency or member organization."
     },
     {
       "key": "solution_type",
@@ -230,7 +208,7 @@ export const SCHEMA = {
       "type": "select",
       "required": true,
       "group": "about",
-      "weight": 5,
+      "weight": 3,
       "facet": true,
       "card": "badge",
       "icon": "layers",
@@ -272,7 +250,7 @@ export const SCHEMA = {
       "type": "multiselect",
       "required": true,
       "group": "about",
-      "weight": 6,
+      "weight": 4,
       "facet": true,
       "card": "chip",
       "icon": "tag",
@@ -332,16 +310,16 @@ export const SCHEMA = {
           "short": "Leadership"
         }
       },
-      "description": "Program areas and business functions this applies to. Select all that fit — it doesn't have to be a health program."
+      "description": "Select all that fit — these are business functions as much as health programs."
     },
     {
       "key": "stage",
       "label": "Stage",
-      "prompt": "Where is it today?",
+      "prompt": "How far along is it?",
       "type": "select",
       "required": true,
       "group": "about",
-      "weight": 7,
+      "weight": 5,
       "facet": true,
       "card": "meta",
       "icon": "flag",
@@ -369,7 +347,31 @@ export const SCHEMA = {
           "description": "No longer active — shared for the lessons."
         }
       },
-      "description": "How far along it is — pick the stage that best matches real use."
+      "description": "Pick the stage that matches real use, not the plan."
+    },
+    {
+      "key": "summary",
+      "label": "Summary",
+      "prompt": "In one or two sentences, what does it do?",
+      "type": "textarea",
+      "required": true,
+      "group": "about",
+      "weight": 6,
+      "description": "Shown on the catalog card. Plain language, no jargon.",
+      "placeholder": "Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first."
+    },
+    {
+      "key": "impact",
+      "label": "Result in one line",
+      "prompt": "What is the single most concrete result so far?",
+      "type": "text",
+      "group": "about",
+      "weight": 7,
+      "card": "line",
+      "icon": "trending-up",
+      "search": true,
+      "placeholder": "Cut brief turnaround from 3 days to 1 hour",
+      "description": "A number if you have one."
     },
     {
       "key": "ai_role",
@@ -398,8 +400,7 @@ export const SCHEMA = {
         "Both": {
           "description": "AI is in the product and was used to build it."
         }
-      },
-      "description": "Is the AI in the product, or was it used to make the product?"
+      }
     },
     {
       "key": "ai_types",
@@ -476,7 +477,7 @@ export const SCHEMA = {
       "search": true,
       "icon": "terminal",
       "placeholder": "Azure OpenAI GPT-4o, LangChain, custom scikit-learn model",
-      "description": "Comma-separated. Name the models, platforms or libraries that matter."
+      "description": "Name the models, platforms or libraries that matter."
     },
     {
       "key": "platform",
@@ -529,18 +530,18 @@ export const SCHEMA = {
     {
       "key": "vendor",
       "label": "Vendor or partner",
-      "prompt": "Is a vendor or partner involved?",
+      "prompt": "If a vendor or partner built or hosts it, who?",
       "type": "text",
       "group": "build",
       "weight": 5,
       "search": true,
       "placeholder": "Acme Health AI",
-      "description": "If a vendor built or hosts the solution, name them here."
+      "description": "Leave it blank if your own team built it."
     },
     {
       "key": "expertise",
       "label": "Skills needed to set it up",
-      "prompt": "Who would need to be involved to set this up?",
+      "prompt": "Who is the least technical person who could get this running?",
       "type": "select",
       "required": true,
       "group": "reuse",
@@ -580,12 +581,12 @@ export const SCHEMA = {
           "description": "Outside help is required to stand this up."
         }
       },
-      "description": "The least technical person who could get this running."
+      "description": "Judge it by setting the thing up, not by using it afterwards."
     },
     {
       "key": "readiness",
       "label": "Readiness",
-      "prompt": "Before someone reuses this, what should they know?",
+      "prompt": "What would another team need before they could use this?",
       "type": "multiselect",
       "group": "reuse",
       "weight": 2,
@@ -645,12 +646,12 @@ export const SCHEMA = {
           "description": "Documentation and lessons — not something to deploy."
         }
       },
-      "description": "How much work is left between finding this and running it? Select all that apply."
+      "description": "Select all that apply."
     },
     {
       "key": "repo_url",
       "label": "Source code",
-      "prompt": "Where is the source code?",
+      "prompt": "If the code is public, where?",
       "type": "url",
       "group": "reuse",
       "weight": 3,
@@ -661,7 +662,7 @@ export const SCHEMA = {
     {
       "key": "demo_url",
       "label": "Live site or demo",
-      "prompt": "Is there a live site or demo?",
+      "prompt": "Link to a live site or demo",
       "type": "url",
       "group": "reuse",
       "weight": 4,
@@ -671,13 +672,13 @@ export const SCHEMA = {
     {
       "key": "docs_url",
       "label": "Documentation or write-up",
-      "prompt": "Is there documentation or a write-up?",
+      "prompt": "Link to documentation, slides or a write-up",
       "type": "url",
       "group": "reuse",
       "weight": 5,
       "icon": "document",
       "placeholder": "https://example.org/docs",
-      "description": "Slides, a report, a blog post, or a vendor case study."
+      "description": "A report, a blog post or a vendor case study all count."
     },
     {
       "key": "resources",
@@ -688,12 +689,12 @@ export const SCHEMA = {
       "weight": 6,
       "icon": "link",
       "placeholder": "Evaluation report | https://drive.google.com/…",
-      "description": "Anything else worth linking — shared drives, SharePoint, model cards, container images, vendor pages. One per line as “Label | URL”."
+      "description": "Shared drives, SharePoint, model cards, container images, vendor pages."
     },
     {
       "key": "screenshots",
       "label": "Screenshots",
-      "prompt": "Can you show it in use?",
+      "prompt": "Screenshots of it in use",
       "type": "images",
       "group": "reuse",
       "weight": 7,
@@ -703,14 +704,14 @@ export const SCHEMA = {
     {
       "key": "deck_pdf",
       "label": "Slide deck or one-pager (PDF)",
-      "prompt": "Do you have a slide deck or one-pager?",
+      "prompt": "Slide deck or one-pager",
       "type": "file",
       "filename": "deck.pdf",
       "thumbnail": true,
       "group": "reuse",
       "weight": 8,
       "icon": "presentation",
-      "description": "Optional. After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically."
+      "description": "After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically."
     },
     {
       "key": "data_sensitivity",
@@ -778,7 +779,7 @@ export const SCHEMA = {
       "search": true,
       "icon": "database",
       "placeholder": "Immunization registry, 311 call transcripts, ESSENCE",
-      "description": "Comma-separated. What data does the solution use? Describe — do not paste — sensitive data."
+      "description": "Describe the sources — do not paste sensitive data."
     },
     {
       "key": "audience",
@@ -812,7 +813,8 @@ export const SCHEMA = {
           "icon": "users",
           "description": "Shared with specific partner organizations."
         }
-      }
+      },
+      "description": "Pick the widest group that sees anything it produces."
     },
     {
       "key": "contact_name",
@@ -823,7 +825,7 @@ export const SCHEMA = {
       "group": "contact",
       "weight": 1,
       "placeholder": "Jordan Lee",
-      "description": "Person others can reach out to with questions."
+      "description": "Someone happy to answer questions from another team."
     },
     {
       "key": "contact_email",
@@ -838,7 +840,7 @@ export const SCHEMA = {
     {
       "key": "body",
       "label": "Full write-up",
-      "prompt": "Tell the full story",
+      "prompt": "What's the story?",
       "type": "markdown",
       "required": true,
       "group": "story",
@@ -856,7 +858,7 @@ export const NAVIGATION = [
     "url": "/"
   },
   {
-    "label": "Catalog",
+    "label": "Use cases",
     "url": "/catalog/",
     "module": "catalog"
   },
@@ -888,7 +890,7 @@ export const NAVIGATION = [
 ];
 
 /** Verbatim _config.yml; the wizard patches title/description/url/baseurl into it. */
-export const JEKYLL_CONFIG = "# Jekyll configuration.\n# Most site-specific settings live in _data/site.yml (branding, modules, labels),\n# _data/theme.yml (colors, fonts) and _data/schema.yml (the entry content model).\n# Keep this file to build mechanics. `title`/`description` here are fallbacks for\n# SEO tags; the setup wizard keeps them in sync with _data/site.yml.\n\ntitle: \"AI Use Case Catalog\"\ndescription: \"A shared catalog of AI use cases, tools, and lessons learned from Big Cities Health Coalition member health departments.\"\nurl: \"\"\nbaseurl: \"\"\ntheme: null\ntimezone: \"America/Chicago\"\nmarkdown: kramdown\npermalink: pretty\nfuture: false\n\nexclude:\n  - node_modules\n  - vendor\n  - README.md\n  - ARCHITECTURE.md\n  - CONTRIBUTING.md\n  - CHANGELOG.md\n  - SECURITY.md\n  - CLAUDE.md\n  - AGENTS.md\n  - LICENSE\n  - package-lock.json\n  - package.json\n  - tailwind.config.js\n  - postcss.config.js\n  - eslint.config.js\n  - quality\n  - assets/css/tailwind.css\n  - scripts\n  - test\n  - docs\n  - Gemfile\n  - Gemfile.lock\n  - .ruby-version\n\n# If you change entry.path in _data/schema.yml, change the first scope's path\n# here to match — this is what gives every entry the `entry` layout.\ndefaults:\n  - scope:\n      path: \"catalog\"\n    values:\n      layout: entry\n  - scope:\n      path: \"cohorts\"\n    values:\n      layout: cohort\n\nplugins:\n  - jekyll-feed\n  - jekyll-seo-tag\n  - jekyll-sitemap\n  - jekyll-include-cache\n\nsass:\n  style: compressed\n";
+export const JEKYLL_CONFIG = "# Jekyll configuration.\n# Most site-specific settings live in _data/site.yml (branding, modules, labels),\n# _data/theme.yml (colors, fonts) and _data/schema.yml (the entry content model).\n# Keep this file to build mechanics. `title`/`description` here are fallbacks for\n# SEO tags; the setup wizard keeps them in sync with _data/site.yml.\n\ntitle: \"AI Use Case Catalog\"\ndescription: \"A shared catalog of AI use cases, tools, and lessons learned from Big Cities Health Coalition member health departments.\"\nurl: \"\"\nbaseurl: \"\"\ntheme: null\ntimezone: \"America/Chicago\"\nmarkdown: kramdown\npermalink: pretty\nfuture: false\n\nexclude:\n  - node_modules\n  - vendor\n  - README.md\n  - ARCHITECTURE.md\n  - CONTRIBUTING.md\n  - CHANGELOG.md\n  - SECURITY.md\n  - CLAUDE.md\n  - AGENTS.md\n  - LICENSE\n  - package-lock.json\n  - package.json\n  - tailwind.config.js\n  - postcss.config.js\n  - eslint.config.js\n  - quality\n  - assets/css/tailwind.css\n  - scripts\n  - test\n  - docs\n  - Gemfile\n  - Gemfile.lock\n  - .ruby-version\n\n# If you change entry.path in _data/schema.yml, change the first scope's path\n# here to match — this is what gives every entry the `entry` layout.\ndefaults:\n  - scope:\n      path: \"catalog\"\n    values:\n      layout: entry\n  - scope:\n      path: \"cohorts\"\n    values:\n      layout: cohort\n\nplugins:\n  - jekyll-seo-tag\n  - jekyll-sitemap\n  - jekyll-include-cache\n\nsass:\n  style: compressed\n";
 
 /** The build-mechanics values _config.yml ships with. */
 export const JEKYLL_DEFAULTS = {
