@@ -38,7 +38,7 @@ export function genericSite(overrides) {
  *
  * @param {Record<string, string>} colors brand colours to override
  * @param {Record<string, string>} [fonts]
- * @returns {{colors: object, fonts: object, radius: string, type: object}}
+ * @returns {{colors: object, fonts: object, radius: string, type: object, motion: object}}
  */
 export function theme(colors, fonts = {}) {
   const base = defaultConfig().theme;
@@ -49,6 +49,8 @@ export function theme(colors, fonts = {}) {
     // Measure is a typographic setting, not a brand one: every preset inherits
     // the shipped values so the block survives a round trip through the wizard.
     type: { ...base.type },
+    // Same reasoning for motion: a preset changes the brand, not the tempo.
+    motion: { ...base.motion },
   };
 }
 

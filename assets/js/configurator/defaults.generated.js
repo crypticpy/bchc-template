@@ -135,7 +135,13 @@ export const THEME = {
     "measure": "33rem",
     "measure_display": "44rem"
   },
-  "radius": "soft"
+  "radius": "soft",
+  "motion": {
+    "fast": "120ms",
+    "base": "180ms",
+    "slow": "240ms",
+    "ease": "cubic-bezier(0.2, 0, 0, 1)"
+  }
 };
 
 /** Parsed _data/schema.yml. */

@@ -3,7 +3,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { RADIUS_SCALES, themeVars, previewCopy } from '../../assets/js/configurator/theme-preview.js';
+import {
+  RADIUS_SCALES,
+  RADIUS_STEPS,
+  themeVars,
+  previewCopy,
+} from '../../assets/js/configurator/theme-preview.js';
 
 const themeInclude = readFileSync(
   fileURLToPath(new URL('../../_includes/theme.html', import.meta.url)),
@@ -11,10 +16,19 @@ const themeInclude = readFileSync(
 );
 
 test('RADIUS_SCALES mirror the case in _includes/theme.html', () => {
-  const pick = (re) => themeInclude.match(re)?.[1].split('|');
-  assert.deepEqual(RADIUS_SCALES.sharp, pick(/when 'sharp'.*?th_r = '([^']+)'/));
-  assert.deepEqual(RADIUS_SCALES.round, pick(/when 'round'.*?th_r = '([^']+)'/));
-  assert.deepEqual(RADIUS_SCALES.soft, pick(/else.*?th_r = '([^']+)'/));
+  // The include keeps the hairline step in its own assign (`th_rxs`) and the
+  // five sm…2xl steps in `th_r`; RADIUS_SCALES is the two concatenated, in the
+  // order RADIUS_STEPS names them.
+  const scale = (branch) => {
+    const line = themeInclude.match(new RegExp(`${branch}.*`))?.[0] ?? '';
+    const xs = line.match(/th_rxs = '([^']+)'/)?.[1];
+    const rest = line.match(/th_r = '([^']+)'/)?.[1]?.split('|');
+    return xs && rest ? [xs, ...rest] : null;
+  };
+  assert.deepEqual(RADIUS_STEPS, ['xs', 'sm', 'md', 'lg', 'xl', '2xl']);
+  assert.deepEqual(RADIUS_SCALES.sharp, scale("when 'sharp'"));
+  assert.deepEqual(RADIUS_SCALES.round, scale("when 'round'"));
+  assert.deepEqual(RADIUS_SCALES.soft, scale('else'));
 });
 
 test('themeVars writes rgb triplets, quoted fonts and the radius scale', () => {
@@ -33,7 +47,7 @@ test('themeVars writes rgb triplets, quoted fonts and the radius scale', () => {
   assert.match(css, /--c-accent: 224 122 47;/);
   assert.match(css, /--font-heading: "Source Sans 3";/);
   assert.match(css, /--font-body: "Inter";/);
-  assert.match(css, /--radius-sm: 0\.75rem;.*--radius-2xl: 2\.5rem;/);
+  assert.match(css, /--radius-xs: 0\.375rem;.*--radius-sm: 0\.75rem;.*--radius-2xl: 2\.5rem;/);
 });
 
 test('themeVars skips invalid colours and unknown radius rather than emitting junk', () => {

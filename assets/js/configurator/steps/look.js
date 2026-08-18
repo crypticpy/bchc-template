@@ -13,11 +13,11 @@
  * screen there, and it reads the current answers every time this step renders.
  */
 
-import { COLOR_QUESTIONS, contrastRatio, isHexColor } from '../core.js';
+import { COLOR_QUESTIONS, contrastRatio, isHexColor, matchMotionPreset, MOTION_PRESETS } from '../core.js';
 import { el } from '../dom.js';
 import { renderThemePreview } from '../theme-preview.js';
-import { colorField, selectField, textField } from '../wizard/controls.js';
-import { baseConfigFor, state } from '../wizard/state.js';
+import { answerFieldId, colorField, selectField, textField } from '../wizard/controls.js';
+import { baseConfigFor, save, state } from '../wizard/state.js';
 
 let paletteNode = null;
 let previewNode = null;
@@ -89,6 +89,63 @@ function renderPalette() {
   );
 }
 
+/**
+ * How the current `motion:` answer reads above the control.
+ *
+ * The values, not just the name: a `<select>` this narrow truncates anything
+ * longer than its option labels, so what a named speed actually means lives
+ * here rather than in the option text.
+ */
+function motionSummary(motion) {
+  if (!motion) return 'Not set — the theme defaults apply (120ms / 180ms / 240ms).';
+  const { fast, base, slow, ease } = motion;
+  const preset = MOTION_PRESETS.find((item) => item.id === matchMotionPreset(motion));
+  const values = `Now ${[fast, base, slow].filter(Boolean).join(' / ')}, easing ${ease || 'default'}.`;
+  return preset ? `${preset.blurb} ${values}` : values;
+}
+
+/**
+ * Speed of transitions, as three named choices that write the whole
+ * `theme.motion` block.
+ *
+ * A file may carry timings nobody picked here — the block is documented and
+ * hand-editable — so a fourth option appears in that case only, naming what
+ * leaving the control alone will keep. Picking a named speed then overwrites
+ * those timings, which is why the summary line above the control always shows
+ * the values that will be written.
+ *
+ * @returns {HTMLElement}
+ */
+function motionField() {
+  const id = answerFieldId('motion');
+  const matched = matchMotionPreset(state.answers.motion);
+  const options = MOTION_PRESETS.map((preset) => el('option', { value: preset.id, text: preset.label }));
+  if (!matched) {
+    options.push(
+      el('option', {
+        value: 'custom',
+        text: state.answers.motion ? 'Keep current timings' : 'Theme default',
+      })
+    );
+  }
+  const select = el('select', { id, class: 'field-input' }, options);
+  select.value = matched || 'custom';
+  const summary = el('p', { class: 'field-help', text: motionSummary(state.answers.motion) });
+  select.addEventListener('change', () => {
+    const preset = MOTION_PRESETS.find((item) => item.id === select.value);
+    if (preset) state.answers.motion = { ...preset.motion };
+    save();
+    summary.textContent = motionSummary(state.answers.motion);
+  });
+  // Two columns wide: the summary is a sentence of timings, and a third of
+  // the row wraps it to three lines.
+  return el('div', { class: 'sm:col-span-2' }, [
+    el('label', { class: 'field-label', for: id, text: 'Motion' }),
+    summary,
+    select,
+  ]);
+}
+
 /** @returns {{body: HTMLElement}} step 3 body — palette with a live preview, then type and rounding. */
 export function renderLook() {
   paletteNode = el('div', { class: 'px-6 py-5' });
@@ -117,7 +174,7 @@ export function renderLook() {
       ]),
     ]),
     el('fieldset', { class: 'space-y-4' }, [
-      el('legend', { class: 'section-title', text: 'Type & shape' }),
+      el('legend', { class: 'section-title', text: 'Type, shape & motion' }),
       el('div', { class: 'grid gap-4 sm:grid-cols-3' }, [
         selectField(
           'headingFont',
@@ -150,6 +207,7 @@ export function renderLook() {
           undefined,
           renderPalette
         ),
+        motionField(),
       ]),
       textField('googleFontsUrl', 'Google Fonts URL', {
         type: 'url',

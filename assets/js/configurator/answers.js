@@ -9,6 +9,7 @@
 
 import { isPlainObject } from './yaml-emit.js';
 import { defaultConfig } from './default-config.js';
+import { normalizeMotion } from './motion.js';
 
 /**
  * The colour answers both wizards ask for, in the order they ask them.
@@ -119,6 +120,8 @@ export function answersFromConfig(config) {
     bodyFont: theme.fonts?.body ?? 'Inter',
     googleFontsUrl: theme.fonts?.google_fonts_url ?? '',
     radius: theme.radius ?? 'soft',
+    // `null` when the file has no `motion:` block; the Liquid defaults cover it.
+    motion: normalizeMotion(theme.motion),
     modules: { ...(site.modules ?? {}) },
     entrySingular: schema.entry?.singular ?? 'Entry',
     entryPlural: schema.entry?.plural ?? 'Entries',
@@ -187,6 +190,13 @@ export function applyAnswers(baseConfig, answers = {}) {
   theme.fonts.body = pick(answers, 'bodyFont', theme.fonts.body);
   theme.fonts.google_fonts_url = pick(answers, 'googleFontsUrl', theme.fonts.google_fonts_url);
   theme.radius = pick(answers, 'radius', theme.radius);
+  // Optional block: an answer adds or replaces it, and never deletes one the
+  // starting point already carries. Every other key of the starting point's
+  // `site`/`theme` rides along untouched for the same reason — this merge only
+  // assigns, so a key no question asks about (`demo`, `contact.ask_in_open`, a
+  // hand-added one) survives the round trip through the wizard.
+  const motion = normalizeMotion(answers.motion);
+  if (motion) theme.motion = motion;
 
   schema.entry = schema.entry || {};
   schema.entry.singular = pick(answers, 'entrySingular', schema.entry.singular);

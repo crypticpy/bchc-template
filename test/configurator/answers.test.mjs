@@ -8,6 +8,8 @@ import {
   COLOR_QUESTIONS,
 } from '../../assets/js/configurator/answers.js';
 import { defaultConfig } from '../../assets/js/configurator/default-config.js';
+import { MOTION_PRESETS } from '../../assets/js/configurator/motion.js';
+import { renderFiles } from '../../assets/js/configurator/render-files.js';
 import {
   slugify,
   snakeKey,
@@ -15,6 +17,7 @@ import {
   githubNewFileUrl,
   prefillNoticeIfTooLong,
 } from '../../assets/js/configurator/strings.js';
+import * as jsYaml from 'js-yaml';
 import {
   contrastRatio,
   derivePrimaryDark,
@@ -95,6 +98,60 @@ test('answersFromConfig round-trips through applyAnswers', () => {
   const rebuilt = applyAnswers(base, answersFromConfig(base));
   assert.deepEqual(rebuilt.site, base.site);
   assert.deepEqual(rebuilt.theme, base.theme);
+});
+
+/* --- theme.motion --------------------------------------------------------- */
+
+test('the shipped motion block survives a round trip through the wizard', () => {
+  const base = defaultConfig();
+  assert.deepEqual(base.theme.motion, MOTION_PRESETS.find((p) => p.id === 'default').motion);
+  const answers = answersFromConfig(base);
+  assert.deepEqual(answers.motion, base.theme.motion);
+  const written = jsYaml.load(renderFiles(applyAnswers(base, answers))['_data/theme.yml']);
+  assert.deepEqual(written.motion, base.theme.motion);
+});
+
+test('a hand-written motion block is written back exactly as it was found', () => {
+  const base = defaultConfig();
+  // Not one of the named speeds, and in seconds rather than milliseconds: both
+  // are legal CSS and neither is the wizard's spelling.
+  base.theme.motion = { fast: '0.1s', base: '0.2s', slow: '0.3s', ease: 'ease-out' };
+  const config = applyAnswers(base, answersFromConfig(base));
+  assert.deepEqual(config.theme.motion, { fast: '0.1s', base: '0.2s', slow: '0.3s', ease: 'ease-out' });
+});
+
+test('choosing a named speed replaces the whole block, and an absent one stays absent', () => {
+  const calm = MOTION_PRESETS.find((preset) => preset.id === 'calm');
+  const chosen = applyAnswers(defaultConfig(), { motion: { ...calm.motion } });
+  assert.deepEqual(chosen.theme.motion, calm.motion);
+
+  const bare = defaultConfig();
+  delete bare.theme.motion;
+  const answers = answersFromConfig(bare);
+  assert.equal(answers.motion, null);
+  assert.equal('motion' in applyAnswers(bare, answers).theme, false);
+});
+
+/* --- keys no question asks about ------------------------------------------ */
+
+test('site keys the wizard never asks about survive the round trip', () => {
+  const base = defaultConfig();
+  // `demo` ships as `true` and is answered by no question; `contact.ask_in_open`
+  // is the same shape one level down. Neither may be dropped by a merge that
+  // only knows about the questions.
+  assert.equal(base.site.demo, true);
+  base.site.contact = { ...(base.site.contact || {}), ask_in_open: true };
+
+  const config = applyAnswers(base, { ...answersFromConfig(base), siteName: 'Renamed' });
+  const written = jsYaml.load(renderFiles(config)['_data/site.yml']);
+  assert.equal(written.name, 'Renamed');
+  assert.equal(written.demo, true);
+  assert.equal(written.contact.ask_in_open, true);
+
+  // And a fork that turned the demo banner off keeps it off.
+  const off = defaultConfig();
+  off.site.demo = false;
+  assert.equal(jsYaml.load(renderFiles(applyAnswers(off, {}))['_data/site.yml']).demo, false);
 });
 
 test('the submission page copy is answerable in the wizard', () => {

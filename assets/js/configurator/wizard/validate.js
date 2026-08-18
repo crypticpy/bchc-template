@@ -6,7 +6,7 @@
  * field row they blame, so following the link lands on an expanded row.
  */
 
-import { COLOR_QUESTIONS, isHexColor, validateSchema } from '../core.js';
+import { COLOR_QUESTIONS, isHexColor, motionProblems, validateSchema } from '../core.js';
 import { expandField, fieldToggleId } from '../steps/field-rows.js';
 import { answerFieldId } from './controls.js';
 import { enabledFields, schemaFields, state, STEPS } from './state.js';
@@ -79,6 +79,11 @@ function lookProblems() {
     }
   }
   problems.push(...urlProblem('googleFontsUrl', 'The Google Fonts URL'));
+  // A hand-written `motion:` block reaches the wizard as an answer nobody
+  // typed, so it is checked here rather than trusted.
+  for (const message of motionProblems(state.answers.motion)) {
+    problems.push({ message, target: answerFieldId('motion') });
+  }
   return problems;
 }
 

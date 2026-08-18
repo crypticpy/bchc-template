@@ -114,17 +114,22 @@ describe('assistive-technology flows', { skip: SKIP, concurrency: false }, () =>
     assert.equal(held.name, filterName, 'filtering moved focus off the pill it was on');
 
     // Open an entry from the filtered results, then come back.
-    const card = await tabUntil(
-      page,
-      (stop) => stop.href.startsWith(catalogPath) && stop.href !== catalogPath,
-      {
-        what: 'an entry card link',
-      }
+    // Ask the grid which links are entry cards rather than guessing from the
+    // href: the catalog also links to pages under its own path (the A-Z index),
+    // and "starts with /catalog/" would tab onto one of those instead.
+    const entryHrefs = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-entry-grid] > [data-entry]:not([hidden]) a[href]')].map((a) =>
+        a.getAttribute('href')
+      )
     );
+    assert.ok(entryHrefs.length > 0, 'the filtered catalog shows no entry cards to open');
+    const card = await tabUntil(page, (stop) => entryHrefs.includes(stop.href), {
+      what: 'an entry card link',
+    });
     assertUsableStops(card.trail, 'filtered catalog');
     const entryHref = card.stop.href;
     await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle2' }), page.keyboard.press('Enter')]);
-    assert.equal(new URL(page.url()).pathname, entryHref);
+    assert.equal(new URL(page.url()).pathname, new URL(entryHref, page.url()).pathname);
     const title = await textOf(page, 'main h1');
     assert.notEqual(title, '', 'the entry page has no <h1> to orient a reader');
 
