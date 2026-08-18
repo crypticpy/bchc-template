@@ -53,9 +53,10 @@ target host is resolved and refused if any resolved address is loopback,
 link-local (including the cloud metadata address at `169.254.169.254`),
 private, unique-local, multicast or unspecified, or if the hostname ends in
 `.internal`, `.local` or `localhost`. IP-literal URLs go through the same
-check, and IPv6 literals are judged numerically — an IPv4-mapped, IPv4-compatible
-or NAT64 address is decoded and held to the IPv4 rules, whatever its spelling. Redirects are followed by hand so a credential is never carried to a
-host it was not meant for. Downloads are capped by count, by total size and by
+check, and IPv6 literals are judged numerically — an IPv4-mapped,
+IPv4-compatible or NAT64 address is decoded and held to the IPv4 rules,
+whatever its spelling. Redirects are followed by hand so a credential is never
+carried to a host it was not meant for. Downloads are capped by count, by total size and by
 a request timeout that covers the response body, and each file must be a PNG,
 JPEG, GIF or WebP by both its `Content-Type` and its magic bytes before it is
 written.
