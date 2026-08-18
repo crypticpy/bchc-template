@@ -27,7 +27,13 @@ with a live count beside each option.
 
 **card slot** — where a field's value lands on a catalog card. The slots are `media`, `badge`,
 `meta`, `line`, `chip` and `icon`; a field opts into one with `card:`, and the card template
-enforces how many values each slot will show.
+enforces how many values each slot will show. `fact` is the one slot that is not a card slot at
+all — it puts the field in the entry page's fact strip and leaves the card alone.
+
+**fact strip** — the wrapping band of labelled values across the top of an entry page, above the
+write-up. It gathers the `icon` fields (the same signals the card shows), then the `fact` fields,
+then any `meta` field the page header has not already used. It answers "what would I need to know
+before reading any further".
 
 **chip** — a small rounded label on a card or entry page, used for one family of taxonomy values.
 
@@ -60,6 +66,21 @@ is editable afterwards.
 **sample** — one of the ten example entries the template ships with, each marked `sample: true` in
 its front matter. They are fictional, and deleting them is step 4 of [launch.md](launch.md).
 
+**verified** — a reserved front matter key holding the date a maintainer last re-checked an entry's
+facts with its contact. Stronger than `updated`, which someone sets after fixing a typo. Optional,
+`YYYY-MM-DD`, and never written by automation.
+
+**last confirmed** — the newest of an entry's `verified`, `updated` and `published` dates. What the
+site means when it says "Last confirmed March 2026".
+
+**stale** — an entry whose last-confirmed date is further back than `catalog.verify_after_days` in
+`_data/site.yml` (365 by default). A stale entry gets a quiet note on its page, a date line on its
+card, and a place after fresher entries in the default sort. It is not hidden, flagged or coloured.
+
+**verification sweep** — the monthly workflow that lists the stale entries in one rolling GitHub
+issue labelled `verification`, so the decay shows up somewhere a maintainer looks. See
+[admin-guide.md](admin-guide.md#the-monthly-verification-sweep).
+
 **scaffold** — what the automation does when a submission arrives: read the issue, write
 `catalog/<slug>/index.md` and download the attached images, and open a pull request. It drafts; it
 never publishes.
@@ -69,3 +90,16 @@ not called "department" — see [decisions.md](decisions.md).
 
 **readiness** — in the shipped schema, the multiselect of flags describing how much work stands
 between finding an entry and running it.
+
+**"What it took"** — in the shipped schema, the group holding the five questions a peer has to ask
+before they can copy something: cost to stand up, cost to keep running, how it was bought, the
+reviews it went through, and who it affects. All five are optional, and the dollar bands and review
+names are a US-local draft the site owner is expected to rewrite.
+
+**cost band** — a range rather than a figure ("$25k–$100k"), because nobody can publish an exact
+number and a range is enough to know whether a project is in reach. "Not disclosed" is a real
+answer; blank means nobody asked.
+
+**"Not yet reviewed"** — an `approvals` option, and the only value in the group carrying a `warn`
+tone. It exists so that admitting a gap is easier than leaving the field empty, which is the only
+way the field stays honest.

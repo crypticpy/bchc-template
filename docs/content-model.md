@@ -54,7 +54,7 @@ A group is `{key, title, description?, icon?, placement?}`. `key` is what a fiel
 
 ## Reserved keys
 
-`title`, `slug`, `summary`, `published`, `render_with_liquid`, `thumbnail` and `featured` are present on every entry whether or not you list them under `fields`, plus an optional `updated`.
+`title`, `slug`, `summary`, `published`, `render_with_liquid`, `thumbnail` and `featured` are present on every entry whether or not you list them under `fields`, plus the optional dates `updated` and `verified`.
 
 | Key | Set by | Notes |
 |---|---|---|
@@ -63,10 +63,17 @@ A group is `{key, title, description?, icon?, placement?}`. `key` is what a fiel
 | `published` | Automation | `YYYY-MM-DD`. The default sort key. |
 | `render_with_liquid` | Automation | Always `false`, and CI fails an entry without it: the body is a submitter's markdown and must not be run through Liquid at build time. |
 | `updated` | Maintainer | Optional `YYYY-MM-DD`. When present, the entry page shows "Updated …" alongside the published date, and "Recently updated" sorting uses it. Set it when the content materially changes, not for typo fixes. |
+| `verified` | Maintainer | Optional `YYYY-MM-DD`. The day someone confirmed with the contact that the entry is still true. Stronger than `updated`, which only says the text changed. The scaffolder never sets it — a maintainer does, in review or when clearing an item from the [monthly sweep](admin-guide.md#the-monthly-verification-sweep). |
 | `featured` | Maintainer | `true` pins the entry into the home carousel and shows a Featured badge. Maintainer-only; there is no submitter path to it. |
 | `thumbnail` | Maintainer | Optional image path. First choice for the card image, ahead of any `images` field. |
 
 Sample entries shipped with the template also carry `sample: true`, which is how `npm run setup` recognises removable demo content. Your own entries should not have it.
+
+### How old is too old
+
+An entry is "last confirmed" on the **newest** of `verified`, `updated` and `published` — three progressively weaker answers to the same question, and the newest one is the honest one. Past `catalog.verify_after_days` in `_data/site.yml` (default 365) the entry page shows a quiet note near the fact strip, cards carry a one-line "Last confirmed …", and the default catalog order puts the entry after fresher ones. Nothing is hidden and nothing turns amber: an unconfirmed entry is still the best account of that project anyone has written down.
+
+Because the newest date wins, a fresh catalog shows no notices at all, and a maintainer clears one by setting `verified:` — not by touching `updated:`, which would claim an edit that did not happen.
 
 ## Field spec
 
@@ -184,8 +191,11 @@ Every option is usable without metadata — an option with no entry renders as i
 | `line` | One short line under the summary, prefixed by the field's icon. Meant for a result or impact statement. |
 | `chip` | Chips in the card footer. |
 | `icon` | The at-a-glance signal strip: one glyph per value, each with a screen-reader label of `<label>: <value>`. |
+| `fact` | **The entry page's fact strip only — never the card.** For a fact that decides a reuse question but cannot survive a 288px card. |
 
 Slot caps are enforced by the templates, not by the schema: **one** badge field, **two** meta segments, **one** chip family (2 chips then `+n`), **four** icon glyphs total. When a slot overflows, lower `weight` survives. This is why weight matters more than it looks: it is the only control you have over what a reader sees in the two seconds they spend on a card.
+
+`fact` exists because that budget is real. The signal strip stops at four glyphs, so a fifth `card: icon` field does not appear — it silently pushes an existing one behind a `+n` on every card in the catalog. A fact that only pays off in a governance conversation (what it cost, which reviews it went through) is worth a row on the page and is not worth that trade, so `fact` puts it in the fact strip and nowhere else. Fact-strip order is `icon` fields, then `fact` fields, then any `meta` field the page header did not already use, each by `weight`.
 
 Deliberately not on the card: platform, tools, vendor, data sources, contact, links and the gallery. They belong to the entry page.
 
@@ -198,17 +208,17 @@ Deliberately not on the card: platform, tools, vendor, data sources, contact, li
 
 ## Shipped fields (AI use case catalog)
 
-26 fields in six groups. `body` is the page body; everything else is front matter.
+31 fields in seven groups, listed in group order and then by weight — the order the submit wizard asks them in. `body` is the page body; everything else is front matter.
 
 | Key | Type | Group | Req | Facet | Card | Weight |
 |---|---|---|:--:|:--:|---|:--:|
 | `title` | text | about | yes | | (heading) | 1 |
-| `summary` | textarea | about | yes | | (summary) | 2 |
-| `impact` | text | about | | | line | 3 |
-| `organization` | text | about | yes | yes | meta | 4 |
-| `solution_type` | select | about | yes | yes | badge | 5 |
-| `area` | multiselect | about | yes | yes | chip | 6 |
-| `stage` | select | about | yes | yes | meta | 7 |
+| `solution_type` | select | about | yes | yes | badge | 3 |
+| `area` | multiselect | about | yes | yes | chip | 4 |
+| `stage` | select | about | yes | yes | meta | 5 |
+| `summary` | textarea | about | yes | | (summary) | 6 |
+| `impact` | text | about | | | line | 7 |
+| `organization` | text | about | yes | yes | meta | 8 |
 | `ai_role` | select | build | yes | yes | | 1 |
 | `ai_types` | multiselect | build | | yes | | 2 |
 | `ai_tools` | list | build | | yes | | 3 |
@@ -222,12 +232,25 @@ Deliberately not on the card: platform, tools, vendor, data sources, contact, li
 | `resources` | links | reuse | | | | 6 |
 | `screenshots` | images | reuse | | | (card image) | 7 |
 | `deck_pdf` | file (`deck.pdf`) | reuse | | | | 8 |
+| `cost_band` | select | cost | | yes | fact | 1 |
+| `run_cost` | select | cost | | yes | | 2 |
+| `procurement` | multiselect | cost | | yes | | 3 |
+| `approvals` | multiselect | cost | | yes | fact | 4 |
+| `equity_note` | textarea | cost | | | | 5 |
 | `data_sensitivity` | multiselect | data | yes | yes | icon | 1 |
 | `data_sources` | list | data | | | | 2 |
 | `audience` | select | data | yes | yes | icon | 3 |
 | `contact_name` | text | contact | yes | | | 1 |
 | `contact_email` | email | contact | yes | | | 2 |
 | `body` | markdown | story | yes | | | 1 |
+
+`organization` is last in **About** on purpose: it is a disambiguator, not an entry point. At weight 2 the filter rail opened with a column of one-off organization names and pushed "Area of work" below the fold.
+
+### The "What it took" group
+
+`cost_band`, `run_cost`, `procurement`, `approvals` and `equity_note` are the questions a peer asks second — after "does it work" comes "what would it cost us, who has to sign it off, and who does it affect". None of them is required: a submitter who cannot share a cost leaves it blank or picks **Not disclosed**, and **Not yet reviewed** under `approvals` is a legitimate, useful answer.
+
+The option lists are a **starting draft, not a standard.** The dollar bands are a US-local choice and the review names ("Records retention review", "Research ethics / IRB") are the ones a US public health department recognises. Rewrite them to match how your organization actually budgets, buys and approves — nothing downstream depends on the particular strings.
 
 ## Worked example
 

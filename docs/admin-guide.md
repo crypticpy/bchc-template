@@ -43,6 +43,7 @@ Content
 - [ ] Named individuals are the submitter's own contact only. Other people are referred to by role.
 - [ ] Claims with numbers are the submitter's own and are attributed in the write-up ("across 38 contracts in the pilot"), not stated as general fact.
 - [ ] `select` and `multiselect` values are the ones you would have chosen. A wrong `readiness` or `data_sensitivity` misleads every future reader — fix it in the PR and say why in a comment.
+- [ ] Cost bands and approvals are the submitter's own claim about their own project. Do not fill them in for them; leave blank rather than guess.
 
 Screenshots
 
@@ -68,7 +69,7 @@ A pull request opened by a workflow using the built-in `GITHUB_TOKEN` does not, 
 
 The template handles this without a token: after opening the pull request, each content workflow dispatches `validate.yml` and `quality.yml` against the new branch (`workflow_dispatch` is the exception to the no-loop rule). The run summary lists which workflows it dispatched. Two consequences worth knowing:
 
-- The check runs appear against the **branch**, not against the pull request, so they show up in the Actions tab and on the branch's commit rather than in the PR's own checks box. Look at the latest commit's status, which is what the review checklist asks for.
+- A dispatched run is triggered against the **branch**, so it appears in the Actions tab rather than as a PR check run — but each one posts a commit status (**Validate Content (dispatch)**, **Quality (dispatch)**) on the head commit, and those *do* show in the pull request's checks box. Read them there; if they are missing, look at the branch's latest commit in the Actions tab.
 - If the bot pushes again afterwards (the thumbnail job does this when a PDF is attached), the checks are re-dispatched for the new head commit. Always read the check status on the *latest* commit.
 
 **With `CONTENT_BOT_TOKEN` set**, the workflows push and open the pull request as that token's user instead, so the pull request triggers `validate.yml` and `quality.yml` normally, the checks appear in the PR's own checks box, and nothing is dispatched by hand. To set it up:
@@ -87,6 +88,26 @@ Give it a short expiry and re-issue it on a calendar reminder; the workflows fal
   Deleting the folder removes the page but not the git history: if the entry contained protected data, a real person's contact details, or anything published without consent, stop here and follow [incidents.md](incidents.md) instead.
 - **Un-feature / feature**: toggle `featured: true`/`false` in the entry's front matter. `featured` is a reserved key set by automation to `false` on scaffold; there's no UI for it, it's maintainer-only (the schema's `form: false` fields, like `featured` would be if added, are hidden from submission forms by design).
 - Every entry page also has a **Report an issue with this entry** link, which opens a blank pre-titled GitHub issue (not labelled, so it does not trigger automation) — read and triage these manually.
+
+## The monthly verification sweep
+
+A catalog decays quietly. The pilot in an entry became a production system, the contact changed jobs, the tool was retired — and nothing in the repository changes, so the entry keeps reading as current. The template handles this in two halves: the site tells *readers* when an entry is old, and this workflow tells *you*.
+
+**How old is old.** Every entry has a last-confirmed date: the newest of `verified`, `updated` and `published`. When that date is further back than `catalog.verify_after_days` in `_data/site.yml` (365 by default), the entry page shows a one-line note above the fact strip, its catalog card shows "Last confirmed <Month Year>", and the card sorts after fresher ones in the default order. Nothing turns amber and nothing is hidden — an entry nobody has re-checked in a year is still the best account of that project anyone has written down.
+
+**The sweep.** `.github/workflows/verification-sweep.yml` runs at 07:00 UTC on the 1st of each month (and on demand from the Actions tab). It lists the entries past the window and keeps **one** open issue — titled *Verification sweep — YYYY-MM*, labelled `verification` — holding a checklist with a link to each entry, its contact address, and an "edit front matter" link. Next month it rewrites that same issue rather than opening a second one, so a thread you have been working through keeps its comments. If every entry is inside the window, no issue is opened at all.
+
+The workflow only asks for `issues: write`. It never edits an entry, never closes anything, and never emails a contact — deciding an entry is still true is a person's job.
+
+**Clearing an item.** Ask the contact whether anything has changed, fix whatever has, and add (or update) one line in `catalog/<slug>/index.md`:
+
+```yaml
+verified: "2026-08-17"
+```
+
+That is the whole protocol. `verified` is a reserved key like `updated`: optional, `YYYY-MM-DD`, never written by automation, and validated by `check_front_matter.rb` when present. Setting it resets the entry's clock even if nothing else about the entry changed — which is the point, since "we checked and it is still accurate" is real information.
+
+**Turning it off.** Set the repository variable `VERIFICATION_SWEEP` to `false` (Settings → Secrets and variables → Actions → Variables), or delete the workflow file. To change the window instead of removing the reminder, edit `catalog.verify_after_days` in `_data/site.yml` — the site notices and the sweep both read it, so they can never disagree.
 
 ## Screenshots and images
 
@@ -166,7 +187,7 @@ All four cohort/event workflows follow the same pattern as new-entry: issue → 
 - Check the workflow run itself: on a scaffolding failure, `new-entry.yml` comments the error onto the issue and fails the job rather than opening an empty PR.
 
 **Checks on a generated pull request say "waiting for approval"**
-- Expected on a fresh repository, and not a failure: pull requests opened with the built-in token cannot start other workflows. Either click **Approve and run**, or read the check runs the workflow dispatched against the branch (see [Checks on a generated pull request](#checks-on-a-generated-pull-request)).
+- Expected on a fresh repository, and not a failure: pull requests opened with the built-in token cannot start other workflows. Either click **Approve and run**, or read the **(dispatch)** commit statuses the workflow posted on the head commit (see [Checks on a generated pull request](#checks-on-a-generated-pull-request)).
 - If the workflow's run summary says a dispatch "could not be dispatched", the job lacked `actions: write` or the workflow file is not on the default branch yet — a dispatch can only target a workflow that already exists on `main`.
 - To make PR checks run normally instead, add a `CONTENT_BOT_TOKEN` secret as described in that section.
 
@@ -183,9 +204,9 @@ All four cohort/event workflows follow the same pattern as new-entry: issue → 
 - Confirm you're looking at a full rebuild, not a cached preview — `_plugins/modules.rb` removes disabled-module pages at `post_read` time, so the effect only shows up after a Jekyll build, not a live-reload of unrelated content.
 
 **Front-matter validation failing on a PR**
-- `check_front_matter.rb` checks: `title`/`slug`/`summary` present, `slug` matches the folder name, `published` (and `updated` when present) is a valid `YYYY-MM-DD` date, every `required` field is present, `select`/`multiselect` values are within `options`, `url` fields start with `http(s)://`, `email` fields contain `@`, `images` items have a `src` that exists inside the entry folder, and `links` items have both a label and an `http(s)` or `mailto:` URL. The error message names the file, the line and the field.
+- `check_front_matter.rb` checks: `title`/`slug`/`summary` present, `slug` matches the folder name, `published` (and `updated`/`verified` when present) is a valid `YYYY-MM-DD` date, every `required` field is present, `select`/`multiselect` values are within `options`, `url` fields start with `http(s)://`, `email` fields contain `@`, `images` items have a `src` that exists inside the entry folder, and `links` items have both a label and an `http(s)` or `mailto:` URL. The error message names the file, the line and the field.
 - `render_with_liquid: false` is required on every entry, hand-written ones included: without it Jekyll runs the page body through Liquid at build time, so a Liquid `include` tag someone typed into their write-up would execute. The scaffolder emits it automatically.
-- Warnings (a remote image `src`, a missing `alt`) are printed but do not fail the check. Fix them anyway.
+- Warnings (a remote image `src`, a missing `alt`, a `file` field pointing at a path that is not in the repository yet) are printed but do not fail the check. Fix them anyway — the dangling-attachment one is expected on a freshly generated pull request and should be gone before you merge.
 
 **Weekly smoke build failing**
 - `smoke.yml` runs every Monday and does a full validate + build without deploying, to catch drift (e.g. a stale dependency, a broken external asset) between real deploys. Treat a red run the same as a failing `Build & Deploy`.
