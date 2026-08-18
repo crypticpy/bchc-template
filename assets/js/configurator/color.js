@@ -73,6 +73,55 @@ export function isHexColor(value) {
 }
 
 /**
+ * The colour pairs the rendered site actually puts on top of each other, with
+ * the WCAG threshold each one has to clear. One list, two consumers: the setup
+ * wizards check it interactively and `npm run validate` checks it on the
+ * hand-edited `_data/theme.yml`, so there is no path that skips it.
+ *
+ * `fg` and `bg` are `theme.colors` keys, or a literal `#rrggbb` where the CSS
+ * hard-codes a colour (`.btn-primary` paints `text-white`, not `on_dark`).
+ * `level: 'warn'` is for pairs a fork can reasonably trade away — the accent is
+ * decorative and only carries text inside `.badge-accent`.
+ *
+ * @type {{fg: string, bg: string, min: number, level: 'error'|'warn', what: string}[]}
+ */
+export const THEME_CONTRAST_PAIRS = [
+  { fg: 'ink', bg: 'card', min: 4.5, level: 'error', what: 'body text on cards' },
+  { fg: 'ink', bg: 'surface', min: 4.5, level: 'error', what: 'body text on the page background' },
+  { fg: 'muted', bg: 'card', min: 4.5, level: 'error', what: 'secondary text on cards' },
+  { fg: 'muted', bg: 'surface', min: 4.5, level: 'error', what: 'secondary text on the page background' },
+  { fg: 'primary', bg: 'card', min: 4.5, level: 'error', what: 'links and ghost buttons on cards' },
+  { fg: 'primary', bg: 'surface', min: 4.5, level: 'error', what: 'links on the page background' },
+  { fg: 'secondary', bg: 'card', min: 4.5, level: 'error', what: 'the supporting colour on cards' },
+  { fg: 'warn', bg: 'card', min: 4.5, level: 'error', what: 'caution text on cards' },
+  { fg: 'on_dark', bg: 'primary_dark', min: 4.5, level: 'error', what: 'text on the hero and footer' },
+  { fg: 'on_dark', bg: 'primary', min: 4.5, level: 'error', what: 'text on a primary-filled surface' },
+  { fg: '#FFFFFF', bg: 'primary', min: 4.5, level: 'error', what: 'the label on a primary button' },
+  // Non-text contrast (WCAG 1.4.11): control borders only have to reach 3:1.
+  { fg: 'line_strong', bg: 'card', min: 3, level: 'error', what: 'input and pill borders on cards' },
+  { fg: 'ink', bg: 'accent', min: 4.5, level: 'warn', what: 'the label on an accent badge' },
+];
+
+/**
+ * Run {@link THEME_CONTRAST_PAIRS} over a `theme.colors` mapping.
+ *
+ * Unparseable and missing colours are reported as failures rather than skipped:
+ * `hex_to_rgb` (_plugins/theme_filters.rb) turns anything it cannot read into
+ * `0 0 0`, so a typo silently paints the site black instead of erroring.
+ *
+ * @param {Record<string, string>} colors
+ * @returns {{fg: string, bg: string, min: number, level: string, what: string,
+ *            ratio: number|null, ok: boolean}[]} one result per pair, in order.
+ */
+export function checkThemeContrast(colors) {
+  const resolve = (name) => (name.startsWith('#') ? name : (colors ?? {})[name]);
+  return THEME_CONTRAST_PAIRS.map((pair) => {
+    const ratio = contrastRatio(resolve(pair.fg), resolve(pair.bg));
+    return { ...pair, ratio, ok: ratio !== null && ratio >= pair.min };
+  });
+}
+
+/**
  * A darker companion for a primary colour, used as the hero/footer background
  * when the admin has not chosen one. Scales each channel toward black until the
  * result carries `on_dark` text at AA.
