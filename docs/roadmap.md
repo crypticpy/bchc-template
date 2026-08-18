@@ -2,15 +2,12 @@
 
 Status legend: ☐ not started · ◐ in progress · ☑ done. Decisions taken are recorded so the reasoning survives.
 
-## Decisions (2026-08-17)
+## Decisions
 
-- **Area, not department.** The broad tagging field is `area` ("Area of work"). Organizations split themselves into departments/divisions/units/programs differently, so the wording stays neutral and the option list mixes program areas with business functions (HR, procurement, IT, legal, coordination…).
-- **Screenshots live in the repo.** Submitters drag images into the GitHub issue; the scaffolder downloads them into `catalog/<slug>/screenshots/` so entries stay durable and offline-buildable. Remote URLs are still accepted for hand-authored entries.
-- **Readiness is one multiselect of flags** (`readiness`), each option carrying an icon/tone. Simpler to author, filter and render than several booleans.
-- **Light mode only** for now. Theme tokens stay the single source of colour so dark mode can be added later without touching components.
-- **Configurator field builder is phase 6** — everything else ships first.
-- **Tailwind stays on 3.4.** Tailwind 4's browser floor (Safari 16.4 / Chrome 111 / Firefox 128) is too high for a public-sector audience on managed and older devices, and it fails hard rather than gracefully below it. Documented under "Browser support" in `docs/design-system.md`; Dependabot ignores the major.
-- **Quality bar** is checked by a persona review panel (design principal · civic digital-service UX/a11y lead · staff front-end engineer · non-technical program manager · technical writer) at three checkpoints; we iterate until no P1/P2 findings remain.
+Decisions live in [docs/decisions.md](decisions.md) — the canonical, append-only log of
+every contestable call and why it was made. The entries that used to be listed here have
+moved there unchanged. Record new ones there, not in this file: the roadmap is a build log
+and gets rewritten each phase, the decision log does not.
 
 ## Phases
 

@@ -55,7 +55,7 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
       <div class="p-6"><p class="eyebrow">H1 32/38 · .page-title</p><p class="page-title mt-2">Syndromic surveillance signal triage assistant</p></div>
       <div class="p-6"><p class="eyebrow">H2 24/30 · .section-title</p><p class="section-title mt-2">What we built</p></div>
       <div class="p-6"><p class="eyebrow">Card title 18/24 · .entry-title</p><p class="entry-title mt-2">Plain-language rewrites for public notices</p></div>
-      <div class="p-6"><p class="eyebrow">Body 16/26 · max 68ch</p><p class="mt-2 max-w-prose text-base leading-relaxed text-brand-ink">A scheduled job pulls the alert export each night. For every signal it assembles fourteen days of visit history, the expected count from a simple seasonal baseline, and the relevant syndrome definition.</p></div>
+      <div class="p-6"><p class="eyebrow">Body 16/26 · measure --measure</p><p class="mt-2 text-base leading-relaxed text-brand-ink" style="max-width: var(--measure)">A scheduled job pulls the alert export each night. For every signal it assembles fourteen days of visit history, the expected count from a simple seasonal baseline, and the relevant syndrome definition.</p></div>
       <div class="p-6"><p class="eyebrow">Small 14/22 · .section-lead</p><p class="section-lead mt-2">Secondary text stays at 14px or larger in <code>muted</code>.</p></div>
       <div class="p-6"><p class="eyebrow">Eyebrow 11/16 · 0.12em</p><p class="entry-meta mt-2"><span class="entry-meta-seg entry-meta-seg--lead">Lakeshore City Department of Public Health</span><span class="entry-meta-seg">Pilot</span></p></div>
     </div>
