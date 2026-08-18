@@ -8,6 +8,130 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-08-17
+
+Contributor panel, wave 2: the six decisions left open by v1.2.0 were taken
+(the "what it took" group, a verification lifecycle, compare + printable
+brief, contact etiquette, an upgrade path; the saved-constraints overlay is
+deferred) and the wave-2 queue shipped — vocabulary-aware search, facet
+landing pages, responsive image derivatives, a native `<dialog>` filter
+sheet, view transitions, variable fonts, an apply-setup workflow, demo mode,
+a three-step branding wizard and an assistive-technology flow test. Seven
+units built it in isolated worktrees; the whole submission pipeline was also
+verified end to end on the live repository (issue → PR with first-party
+checks → thumbnail commit → merge → "it's live" comment, about eight minutes
+of wall clock). The new schema fields are all optional, so existing entries
+and presets need no change.
+
+### Added
+
+- **"What it took"** — a schema group asking the five questions a peer needs
+  before they can copy a project: cost to stand up, cost to keep running, how
+  it was bought, the reviews it went through, and who it affects. All optional,
+  the four selects are facets, and the option lists are a starting draft for
+  the site owner to rewrite. A new **`fact` card slot** puts a field on the
+  entry page's fact strip without spending one of the card's four glyphs.
+- **Verification lifecycle** — a `verified` front-matter date,
+  `catalog.verify_after_days` in `_data/site.yml` (365 by default), a quiet
+  "not confirmed since" notice on stale entry pages, a "Last confirmed" line on
+  their cards, a demotion below fresh entries in the default sort, and a
+  **monthly verification sweep** (`verification-sweep.yml`) that keeps one
+  rolling issue listing the entries due to be re-confirmed (opt out with the
+  repository variable `VERIFICATION_SWEEP=false`).
+- **Compare up to three entries side by side.** A shortlist tray on the
+  catalog collects picks from the cards; `/compare/` lays them out field by
+  field, grouped as the schema groups them, differences first. The shortlist
+  survives a reload and travels in the URL. A build-time **`/entries.json`**
+  carries every entry and every non-prose field.
+- **Print an entry or a comparison as a decision brief** — a print stylesheet
+  drops the chrome, spells out link URLs, keeps the table header across pages
+  and stamps where and when it was printed.
+- **"Ask in the open"** beside an entry's contact email opens a GitHub
+  Discussion so the answer helps the next reader (`contact.ask_in_open`;
+  needs Discussions with a Q&A category). The contact `mailto:` now arrives
+  with a subject and a first line naming the entry and its URL.
+- **Vocabulary-aware search**: typing a word the catalog spells differently
+  ("chatbot" for "Chat assistant") offers the filter itself as the first
+  suggestion, with its field and count, and the same tags as "Did you mean"
+  chips when nothing matches. `_data/search.yml` holds query synonyms,
+  per-option aliases and the bounds on the generated browse pages
+  (`docs/search.md`).
+- **Facet landing pages** at `/catalog/<field>/<value>/` — a real, crawlable
+  page for every tag in use, with title, description, canonical and sitemap
+  entry — and an **A–Z directory** at `/catalog/a-z/` that needs no JavaScript.
+- **Responsive image derivatives**: `npm run images` writes AVIF and WebP
+  copies of every screenshot at 400/800/1280 px, `_includes/picture.html`
+  serves them through `<picture>` (falling back to the original wherever no
+  derivative exists), and the submission and media workflows generate and
+  commit them (`docs/images.md`). `check_file_sizes.rb` warns above 2 MB for
+  images.
+- **Apply setup issue form**: the `/setup/` wizard's output can be applied
+  without a terminal — paste the three YAML files into "Apply setup (creates
+  PR)" and a workflow re-renders the full configuration and opens a pull
+  request (maintainers only).
+- **Demo mode**: `demo: true` in `_data/site.yml` puts a banner on every page
+  saying the content is sample data; `npm run eject:samples` removes the
+  samples and turns it off (`npm run setup` offers the same step).
+- **Upgrade path for forks**: `.gitattributes` marks the files a fork owns
+  `merge=ours`, `npm run upgrade:check` previews an incoming release as "what
+  you take / what you keep", and `docs/upgrading.md` carries the recipe.
+- **File and image fields upload from the issue form** — GitHub's native
+  upload control replaces the "commit it after the PR" step.
+- Cross-document **view transitions** between catalog and entry, plus
+  speculation rules that start loading an entry after ~200 ms of hover; both
+  inert where unsupported and off under `prefers-reduced-motion`. **Web Share**
+  on entry pages where the browser supports it.
+- Semantic radius and motion utilities driven by `_data/theme.yml`
+  (`rounded-hairline/control/card/sheet/pill`, `duration-fast/base/slow`,
+  `ease-brand`, an optional `motion:` block).
+- `npm run test:flows` — keyboard-only walkthroughs of the catalog, search,
+  submission and setup journeys in a real browser (focus order, visible focus,
+  live-region announcements, no dead ends), run as a third lane in
+  `quality.yml`. `npm run fonts` rebuilds the font subsets from upstream.
+- **Validate Content** now checks that every screenshot has up-to-date
+  derivatives (`npm run images -- --check`), so a hand-added image cannot merge
+  without them.
+- New docs: `search.md`, `compare.md`, `images.md`, `upgrading.md`.
+
+### Changed
+
+- The mobile filter sheet is a native `<dialog>`: focus trap, ESC, `inert` and
+  focus restoration are the platform's rather than 137 lines of script. The
+  catalog search box is a `<search>` landmark with a `type="search"` input.
+- Badge tones are a `data-tone` attribute instead of a composed class name and
+  `tailwind.config.js` no longer needs a safelist; an unrecognised tone renders
+  a neutral pill instead of unstyled text.
+- Fonts are two variable woff2 subsets instead of seven static cuts, with
+  metric-matched fallback faces: 2 requests / 104.5 KiB where a page took
+  5 / 157.3 KiB, and no reflow on swap.
+- Card and gallery images carry `width`/`height`; the thumbnail workflow is
+  now "Generate entry media", also triggers on images and re-dispatches both
+  Validate and Quality after it pushes.
+- Pull requests opened by the content bots are labelled with their
+  `content:*` label.
+- The setup wizard's Branding step is three steps — Basics, Look and Words —
+  and answers saved by an earlier version resume on the right step.
+- `organization` moved to weight 8, so sharing an organization no longer makes
+  two entries strongly related.
+- The zero-result panel says which query found nothing; the admin guide's
+  description of dispatched checks matches what the PR checks box shows.
+
+### Fixed
+
+- The catalog-index test no longer asserts a ranking against the live sample
+  catalog, so adding an entry cannot fail CI (it did, on a real submission).
+- The setup wizard's Review step no longer scrolls sideways at 390 px, and an
+  invalid field is marked the moment its error summary appears.
+- The Atom feed falls back to `site.github.url` for absolute ids and warns
+  once at build time when no `url` is set.
+- `check_front_matter.rb` validates `verified` and warns when a `file` field
+  points at a path not yet in the repository.
+- Slugs spell out the letters NFKD leaves whole — "Straße" is `strasse`, "Łódź"
+  is `lodz`, "Ærø" is `aero` — on both the JS and Ruby side, instead of dropping
+  them.
+- `quality.yml` uploads its reports with `actions/upload-artifact` v7 (Node 24;
+  the v5 pin was logging a deprecation notice on every run).
+
 ## [1.2.0] — 2026-08-17
 
 The first "contributor panel" release: twelve simulated world-class
@@ -291,7 +415,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/crypticpy/bchc-template/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/crypticpy/bchc-template/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/crypticpy/bchc-template/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/crypticpy/bchc-template/compare/38365a5...v1.0.0

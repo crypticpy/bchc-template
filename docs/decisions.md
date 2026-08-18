@@ -87,3 +87,40 @@ A panel (design principal · civic digital-service UX/a11y lead · staff front-e
 non-technical program manager · technical writer) reviews at fixed checkpoints, and we iterate
 until no P1 or P2 findings remain. Automated gates catch regressions; the panel catches the things
 that are working as coded and wrong for the reader.
+
+## 2026-08-17 — "What it took" is asked of everyone and required of no one
+
+The `cost` group (stand-up cost, running cost, procurement route, approvals, who it affects) is
+the set of questions a peer needs answered before they can copy a project, so every preset that
+describes projects asks them. None is required: a blank answer is more honest than a guessed
+band, and the group's option lists are a draft for the site owner to rewrite in their own
+vocabulary. `organization` dropped to weight 8 at the same time — sharing an organization is not
+a reason for two entries to be strongly related.
+
+## 2026-08-17 — Verification is a date, not a badge
+
+Staleness is derived: `verified` is a plain date in front matter, `catalog.verify_after_days`
+turns it into "not confirmed since", and the sweep workflow files one rolling issue a month for
+what is due. There is no "verified ✓" badge because a badge that is never revoked is worse than
+none; the notice is quiet on purpose and the entry stays in the catalog and in search.
+
+## 2026-08-17 — Questions go to Discussions, not issues
+
+"Ask in the open" opens a GitHub Discussion (Q&A category), not an issue: issues are the
+submission pipeline and every open one is a bot's to-do; a Discussion is a place where the
+answer helps the next reader too. The composed `mailto:` stays for people who prefer a private
+question. Sites without Discussions set `contact.ask_in_open: false` and lose only the button.
+
+## 2026-08-17 — Forks upgrade with a merge driver, not a sync bot
+
+The upgrade path is `.gitattributes` `merge=ours` on the files a fork owns plus
+`npm run upgrade:check` and `docs/upgrading.md`. A scheduled sync workflow that opens PRs against
+every fork was considered and deferred: it needs a token with write access to the fork, and the
+merge driver already makes `git merge upstream/main` safe for the files that matter.
+
+## 2026-08-17 — Saved constraints overlay is deferred
+
+Letting a reader save "my constraints" (budget band, no PHI, on-prem only) and shading the
+catalog by fit was proposed and deferred rather than declined: compare + printable brief covers
+the immediate need, and the overlay is worth building only once real catalogs answer the cost
+questions consistently enough for the shading to mean something.
