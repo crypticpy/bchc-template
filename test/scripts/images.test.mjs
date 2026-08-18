@@ -5,6 +5,7 @@ import {
   assertPublicHost,
   downloadImages,
   extensionForContentType,
+  ipv6Groups,
   isBlockedAddress,
   sniffImageType,
 } from '../../scripts/lib/images.mjs';
@@ -179,6 +180,68 @@ test('isBlockedAddress covers loopback, link-local, private and multicast space'
   ['93.184.216.34', '8.8.8.8', '172.32.0.1', '2606:2800:220:1:248:1893:25c8:1946'].forEach((address) =>
     assert.equal(isBlockedAddress(address), false, address)
   );
+});
+
+test('isBlockedAddress judges IPv6 numerically, not by its spelling', () => {
+  // The URL parser rewrites `[::ffff:169.254.169.254]` to `[::ffff:a9fe:a9fe]`
+  // before a hostname reaches the guard, so every spelling of a mapped,
+  // compatible or NAT64 address must be caught — and public space left alone.
+  [
+    '::ffff:a9fe:a9fe', // 169.254.169.254 mapped, hex spelling
+    '::ffff:7f00:1', //    127.0.0.1
+    '::ffff:a00:5', //     10.0.0.5
+    '0:0:0:0:0:ffff:169.254.169.254',
+    '::169.254.169.254', // IPv4-compatible
+    '::a9fe:a9fe',
+    '64:ff9b::a9fe:a9fe', // NAT64
+    '64:ff9b::169.254.169.254',
+    '0:0:0:0:0:0:0:1',
+    'FE80::1',
+    'fe80::1%en0',
+    'febf::1',
+    'fdff:ffff::1',
+    'ff05::2',
+    '2001:db8::1',
+  ].forEach((address) => assert.equal(isBlockedAddress(address), true, address));
+
+  [
+    '::ffff:5db8:d822', // 93.184.216.34 mapped
+    '::ffff:93.184.216.34',
+    '64:ff9b::5db8:d822',
+    '2606:4700::6810:84e5',
+    'fec0::1', // site-local is deprecated, not link-local
+    'fb00::1',
+  ].forEach((address) => assert.equal(isBlockedAddress(address), false, address));
+
+  assert.deepEqual(ipv6Groups('::ffff:169.254.169.254'), [0, 0, 0, 0, 0, 0xffff, 0xa9fe, 0xa9fe]);
+  assert.deepEqual(ipv6Groups('1:2:3:4:5:6:7:8'), [1, 2, 3, 4, 5, 6, 7, 8]);
+  assert.equal(ipv6Groups('1:2:3'), null);
+  assert.equal(ipv6Groups('example.org'), null);
+});
+
+test('assertPublicHost refuses every hostile IPv6 literal the URL parser can produce', async () => {
+  const never = {
+    lookup: async () => {
+      throw new Error('DNS should not be consulted');
+    },
+  };
+  for (const host of [
+    '[::ffff:169.254.169.254]',
+    '[::ffff:a9fe:a9fe]',
+    '[::ffff:127.0.0.1]',
+    '[::ffff:10.0.0.5]',
+    '[0:0:0:0:0:ffff:192.168.1.1]',
+    '[64:ff9b::a9fe:a9fe]',
+    '[::169.254.169.254]',
+    '[fe80::1]',
+    '[fd00::1]',
+    '[ff02::1]',
+    '[::]',
+  ]) {
+    await assert.rejects(assertPublicHost(`http://${host}/x.png`, never), /private or reserved/, host);
+  }
+  await assert.doesNotReject(assertPublicHost('http://[2606:4700::6810:84e5]/x.png', never));
+  await assert.doesNotReject(assertPublicHost('http://[::ffff:93.184.216.34]/x.png', never));
 });
 
 test('assertPublicHost refuses private hostnames, private DNS answers and IP literals', async () => {

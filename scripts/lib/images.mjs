@@ -77,15 +77,51 @@ export function isBlockedAddress(address) {
   }
   if (version !== 6) return true; // not an IP at all — caller must resolve first
 
-  // IPv4-mapped / IPv4-compatible forms reuse the IPv4 rules.
-  const mapped = /^::(?:ffff:)?(\d+\.\d+\.\d+\.\d+)$/.exec(value);
-  if (mapped) return isBlockedAddress(mapped[1]);
-
-  if (value === '::' || value === '::1') return true; //  unspecified, loopback
-  if (/^fe[89ab]/.test(value)) return true; //            fe80::/10 link-local
-  if (/^f[cd]/.test(value)) return true; //               fc00::/7 unique-local
-  if (/^ff/.test(value)) return true; //                  ff00::/8 multicast
+  // Decide on the numeric groups, never on the text: the WHATWG URL parser
+  // rewrites `[::ffff:169.254.169.254]` to `[::ffff:a9fe:a9fe]` before a
+  // hostname reaches this function, so a dotted-quad regex sees nothing.
+  const g = ipv6Groups(value);
+  if (!g) return true;
+  const v4 = (hi, lo) => `${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`;
+  // ::ffff:0:0/96 (IPv4-mapped), ::/96 (IPv4-compatible, incl. :: and ::1) and
+  // 64:ff9b::/96 (NAT64) all deliver to an IPv4 destination — judge them by the
+  // IPv4 rules above.
+  if (g[0] === 0 && g[1] === 0 && g[2] === 0 && g[3] === 0 && g[4] === 0 && (g[5] === 0xffff || g[5] === 0)) {
+    return isBlockedAddress(v4(g[6], g[7]));
+  }
+  if (g[0] === 0x0064 && g[1] === 0xff9b && g[2] === 0 && g[3] === 0 && g[4] === 0 && g[5] === 0) {
+    return isBlockedAddress(v4(g[6], g[7]));
+  }
+  if ((g[0] & 0xffc0) === 0xfe80) return true; // fe80::/10 link-local
+  if ((g[0] & 0xfe00) === 0xfc00) return true; // fc00::/7  unique-local
+  if ((g[0] & 0xff00) === 0xff00) return true; // ff00::/8  multicast
+  if (g[0] === 0x2001 && g[1] === 0x0db8) return true; // 2001:db8::/32 documentation
   return false;
+}
+
+/**
+ * Expand an IPv6 literal (any textual form net.isIP accepts) into its eight
+ * 16-bit groups. Returns null when the text is not an IPv6 address.
+ * @param {string} value
+ * @returns {number[]|null}
+ */
+export function ipv6Groups(value) {
+  if (net.isIP(value) !== 6) return null;
+  let text = value.replace(/%.*$/, ''); // drop a zone id (fe80::1%eth0)
+  // A trailing dotted quad (::ffff:1.2.3.4) is the last two groups in decimal.
+  const dotted = /:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(text);
+  if (dotted) {
+    const [a, b, c, d] = dotted[1].split('.').map(Number);
+    text = `${text.slice(0, dotted.index + 1)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
+  }
+  const [head, tail] = text.split('::');
+  const left = head ? head.split(':') : [];
+  const right = tail === undefined ? [] : tail ? tail.split(':') : [];
+  if (tail === undefined && left.length !== 8) return null;
+  const fill = 8 - left.length - right.length;
+  if (fill < 0) return null;
+  const groups = [...left, ...Array(fill).fill('0'), ...right].map((x) => parseInt(x, 16));
+  return groups.every((n) => Number.isInteger(n) && n >= 0 && n <= 0xffff) ? groups : null;
 }
 
 /**

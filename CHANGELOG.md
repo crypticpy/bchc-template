@@ -8,6 +8,10 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Security:** the image fetcher's SSRF guard now judges IPv6 literals numerically. IPv4-mapped (`[::ffff:169.254.169.254]`), IPv4-compatible and NAT64 (`64:ff9b::/96`) literals are decoded and checked with the IPv4 rules, so a hex spelling produced by the URL parser (`[::ffff:a9fe:a9fe]`) can no longer reach loopback, link-local or private space; `fe80::/10`, `fc00::/7`, `ff00::/8` and `2001:db8::/32` are matched by mask rather than by text prefix.
+
 ## [1.1.0] — 2026-08-17
 
 Closes the four P3 findings the v1.0.0 panel left open, and settles the
