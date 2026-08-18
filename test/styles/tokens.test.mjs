@@ -115,3 +115,39 @@ test('_includes/theme.html emits every token the config asks for', () => {
     assert.match(template, new RegExp(`${token}:`), `_includes/theme.html never emits ${token}`);
   }
 });
+
+test('the card title is one fluid ramp, not a step at 340px', () => {
+  // tailwind-css P5.3: the title used to jump 16px -> 18px the moment a card crossed
+  // 340px, which is visible when the filter rail closes. A clamp on cqi replaces both
+  // steps, so nothing inside a @container block may set .entry-title's font-size again.
+  const fluid = [];
+  const stepped = [];
+  root.walkRules((rule) => {
+    if (!rule.selectors.some((s) => s.trim() === '.entry-title')) return;
+    rule.walkDecls('font-size', (decl) => {
+      const inContainer = rule.parent && rule.parent.type === 'atrule' && rule.parent.name === 'container';
+      (inContainer ? stepped : fluid).push(decl.value);
+    });
+  });
+  assert.ok(
+    fluid.some((v) => /clamp\(/.test(v) && /cqi/.test(v)),
+    '.entry-title no longer sizes itself from the card with a clamp on cqi'
+  );
+  assert.deepEqual(stepped, [], 'a @container step is setting .entry-title font-size again');
+});
+
+test('the mobile sheet\u2019s Clear button has a disabled resting state', () => {
+  // filters.js disables that one button rather than hiding it (the footer is a fixed
+  // two-button row), so it needs a look that reads as unavailable. Without this rule
+  // a disabled Clear is indistinguishable from a live one.
+  assert.ok(
+    selectors.has('.filter-sheet-foot .btn-secondary:disabled'),
+    'the disabled style for the sheet footer\u2019s Clear button was purged or renamed'
+  );
+  const markup = readFileSync(join(repo, '_includes/filter-sheet.html'), 'utf8');
+  assert.match(
+    markup,
+    /data-filter-clear data-filter-clear-persist/,
+    'the sheet\u2019s Clear button lost data-filter-clear-persist, so filters.js will hide it again'
+  );
+});
