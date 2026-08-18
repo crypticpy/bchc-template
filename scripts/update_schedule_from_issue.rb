@@ -19,6 +19,7 @@ require "date"
 require "time"
 
 require_relative "lib/issue_form"
+require_relative "lib/slugify"
 
 # The headings the "Update a cohort schedule" issue form emits, in template
 # order. Only these start a section, the first occurrence of each wins, and
@@ -36,12 +37,12 @@ if issue_body.strip.empty?
   exit 1
 end
 
-# Turns free text into a URL/id-safe slug (lowercase, hyphen-separated).
-# Used as the event id when the maintainer didn't supply one.
+# Turns free text into a URL/id-safe slug, used as the event id when the
+# maintainer didn't supply one. Shared with the JS side (see lib/slugify.rb).
 # @param value [String]
 # @return [String]
 def slugify(value)
-  value.to_s.strip.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "")
+  CatalogTemplate::Slugify.call(value)
 end
 
 values = IssueForm.sections(issue_body, FORM_HEADINGS, FINAL_HEADING)

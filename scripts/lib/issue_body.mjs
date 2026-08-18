@@ -270,16 +270,26 @@ export function parseImageRefs(raw) {
   return [...found.values()];
 }
 
+// One slug rule, three call sites. The configurator's implementation is the
+// canonical one — /submit/ shows the submitter the slug it produces, so the
+// scaffolder that names the folder has to agree with it, or "Köln
+// Gesundheitsamt" is previewed as `koln-…` and published as `k-ln-…`.
+// scripts/lib/slugify.rb is the Ruby port; test/scripts/slugify_parity.test.mjs
+// runs both over one fixture list.
+export { slugify } from '../../assets/js/configurator/strings.js';
+
 /**
- * Turn a title into a URL slug.
- * @param {string} input
+ * Slug for a title that has nothing left after normalizing — a title written
+ * entirely in a non-Latin script, or only in emoji. Deterministic on purpose:
+ * a re-run of the same issue has to produce the same folder.
+ *
+ * Only the URL is affected; the title itself lives in the front matter.
+ * @param {string|number} issueNumber
  * @returns {string}
  */
-export function slugify(input) {
-  return String(input ?? '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+export function slugFallback(issueNumber) {
+  const suffix = String(issueNumber ?? '').trim();
+  return `entry-${/^\d+$/.test(suffix) ? suffix : Date.now().toString(36)}`;
 }
 
 /**

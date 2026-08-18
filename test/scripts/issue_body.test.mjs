@@ -17,6 +17,7 @@ import {
   parseMultiselect,
   parseSections,
   rawValue,
+  slugFallback,
   slugify,
   uniqueSlug,
 } from '../../scripts/lib/issue_body.mjs';
@@ -142,6 +143,50 @@ test('parseMultiselect reads comma lists, ticked checkboxes and ignores unticked
   ]);
 });
 
+test('parseMultiselect reads a `dropdown` with `multiple: true`', () => {
+  // GitHub renders a multi-select dropdown as ONE comma-joined line under the
+  // heading, with no list markers — a different shape from `checkboxes`, and the
+  // one the issue form emits once a multiselect is a dropdown. Two of the
+  // shipped schema's options contain a comma themselves, which is why options
+  // are matched longest-first instead of splitting on `,`.
+  const options = [
+    'Finance, procurement & contracts',
+    'Communications & outreach',
+    'Internal, non-public data',
+  ];
+  const body = [
+    '### Which areas of work does it apply to?',
+    '',
+    'Finance, procurement & contracts, Communications & outreach',
+    '',
+    '### What kind of data does it touch?',
+    '',
+    'Internal, non-public data',
+  ].join('\n');
+  const sections = parseSections(body, [
+    'Which areas of work does it apply to?',
+    'What kind of data does it touch?',
+  ]);
+
+  assert.deepEqual(parseMultiselect(sections.get('which areas of work does it apply to?'), options), [
+    'Finance, procurement & contracts',
+    'Communications & outreach',
+  ]);
+  assert.deepEqual(parseMultiselect(sections.get('what kind of data does it touch?'), options), [
+    'Internal, non-public data',
+  ]);
+
+  // The same options as checkboxes must still parse, so a schema can move
+  // between the two renderings without the scaffolder noticing.
+  assert.deepEqual(
+    parseMultiselect(
+      '- [x] Finance, procurement & contracts\n- [ ] Communications & outreach\n- [x] Internal, non-public data',
+      options
+    ),
+    ['Finance, procurement & contracts', 'Internal, non-public data']
+  );
+});
+
 test('parseMultiselect drops every unticked checkbox line', () => {
   // A GitHub `checkboxes` control renders EVERY option, ticked or not.
   const options = ['Alpha', 'Beta', 'Gamma'];
@@ -205,6 +250,11 @@ test('parseImageRefs reads markdown, html, "url | alt" and bare URLs', () => {
 test('slugify and uniqueSlug', () => {
   assert.equal(slugify('Overdose Spike: Brief Generator!'), 'overdose-spike-brief-generator');
   assert.equal(slugify(''), '');
+  // Folded, not dropped: the folder this names is the entry's URL for ever, and
+  // /submit/ has already shown the submitter this same answer.
+  assert.equal(slugify('Köln Gesundheitsamt'), 'koln-gesundheitsamt');
+  assert.equal(slugify('Ciudad de México — Salud'), 'ciudad-de-mexico-salud');
+  assert.equal(slugify('Ñandú'), 'nandu');
   const taken = new Set(['brief', 'brief-2']);
   assert.equal(
     uniqueSlug('brief', (s) => taken.has(s)),
@@ -218,6 +268,16 @@ test('slugify and uniqueSlug', () => {
     uniqueSlug('brief', () => true, 3),
     ''
   );
+});
+
+test('slugFallback names a folder for a title with no Latin characters at all', () => {
+  assert.equal(slugify('京都市'), '');
+  assert.equal(slugFallback(77), 'entry-77');
+  assert.equal(slugFallback('77'), 'entry-77');
+  // Re-running the same submission has to land on the same folder.
+  assert.equal(slugFallback(77), slugFallback(77));
+  // No issue number (a local run): still a legal slug, just not a stable one.
+  assert.match(slugFallback(''), /^entry-[a-z0-9]+$/);
 });
 
 test('isHttpUrl and hostOf', () => {

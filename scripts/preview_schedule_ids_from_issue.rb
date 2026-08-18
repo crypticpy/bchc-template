@@ -15,6 +15,7 @@ require "yaml"
 require "date"
 
 require_relative "lib/issue_form"
+require_relative "lib/slugify"
 
 # Must stay in step with update_schedule_from_issue.rb: the preview is only
 # useful if both scripts read the same answers out of the same body.
@@ -23,11 +24,12 @@ FINAL_HEADING = "Notes for reviewers"
 
 issue_body = ENV["ISSUE_BODY"].to_s.gsub("\r\n", "\n")
 
-# Turns free text into a URL/id-safe slug (lowercase, hyphen-separated).
+# Turns free text into a URL/id-safe slug. Shared with the JS side so the id
+# previewed here is the id update_schedule_from_issue.rb writes.
 # @param value [String]
 # @return [String]
 def slugify(value)
-  value.to_s.strip.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "")
+  CatalogTemplate::Slugify.call(value)
 end
 
 values = IssueForm.sections(issue_body, FORM_HEADINGS, FINAL_HEADING)

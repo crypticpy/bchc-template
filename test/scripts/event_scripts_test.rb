@@ -294,7 +294,9 @@ class CohortScriptsTest < Minitest::Test
       %w[update_schedule_from_issue.rb preview_schedule_ids_from_issue.rb].each do |script|
         FileUtils.cp(File.join(ROOT, "scripts", script), File.join(dir, "scripts"))
       end
-      FileUtils.cp(File.join(ROOT, "scripts", "lib", "issue_form.rb"), File.join(dir, "scripts", "lib"))
+      # Whole lib, not a named list: the scripts require from it and a new
+      # shared file must not fail here as a missing require.
+      FileUtils.cp(Dir[File.join(ROOT, "scripts", "lib", "*.rb")], File.join(dir, "scripts", "lib"))
       File.write(File.join(dir, "_data", "cohorts", "2999.yml"), "year: 2999\nevents: []\n")
 
       output = File.join(dir, "output.txt")
