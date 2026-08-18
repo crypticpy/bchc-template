@@ -116,7 +116,7 @@ export function answersFromConfig(config) {
     submitFallbackEmail: site.submit?.fallback_email ?? '',
     footerAbout: site.footer?.about ?? '',
     copyright: site.footer?.copyright ?? '',
-    headingFont: theme.fonts?.heading ?? 'Source Sans 3',
+    headingFont: theme.fonts?.heading ?? 'Source Serif 4',
     bodyFont: theme.fonts?.body ?? 'Inter',
     googleFontsUrl: theme.fonts?.google_fonts_url ?? '',
     radius: theme.radius ?? 'soft',

@@ -10,6 +10,9 @@
   .btn-secondary { @apply btn border border-brand-line-strong bg-surface-card text-brand-primary hover:border-brand-primary hover:bg-brand-primary/5 focus-visible:ring-brand-primary; }
   .btn-ghost { @apply btn text-brand-primary hover:bg-brand-primary/5 focus-visible:ring-brand-primary; }
   .btn-on-dark { @apply btn border border-brand-on-dark/50 text-brand-on-dark hover:border-brand-on-dark hover:bg-white/10 focus-visible:ring-white focus-visible:ring-offset-brand-primary-dark; }
+  /* The one solid button on a dark ground: the hero's primary action. Everything
+     else there is a ghost, so the eye has one place to land. */
+  .btn-on-dark-solid { @apply btn bg-white text-brand-primary-dark hover:bg-brand-on-dark focus-visible:ring-white focus-visible:ring-offset-brand-primary-dark; }
   .btn-sm { @apply min-h-[36px] px-4 py-1.5 text-xs sm:min-h-[32px]; }
   /* Icon-only control (44px target under lg, 36 above). Always give it aria-label. */
   .icon-btn { @apply inline-flex h-11 w-11 items-center justify-center rounded-pill text-brand-muted transition-colors duration-fast hover:bg-brand-ink/5 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card lg:h-9 lg:w-9; }

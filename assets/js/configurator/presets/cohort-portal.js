@@ -39,17 +39,14 @@ export const cohortPortal = {
       recent_count: 6,
       highlights: [
         {
-          eyebrow: 'Learn by doing',
           title: 'Real questions, real data',
           body: 'Every team picks a question that matters to their own area of work and works it end to end with coaching.',
         },
         {
-          eyebrow: 'Reusable work',
           title: 'Methods and code you can borrow',
           body: 'Projects document their data sources and methods so the next cohort can start from what already works.',
         },
         {
-          eyebrow: 'Cohort by cohort',
           title: 'A growing body of practice',
           body: 'Filter by cohort year, area of work or track to see how the program has grown.',
         },

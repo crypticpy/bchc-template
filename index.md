@@ -76,34 +76,34 @@ leads with; remaining facets fill in only if fewer than four qualify.
 {%- if cfg.modules.catalog and hero_latest_count > 0 -%}{%- assign hero_latest = entries | slice: 0, hero_latest_count -%}{%- endif -%}
 {%- assign hero_meta_field = schema.fields | card_fields: 'meta' | first -%}
 
-<section class="bg-brand-primary-dark text-brand-on-dark">
-  <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-16 lg:px-8 lg:py-20">
+<section class="hero">
+  <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-16 lg:px-8 lg:py-24">
     <div class="max-w-prose">
-      {% if cfg.hero.eyebrow %}<p class="eyebrow !text-brand-on-dark/80">{{ cfg.hero.eyebrow }}</p>{% endif %}
-      <h1 class="mt-3 font-heading text-[40px] font-semibold leading-[44px] tracking-[-0.02em] text-white">{{ cfg.hero.title | default: cfg.name }}</h1>
-      {% if cfg.hero.lead %}<p class="mt-4 text-lg leading-7 text-brand-on-dark/90">{{ cfg.hero.lead }}</p>{% endif %}
+      {% if cfg.hero.eyebrow %}<p class="eyebrow-on-dark">{{ cfg.hero.eyebrow }}</p>{% endif %}
+      <h1 class="hero-title mt-4">{{ cfg.hero.title | default: cfg.name }}</h1>
+      {% if cfg.hero.lead %}<p class="mt-5 text-lg leading-7 text-brand-on-dark/90">{{ cfg.hero.lead }}</p>{% endif %}
 
       {% if cfg.modules.catalog %}
-      <form class="mt-6 flex flex-col gap-3 sm:flex-row" action="{{ catalog_url | relative_url }}" method="get" role="search">
-        <div class="relative flex-1">
-          <label class="sr-only" for="home-search">Search {{ plural | downcase }}</label>
-          <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-brand-muted">{% include icon.html name='search' size='sm' %}</span>
-          <input class="h-12 w-full rounded-full border border-brand-line bg-surface-card pl-11 pr-4 text-base text-brand-ink placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-white/40" id="home-search" type="search" name="q" placeholder="Search {{ plural | downcase }}…" autocomplete="off">
-        </div>
-        <button class="btn-primary !bg-white !text-brand-primary-dark hover:!bg-brand-on-dark" type="submit">Search</button>
+      {%- comment -%} One pill, not two: the Search button sits inside the field's right end
+      so the form reads as a single control and the hero keeps one solid CTA below it. {%- endcomment -%}
+      <form class="hero-search mt-6" action="{{ catalog_url | relative_url }}" method="get" role="search">
+        <label class="sr-only" for="home-search">Search {{ plural | downcase }}</label>
+        <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-brand-muted">{% include icon.html name='search' size='sm' %}</span>
+        <input class="hero-search-input" id="home-search" type="search" name="q" placeholder="Search {{ plural | downcase }}…" autocomplete="off">
+        <button class="hero-search-btn" type="submit">Search</button>
       </form>
       {% endif %}
 
-      <div class="mt-5 flex flex-wrap gap-3">
+      <div class="mt-6 flex flex-wrap gap-3">
         {%- comment -%} A CTA with `module:` only renders while that module is on (same key navigation items use). {%- endcomment -%}
         {% assign hero_pri = cfg.hero.primary_cta %}{% assign hero_pri_on = true %}{% if hero_pri.module %}{% assign hero_pri_on = cfg.modules[hero_pri.module] %}{% endif %}
-        {% if hero_pri.label and hero_pri_on %}<a class="btn-on-dark" href="{{ hero_pri.url | relative_url }}">{{ hero_pri.label }} {% include icon.html name='arrow-right' size='sm' %}</a>{% endif %}
+        {% if hero_pri.label and hero_pri_on %}<a class="btn-on-dark-solid" href="{{ hero_pri.url | relative_url }}">{{ hero_pri.label }} {% include icon.html name='arrow-right' size='sm' %}</a>{% endif %}
         {% assign hero_sec = cfg.hero.secondary_cta %}{% assign hero_sec_on = true %}{% if hero_sec.module %}{% assign hero_sec_on = cfg.modules[hero_sec.module] %}{% endif %}
         {% if hero_sec.label and hero_sec_on %}<a class="btn-on-dark" href="{{ hero_sec.url | relative_url }}">{{ hero_sec.label }}</a>{% endif %}
       </div>
 
       {% if cfg.modules.stats and total > 0 %}
-      <p class="mt-8 text-sm text-brand-on-dark/80">
+      <p class="mt-10 text-sm text-brand-on-dark/80">
         <span class="font-semibold text-white tabular">{{ total }}</span> {{ plural | downcase }}
         {% if meta_field and meta_count > 0 %}<span class="hero-stat"><span class="font-semibold text-white tabular">{{ meta_count }}</span> {{ meta_label }}</span>{% endif %}
         {% if url_field and url_count > 0 %}<span class="hero-stat"><span class="font-semibold text-white tabular">{{ url_count }}</span> with {{ url_field.label | downcase }}</span>{% endif %}
@@ -113,7 +113,7 @@ leads with; remaining facets fill in only if fewer than four qualify.
 
     {%- if hero_latest.size > 0 %}
     <aside class="hero-latest hidden lg:block" aria-labelledby="hero-latest-heading">
-      <p class="eyebrow !text-brand-on-dark/80" id="hero-latest-heading">Latest additions</p>
+      <p class="eyebrow-on-dark" id="hero-latest-heading">Latest additions</p>
       <ul role="list" class="mt-3 divide-y divide-white/10">
         {%- for hl in hero_latest %}
         {%- assign hl_meta = '' -%}
@@ -132,30 +132,41 @@ leads with; remaining facets fill in only if fewer than four qualify.
   </div>
 </section>
 
-<div class="mx-auto w-full max-w-7xl space-y-16 px-4 py-14 sm:px-6 lg:px-8">
-
-  {% if cfg.modules.catalog and browse_fields.size > 0 %}
-  <section aria-labelledby="browse-heading">
-    <h2 id="browse-heading" class="section-title">Browse by</h2>
-    <div class="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+{% if cfg.modules.catalog and browse_fields.size > 0 %}
+{%- comment -%} A tinted band straight under the hero: the tiles are white cards on it, so
+the eye reads "here is how the collection is organised" before the first entry. {%- endcomment -%}
+<section class="band" aria-labelledby="browse-heading">
+  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="section-head">
+      <p class="eyebrow">Browse by</p>
+      <h2 id="browse-heading" class="section-title">Find {{ plural | downcase }} the way you think about them</h2>
+    </div>
+    <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {% for bf in browse_fields %}
         {% assign bkey = bf.key | replace: '_', '-' %}
-        <div class="card p-5">
-          <h3 class="flex items-center gap-2 text-sm font-semibold text-brand-primary-dark">{% include icon.html name=bf.icon size='sm' class='text-brand-muted' %}{{ bf.label }}</h3>
+        {%- comment -%} flex-col + mt-auto on the terminal link: tiles hold 5 or 6 options, and
+        the "open the catalog" line sits on the same baseline across the row either way. The
+        option labels are ink, not link-blue — a column of 22 blue lines reads as a link
+        farm; the row hit area and the hover wash carry the affordance, and only the terminal
+        link keeps `primary`. The icon gutter is reserved even for fields without option
+        icons so labels start at the same x in every tile. {%- endcomment -%}
+        <div class="card flex flex-col p-5">
+          <h3 class="flex items-center gap-2 font-heading text-base font-semibold text-brand-primary-dark">{% include icon.html name=bf.icon size='sm' class='text-brand-primary' %}{{ bf.label }}</h3>
           <ul role="list" class="mt-3 space-y-1">
             {% for opt in bf.options limit: 6 %}
               {% assign om = bf | option_meta: opt %}{% assign own = bf.option_meta[opt] %}
-              <li><a class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-brand-primary transition-colors duration-120 ease-brand hover:bg-brand-primary/5 hover:underline" href="{{ catalog_url | relative_url }}?{{ bkey }}={{ opt | slugify }}" title="{{ opt | escape }}">{% if own.icon %}{% include icon.html name=own.icon size='xs' class='text-brand-muted' %}{% endif %}{{ om.short }}</a></li>
+              <li><a class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-brand-ink transition-colors duration-120 ease-brand hover:bg-brand-primary/5 hover:text-brand-primary" href="{{ catalog_url | relative_url }}?{{ bkey }}={{ opt | slugify }}" title="{{ opt | escape }}"><span class="inline-flex w-4 shrink-0 justify-center text-brand-muted" aria-hidden="true">{% if own.icon %}{% include icon.html name=own.icon size='xs' %}{% endif %}</span>{{ om.short }}</a></li>
             {% endfor %}
           </ul>
-          {%- comment -%} Always present so the tiles line up; the label says
-          whether the list above is complete. {%- endcomment -%}
-          <a class="mt-2 inline-block px-2 text-xs font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">{% if bf.options.size > 6 %}All {{ bf.options.size }} options{% else %}Open the catalog{% endif %}</a>
+          <a class="mt-auto inline-block px-2 pt-3 text-xs font-semibold text-brand-primary hover:underline" href="{{ catalog_url | relative_url }}">{% if bf.options.size > 6 %}All {{ bf.options.size }} options{% else %}Open the catalog{% endif %}</a>
         </div>
       {% endfor %}
     </div>
-  </section>
-  {% endif %}
+  </div>
+</section>
+{% endif %}
+
+<div class="mx-auto w-full max-w-7xl space-y-20 px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
 
   {% if home_has_carousel %}
   <section aria-labelledby="featured-heading" data-carousel>
@@ -228,12 +239,11 @@ leads with; remaining facets fill in only if fewer than four qualify.
 
   {% if cfg.home.highlights and cfg.home.highlights.size > 0 %}
   <section aria-label="About this catalog">
-    <div class="grid gap-6 md:grid-cols-3">
+    <div class="value-props">
       {% for h in cfg.home.highlights %}
-        <div class="card p-6">
-          <p class="eyebrow">{{ h.eyebrow }}</p>
-          <h2 class="mt-3 font-heading text-xl font-semibold text-brand-primary-dark">{{ h.title }}</h2>
-          <p class="mt-2 text-sm leading-6 text-brand-muted">{{ h.body }}</p>
+        <div>
+          <h2 class="value-prop-title">{{ h.title }}</h2>
+          <p class="value-prop-body">{{ h.body }}</p>
         </div>
       {% endfor %}
     </div>
@@ -241,10 +251,10 @@ leads with; remaining facets fill in only if fewer than four qualify.
   {% endif %}
 
   {% if cfg.modules.submit %}
-  <section class="card flex flex-col gap-4 p-8 md:flex-row md:items-center md:justify-between">
+  <section class="cta-panel flex flex-col gap-6 p-8 md:flex-row md:items-center md:justify-between md:p-10">
     <div class="max-w-prose">
-      <h2 class="font-heading text-2xl font-semibold text-brand-primary-dark">Have {{ singular | downcase | with_article }} to share?</h2>
-      <p class="mt-2 text-sm leading-6 text-brand-muted">Fill out a short form. Maintainers review every submission before it goes live.</p>
+      <h2 class="section-title">Share {{ singular | downcase | with_article }}</h2>
+      <p class="mt-3 text-base leading-6 text-brand-muted">Fill out a short form. Maintainers review every submission before it goes live.</p>
     </div>
     <a class="btn-primary shrink-0" href="{{ '/submit/' | relative_url }}">Submit {{ singular | downcase | with_article }} {% include icon.html name='arrow-right' size='sm' %}</a>
   </section>

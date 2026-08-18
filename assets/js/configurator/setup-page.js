@@ -197,7 +197,7 @@ function render() {
       // crosses the eyebrow above and the lead below.
       el('h2', {
         id: 'step-heading',
-        class: 'section-title focus-target my-1.5',
+        class: 'section-title focus-target my-1.5 !text-2xl',
         tabindex: '-1',
         text: meta.title,
       }),

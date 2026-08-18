@@ -1,6 +1,7 @@
 /* Catalog surfaces: cards, list rows, filter rail, results header, mobile sheet.
    Owned by the catalog UI workstream (see docs/design-brief.md → Catalog card, Filter & browse).
-   Elevation: cards are E0 (hairline) and only sticky bars/sheets carry shadow-e2. */
+   Elevation: cards are E0 (a shadow ring); the sticky results header sits on surface_tint and only
+   sheets, the filter bar and the compare tray carry shadow-e2. */
 @layer components {
   /* ---------- Grid + view switch -------------------------------------- */
   /* The same <li> cards render as a grid or as compact rows; the only
@@ -13,7 +14,9 @@
   /* ---------- Card ----------------------------------------------------- */
   /* The title link's own box is a sliver (its ::after supplies the hit area), so
      the focus ring is drawn on the card instead — the link opts out in .entry-title a. */
-  .entry-card { @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand-line bg-surface-card focus-within:ring-2 focus-within:ring-brand-primary focus-within:ring-offset-2 focus-within:ring-offset-surface-base; }
+  /* shadow-e0 (a 1px ink ring drawn as a shadow) instead of a border: the card is
+     an object on the page ground, and the whole grid loses a lattice of grey lines. */
+  .entry-card { @apply relative flex h-full flex-col overflow-hidden rounded-2xl bg-surface-card shadow-e0 focus-within:ring-2 focus-within:ring-brand-primary focus-within:ring-offset-2 focus-within:ring-offset-surface-base; }
   /* The list settles, it does not blink: assets/js/filters.js marks only the cards
      that just joined the result set (and the empty state) `is-entering`, so a facet
      toggle never touches the ones that survived it. Opacity only — nothing moves, so
@@ -24,7 +27,7 @@
   /* A band, not a cover shot: at 288px a 16:9 deck render is illegible, and the top
      band is where a slide or a dashboard puts its title. No scrim — both badge tones
      (data-tone="accent" and "on-dark") carry their own opaque ground. */
-  .entry-media { @apply relative aspect-[16/7] w-full overflow-hidden border-b border-brand-line bg-brand-ink/5; }
+  .entry-media { @apply relative aspect-[16/7] w-full overflow-hidden border-b border-brand-ink/5 bg-brand-ink/5; }
   .entry-badges { @apply absolute left-3 top-3 z-10 flex flex-wrap items-center gap-1.5; }
   .entry-body { @apply flex flex-1 flex-col gap-3 p-5 sm:p-6; }
   /* Exactly one line: the lead segment shrinks and truncates (its full value is in a
@@ -42,10 +45,12 @@
   .entry-meta .badge { @apply normal-case tracking-normal; }
   /* Kept for _includes/entry-row.html, which still emits a standalone separator. */
   /* Segments carry their own separator so "·" can never orphan onto its own line. */
-  /* The lead segment (usually the org) flexes and truncates so the second one
-     ("· Pilot") stays on the same line; later segments keep their full short text. */
+  /* Segments truncate individually so the second one ("· Pilot") stays on the line. */
   .entry-meta-seg { @apply max-w-[24ch] shrink-0 truncate; }
-  .entry-meta-seg--lead { @apply min-w-[10ch] max-w-none shrink; }
+  /* A free-text segment (the organisation name) is the one that truncates ("PRAIRIE RIDGE
+     COUNTY …"): it flexes, and is set in sentence case at medium weight, which buys back the
+     ~15% that caps + tracking cost. Select-valued segments (the stage) keep the eyebrow style. */
+  .entry-meta-seg--text { @apply min-w-[10ch] max-w-none shrink normal-case tracking-normal font-medium; }
   .entry-meta-seg + .entry-meta-seg::before { content: "\00b7"; @apply mr-2 text-brand-line-strong; }
   /* Reserved slots. The values are the designed heights (2 lines of the slot's own
      leading), not observed maxima, so one row of cards shares its baselines however
@@ -71,7 +76,7 @@
   .entry-card--text .entry-summary { @apply line-clamp-4; }
 
   /* List view: the card collapses into one row, media and summary drop out. */
-  .entry-grid[data-view="list"] .entry-card { @apply h-auto rounded-none border-0 border-b border-brand-line bg-transparent; }
+  .entry-grid[data-view="list"] .entry-card { @apply h-auto rounded-none border-0 border-b border-brand-line bg-transparent shadow-none; }
   .entry-grid[data-view="list"] .entry-media { @apply hidden; }
   .entry-grid[data-view="list"] .entry-summary { @apply hidden; }
   .entry-grid[data-view="list"] .entry-body { @apply gap-1.5 px-1 py-4 sm:px-2; }
@@ -122,7 +127,7 @@
 
   /* ---------- Compact row (entry pages: "Related") --------------------- */
   .entry-row { @apply relative flex flex-col gap-1.5 border-b border-brand-line py-4 last:border-b-0; }
-  .entry-row-title { @apply font-heading text-base font-semibold leading-6 text-brand-primary-dark; }
+  .entry-row-title { @apply font-heading text-[17px] font-semibold leading-6 text-brand-primary-dark; }
   .entry-row-title a { @apply after:absolute after:inset-0 after:content-[''] hover:text-brand-primary; }
 
   /* ---------- Filter rail + groups ------------------------------------- */
@@ -165,7 +170,7 @@
   .facet-glossary dd { @apply mb-2 text-xs leading-5 text-brand-muted last:mb-0; }
 
   /* ---------- Results header ------------------------------------------- */
-  .results-header { @apply sticky top-16 z-30 -mx-4 mb-6 border-b border-brand-line bg-surface-base/95 px-4 py-3 shadow-e2 backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:rounded-b-2xl lg:px-4; }
+  .results-header { @apply sticky top-16 z-30 -mx-4 mb-6 border-b border-brand-line bg-surface-tint/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:rounded-b-2xl lg:px-4; }
   /* tabular-nums: "10 use cases" -> "9 use cases" must not shove the label sideways. */
   .results-count { @apply font-heading text-lg font-semibold tabular-nums leading-6 text-brand-primary-dark; }
   .results-total { @apply font-sans text-sm font-normal text-brand-muted; }
@@ -214,7 +219,7 @@
   .az-jump { @apply flex flex-wrap gap-1 border-y border-brand-line py-2; }
   .az-jump a { @apply inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-control px-2 text-sm font-semibold tabular-nums text-brand-primary transition-colors duration-fast hover:bg-brand-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base; }
   .az-block { @apply mt-6 grid gap-x-6 gap-y-2 sm:grid-cols-[3rem_minmax(0,1fr)]; }
-  .az-letter { @apply font-heading text-2xl font-semibold leading-none text-brand-line-strong; }
+  .az-letter { @apply font-heading text-2xl font-semibold leading-none text-brand-muted; }
   /* A facet's title is a word, not a letter, so it gets its own row rather than
      the .az-block letter gutter, which is sized for one character. */
   .az-facet-block { @apply mt-6 space-y-2; }

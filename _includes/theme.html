@@ -26,6 +26,7 @@ existed still builds. {%- endcomment -%}
     --c-line: {{ th_c.line | default: '#D9E0E8' | hex_to_rgb }};
     --c-line-strong: {{ th_c.line_strong | default: '#7C8A9B' | hex_to_rgb }};
     --c-surface: {{ th_c.surface | default: '#F5F7FA' | hex_to_rgb }};
+    --c-surface-tint: {{ th_c.surface_tint | default: '#EAF0F7' | hex_to_rgb }};
     --c-card: {{ th_c.card | default: '#FFFFFF' | hex_to_rgb }};
     --c-on-dark: {{ th_c.on_dark | default: '#F7F9FC' | hex_to_rgb }};
     --c-warn: {{ th_c.warn | default: '#B45309' | hex_to_rgb }};
@@ -33,11 +34,11 @@ existed still builds. {%- endcomment -%}
     defined in assets/css/components/base.css for the two bundled families only. A family
     loaded from fonts.google_fonts_url names a face that does not exist, which the font
     stack skips — so this is safe for every value. {%- endcomment -%}
-    {%- assign th_fh = th_theme.fonts.heading | default: 'Source Sans 3' -%}
+    {%- assign th_fh = th_theme.fonts.heading | default: 'Source Serif 4' -%}
     {%- assign th_fb = th_theme.fonts.body | default: 'Inter' -%}
     --font-heading: "{{ th_fh }}", "{{ th_fh }} Fallback";
     --font-body: "{{ th_fb }}", "{{ th_fb }} Fallback";
-    --measure: {{ th_theme.type.measure | default: '33rem' }};
+    --measure: {{ th_theme.type.measure | default: '36rem' }};
     --measure-display: {{ th_theme.type.measure_display | default: '44rem' }};
     --radius-xs: {{ th_rxs }};
     --radius-sm: {{ th_radii[0] }};

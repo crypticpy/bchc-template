@@ -44,6 +44,18 @@
     --tone-fg: var(--c-ink);
     --tone-ring: var(--c-accent); --tone-ring-a: 1;
   }
+  /* "Featured": the card's one editorial mark. An ink pill like `on-dark` — it also has
+     to sit over a screenshot — with the star alone in `accent`, so a row of three
+     featured cards shows three small warm points, not three orange bars. Bound to the
+     `featured` front-matter flag in _includes/entry-card.html and the entry header;
+     schema option tones cannot pick it (badge.html only passes tones from its list). */
+  .badge[data-tone="featured"] {
+    --tone-bg: var(--c-ink); --tone-bg-a: 1;
+    --tone-fg: 255 255 255;
+    --tone-ring: var(--c-accent); --tone-ring-a: 1;
+  }
+  .badge[data-tone="featured"] svg,
+  .badge[data-tone="featured"] .badge-star { color: rgb(var(--c-accent)); }
   /* Neutral is the fall-through: ink/5 ground, ink text, a plain line ring — the
      same values the base rule defaults to, restated so the tone is greppable. */
   .badge[data-tone="neutral"] {

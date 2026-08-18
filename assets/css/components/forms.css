@@ -25,7 +25,7 @@
   .form-section { @apply scroll-mt-28 border-t border-brand-line pt-8 first-of-type:border-0 first-of-type:pt-0; }
 
   /* Sticky section navigation (>= lg). E2 is allowed here: it floats. */
-  .progress-rail { @apply rounded-2xl border border-brand-line bg-surface-card p-4 shadow-e2; }
+  .progress-rail { @apply panel p-4; }
   .progress-link { @apply flex items-start gap-2.5 rounded-lg px-2 py-1.5 text-sm text-brand-muted transition-colors duration-120 hover:bg-brand-primary/5 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
   .progress-link[aria-current="true"] { @apply bg-brand-primary/5 font-semibold text-brand-primary-dark; }
   .progress-dot { @apply mt-1.5 h-2 w-2 shrink-0 rounded-full border border-brand-line-strong bg-surface-card; }
@@ -47,7 +47,7 @@
   .image-preview { @apply h-16 w-24 overflow-hidden rounded-md border border-brand-line bg-surface-base object-cover; }
 
   /* Live card preview. Collapsible below lg, pinned beside the form above it. */
-  .preview-panel { @apply rounded-2xl border border-brand-line bg-surface-base p-4; }
+  .preview-panel { @apply panel p-4; }
   .preview-summary { @apply flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-brand-ink lg:hidden; }
   .preview-summary::-webkit-details-marker { display: none; }
 

@@ -38,17 +38,14 @@ export const resourceLibrary = {
       recent_count: 6,
       highlights: [
         {
-          eyebrow: 'Vetted, not scraped',
           title: 'Every item is reviewed',
           body: 'Suggestions go through a maintainer review before they appear in the library.',
         },
         {
-          eyebrow: 'Built for filtering',
           title: 'Topic, audience, format',
           body: 'Narrow to exactly what you need instead of scrolling a long list of links.',
         },
         {
-          eyebrow: 'Contribute',
           title: 'Suggest what helped you',
           body: 'If a resource saved your team time, add it so the next team finds it sooner.',
         },

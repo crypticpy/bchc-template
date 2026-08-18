@@ -47,7 +47,7 @@ Local assigns are prefixed `rel_` so nothing leaks into the caller's scope.
             {%- if rel_vals.size > 0 -%}
               {%- assign rel_raw = rel_vals | first -%}
               {%- comment -%} Same anatomy as entry-row.html: full value to the screen reader, truncated short form to the eye. {%- endcomment -%}
-              <span class="entry-meta-seg{% if rel_seg == 0 %} entry-meta-seg--lead{% endif %}"><span class="sr-only">{{ rel_f.label | escape }}: {{ rel_raw | escape }}</span><span aria-hidden="true">{{ rel_f | option_short: rel_raw | escape }}</span></span>
+              <span class="entry-meta-seg{% if rel_f.type == 'text' %} entry-meta-seg--text{% endif %}"><span class="sr-only">{{ rel_f.label | escape }}: {{ rel_raw | escape }}</span><span aria-hidden="true">{{ rel_f | option_short: rel_raw | escape }}</span></span>
               {%- assign rel_seg = rel_seg | plus: 1 -%}
             {%- endif -%}
           {%- endfor -%}

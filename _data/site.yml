@@ -60,16 +60,13 @@ home:
   featured_count: 6         # entries in the carousel (featured: true first, then newest)
   recent_count: 6           # entries in the "Recently added" grid
   hero_latest_count: 3      # newest entries listed beside the hero on wide screens (0 hides the panel)
-  highlights:               # optional 3-up value proposition blocks (leave empty to hide)
-    - eyebrow: "Reuse, don't rebuild"
-      title: "Start from what already works"
+  highlights:               # optional 3-up value propositions — a title and one sentence each (leave empty to hide)
+    - title: "Start from what already works"
       body: "Every entry links to code, deployments or vendor details so your team can evaluate and adapt quickly."
-    - eyebrow: "Learn from peers"
-      title: "Honest notes on what it took"
+    - title: "Honest notes on what it took"
       body: "Entries capture data sources, tools, staffing and lessons learned — not just the demo."
-    - eyebrow: "Contribute"
-      title: "Sharing takes five minutes"
-      body: "Fill out the submission form. Maintainers review it in a pull request and it goes live automatically."
+    - title: "One form, one review, then it's live"
+      body: "A short form opens a GitHub issue. A maintainer reviews it in a pull request and the entry publishes when it merges."
 
 # Submission form settings (module: submit)
 submit:

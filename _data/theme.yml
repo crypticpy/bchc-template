@@ -15,14 +15,17 @@ colors:
   line: "#D9E0E8"           # dividers and card borders
   line_strong: "#7C8A9B"    # borders of interactive controls (inputs, pills) — keep >= 3:1 on card
   surface: "#F5F7FA"        # page background
+  surface_tint: "#EAF0F7"   # tinted bands and panels (fact strip, sidebar, home bands) — AA for ink, muted and primary
   card: "#FFFFFF"           # card background
   on_dark: "#F7F9FC"        # text on primary_dark backgrounds
   warn: "#B45309"           # caution only: sensitive-data indicators, validation errors
 
 fonts:
-  # Bundled options: "Inter", "Source Sans 3". Any other family name works if
-  # you also set google_fonts_url (a Google Fonts <link> href) below.
-  heading: "Source Sans 3"
+  # Bundled options: "Source Serif 4", "Source Sans 3", "Inter". Any other family
+  # name works if you also set google_fonts_url (a Google Fonts <link> href) below.
+  # The shipped pairing is a serif for headings over a sans for everything else;
+  # set heading to "Source Sans 3" for an all-sans site.
+  heading: "Source Serif 4"
   body: "Inter"
   google_fonts_url: ""
 
@@ -31,7 +34,7 @@ type:
   # zero (~0.66em in Inter), while an average character in running English is
   # ~0.48em — so "65ch" actually renders about 88 characters. Widen these if you
   # switch `fonts.body` to a narrower family.
-  measure: "33rem"          # body copy — ~68 characters at 16px Inter
+  measure: "36rem"          # body copy — ~74 characters at 16px Inter
   measure_display: "44rem"  # headings, impact line, summary
 
 # Corner rounding scale: "sharp" | "soft" | "round"

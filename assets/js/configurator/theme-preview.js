@@ -141,7 +141,7 @@ export function renderThemePreview(container, answers, labels = {}) {
     el('div', { class: 'entry-body !gap-1.5 !p-4' }, [
       el('p', { class: 'entry-meta' }, [
         el('span', { class: 'badge badge-md', 'data-tone': 'primary', text: 'Source code' }),
-        el('span', { class: 'entry-meta-seg entry-meta-seg--lead', text: copy.org }),
+        el('span', { class: 'entry-meta-seg entry-meta-seg--text', text: copy.org }),
         el('span', { class: 'entry-meta-seg', text: 'Pilot' }),
       ]),
       el('p', { class: 'entry-title !text-base', text: `A sample ${copy.singular} title` }),
@@ -174,7 +174,10 @@ export function renderThemePreview(container, answers, labels = {}) {
       el('span', { class: 'filter-pill !min-h-0 !py-1 !text-xs', text: 'Filter' }),
     ]),
     el('div', { class: 'flex flex-wrap gap-1.5' }, [
-      el('span', { class: 'badge badge-md', 'data-tone': 'accent', text: 'Featured' }),
+      el('span', { class: 'badge badge-md', 'data-tone': 'featured' }, [
+        el('span', { class: 'badge-star', 'aria-hidden': 'true', text: '★' }),
+        el('span', { text: 'Featured' }),
+      ]),
       el('span', { class: 'badge badge-md', 'data-tone': 'secondary', text: 'Secondary' }),
       el('span', { class: 'badge badge-md', 'data-tone': 'warn', text: 'Sensitive data' }),
     ]),

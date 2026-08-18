@@ -1,6 +1,7 @@
 {%- comment -%} Site footer. Local assigns are prefixed `ft_`. {%- endcomment -%}
 {%- assign ft_cfg = site.data.site -%}
-<footer class="mt-20 bg-brand-primary-dark text-brand-on-dark">
+{%- comment -%} `.site-footer` mirrors the hero's ground (site.css) so the page closes the way it opened. {%- endcomment -%}
+<footer class="site-footer mt-20">
   <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="grid gap-10 md:grid-cols-3">
       <div class="flex flex-col gap-4 md:col-span-1">

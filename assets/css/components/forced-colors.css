@@ -81,6 +81,10 @@
   /* The taxonomy dot is a background-color on an empty box: Canvas on Canvas. */
   .chip::before { background: CanvasText; }
 
+  /* Cards are raised by shadow-e0 (a box-shadow ring), which forcing drops; give
+     every raised or tinted surface a real edge so the layout keeps its shapes. */
+  .card, .entry-card, .panel, .preview-panel, .progress-rail, .hero-latest { border: 1px solid CanvasText; }
+
   /* Sticky bars are painted at 95% alpha over a backdrop-blur; forcing keeps the alpha and
      drops the blur, so the scrolling page bleeds through a bar meant to occlude it. */
   [data-component="site-header"],

@@ -536,7 +536,13 @@ test('the preview meta line uses the card segment class that draws the separator
   assert.equal(meta.hidden, false);
   const segments = Array.from(meta.querySelectorAll('.entry-meta-seg'));
   assert.ok(segments.length >= 2, 'expected at least two meta segments');
-  assert.ok(segments[0].classList.contains('entry-meta-seg--lead'));
+  // Only the free-text organization segment takes the flex/truncate modifier;
+  // the option-valued stage keeps the plain segment class.
+  const flagged = segments.filter((segment) => segment.classList.contains('entry-meta-seg--text'));
+  assert.deepEqual(
+    flagged.map((segment) => segment.textContent),
+    ['City of Testville']
+  );
   // The dot is a ::before on the class, never an element in the strip.
   assert.equal(meta.textContent.includes('\u00b7'), false);
 });

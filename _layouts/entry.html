@@ -205,7 +205,7 @@ facts, rail, body.
         {%- assign ent_v = page[ent_f.key] -%}
         {%- if ent_v and ent_v != '' -%}{% include field-value.html field=ent_f value=ent_v %}{%- endif -%}
       {%- endfor -%}
-      {%- if page.featured -%}{% include badge.html label='Featured' tone='accent' size='md' icon='star' %}{%- endif -%}
+      {%- if page.featured -%}{% include badge.html label='Featured' tone='featured' size='md' icon='star' %}{%- endif -%}
     </div>
 
     <h1 class="page-title measure-display" style="view-transition-name: title-{{ ent_vt_id }}">{{ page.title | escape }}</h1>

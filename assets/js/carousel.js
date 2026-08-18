@@ -40,8 +40,13 @@
         [prev, track.scrollLeft <= 2],
         [next, track.scrollLeft >= max],
       ];
+      // Nothing to scroll (every item fits): hide both arrows rather than leave two dimmed,
+      // permanently inert circles beside the heading.
+      const scrollable = track.scrollWidth > track.clientWidth + 2;
       ends.forEach(([b, atEnd]) => {
         if (!b) return;
+        // The `hidden` utility, not the attribute: .icon-btn is inline-flex and outranks [hidden].
+        b.classList.toggle('hidden', !scrollable);
         b.setAttribute('aria-disabled', String(atEnd));
         b.classList.toggle('opacity-40', atEnd);
       });

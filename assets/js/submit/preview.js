@@ -162,20 +162,23 @@
         if (parts.length >= MAX_META) return;
         const picked = chosenOptions(field);
         if (picked.length > 0) {
-          parts.push(picked[0].short);
+          parts.push({ text: picked[0].short, free: false });
           return;
         }
         const value = ns.readValue(field);
         const text = Array.isArray(value) ? value[0] : String(value);
-        if (text) parts.push(typeof text === 'string' ? text : String(text));
+        if (text)
+          parts.push({ text: typeof text === 'string' ? text : String(text), free: field.type === 'text' });
       });
       // Same element and classes as the card's meta line, so the separator
       // comes from `.entry-meta-seg + .entry-meta-seg::before` rather than
       // from a dot this file would have to draw itself.
-      parts.forEach((part, index) => {
+      // A free-text segment (the organization) takes the modifier that lets it
+      // flex and truncate; option-valued segments keep the eyebrow style.
+      parts.forEach((part) => {
         const span = document.createElement('span');
-        span.className = index === 0 ? 'entry-meta-seg entry-meta-seg--lead' : 'entry-meta-seg';
-        span.textContent = part;
+        span.className = part.free ? 'entry-meta-seg entry-meta-seg--text' : 'entry-meta-seg';
+        span.textContent = part.text;
         meta.appendChild(span);
       });
       toggle(meta, meta.childNodes.length > 0);

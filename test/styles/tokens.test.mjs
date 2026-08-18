@@ -59,7 +59,7 @@ test('tailwind.config.js carries no safelist', () => {
 });
 
 test('every badge tone survives the build without a safelist', () => {
-  assert.ok(TONES.length === 6, `expected six tones, badge.html lists ${TONES.length}`);
+  assert.ok(TONES.length === 7, `expected seven tones, badge.html lists ${TONES.length}`);
   assert.ok(selectors.has('.badge'), 'the .badge base class was purged');
   for (const tone of TONES) {
     assert.ok(

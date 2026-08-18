@@ -38,7 +38,7 @@ Local assigns are prefixed `er_`.
       {%- if er_vals.size > 0 -%}
         {%- assign er_raw = er_vals | first -%}
         {%- comment -%} Same anatomy as entry-card.html: full value to the screen reader, truncated short form to the eye, no `title`. {%- endcomment -%}
-        <span class="entry-meta-seg{% if er_seg == 0 %} entry-meta-seg--lead{% endif %}"><span class="sr-only">{{ er_f.label | escape }}: {{ er_raw | escape }}</span><span aria-hidden="true">{{ er_f | option_short: er_raw | escape }}</span></span>
+        <span class="entry-meta-seg{% if er_f.type == 'text' %} entry-meta-seg--text{% endif %}"><span class="sr-only">{{ er_f.label | escape }}: {{ er_raw | escape }}</span><span aria-hidden="true">{{ er_f | option_short: er_raw | escape }}</span></span>
         {%- assign er_seg = er_seg | plus: 1 -%}
       {%- endif -%}
     {%- endfor -%}

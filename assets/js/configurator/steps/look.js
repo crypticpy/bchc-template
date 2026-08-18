@@ -180,6 +180,7 @@ export function renderLook() {
           'headingFont',
           'Heading font',
           [
+            { value: 'Source Serif 4', label: 'Source Serif 4 (bundled)' },
             { value: 'Source Sans 3', label: 'Source Sans 3 (bundled)' },
             { value: 'Inter', label: 'Inter (bundled)' },
           ],

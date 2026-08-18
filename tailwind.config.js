@@ -49,6 +49,10 @@ export default {
         },
         surface: {
           base: rgb('surface'),
+          // Tinted bands and panels: the fact strip, the sidebar cards, the home page's
+          // "Browse by" band. Sits between `base` and `card` so a panel can be a panel
+          // without a border — see docs/design-system.md → Surfaces.
+          tint: rgb('surface-tint'),
           card: rgb('card'),
         },
       },
@@ -77,8 +81,11 @@ export default {
         '2xl': 'var(--radius-xl)',
         '3xl': 'var(--radius-2xl)',
       },
-      // Elevation: E0 = hairline only (no shadow). E1 = hover lift. E2 = sticky bars, sheets, popovers.
+      // Elevation: E0 = resting card (a hairline drawn as a shadow ring plus a 1px ambient,
+      // so a card needs no border and its edge stays crisp on every surface token). E1 =
+      // hover lift. E2 = sticky bars, sheets, popovers.
       boxShadow: {
+        e0: '0 0 0 1px rgb(var(--c-ink) / 0.10), 0 1px 2px rgb(var(--c-ink) / 0.05), 0 6px 12px -8px rgb(var(--c-ink) / 0.10)',
         e1: '0 1px 2px rgb(var(--c-ink) / 0.06), 0 8px 16px -8px rgb(var(--c-ink) / 0.12)',
         e2: '0 2px 4px rgb(var(--c-ink) / 0.06), 0 16px 32px -12px rgb(var(--c-ink) / 0.18)',
         // Legacy aliases kept for older layouts; prefer e1/e2.

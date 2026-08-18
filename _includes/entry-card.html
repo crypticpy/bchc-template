@@ -105,7 +105,7 @@ custom-ident even for an entry whose slug starts with a digit. {%- endcomment -%
     <div class="entry-media"{{ ec_vt_media }}>
       {{ ec_thumb }}
       <div class="entry-badges">
-        {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='accent' icon='star' %}{%- endif -%}
+        {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='featured' icon='star' %}{%- endif -%}
         {%- if ec_badge_value != '' -%}
           {%- assign ec_bm = ec_badge_field | option_meta: ec_badge_value -%}
           {% include badge.html label=ec_bm.short tone='on-dark' icon=ec_bm.icon %}
@@ -124,7 +124,7 @@ custom-ident even for an entry whose slug starts with a digit. {%- endcomment -%
           {%- assign ec_raw = ec_vals | first -%}
           {%- assign ec_text = ec_f | option_short: ec_raw -%}
           {%- comment -%} The full value goes to the screen reader and the truncated short form to the eye. A `title` would carry it to a hovering mouse only, and would double-announce. {%- endcomment -%}
-          <span class="entry-meta-seg{% if ec_seg == 0 %} entry-meta-seg--lead{% endif %}"><span class="sr-only">{{ ec_f.label | escape }}: {{ ec_raw | escape }}</span><span aria-hidden="true">{{ ec_text | escape }}</span></span>
+          <span class="entry-meta-seg{% if ec_f.type == 'text' %} entry-meta-seg--text{% endif %}"><span class="sr-only">{{ ec_f.label | escape }}: {{ ec_raw | escape }}</span><span aria-hidden="true">{{ ec_text | escape }}</span></span>
           {%- assign ec_seg = ec_seg | plus: 1 -%}
         {%- endif -%}
       {%- endfor -%}
@@ -138,7 +138,7 @@ custom-ident even for an entry whose slug starts with a digit. {%- endcomment -%
       <p class="entry-meta">
         {%- if ec_inline_badges -%}
           <span class="entry-meta-badges">
-            {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='accent' icon='star' %}{%- endif -%}
+            {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='featured' icon='star' %}{%- endif -%}
             {%- if ec_badge_value != '' -%}
               {%- assign ec_bm2 = ec_badge_field | option_meta: ec_badge_value -%}
               {% include badge.html label=ec_bm2.short tone='primary' icon=ec_bm2.icon %}

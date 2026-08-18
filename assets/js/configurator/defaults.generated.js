@@ -58,19 +58,16 @@ export const SITE = {
     "hero_latest_count": 3,
     "highlights": [
       {
-        "eyebrow": "Reuse, don't rebuild",
         "title": "Start from what already works",
         "body": "Every entry links to code, deployments or vendor details so your team can evaluate and adapt quickly."
       },
       {
-        "eyebrow": "Learn from peers",
         "title": "Honest notes on what it took",
         "body": "Entries capture data sources, tools, staffing and lessons learned — not just the demo."
       },
       {
-        "eyebrow": "Contribute",
-        "title": "Sharing takes five minutes",
-        "body": "Fill out the submission form. Maintainers review it in a pull request and it goes live automatically."
+        "title": "One form, one review, then it's live",
+        "body": "A short form opens a GitHub issue. A maintainer reviews it in a pull request and the entry publishes when it merges."
       }
     ]
   },
@@ -122,17 +119,18 @@ export const THEME = {
     "line": "#D9E0E8",
     "line_strong": "#7C8A9B",
     "surface": "#F5F7FA",
+    "surface_tint": "#EAF0F7",
     "card": "#FFFFFF",
     "on_dark": "#F7F9FC",
     "warn": "#B45309"
   },
   "fonts": {
-    "heading": "Source Sans 3",
+    "heading": "Source Serif 4",
     "body": "Inter",
     "google_fonts_url": ""
   },
   "type": {
-    "measure": "33rem",
+    "measure": "36rem",
     "measure_display": "44rem"
   },
   "radius": "soft",
