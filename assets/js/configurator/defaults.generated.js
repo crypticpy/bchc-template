@@ -27,6 +27,7 @@ export const SITE = {
     "repository": "crypticpy/bchc-template",
     "branch": "main"
   },
+  "demo": true,
   "modules": {
     "catalog": true,
     "submit": true,
