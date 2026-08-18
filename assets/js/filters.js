@@ -21,7 +21,8 @@
 //           [data-sort], [data-view-toggle="grid|list"], [data-filter-status]
 //   Empty   [data-empty-state] > [data-empty-cause], [data-empty-hint],
 //           [data-empty-filters]; [data-empty-suggestions] is search.js's
-//   Sheet   see ./filter-sheet.js
+//   Sheet   see ./filter-sheet.js; a [data-filter-clear] that also carries
+//           [data-filter-clear-persist] is disabled instead of hidden
 //   Search  [data-filter="search"]; assets/js/search.js owns window.__searchMatches
 //           (Set of entry ids or null), window.__searchOrder (ids by relevance) and
 //           fires the "catalog:search" event when either changes. Going the other
@@ -358,7 +359,20 @@ import {
     });
     // Clear stays available while text sits in the box, applied or not.
     const typed = searchInput ? searchInput.value.trim() : '';
-    clearButtons.forEach((b) => b.classList.toggle('hidden', !filtered && typed === ''));
+    const clearable = filtered || typed !== '';
+    clearButtons.forEach((b) => {
+      // The mobile sheet's footer is a fixed two-button row. Hiding Clear there
+      // left "Show 10 use cases" alone and off-centre, and made the button
+      // materialise under the thumb on the first tap — so that one is disabled
+      // instead: same shape, and AT announces a real control as unavailable.
+      // Everywhere else the control is removed outright; there is nothing to say
+      // about a Clear button on an unfiltered page.
+      if (b.hasAttribute('data-filter-clear-persist')) {
+        b.disabled = !clearable;
+        return;
+      }
+      b.classList.toggle('hidden', !clearable);
+    });
     renderActivePills(active);
 
     document.querySelectorAll('[data-filter-count-badge]').forEach((el) => {

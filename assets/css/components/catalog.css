@@ -95,11 +95,20 @@
     .entry-card { container-type: inline-size; container-name: card; }
     .entry-body { @apply p-4; }
     .entry-foot { @apply px-4 pb-4; }
-    .entry-title { @apply min-h-[2.75rem] text-[16px] leading-[22px]; }
+    /* One fluid ramp instead of a step at 340px: the title grew by 2px in a single
+       jump as a card crossed that width, which is visible when the rail closes and
+       three columns become two. cqi is 1% of the CARD's inline size, so this is
+       16px in the narrowest card and 18px — the designed size — from ~300px up.
+       The leading is a ratio and the reserved slot is 2em of it, so both track the
+       size instead of needing their own steps. */
+    .entry-title {
+      font-size: clamp(1rem, 0.9rem + 1.2cqi, 1.125rem);
+      line-height: 1.3333;
+      min-height: calc(2 * 1.3333em);
+    }
     @container card (min-width: 340px) {
       .entry-body { @apply p-6; }
       .entry-foot { @apply px-6 pb-6; }
-      .entry-title { @apply min-h-[3rem] text-[18px] leading-6; }
     }
     /* Wide enough for the one-column case: a third summary line and an org name
        that no longer has to truncate at ~24 characters. */
@@ -195,13 +204,13 @@
   /* A row that applies a filter is not one more document in a list of
      documents: the standing left rule says so before the chip is read. */
   .search-option-facet { @apply border-l-brand-primary/40 bg-brand-primary/5; }
-  .search-facet-chip { @apply inline-flex items-center rounded-full bg-brand-primary px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white; }
+  .search-facet-chip { @apply inline-flex items-center rounded-pill bg-brand-primary px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white; }
 
   /* ---------- A–Z directory + facet landing pages ---------------------- */
   /* _layouts/facet-index.html. The jump bar is a real nav of anchors, so it
      works with JavaScript off — which is the point of the whole page. */
   .az-jump { @apply flex flex-wrap gap-1 border-y border-brand-line py-2; }
-  .az-jump a { @apply inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg px-2 text-sm font-semibold tabular-nums text-brand-primary transition-colors duration-120 hover:bg-brand-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base; }
+  .az-jump a { @apply inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-control px-2 text-sm font-semibold tabular-nums text-brand-primary transition-colors duration-fast hover:bg-brand-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base; }
   .az-block { @apply mt-6 grid gap-x-6 gap-y-2 sm:grid-cols-[3rem_minmax(0,1fr)]; }
   .az-letter { @apply font-heading text-2xl font-semibold leading-none text-brand-line-strong; }
   /* A facet's title is a word, not a letter, so it gets its own row rather than
@@ -215,7 +224,7 @@
   .az-list a { @apply font-medium text-brand-primary-dark hover:text-brand-primary hover:underline; }
   .az-note { @apply mt-0.5 block text-xs leading-5 text-brand-muted; }
   .az-tags { @apply m-0 flex list-none flex-wrap gap-1.5 p-0; }
-  .az-tags a { @apply inline-flex min-h-[36px] items-center gap-2 rounded-full border border-brand-line-strong bg-surface-card px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-120 hover:border-brand-primary hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base; }
+  .az-tags a { @apply inline-flex min-h-[36px] items-center gap-2 rounded-pill border border-brand-line-strong bg-surface-card px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-fast hover:border-brand-primary hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base; }
   .az-count { @apply text-[11px] tabular-nums text-brand-muted; }
 
   /* ---------- Mobile filter bar + sheet --------------------------------- */
@@ -224,4 +233,9 @@
   .filter-sheet-head { @apply flex items-center justify-between gap-3 border-b border-brand-line px-4 py-3; }
   .filter-sheet-body { @apply flex-1 overflow-y-auto px-4 pb-6; }
   .filter-sheet-foot { @apply flex items-center gap-3 border-t border-brand-line px-4 py-3 shadow-e2; }
+  /* "Clear" is disabled rather than hidden with nothing to clear (see filters.js),
+     so it needs a resting state: the shape stays, the affordances go. Disabled
+     controls are exempt from 1.4.3, but brand-muted on the card ground still
+     passes rather than the usual 40% wash. */
+  .filter-sheet-foot .btn-secondary:disabled { @apply cursor-not-allowed border-brand-line text-brand-muted hover:border-brand-line hover:bg-surface-card hover:text-brand-muted; }
 }
