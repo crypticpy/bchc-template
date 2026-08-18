@@ -124,7 +124,7 @@ A failure never fails the scaffold. If an image cannot be downloaded it is left 
 
 ## Other attachments and thumbnails
 
-- File-type schema fields (e.g. `deck_pdf`) store a path (`/catalog/<slug>/<filename>`) in front matter; the actual file must be added to that folder in a PR — usually by a maintainer, after the entry PR is open.
+- File-type schema fields (e.g. `deck_pdf`) store a path (`/catalog/<slug>/<filename>`) in front matter. The submission form asks for the file directly (GitHub's `upload` control), and the scaffolder commits it into the entry folder with the rest of the pull request. If the submitter skipped it, or the download was refused (the file has to actually be a PDF — the scaffolder checks the bytes, and says so on the pull request when it does not match), the path is still recorded and the file can be added to that folder in the same PR by hand.
 - `links`-type fields (shipped: `resources`) hold `{label, url}` pairs and need no files at all. They are the right home for a shared drive folder, a recorded demo, a model card or a vendor page — anything that does not deserve its own `url` field. Check that each one opens for someone outside the organization before merging.
 - Any `file` field flagged `thumbnail: true` in `_data/schema.yml` (shipped: `deck_pdf` → `deck.pdf`) gets a first-page thumbnail rendered automatically:
   - `thumbnails.yml` triggers on a PR touching any `*.pdf` file (it can't read the schema to narrow the trigger, since GitHub evaluates `paths:` before checkout — the schema-driven filtering happens in the next step instead).

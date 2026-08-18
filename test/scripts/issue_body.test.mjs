@@ -9,6 +9,7 @@ import {
   hostOf,
   isHttpUrl,
   normalizeLabel,
+  parseAttachmentRef,
   parseBoolean,
   parseImageRefs,
   parseLinks,
@@ -29,7 +30,7 @@ const adversarial = fs.readFileSync(path.join(FIXTURES, 'issue-adversarial.md'),
 
 const LABELS = [
   'Title',
-  'One-sentence summary',
+  'Summary',
   'Result in one line',
   'Organization',
   'What is being shared',
@@ -47,6 +48,7 @@ const LABELS = [
   'Documentation or write-up',
   'Other resources',
   'Screenshots',
+  'Slide deck or one-pager (PDF)',
   'Data it touches',
   'Data sources',
   'Who sees the output',
@@ -245,6 +247,31 @@ test('parseImageRefs reads markdown, html, "url | alt" and bare URLs', () => {
     { url: 'https://example.org/a.png', alt: 'A' },
   ]);
   assert.deepEqual(parseImageRefs(''), []);
+});
+
+test('parseAttachmentRef reads what GitHub’s upload control leaves in the body', () => {
+  const sections = parseSections(basic, LABELS);
+  assert.deepEqual(parseAttachmentRef(sections.get('slide deck or one-pager (pdf)')), {
+    url: 'https://github.com/user-attachments/files/12345678/deck.pdf',
+    name: 'deck.pdf',
+  });
+  // An image upload renders as an embed, not a link.
+  assert.deepEqual(parseAttachmentRef('![shot.png](https://example.org/shot.png)'), {
+    url: 'https://example.org/shot.png',
+    name: 'shot.png',
+  });
+  assert.deepEqual(parseAttachmentRef('<img src="https://example.org/a.png" alt="A">'), {
+    url: 'https://example.org/a.png',
+    name: '',
+  });
+  // A hand-written body carries a bare URL.
+  assert.deepEqual(parseAttachmentRef('  https://example.org/deck.pdf  '), {
+    url: 'https://example.org/deck.pdf',
+    name: '',
+  });
+  assert.equal(parseAttachmentRef('_No response_'), null);
+  assert.equal(parseAttachmentRef(''), null);
+  assert.equal(parseAttachmentRef('a maintainer will add it later'), null);
 });
 
 test('slugify and uniqueSlug', () => {

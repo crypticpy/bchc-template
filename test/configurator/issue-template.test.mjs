@@ -42,11 +42,11 @@ test('the header names the generator and forbids hand-editing', () => {
   assert.match(text, /Generated from _data\/schema\.yml by scripts\/generate\.mjs — do not hand-edit\./);
 });
 
-test('every non-file field becomes one control keyed by its schema key', () => {
+test('every field becomes one control keyed by its schema key', () => {
   const doc = generate();
   const controls = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
   for (const field of shipped.schema.fields) {
-    if (field.form === false || field.type === 'file') continue;
+    if (field.form === false) continue;
     assert.ok(controls.has(field.key), `${field.key} has a control`);
     assert.equal(
       controls.get(field.key).attributes.label,
@@ -69,6 +69,7 @@ test('types map to the right GitHub controls', () => {
   assert.equal(byId.get('resources').type, 'textarea', 'links -> textarea');
   assert.equal(byId.get('body').type, 'textarea', 'markdown -> textarea');
   assert.equal(byId.get('contact_email').type, 'input');
+  assert.equal(byId.get('deck_pdf').type, 'upload', 'file -> upload');
 });
 
 test('options are copied verbatim for both kinds of dropdown', () => {
@@ -161,16 +162,41 @@ test('ungrouped fields land in a trailing "More" group', () => {
   assert.equal(sections[1].group.title, 'More');
 });
 
-test('file fields become an upload instruction, not a control', () => {
+test('a file field is a real upload control that accepts its own extension', () => {
   const doc = generate();
-  const note = doc.body.find(
-    (item) => item.type === 'markdown' && String(item.attributes.value).includes('deck.pdf')
-  );
-  assert.ok(note, 'the deck field explains the upload step');
+  const deck = doc.body.find((item) => item.id === 'deck_pdf');
+  assert.ok(deck, 'the deck field is a control, not a paragraph telling someone to do it later');
+  assert.equal(deck.type, 'upload');
+  assert.equal(deck.validations.accept, '.pdf', 'accept comes from the schema `filename`');
+  assert.equal(deck.validations.required, false);
+  assert.equal(deck.attributes.placeholder, undefined, 'an upload has nothing to prefill');
   assert.equal(
-    doc.body.some((item) => item.id === 'deck_pdf'),
-    false
+    doc.body.some(
+      (item) => item.type === 'markdown' && /cannot accept file uploads/i.test(String(item.attributes.value))
+    ),
+    false,
+    'the old "GitHub cannot do this" instruction is gone'
   );
+});
+
+test('an image field uploads, an images gallery stays a textarea', () => {
+  const doc = jsYaml.load(
+    issueTemplateFromSchema({
+      entry: { singular: 'Entry' },
+      fields: [
+        { key: 'title', label: 'Title', type: 'text', required: true },
+        { key: 'cover', label: 'Cover image', type: 'image', required: true },
+        { key: 'shots', label: 'Screenshots', type: 'images' },
+      ],
+    })
+  );
+  const byId = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
+  assert.equal(byId.get('cover').type, 'upload');
+  assert.equal(byId.get('cover').validations.accept, '.png,.jpg,.jpeg,.gif,.webp');
+  assert.equal(byId.get('cover').validations.required, true);
+  // `upload` holds one file and has no per-file alt text, so a gallery keeps
+  // the textarea it drags images into.
+  assert.equal(byId.get('shots').type, 'textarea');
 });
 
 test('form: false fields are left out entirely', () => {

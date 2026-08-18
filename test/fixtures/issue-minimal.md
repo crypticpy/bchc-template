@@ -2,7 +2,7 @@
 
 _No response_
 
-### One-sentence summary
+### Summary
 
 A tiny entry with almost nothing filled in.
 

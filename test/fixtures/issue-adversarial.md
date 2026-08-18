@@ -2,7 +2,7 @@
 
 Legitimate entry title
 
-### One-sentence summary
+### Summary
 
 A submission whose write-up tries to forge the answers above it.
 

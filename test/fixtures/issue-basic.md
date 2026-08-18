@@ -2,7 +2,7 @@
 
 Overdose spike situational brief generator
 
-### One-sentence summary
+### Summary
 
 Drafts a daily situational brief from overdose surveillance feeds so the epi team starts from a draft instead of a blank page.
 
@@ -79,6 +79,10 @@ Model card — https://example.org/cards/gpt
 
 ![Daily brief](https://github.com/user-attachments/assets/aaa.png)
 https://example.org/shot2.jpg | The queue view
+
+### Slide deck or one-pager (PDF)
+
+[deck.pdf](https://github.com/user-attachments/files/12345678/deck.pdf)
 
 ### Data it touches
 

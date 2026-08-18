@@ -240,9 +240,14 @@ body:
       description: "Screenshots of it in use. Up to eight PNG, JPEG, GIF or WebP images of the tool in use (15 MB total). Make sure no personal or protected information is visible. Drag images into this box to upload them, or paste one image URL per line — optionally as `URL | alt text`."
     validations:
       required: false
-  - type: markdown
+  - type: upload
+    id: deck_pdf
     attributes:
-      value: "**Slide deck or one-pager (PDF)** — GitHub issue forms cannot accept file uploads. After the pull request is created, upload `deck.pdf` into the entry folder."
+      label: Slide deck or one-pager (PDF)
+      description: "Slide deck or one-pager. After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically. Attach the file here and the automation commits it with the entry."
+    validations:
+      required: false
+      accept: .pdf
   - type: markdown
     attributes:
       value: |-
