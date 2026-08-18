@@ -137,7 +137,13 @@ function motionField() {
     save();
     summary.textContent = motionSummary(state.answers.motion);
   });
-  return el('div', {}, [el('label', { class: 'field-label', for: id, text: 'Motion' }), summary, select]);
+  // Two columns wide: the summary is a sentence of timings, and a third of
+  // the row wraps it to three lines.
+  return el('div', { class: 'sm:col-span-2' }, [
+    el('label', { class: 'field-label', for: id, text: 'Motion' }),
+    summary,
+    select,
+  ]);
 }
 
 /** @returns {{body: HTMLElement}} step 3 body — palette with a live preview, then type and rounding. */
