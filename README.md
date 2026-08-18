@@ -78,9 +78,12 @@ Requires Ruby 3.3 (see `.ruby-version`) and Node 22+.
 bundle install
 npm install
 
+npm run dev       # http://127.0.0.1:4000/ with live reload — Tailwind watcher + jekyll serve in one terminal,
+                  # regenerating the schema-derived files whenever _data/schema.yml or _data/site.yml changes
 npm run build     # generate schema-derived files, build CSS, build the Jekyll site into _site/
-npm run serve     # build CSS, then serve with live reload (run `npm run generate` first after schema edits)
 ```
+
+`npm run dev -- --port 4001 --host 0.0.0.0` changes where it listens; output is prefixed `[css]`, `[jekyll]` and `[gen]`, and Ctrl-C stops everything. `npm run serve` and `npm run watch:css` still exist if you want the pieces separately.
 
 Other useful scripts:
 
@@ -89,6 +92,7 @@ npm run setup      # configuration wizard (see Quick start)
 npm run generate   # regenerate the issue template + configurator defaults, and sync _config.yml from _data/site.yml
 npm run validate   # parse all _data/*.yml and run the front-matter / file-size checks CI runs on pull requests
 npm test           # Node unit tests; `npm run test:ruby` for the Ruby validators
+npm run test:build # build every preset and module combination and check the rendered copy (needs Ruby; minutes, not seconds)
 npm run a11y       # pa11y-ci (WCAG 2 AA) against _site served on :4173 — see CONTRIBUTING.md
 npm run lighthouse # Lighthouse CI against the same local server
 ```
