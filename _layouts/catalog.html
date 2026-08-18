@@ -85,6 +85,12 @@ include_search: true
 
 {% include filter-sheet.html entries=entries %}
 
+{%- comment -%} The compare tray. An ES module (it imports ./lib/compare-table.js), so
+it needs its own tag rather than default.html's `scripts:` list, which emits classic
+deferred scripts. It injects the per-card toggles itself: _includes/entry-card.html
+knows nothing about compare. {%- endcomment -%}
+<script type="module" src="{{ '/assets/js/compare.js' | relative_url }}"></script>
+
 {%- comment -%} `strip`: a page whose body is only a Liquid comment still hands the
 layout a newline, which would otherwise open an empty, spaced block. {%- endcomment -%}
 {% assign cat_content = content | strip %}

@@ -17,3 +17,6 @@ docs/
 *.html
 # Component CSS keeps one selector per line with its full @apply token list (see docs/design-system.md).
 assets/css/
+
+# Liquid template that emits JSON — it is not parseable JSON at rest.
+entries.json

@@ -15,6 +15,8 @@
 @import "./components/media.css";
 @import "./components/site.css";
 @import "./components/setup.css";
+@import "./components/compare.css";
+@import "./components/print.css";
 @import "tailwindcss/utilities";
 @import "./components/utilities.css";
 /* Last: it corrects the layers above it and must outrank all of them. */

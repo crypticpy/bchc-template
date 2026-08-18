@@ -1,6 +1,6 @@
 # Documentation
 
-Eleven documents, four different readers. Find your row.
+Fourteen documents, four different readers. Find your row.
 
 | Page | Who it is for | When to read it |
 |---|---|---|
@@ -14,6 +14,7 @@ Eleven documents, four different readers. Find your row.
 | [glossary.md](glossary.md) | Anyone hitting a word they do not use this way | Entry, slug, facet, card slot, module, preset, scaffold. |
 | [decisions.md](decisions.md) | Someone changing the template | Before arguing with a choice — the reasoning is here, not in the commit log. |
 | [images.md](images.md) | Someone wondering why a screenshot has five siblings | The responsive-image pipeline: `npm run images`, what gets committed and why, and how to use `picture.html` in a template. |
+| [compare.md](compare.md) | Someone changing the compare tray or the print brief | How the shortlist, `/compare/` and the print stylesheet fit together, and the one rule that keeps them schema-driven. |
 | [design-system.md](design-system.md) | Someone building UI | Tokens, component classes, browser support. Pair it with `/styleguide/` on the running site. |
 | [design-brief.md](design-brief.md) | Nobody, urgently | Historical: the 2026 brief that produced the current design. Kept because it explains intent; `design-system.md` is what shipped. |
 | [roadmap.md](roadmap.md) | Someone asking "what was built, and when" | A build log of the v1.0/v1.1 phases, all complete. |
