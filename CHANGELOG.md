@@ -77,13 +77,16 @@ and presets need no change.
   you take / what you keep", and `docs/upgrading.md` carries the recipe.
 - **File and image fields upload from the issue form** — GitHub's native
   upload control replaces the "commit it after the PR" step.
-- Cross-document **view transitions** between catalog and entry, plus
+- Cross-document **view transitions** between catalog and entry — the card's
+  image and title carry over into the entry's hero and heading — plus
   speculation rules that start loading an entry after ~200 ms of hover; both
   inert where unsupported and off under `prefers-reduced-motion`. **Web Share**
   on entry pages where the browser supports it.
 - Semantic radius and motion utilities driven by `_data/theme.yml`
   (`rounded-hairline/control/card/sheet/pill`, `duration-fast/base/slow`,
-  `ease-brand`, an optional `motion:` block).
+  `ease-brand`). The theme's new `motion:` block — three named speeds, snappy /
+  default / calm, or hand-written timings — is set from the wizard's Look step,
+  which also previews the sixth (`xs`) radius step.
 - `npm run test:flows` — keyboard-only walkthroughs of the catalog, search,
   submission and setup journeys in a real browser (focus order, visible focus,
   live-region announcements, no dead ends), run as a third lane in
@@ -100,7 +103,9 @@ and presets need no change.
   catalog search box is a `<search>` landmark with a `type="search"` input.
 - Badge tones are a `data-tone` attribute instead of a composed class name and
   `tailwind.config.js` no longer needs a safelist; an unrecognised tone renders
-  a neutral pill instead of unstyled text.
+  a neutral pill instead of unstyled text. The deprecated `.badge-<tone>` and
+  `.chip-secondary` spellings are gone — a fork that wrote them by hand needs
+  `class="badge" data-tone="…"`.
 - Fonts are two variable woff2 subsets instead of seven static cuts, with
   metric-matched fallback faces: 2 requests / 104.5 KiB where a page took
   5 / 157.3 KiB, and no reflow on swap.
@@ -108,7 +113,10 @@ and presets need no change.
   now "Generate entry media", also triggers on images and re-dispatches both
   Validate and Quality after it pushes.
 - Pull requests opened by the content bots are labelled with their
-  `content:*` label.
+  `content:*` label; **Bootstrap labels** also creates `verification`.
+- `/compare/` is dropped with the catalog module, like the rest of the catalog's
+  pages. Link hosts under a link are hidden in print (the URL is spelled out
+  instead).
 - The setup wizard's Branding step is three steps — Basics, Look and Words —
   and answers saved by an earlier version resume on the right step.
 - `organization` moved to weight 8, so sharing an organization no longer makes
@@ -120,6 +128,8 @@ and presets need no change.
 
 - The catalog-index test no longer asserts a ranking against the live sample
   catalog, so adding an entry cannot fail CI (it did, on a real submission).
+- The demo banner's "Demo content" label meets 4.5:1 on its tinted ground, and
+  the compare tray's link has a name before the first pick.
 - The setup wizard's Review step no longer scrolls sideways at 390 px, and an
   invalid field is marked the moment its error summary appears.
 - The Atom feed falls back to `site.github.url` for absolute ids and warns

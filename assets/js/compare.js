@@ -67,6 +67,9 @@ const BASE = siteBase(import.meta.url);
   const go = document.createElement('a');
   go.className = 'btn-primary btn-sm';
   go.dataset.compareGo = '';
+  // render() rewrites this; a name from the start keeps the (hidden) tray's
+  // link from ever being an empty anchor in the static DOM.
+  go.textContent = 'Compare';
   actions.appendChild(go);
 
   const clear = document.createElement('button');

@@ -23,7 +23,7 @@
   .entry-card.is-entering, [data-empty-state].is-entering { @apply opacity-0; }
   /* A band, not a cover shot: at 288px a 16:9 deck render is illegible, and the top
      band is where a slide or a dashboard puts its title. No scrim — both badge tones
-     (.badge-accent, .badge-on-dark) carry their own opaque ground. */
+     (data-tone="accent" and "on-dark") carry their own opaque ground. */
   .entry-media { @apply relative aspect-[16/7] w-full overflow-hidden border-b border-brand-line bg-brand-ink/5; }
   .entry-badges { @apply absolute left-3 top-3 z-10 flex flex-wrap items-center gap-1.5; }
   .entry-body { @apply flex flex-1 flex-col gap-3 p-5 sm:p-6; }
@@ -39,7 +39,7 @@
   /* Badges keep their own width whatever the segments do (imageless card). */
   .entry-meta-badges { @apply flex shrink-0 flex-wrap items-center gap-1.5; }
   /* An inline badge (imageless card) keeps its own case and tracking. */
-  .entry-meta [class*="badge-"] { @apply normal-case tracking-normal; }
+  .entry-meta .badge { @apply normal-case tracking-normal; }
   /* Kept for _includes/entry-row.html, which still emits a standalone separator. */
   /* Segments carry their own separator so "·" can never orphan onto its own line. */
   /* The lead segment (usually the org) flexes and truncates so the second one

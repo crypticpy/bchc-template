@@ -15,8 +15,8 @@ Local assigns are prefixed `db_`.
   {%- assign db_branch = site.data.site.github.branch | default: 'main' -%}
   <div class="border-b border-brand-warn/30 bg-brand-warn/10" data-component="demo-banner">
     <p class="mx-auto flex max-w-7xl flex-col gap-x-2 px-4 py-2.5 text-sm sm:flex-row sm:items-baseline sm:px-6 lg:px-8">
-      <span class="flex shrink-0 items-center gap-1.5 font-semibold text-brand-warn">
-        {%- include icon.html name='sparkles' size='sm' -%}
+      <span class="flex shrink-0 items-center gap-1.5 font-semibold text-brand-ink">
+        <span class="text-brand-warn">{%- include icon.html name='sparkles' size='sm' -%}</span>
         <span>Demo content</span>
       </span>
       <span class="text-brand-ink">
