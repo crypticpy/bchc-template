@@ -1,7 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { checkSchema, validateSchema, sortByWeight } from '../../assets/js/configurator/schema-validate.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import {
+  checkSchema,
+  validateSchema,
+  sortByWeight,
+  overlapWarning,
+  OPTION_TONES,
+} from '../../assets/js/configurator/schema-validate.js';
 import { defaultConfig } from '../../assets/js/configurator/default-config.js';
 
 /** A minimal valid schema; `overrides` are merged over it. */
@@ -276,5 +286,80 @@ test('sortByWeight is stable and defaults to 5', () => {
     fields.map((f) => f.key),
     ['a', 'b', 'c', 'd', 'e'],
     'the input array is not mutated'
+  );
+});
+
+/* --- Tones ---------------------------------------------------------------- */
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+test('every tone the schema accepts has a matching badge class in the CSS', () => {
+  const dir = path.join(ROOT, 'assets', 'css', 'components');
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.css')) : [];
+  // A fork that restyles from scratch has no components/ to check against; the
+  // list is still the contract, there is just nothing to compare it to.
+  if (files.length === 0) return;
+
+  const css = files.map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
+  const styled = new Set([...css.matchAll(/\.badge-([a-z-]+)\b/g)].map((m) => m[1]));
+
+  // One direction only: a tone with no class renders an unstyled span, which is
+  // the failure worth catching. The reverse would flag `.badge-md`/`.badge-lg`,
+  // which share the prefix but are size modifiers, not tones.
+  assert.deepEqual(
+    OPTION_TONES.filter((tone) => !styled.has(tone)),
+    [],
+    'schema-validate.js accepts a tone that assets/css/components has no `.badge-<tone>` for'
+  );
+});
+
+/* --- prompt / description overlap ----------------------------------------- */
+
+test('overlapWarning finds a repeated run of four words, ignoring case and punctuation', () => {
+  assert.equal(
+    overlapWarning({
+      prompt: 'Which organization is sharing this?',
+      description: 'The organization sharing this entry, as it should be credited.',
+    }),
+    null,
+    'a description that continues the prompt is not a stutter'
+  );
+  assert.equal(
+    overlapWarning({
+      prompt: 'Which organization is sharing this work?',
+      description: 'Name the organization "is sharing" — the organization is sharing this work.',
+    }),
+    'organization is sharing this'
+  );
+  // Three shared words is a normal amount of shared vocabulary.
+  assert.equal(
+    overlapWarning({ prompt: 'What problem does it solve?', description: 'The problem it solves.' }),
+    null
+  );
+  assert.equal(overlapWarning({ prompt: 'Anything at all?' }), null, 'no description is not a stutter');
+  assert.equal(overlapWarning({}), null);
+});
+
+test('an overlapping description warns rather than failing the schema', () => {
+  const schema = schemaWith([
+    {
+      key: 'owner',
+      label: 'Owner',
+      type: 'text',
+      group: 'about',
+      prompt: 'Who owns this work day to day?',
+      description: 'Say who owns this work day to day, by role.',
+    },
+  ]);
+  const result = checkSchema(schema);
+  assert.equal(result.ok, true, errorText(schema));
+  assert.match(result.warnings.map((w) => w.message).join('\n'), /repeats "who owns this work"/);
+});
+
+test('the shipped schema has no prompt/description stutter', () => {
+  const fields = defaultConfig().schema.fields ?? [];
+  assert.deepEqual(
+    fields.filter((field) => overlapWarning(field)).map((field) => field.key),
+    []
   );
 });

@@ -53,11 +53,21 @@ export const CARD_SLOT_TYPES = {
 /** Types that can drive a filter in the catalog panel. */
 const FACET_TYPES = ['select', 'multiselect', 'list', 'text'];
 
-/** Legal `option_meta.<option>.tone` values. */
-export const OPTION_TONES = ['neutral', 'primary', 'secondary', 'accent', 'warn'];
+/**
+ * Legal `option_meta.<option>.tone` values.
+ *
+ * Mirrors the `.badge-<tone>` classes in `assets/css/components/badges.css`
+ * (the set `_includes/badge.html` documents). A tone with no class renders an
+ * unstyled span, so this list has to stay in step with the CSS —
+ * `test/configurator/schema-validate.test.mjs` greps the stylesheet to check.
+ */
+export const OPTION_TONES = ['primary', 'secondary', 'accent', 'neutral', 'warn', 'on-dark'];
 
 /** `short` labels wider than this stop fitting a chip or badge. */
 const SHORT_MAX = 14;
+
+/** Words of overlap between `prompt` and `description` before it reads as a stutter. */
+const OVERLAP_RUN = 4;
 
 const OPTION_TYPES = new Set(['select', 'multiselect']);
 const NO_OPTION_TYPES = new Set(['images', 'links', 'file', 'image']);
@@ -84,6 +94,36 @@ export function sortByWeight(fields) {
       return wa === wb ? a.index - b.index : wa - wb;
     })
     .map((item) => item.field);
+}
+
+/**
+ * The stutter check behind the `prompt` / `description` contract in
+ * `docs/content-model.md`: forms print the two strings back to back
+ * (`issue-template.js` concatenates them, `submit/index.md` stacks them), so a
+ * `description` that restates the question reads as a hiccup —
+ * "Which organization is sharing this? The organization sharing this entry…".
+ *
+ * Deterministic on purpose: a shared run of {@link OVERLAP_RUN} words after
+ * case/punctuation folding, no fuzzy matching to argue with. It is a warning,
+ * not an error, because rephrasing copy must never fail a fork's build.
+ *
+ * @param {{key?: string, prompt?: unknown, description?: unknown}} field
+ * @returns {string|null} the repeated run, or null when there is none.
+ */
+export function overlapWarning(field) {
+  const words = (value) =>
+    String(value ?? '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .split(' ')
+      .filter(Boolean);
+  const prompt = words(field?.prompt);
+  const description = ` ${words(field?.description).join(' ')} `;
+  for (let i = 0; i + OVERLAP_RUN <= prompt.length; i += 1) {
+    const run = prompt.slice(i, i + OVERLAP_RUN).join(' ');
+    if (description.includes(` ${run} `)) return run;
+  }
+  return null;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -247,6 +287,15 @@ function checkPresentation(field, path, type, groupKeys, report) {
 
   if (field.prompt !== undefined && !isNonEmptyString(field.prompt)) {
     report.error(`${path}.prompt`, '`prompt` must be a non-empty question when present.');
+  }
+
+  const repeated = overlapWarning(field);
+  if (repeated) {
+    report.warn(
+      `${path}.description`,
+      `\`description\` repeats "${repeated}" from \`prompt\` — the two print back to back in the ` +
+        'issue form, so write a continuation (a constraint, an example, a boundary) instead.'
+    );
   }
 
   if (field.facet !== undefined) {
