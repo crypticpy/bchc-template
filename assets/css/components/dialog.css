@@ -23,6 +23,13 @@ dialog {
      full-bleed sheet by a few pixels on every side. */
   max-width: none;
   max-height: none;
+  /* The UA sizes a dialog `fit-content` in both axes and centres it with `margin: auto`.
+     That silently defeats `inset-0`: the box keeps its content height and the auto margins
+     centre it, so a sheet taller than the viewport hangs off both ends instead of filling
+     it and scrolling internally. Sizing goes back to the utilities on the element. */
+  width: auto;
+  height: auto;
+  margin: 0;
   /* A 1em padding and a solid border are the alert-box defaults; surfaces draw their own. */
   padding: 0;
   border: 0;
