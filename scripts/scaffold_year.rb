@@ -1,16 +1,18 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Scaffold a cohort/program year: the landing page, an events folder and a
-# starter schedule data file. Existing files are never overwritten.
+# Scaffold a cohort/program year: the landing page and a starter schedule data
+# file. Existing files are never overwritten. No events folder is created:
+# _plugins/events.rb generates a detail page for every event in the data file,
+# and a hand-written file under cohorts/<year>/events/<id>/ overrides it.
 #
 # Invoked by: the "Scaffold cohort" step in .github/workflows/new-year.yml,
 # triggered by an issue labeled `content:new-year` (year read from the issue
 # via scripts/extract_event_fields.mjs) or a manual `workflow_dispatch`. That
 # workflow opens a PR with the scaffolded files afterwards.
 # Env: COHORT_YEAR (required, four digits), COHORT_INTRO (optional).
-# Output: writes cohorts/<year>/index.md, cohorts/<year>/events/, and
-# _data/cohorts/<year>.yml under the repo root; prints a summary line.
+# Output: writes cohorts/<year>/index.md and _data/cohorts/<year>.yml under the
+# repo root; prints a summary line.
 
 require "fileutils"
 require "yaml"
@@ -42,7 +44,7 @@ root = File.expand_path("..", __dir__)
 cohort_dir = File.join(root, "cohorts", year)
 data_dir = File.join(root, "_data", "cohorts")
 
-FileUtils.mkdir_p(File.join(cohort_dir, "events"))
+FileUtils.mkdir_p(cohort_dir)
 FileUtils.mkdir_p(data_dir)
 
 intro = ENV["COHORT_INTRO"].to_s.strip

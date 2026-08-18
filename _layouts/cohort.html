@@ -57,13 +57,10 @@ include_search: true
 
   <aside class="order-1 space-y-6 lg:order-2">
     {% if coh_next_event %}
-      {% assign coh_slug = coh_next_event.slug | default: coh_next_event.id | default: coh_next_event.name | slugify %}
-      {% assign coh_href = '/cohorts/' | append: page.year | append: '/events/' | append: coh_slug | append: '/' %}
-      {% assign coh_has_page = site.pages | where: 'url', coh_href | size %}
       <section class="card border-l-4 !border-l-brand-accent" aria-labelledby="next-milestone">
         <div class="card-header flex items-center gap-2"><h2 id="next-milestone" class="card-title flex items-center gap-2">{% include icon.html name='calendar' size='sm' class='text-brand-accent' %} Next milestone</h2></div>
         <div class="px-6 py-5">
-          <p class="font-semibold text-brand-primary-dark">{% if coh_has_page > 0 %}<a class="hover:underline" href="{{ coh_href | relative_url }}">{{ coh_next_event.name }}</a>{% else %}{{ coh_next_event.name }}{% endif %}</p>
+          <p class="font-semibold text-brand-primary-dark">{% if coh_next_event.page_url %}<a class="hover:underline" href="{{ coh_next_event.page_url | relative_url }}">{{ coh_next_event.name }}</a>{% else %}{{ coh_next_event.name }}{% endif %}</p>
           <p class="mt-1 text-sm text-brand-muted">{{ coh_next_event.date | date: '%B %-d, %Y' }}{% if coh_next_event.time %} · {{ coh_next_event.time }}{% endif %}</p>
           {% if coh_next_event.location %}<p class="text-sm text-brand-muted">{{ coh_next_event.location }}</p>{% endif %}
         </div>

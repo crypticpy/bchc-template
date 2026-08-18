@@ -1,4 +1,5 @@
-{%- comment -%} Vertical milestone timeline for a cohort. Usage: {% include timeline.html events=data.events year=page.year %} Local assigns are prefixed `tl_`. {%- endcomment -%}
+{%- comment -%} Vertical milestone timeline for a cohort. Usage: {% include timeline.html events=data.events year=page.year %}
+`event.page_url` is set by _plugins/events.rb (every cohort event has a detail page unless the cohorts module is off). Local assigns are prefixed `tl_`. {%- endcomment -%}
 {%- assign tl_now = 'now' | date: '%s' | plus: 0 -%}
 <section aria-labelledby="cohort-timeline" class="card">
   <div class="card-header">
@@ -11,14 +12,11 @@
       {% for event in include.events %}
         {% assign tl_state = 'upcoming' %}
         {% if event.date %}{% assign tl_ts = event.date | date: '%s' | plus: 0 %}{% if tl_ts < tl_now %}{% assign tl_state = 'past' %}{% endif %}{% endif %}
-        {% assign tl_slug = event.slug | default: event.id | default: event.name | slugify %}
-        {% assign tl_href = '/cohorts/' | append: include.year | append: '/events/' | append: tl_slug | append: '/' %}
-        {% assign tl_has_page = site.pages | where: 'url', tl_href | size %}
         <li class="relative flex gap-4">
           <span class="relative z-10 mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 {% if tl_state == 'past' %}border-brand-secondary bg-brand-secondary text-white{% else %}border-brand-primary bg-surface-card{% endif %}">{% if tl_state == 'past' %}{% include icon.html name='check' size='xs' %}{% endif %}</span>
           <div class="min-w-0">
-            {% if tl_has_page > 0 %}
-              <a class="font-semibold text-brand-primary-dark hover:text-brand-primary hover:underline" href="{{ tl_href | relative_url }}">{{ event.name }}</a>
+            {% if event.page_url %}
+              <a class="font-semibold text-brand-primary-dark hover:text-brand-primary hover:underline" href="{{ event.page_url | relative_url }}">{{ event.name }}</a>
             {% else %}
               <p class="font-semibold text-brand-primary-dark">{{ event.name }}</p>
             {% endif %}
