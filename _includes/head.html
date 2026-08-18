@@ -10,6 +10,7 @@
   front matter, so it gets the same treatment here. {%- endcomment -%}
   {%- assign hd_page_title = page.title -%}
   {%- if page.layout == 'catalog' and hd_page_title == nil -%}{%- assign hd_page_title = site.data.schema.entry.plural -%}{%- endif -%}
+  {%- if page.layout == 'compare' and hd_page_title == nil -%}{%- capture hd_page_title %}Compare {{ site.data.schema.entry.plural | downcase }}{% endcapture -%}{%- endif -%}
   <title>{% if hd_page_title and page.url != '/' %}{{ hd_page_title }} · {% endif %}{{ hd_cfg.name | default: site.title }}</title>
   <meta name="description" content="{{ page.summary | default: page.description | default: hd_cfg.description | default: site.description | strip_html | strip_newlines | truncate: 200 }}">
   {% if page.robots %}<meta name="robots" content="{{ page.robots }}">{% endif %}
