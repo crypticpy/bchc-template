@@ -423,7 +423,7 @@ scripts:
 
   {%- if badge_field -%}
   {%- for o in badge_field.options -%}{%- assign om = badge_field | option_meta: o -%}
-  <template data-option-view="{{ badge_field.key }}__{{ forloop.index0 }}"><span class="badge-{{ om.tone }}">{% if om.icon != '' %}{% include icon.html name=om.icon size='xs' %}{% endif %}<span>{{ om.short }}</span></span></template>
+  <template data-option-view="{{ badge_field.key }}__{{ forloop.index0 }}"><span class="badge" data-tone="{{ om.tone }}">{% if om.icon != '' %}{% include icon.html name=om.icon size='xs' %}{% endif %}<span>{{ om.short }}</span></span></template>
   {%- endfor -%}
   {%- endif -%}
 

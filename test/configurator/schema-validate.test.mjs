@@ -301,7 +301,9 @@ test('every tone the schema accepts has a matching badge class in the CSS', () =
   if (files.length === 0) return;
 
   const css = files.map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
-  const styled = new Set([...css.matchAll(/\.badge-([a-z-]+)\b/g)].map((m) => m[1]));
+  // Tones are `.badge[data-tone="…"]`; the composed `.badge-<tone>` form is the
+  // deprecated alias kept for the /setup/ preview. Either spelling counts as styled.
+  const styled = new Set([...css.matchAll(/\.badge(?:-|\[data-tone=")([a-z-]+)/g)].map((m) => m[1]));
 
   // One direction only: a tone with no class renders an unstyled span, which is
   // the failure worth catching. The reverse would flag `.badge-md`/`.badge-lg`,

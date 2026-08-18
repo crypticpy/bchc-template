@@ -191,6 +191,7 @@ facts, rail, body.
     {{ ent_rail_cards }}
     <section class="rail-card" aria-labelledby="rail-share-heading">
       <h2 class="rail-title" id="rail-share-heading">Share &amp; provenance</h2>
+      <button type="button" class="btn-secondary btn-sm entry-no-print mt-3 w-full" data-share-link hidden>{% include icon.html name='share' size='sm' %}Share</button>
       <button type="button" class="btn-secondary btn-sm entry-no-print mt-3 w-full" data-copy-link hidden>{% include icon.html name='copy' size='sm' %}Copy link</button>
       <p class="mt-2 text-xs text-brand-muted" data-copy-status role="status"></p>
       {%- if ent_cfg.github.repository and ent_cfg.github.repository != '' -%}

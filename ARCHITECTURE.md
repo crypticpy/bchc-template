@@ -113,12 +113,14 @@ the CLI.
 
 ### Styling
 
-Tokens (`theme.yml` colours, fonts, radius) become CSS variables in `_includes/theme.html`;
-`tailwind.config.js` maps them to `brand-*` / `surface-*` colours so components use semantic names,
-never hex. Component classes live in `assets/css/components/<surface>.css` and are `@apply`
-compositions; a `safelist` keeps the dynamically composed `badge-*`, `chip-*`, `signal-*` tone
-classes from being purged. `assets/css/site.css` is build output (`npm run build:css`) and is not
-committed. Fonts are self-hosted latin woff2 subsets (`assets/fonts/README.md`).
+Tokens (`theme.yml` colours, fonts, type, radius, motion) become CSS variables in
+`_includes/theme.html`; `tailwind.config.js` maps them to `brand-*` / `surface-*` colours,
+`rounded-hairline/control/card/sheet/pill` and `duration-fast/base/slow` so components use semantic
+names, never hex or literals. Component classes live in `assets/css/components/<surface>.css` and are
+`@apply` compositions. There is no `safelist`: a badge's tone is `data-tone`, not part of its class
+name, so nothing is composed at render time for the scanner to miss.
+`assets/css/site.css` is build output (`npm run build:css`) and is not committed.
+Fonts are self-hosted variable woff2 subsets (`assets/fonts/README.md`).
 
 ### Testing
 

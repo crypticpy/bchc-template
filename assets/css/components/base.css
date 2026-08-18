@@ -1,13 +1,49 @@
 /* Base layer: fonts, resets, motion defaults.
-   Bundled fonts are latin/latin-ext woff2 subsets (~35 KB each) — see assets/fonts/README.md
-   for the subset recipe. Any other family goes through theme.yml → fonts.google_fonts_url. */
-@font-face { font-family: "Inter"; src: url("../fonts/Inter-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../fonts/Inter-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../fonts/Inter-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../fonts/Inter-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Source Sans 3"; src: url("../fonts/SourceSans3-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+   Two bundled families, one variable latin/latin-ext woff2 subset each, carrying every
+   weight from 400 to 700 (57 KB + 49 KB). They replaced seven static cuts: two requests
+   instead of five, and a stray `font-medium` can no longer pull a weight nobody preloaded.
+   `npm run fonts` rebuilds them — see assets/fonts/README.md. Any other family goes
+   through theme.yml → fonts.google_fonts_url and none of this applies. */
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/Inter-Variable.woff2") format("woff2-variations"), url("../fonts/Inter-Variable.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("../fonts/SourceSans3-Variable.woff2") format("woff2-variations"), url("../fonts/SourceSans3-Variable.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Metric-matched fallbacks. `font-display: swap` means the first paint uses a local face;
+   without these the swap-in visibly reflows every card and heading (a CLS the Lighthouse
+   lane charges for). Each override rescales Arial — or whatever metric-compatible face the
+   platform has — so its x-height, ascent and descent match the webfont's, making the two
+   occupy the same boxes. Numbers are printed by `npm run fonts`; do not hand-tune them.
+   `--font-body` / `--font-heading` (from _includes/theme.html) list "<family> Fallback"
+   right after the family, so a Google-fonts family simply names a face that does not exist
+   here and is skipped. */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Liberation Sans");
+  size-adjust: 105.3%;
+  ascent-override: 92%;
+  descent-override: 22.9%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Source Sans 3 Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Liberation Sans");
+  size-adjust: 92.2%;
+  ascent-override: 108.5%;
+  descent-override: 35.4%;
+  line-gap-override: 0%;
+}
 
 @layer base {
   html { scroll-behavior: smooth; }

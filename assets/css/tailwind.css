@@ -10,6 +10,8 @@
 @import "./components/buttons.css";
 @import "./components/badges.css";
 @import "./components/forms.css";
+@import "./components/dialog.css";
+@import "./components/transitions.css";
 @import "./components/catalog.css";
 @import "./components/entry.css";
 @import "./components/media.css";

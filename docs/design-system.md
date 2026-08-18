@@ -50,8 +50,11 @@ colour, it is either one of those meanings or it is `ink`/`muted` on `line` stru
 ### Type
 
 `fonts.heading` / `fonts.body` from `theme.yml` → `--font-heading` / `--font-body` → `font-heading`
-/ `font-sans`. Bundled: Inter (400/500/600/700) and Source Sans 3 (400/600/700) as latin woff2
-subsets (`assets/fonts/README.md`); other families via `fonts.google_fonts_url`.
+/ `font-sans`. Bundled: Inter and Source Sans 3, one variable latin woff2 subset each covering
+weights 400–700 (57 KB + 49 KB; `npm run fonts` rebuilds them — `assets/fonts/README.md`). Each
+variable is followed in the stack by a metric-matched `"<family> Fallback"` face, so the
+`font-display: swap` handover does not reflow the page. Other families via
+`fonts.google_fonts_url`, which loads non-render-blocking and gets no fallback face.
 
 | Role | Size / line | Class or where |
 |---|---|---|
@@ -84,19 +87,41 @@ mid-resize. `.page-title` and `.section-title` set `text-wrap: balance` and `.pr
 
 - **Spacing** — 4px base; use 4/8/12/16/24/32/48/64/96 only. Card padding 20 (mobile) / 24 (≥ sm);
   grid gutter 24; section rhythm 64/96; inside a card 8 between related lines, 16 between blocks.
-- **Radius** — `theme.yml → radius: sharp | soft | round` sets `--radius-sm…2xl`; Tailwind's
-  `rounded-md/lg/xl/2xl` map onto them. Cards `rounded-2xl`, panels/inputs/thumbnails `rounded-lg`
-  or `xl`, chips/pills/buttons `rounded-full`. Nested elements go one step down from their parent.
-  Checkboxes keep a fixed 3px corner regardless of theme (a round box says "pick one").
+- **Radius** — `theme.yml → radius: sharp | soft | round` sets `--radius-xs…2xl`. Prefer the
+  semantic Tailwind names, which say what a corner is *for*: `rounded-hairline` (checkbox,
+  focus target), `rounded-control` (input, toggle, small panel), `rounded-card`,
+  `rounded-sheet` (sheet, dialog, hero), `rounded-pill` (badge, chip, button — never themed).
+  Nested elements go one step down from their parent. The numeric names still work and still
+  track the theme, but they carry a historical off-by-one — `rounded-lg` returns the *medium*
+  token — so use them only where existing markup already does.
+
+  | Semantic | Token | `soft` | `sharp` | `round` |
+  |---|---|---|---|---|
+  | `rounded-hairline` | `--radius-xs` | 0.25rem | 0.125rem | 0.375rem |
+  | `rounded-control` | `--radius-md` | 0.75rem | 0.5rem | 1.5rem |
+  | `rounded-card` | `--radius-xl` | 1.25rem | 0.75rem | 2rem |
+  | `rounded-sheet` | `--radius-2xl` | 1.75rem | 1rem | 2.5rem |
 - **Elevation** — E0 `border-brand-line`, no shadow: the default for all cards. E1 `shadow-e1`: hover
   lift only (`.card-hover`). E2 `shadow-e2`: things that float — sticky results header, mobile
   sheet, search listbox, progress rail. Never shadow chips, inputs or badges; never E1 inside E1.
-- **Motion** — `duration-120` state changes, `duration-180` hover/expand, `duration-240` sheets;
-  `ease-brand` = `cubic-bezier(0.2,0,0,1)`. Animate `transform`/`opacity` only; when the results
+- **Motion** — a theme token like everything else: `duration-fast` (120ms) state changes,
+  `duration-base` (180ms) hover/expand, `duration-slow` (240ms) sheets and page transitions;
+  `ease-brand` = `cubic-bezier(0.2,0,0,1)`. All four resolve to `--motion-fast/base/slow` and
+  `--ease-brand`, so a fork that wants calmer motion adds a `motion:` block to `theme.yml`
+  (see the commented example there) instead of grepping twenty component rules. The old
+  `duration-120/180/240` names are aliases of the same three tokens. Animate `transform`/`opacity` only; when the results
   re-render, only the cards that just entered the filtered set fade in (`.entry-card.is-entering`),
   survivors are left alone — the list settles, it does not blink. `prefers-reduced-motion` collapses every
   transition/animation to 0.01ms (`base.css`), carousel autoplay stops, sheet slides become instant.
   Focus rings never animate.
+- **Page transitions** — `transitions.css` opts the whole site into cross-document view
+  transitions (`@view-transition { navigation: auto }`), so catalog → entry → back crossfades
+  instead of flashing white. The opt-in is nested inside `prefers-reduced-motion: no-preference`
+  rather than switched off afterwards: the blanket `animation-duration: 0.01ms` above would
+  otherwise still run the transition, just as a flash of its own. Snapshot animations are timed
+  with `--motion-slow` / `--ease-brand`. No element is named yet, so every navigation is a root
+  crossfade; naming a shared element (card thumbnail → entry lead image) is the next step and
+  needs a `view-transition-name` on both sides.
 
 ### Focus
 
@@ -122,9 +147,13 @@ Pill shape, 44px min-height under `lg` (40 above), no translate on hover — col
 
 ### Badges, chips, signals (`badges.css`)
 
-- `.badge-<tone>` — categorical label. Tones: `primary` (inline card badge), `accent` (Featured),
-  `neutral`, `warn` (caution), `on-dark` (over a screenshot: opaque `ink/80` ground so contrast
-  holds on any image), `secondary`. `.badge-md`, `.badge-lg` sizes.
+- `.badge` + `data-tone` — categorical label. Tones: `primary` (inline card badge), `accent`
+  (Featured), `neutral`, `warn` (caution), `on-dark` (over a screenshot: opaque `ink/80` ground
+  so contrast holds on any image), `secondary`. `.badge-md`, `.badge-lg` sizes. Write
+  `{% include badge.html label="…" tone="warn" %}`; an unknown tone falls back to `neutral`.
+  The tone is an attribute, not part of the class name, which is why `tailwind.config.js` needs
+  no `safelist` — see "Adding a tone" below. The composed `.badge-<tone>` classes still work but
+  are deprecated: their only remaining emitter is the `/setup/` live preview.
 - `.chip` — one taxonomy family per card (hairline, `secondary` dot). `.chip-plain` (no dot),
   `.chip-warn` (sensitive values), `.chip-neutral` (the "+n" overflow, same hairline, no dot),
   `.chip-secondary` (legacy alias for `.chip`).
@@ -133,6 +162,43 @@ Pill shape, 44px min-height under `lg` (40 above), no translate on hover — col
   (`_includes/signal-strip.html`).
 
 Every badge/chip/signal carries visible or `sr-only` text — never colour- or icon-only.
+
+**Adding a tone.** One rule in `badges.css` setting three custom properties:
+
+```css
+.badge[data-tone="success"] {
+  --tone-bg: var(--c-secondary);
+  --tone-bg-a: 0.1;
+  --tone-fg: var(--c-ink);
+  --tone-ring: var(--c-secondary);
+  --tone-ring-a: 0.25;
+}
+```
+
+Then add the name to the `bd_tones` list in `_includes/badge.html` (the guard that maps unknown
+tones to `neutral`) and to `OPTION_TONES` in `assets/js/configurator/schema-validate.js` if the
+schema's `option_meta` should be allowed to ask for it. `test/styles/tokens.test.mjs` reads the
+list out of the include and fails if a tone is styled but not offered, or offered but purged.
+
+### Dialogs (`dialog.css`)
+
+Modal surfaces are real `<dialog>` elements opened with `showModal()`. The platform supplies the
+top layer, the focus trap, Escape, `inert` on everything behind, and focus restoration on close —
+do not reimplement any of it. `dialog.css` only clears the UA's alert-box defaults (1em padding, a
+border, the `dialog:modal` max-width that crops a full-bleed sheet) and paints `::backdrop`.
+
+Two things to know before adding one:
+
+- **A display utility on a `<dialog>` makes the closed dialog visible.** Author styles beat UA
+  styles at any specificity, so `@apply flex` defeats `dialog:not([open]) { display: none }`.
+  `dialog.css` restates that rule as an author rule at 0,1,1; anything that needs to outrank it
+  must do so deliberately.
+- **Scroll lock is the `is-dialog-open` class on `<html>`**, set by the dialog's own module and
+  cleared on the `close` event (so Escape and a form submission release it too). `<html>` rather
+  than `<body>` because iOS Safari keeps scrolling the viewport when only `<body>` is locked.
+
+The mobile filter sheet (`.filter-sheet`, styled in `catalog.css`, wired by
+`assets/js/filter-sheet.js`) is the only one today.
 
 ### Catalog surfaces (`catalog.css`)
 
@@ -243,6 +309,19 @@ frames is the oldest hard requirement), and the newest feature the components us
 `grid-template-rows: subgrid` on the fact strip — falls back to a plain stack. Revisit when Tailwind 3 stops receiving fixes or the audience's browser mix has moved on;
 `.github/dependabot.yml` ignores the major bump until then so the weekly PR is not a standing
 temptation.
+
+That floor is also why several newer platform features are used only where they can be *ignored*
+rather than polyfilled. Each one degrades to exactly today's behaviour on a browser that does not
+have it:
+
+| Feature | Where | Without it |
+|---|---|---|
+| `<dialog>` + `showModal()` | mobile filter sheet | falls back to the non-modal `open` attribute — the sheet works, the focus trap does not |
+| Cross-document view transitions | every navigation | the navigation is not animated |
+| Speculation rules | catalog → entry | the entry page loads on click, as now |
+| Web Share | entry rail | the Share button never appears; Copy link is unchanged |
+| Container queries | cards | behind `@supports`; the breakpoint layout is the fallback |
+| `size-adjust` / `*-override` | font fallbacks | the swap-in reflows slightly, as it did before |
 
 ## Changing the system
 

@@ -197,6 +197,24 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
       <div class="card card-hover p-6"><p class="eyebrow">E1 (hover me)</p><p class="mt-2 text-sm text-brand-muted"><code>.card-hover</code>: border → primary/40, 1px lift, <code>shadow-e1</code>.</p></div>
       <div class="card p-6 shadow-e2"><p class="eyebrow">E2</p><p class="mt-2 text-sm text-brand-muted">Sticky results header, mobile sheet, listbox, progress rail.</p></div>
     </div>
+    <p class="section-lead mt-8">Radius is a theme token, drawn live below from <code>_data/theme.yml → radius: {{ site.data.theme.radius | default: 'soft' }}</code>. Prefer the semantic names — they say what the corner is <em>for</em> — over the numeric ones, which carry a historical off-by-one.</p>
+    {%- comment -%} Every class below is written out in full rather than composed in a loop:
+    Tailwind's scanner reads this file as plain text, and a `rounded-{{ name }}` it cannot see
+    is a class it does not generate. That is the same reason badge tones are an attribute.
+    {%- endcomment -%}
+    <div class="card mt-4 flex flex-wrap items-end gap-6 p-6">
+      <div class="text-center"><div class="h-16 w-16 rounded-hairline border border-brand-line-strong bg-surface-base"></div><p class="eyebrow mt-2">rounded-hairline</p><p class="mt-1 text-xs text-brand-muted">checkbox, focus target</p></div>
+      <div class="text-center"><div class="h-16 w-16 rounded-control border border-brand-line-strong bg-surface-base"></div><p class="eyebrow mt-2">rounded-control</p><p class="mt-1 text-xs text-brand-muted">input, toggle, small panel</p></div>
+      <div class="text-center"><div class="h-16 w-16 rounded-card border border-brand-line-strong bg-surface-base"></div><p class="eyebrow mt-2">rounded-card</p><p class="mt-1 text-xs text-brand-muted">card, panel</p></div>
+      <div class="text-center"><div class="h-16 w-16 rounded-sheet border border-brand-line-strong bg-surface-base"></div><p class="eyebrow mt-2">rounded-sheet</p><p class="mt-1 text-xs text-brand-muted">sheet, dialog, hero</p></div>
+      <div class="text-center"><div class="h-16 w-16 rounded-pill border border-brand-line-strong bg-surface-base"></div><p class="eyebrow mt-2">rounded-pill</p><p class="mt-1 text-xs text-brand-muted">badge, chip, button</p></div>
+    </div>
+    <p class="section-lead mt-8">So is duration. Hover a swatch to feel its timing; all three come from <code>--motion-fast/base/slow</code> and are overridden together by a <code>motion:</code> block in <code>theme.yml</code>.</p>
+    <div class="card mt-4 grid gap-4 p-6 sm:grid-cols-3">
+      <div><div class="h-10 rounded-control bg-brand-primary/10 transition-colors duration-fast ease-brand hover:bg-brand-primary/40"></div><p class="eyebrow mt-2">duration-fast</p><p class="mt-1 text-xs text-brand-muted">colour, opacity, pressed</p></div>
+      <div><div class="h-10 rounded-control bg-brand-primary/10 transition-colors duration-base ease-brand hover:bg-brand-primary/40"></div><p class="eyebrow mt-2">duration-base</p><p class="mt-1 text-xs text-brand-muted">hover lift, expand</p></div>
+      <div><div class="h-10 rounded-control bg-brand-primary/10 transition-colors duration-slow ease-brand hover:bg-brand-primary/40"></div><p class="eyebrow mt-2">duration-slow</p><p class="mt-1 text-xs text-brand-muted">sheets, dialogs, page transitions</p></div>
+    </div>
   </section>
 
   <p class="mt-16 border-t border-brand-line pt-6 text-sm text-brand-muted">This page is <code>noindex</code> and outside the sitemap. Remove <code>styleguide/</code> if you don't want it on your deployment.</p>
