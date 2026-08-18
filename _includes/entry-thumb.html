@@ -44,8 +44,8 @@ Local assigns are prefixed `et_`.
 {%- endif -%}
 {%- if et_src == '' -%}
   {%- assign et_thumb_path = et_entry.dir | append: 'thumb.jpg' -%}
-  {%- assign et_found = site.static_files | where: 'path', et_thumb_path | size -%}
-  {%- if et_found > 0 -%}{%- assign et_src = et_thumb_path -%}{%- endif -%}
+  {%- assign et_found = et_thumb_path | static_file -%}
+  {%- if et_found -%}{%- assign et_src = et_thumb_path -%}{%- endif -%}
 {%- endif -%}
 {%- if et_src != '' -%}
   {%- if et_src contains '://' -%}{%- assign et_href = et_src -%}{%- else -%}{%- assign et_href = et_src | relative_url -%}{%- endif -%}

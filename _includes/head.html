@@ -6,7 +6,11 @@
   {%- comment -%} Runs before first paint so `html:not(.js)` can hide controls that
   do nothing without JavaScript (search box, sort, view switch, facet rail). {%- endcomment -%}
   <script>document.documentElement.classList.add('js');</script>
-  <title>{% if page.title and page.url != '/' %}{{ page.title }} · {% endif %}{{ hd_cfg.name | default: site.title }}</title>
+  {%- comment -%} The catalog page takes its heading from the schema noun rather than
+  front matter, so it gets the same treatment here. {%- endcomment -%}
+  {%- assign hd_page_title = page.title -%}
+  {%- if page.layout == 'catalog' and hd_page_title == nil -%}{%- assign hd_page_title = site.data.schema.entry.plural -%}{%- endif -%}
+  <title>{% if hd_page_title and page.url != '/' %}{{ hd_page_title }} · {% endif %}{{ hd_cfg.name | default: site.title }}</title>
   <meta name="description" content="{{ page.summary | default: page.description | default: hd_cfg.description | default: site.description | strip_html | strip_newlines | truncate: 200 }}">
   {% if page.robots %}<meta name="robots" content="{{ page.robots }}">{% endif %}
   <link rel="icon" href="{{ '/assets/images/favicon.svg' | relative_url }}" type="image/svg+xml">

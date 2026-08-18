@@ -121,6 +121,9 @@ Local assigns are prefixed `ec_`.
     {%- if ec_entry.summary and ec_entry.summary != '' -%}
       <p class="entry-summary">{{ ec_entry.summary | escape }}</p>
     {%- endif -%}
+    {%- comment -%} Filled by search.js with the section + sentence that matched the
+    query; stays hidden (and takes no space) until a search is active. {%- endcomment -%}
+    <p class="entry-match text-xs text-brand-muted" data-match-slot hidden></p>
 
     {%- if ec_chip_field -%}
       {%- assign ec_chips = ec_entry[ec_chip_field.key] | as_list -%}
