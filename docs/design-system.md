@@ -70,7 +70,8 @@ Sentence case everywhere; the eyebrow is the only uppercase style. Never track w
 **Measure** — `theme.yml → type.measure` (`33rem`, ~68 characters) and `type.measure_display`
 (`44rem`) become `--measure` / `--measure-display`. `.prose-body` gets the reading measure through
 the typography plugin's `maxWidth`; `.measure-display` applies the wider one to headings, the impact
-line and the summary, which should not wrap at 16px body width. Set them in `rem`, never in `ch`:
+line and the summary, which should not wrap at 16px body width; card titles (`.entry-title`),
+page and section titles carry `text-wrap: balance`. Set them in `rem`, never in `ch`:
 the `ch` unit is the advance width of the digit zero (~0.66em in Inter) while an average character
 in running English is ~0.48em, so Tailwind's `max-w-prose` (65ch) actually renders about 88
 characters. An adopter who switches `fonts.body` to a narrower family widens these to match.
@@ -91,8 +92,9 @@ mid-resize. `.page-title` and `.section-title` set `text-wrap: balance` and `.pr
   lift only (`.card-hover`). E2 `shadow-e2`: things that float — sticky results header, mobile
   sheet, search listbox, progress rail. Never shadow chips, inputs or badges; never E1 inside E1.
 - **Motion** — `duration-120` state changes, `duration-180` hover/expand, `duration-240` sheets;
-  `ease-brand` = `cubic-bezier(0.2,0,0,1)`. Animate `transform`/`opacity` only; results re-render is a
-  120ms opacity fade (`.entry-grid.is-fading`). `prefers-reduced-motion` collapses every
+  `ease-brand` = `cubic-bezier(0.2,0,0,1)`. Animate `transform`/`opacity` only; when the results
+  re-render, only the cards that just entered the filtered set fade in (`.entry-card.is-entering`),
+  survivors are left alone — the list settles, it does not blink. `prefers-reduced-motion` collapses every
   transition/animation to 0.01ms (`base.css`), carousel autoplay stops, sheet slides become instant.
   Focus rings never animate.
 
