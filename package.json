@@ -17,6 +17,7 @@
     "a11y": "node quality/run.js pa11y-ci --config quality/pa11yci",
     "lighthouse": "node quality/run.js @lhci/cli autorun --config=quality/lighthouserc.js",
     "icons": "node scripts/build_icons.mjs",
+    "fonts": "bash scripts/build_fonts.sh",
     "build:css": "tailwindcss -i ./assets/css/tailwind.css -o ./assets/css/site.css --minify",
     "watch:css": "tailwindcss -i ./assets/css/tailwind.css -o ./assets/css/site.css --watch",
     "build": "npm run generate && npm run build:css && bundle exec jekyll build",
