@@ -1,6 +1,6 @@
 # Documentation
 
-Fourteen documents, four different readers. Find your row.
+Fifteen documents, four different readers. Find your row.
 
 | Page | Who it is for | When to read it |
 |---|---|---|
@@ -9,6 +9,7 @@ Fourteen documents, four different readers. Find your row.
 | [content-model.md](content-model.md) | Whoever decides what an entry holds | When the shipped fields are not your fields — designing a schema, adding a field type, choosing a taxonomy people will actually filter by. |
 | [search.md](search.md) | Whoever owns the taxonomy | When search finds the wrong thing, or nothing — synonyms, tag aliases, the facet landing pages and the A–Z directory, all from `_data/search.yml`. |
 | [admin-guide.md](admin-guide.md) | The maintainer of a live site | Day to day: reviewing submissions, editing and removing entries, screenshots, cohorts and events, troubleshooting. |
+| [contributor-guide.md](contributor-guide.md) | Someone at a member organization with something to share | Before submitting: what the form asks, what reviewers check hardest, how long review takes, and what happens after an entry is live. Linked from the site's Governance page. |
 | [upgrading.md](upgrading.md) | The maintainer of a fork | When a new template release is out: what is yours, what is the template's, and the merge recipe that keeps the two apart. |
 | [incidents.md](incidents.md) | The maintainer, under pressure | The day something is public that should not be: a takedown request, a leaked screenshot, a credential in an entry. |
 | [glossary.md](glossary.md) | Anyone hitting a word they do not use this way | Entry, slug, facet, card slot, module, preset, scaffold. |
@@ -22,7 +23,9 @@ Fourteen documents, four different readers. Find your row.
 Outside this folder: [README](../README.md) (what the template is),
 [CONTRIBUTING](../CONTRIBUTING.md) (working on the template itself),
 [ARCHITECTURE](../ARCHITECTURE.md) (how the pieces fit),
-[SECURITY](../SECURITY.md) (the trust model behind the issue-to-pull-request pipeline).
+[SECURITY](../SECURITY.md) (the trust model behind the issue-to-pull-request pipeline),
+[CODE_OF_CONDUCT](../CODE_OF_CONDUCT.md) (how contributors and reviewers engage).
 
-**Submitting an entry?** None of this is for you — use the **Submit** page on the site. If that
-page leaves you guessing, that is a bug in the page; please open an issue.
+**Submitting an entry?** Almost none of this is for you — use the **Submit** page on the site,
+and read [contributor-guide.md](contributor-guide.md) if you want to know what review will
+ask. If the Submit page leaves you guessing, that is a bug in the page; please open an issue.

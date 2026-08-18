@@ -66,6 +66,9 @@ scripts:
     <li><strong class="text-brand-ink">2.</strong> Check your answers, then send them to GitHub.</li>
     <li><strong class="text-brand-ink">3.</strong> Press <em>Submit new issue</em> on GitHub — that is what actually submits it.</li>
   </ol>
+  {%- if cfg.modules.governance -%}
+  <p class="mt-3 text-sm text-brand-muted">Before you start, the <a class="font-medium text-brand-primary underline-offset-2 hover:underline" href="{{ '/governance/' | relative_url }}">governance page</a> has the five things reviewers check and the rules on privacy and licensing — you keep ownership of anything you share.</p>
+  {%- endif -%}
 </section>
 
 {%- comment -%}

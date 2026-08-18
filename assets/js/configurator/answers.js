@@ -78,6 +78,7 @@ export function navigationFromSite(site, schema) {
     { label: 'Cohorts', url: '/cohorts/', module: 'cohorts' },
     { label: 'Resources', url: '/resources/', module: 'resources' },
     { label: 'About', url: '/about/' },
+    { label: 'Governance', url: '/governance/', module: 'governance' },
     { label: 'Submit', url: '/submit/', module: 'submit', style: 'button' },
   ];
 }

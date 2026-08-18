@@ -70,6 +70,7 @@ export const ICONS = {
   plus: 'plus',
   presentation: 'presentation-chart-bar',
   rocket: 'rocket-launch',
+  rss: 'rss',
   search: 'magnifying-glass',
   server: 'server-stack',
   share: 'share',

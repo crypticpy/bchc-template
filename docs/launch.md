@@ -101,14 +101,17 @@ Three ways to clear it, all of which do the same thing:
 
 | How | What happens |
 |---|---|
-| `npm run eject:samples` | Removes it all and sets `demo: false`. `--dry-run` first if you want to see the list. |
+| `npm run eject:samples` | Removes it all, sets `demo: false` and switches the `governance` module off. `--dry-run` first if you want to see the list. |
 | The **Apply setup** issue (step 3) | Tick **Remove the demo content**; it arrives in the same pull request as your configuration. |
 | `npm run setup` | Offers it as the last question, when you changed the entry model or picked a different preset. |
 
 What "all of it" means: every entry folder whose front matter says `sample: true` (never one you
 wrote), each `_data/cohorts/<year>.yml` together with its `cohorts/<year>/` page, and the rows in
 `_data/events.yml` and `_data/resources.yml` — those two files stay, emptied, with their header
-comments intact, so you still have somewhere to put your own.
+comments intact, so you still have somewhere to put your own. `_data/governance.yml` is different:
+it is the coalition's actual review process and policies as a worked example, not rows to empty,
+so the ejector sets `governance: false` in `_data/site.yml` and leaves the file for you to rewrite
+(the checklist in step 8 has a line for it).
 
 To see exactly what would go before you run anything:
 
@@ -183,6 +186,9 @@ request and merge. That is the whole removal mechanism — see
 - [ ] `submit.turnaround` is a promise you can keep — it is shown to every submitter
 - [ ] Sample data cleared from `_data/events.yml`, `_data/cohorts/` and `_data/resources.yml`, or
       those modules turned off in `_data/site.yml`
+- [ ] `_data/governance.yml` rewritten in your own words — review steps, criteria, roles and
+      policies are yours, not the template's — and `governance: true` set again in
+      `_data/site.yml`; or the module left off until it is
 - [ ] Branch protection on `main`: require a pull request before merging
       (see [SECURITY.md](../SECURITY.md), "What you should still do")
 - [ ] You have opened one test submission yourself and merged it (steps 6–7)

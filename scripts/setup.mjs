@@ -177,7 +177,7 @@ async function main() {
     if (sampleEntries.length && (schemaChanged || preset.id !== 'current')) {
       const count = `${sampleEntries.length} sample ${sampleEntries.length === 1 ? 'entry' : 'entries'}`;
       const remove = await asker.confirm(
-        `Remove the demo content — ${count} under ${entryPathFrom(previousSchema)}/, the sample events, cohort and resources?`,
+        `Remove the demo content — ${count} under ${entryPathFrom(previousSchema)}/, the sample events, cohort and resources — and switch the governance page off until you have rewritten it?`,
         schemaChanged
       );
       if (remove) {

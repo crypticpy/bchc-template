@@ -25,6 +25,7 @@ export default {
     './submit/**/*.{md,html}',
     './setup/**/*.{md,html}',
     './about/**/*.{md,html}',
+    './governance/**/*.{md,html}',
     './styleguide/**/*.{md,html}',
     './assets/js/**/*.js',
   ],

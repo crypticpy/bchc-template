@@ -8,6 +8,100 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+DMWG alignment, waves 1 and 2 — the content model and then the site catch up
+with the Data Modernization Work Group's governance framework
+([docs/dmwg-alignment-plan.md](docs/dmwg-alignment-plan.md)). Add, never
+delete: every existing field stays; nine join them, and the rules the
+reviewers apply are published on the site rather than in a PDF.
+
+### Added — wave 2, governance on the site
+
+- **A `governance` module and page.** `/governance/` renders everything in the
+  new `_data/governance.yml`: how review works as a numbered timeline (submit,
+  intake triage in about five business days, substantive review in about ten,
+  partner review when warranted, decision, publish, maintain), the five
+  criteria reviewers apply, who does what, and seven standing policies —
+  privacy, licensing and IP, the data-governance baseline, accessibility and
+  quality, maintenance and deprecation, appeals, code of conduct — each with a
+  stable anchor. Every block is optional and the "On this page" list is built
+  only from blocks that render. New `governance.css` component classes;
+  `_data/modules.yml` gives the module its `/governance/` prefix so
+  `_plugins/modules.rb` drops the page when it is off; the header nav, both
+  wizards' module step, `navigationFromSite()` and every preset know the
+  module (on in the shipped config, off in the other three presets).
+- **The footer says how the site is built and how to subscribe.** An optional
+  `footer.accessibility` sentence in the bottom bar links to
+  `/governance/#accessibility` when the module is on and the data file has a
+  policy with that id, and a *Feed* link (new
+  `rss` icon) sits beside the copyright — the visible twin of the `<link
+  rel="alternate">` in `<head>`, guarded by the same "does the catalog have
+  entries" test, so an empty fork never links a 404.
+- **`CODE_OF_CONDUCT.md`** for the repository and every deployment's review
+  threads, and **`docs/contributor-guide.md`** — the submitter's side of the
+  process: search first, what the form asks, the three things reviewers look
+  at hardest, that you keep ownership, the review timeline, what happens after
+  an entry is live. The governance page's closing block links to both from
+  `github.repository`, so a fork's links point at the fork.
+- The About and Submit pages carry a paragraph pointing at governance when the
+  module is on; `submit.turnaround` now states the intake and committee
+  targets. The quality gate audits `/governance/` with pa11y when the module
+  is on.
+- **The ejector knows the governance file is an example, not sample rows.**
+  `npm run eject:samples`, the wizard's last question and the Apply setup
+  checkbox switch the module off (`governance: false` in `_data/site.yml`) —
+  the file names one coalition's committees and timelines and an emptied
+  mapping would render bare headings — and say so, so a fork does not publish
+  BCHC's review process as its own. `CODE_OF_CONDUCT.md` is excluded from the
+  build like the other repository documents.
+
+### Fixed
+
+- The home page's "Recently added" grid lists live entries, but its empty
+  state was gated on the total — a catalog where every entry is deprecated
+  showed an empty grid and no message. It now says so and points at the
+  catalog, which keeps deprecated entries for the record.
+
+### Added — wave 1, the content model
+
+- **Nine schema fields, one new group.** `use_case_category` (select, fact
+  slot), `review_status` (select, maintainer-only, faceted), a **Sharing &
+  licensing** group — `license` and `portability` as required selects on the
+  fact strip, `access_terms` and `portability_notes` as textareas — plus
+  `no_pii_attestation` (a required boolean: a ticked box in the wizard, a
+  Yes/No dropdown in the issue form), `data_governance_notes` and
+  `contact_title`. Forty fields in eight groups; every form, card, filter and
+  validator picked them up from the schema without a template change, and
+  the ten sample entries are back-filled with honest values.
+- **Deprecate, don't delete.** Three optional schema pointers —
+  `entry.status_key`, `entry.deprecated_value`, `entry.status_scaffold_value`
+  — name the review-status field, the option that means "kept for the
+  record", and the value a fresh scaffold receives. A deprecated entry stays
+  published: its page opens with a warning-toned notice, its card and list row
+  say "Deprecated — kept for the record", the home page stops featuring it,
+  the catalog lists it after every live entry and the default sort demotes it
+  below stale ones. New Liquid filters `deprecated_entry`, `live_entries` and
+  `deprecated_entries` in `_plugins/schema_filters.rb`; `entry-order.js`
+  ranks deprecated below stale; the scaffolder stamps **Under review** on
+  every new entry.
+- **"Skip filters".** The catalog rail is DOM-first on wide screens and every
+  facet option is a tab stop, so a keyboard user who only wanted the search
+  box walked sixty-odd buttons to reach it — more, now that four new facets
+  exist. A sr-only-until-focused link at the top of the rail lands on the
+  results heading, one Tab before the search box; the AT flow test uses it.
+- **Person card, business-card shape.** A rail group's further `text` fields
+  (a title, a role) now sit under the contact's name instead of in the
+  label/value list below "Ask in the open" — detected by type, never by key.
+
+### Docs
+
+- `content-model.md` gains "Review status and deprecation", the Sharing group
+  and attestation notes, and the 40-field table; `admin-guide.md` now leads
+  with deprecation, reserves folder deletion for duplicates and withdrawn
+  consent, and points reviewers at the governance page; `configuration.md`
+  documents the `governance` module, `footer.accessibility` and
+  `_data/governance.yml`; `docs/index.md` routes submitters to the contributor
+  guide; README, CONTRIBUTING and roadmap updated.
+
 ## [1.4.0] — 2026-08-18
 
 The design pass. v1.3.0 was a working instrument that did not yet look like

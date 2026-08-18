@@ -27,7 +27,7 @@ There is no server, no database and no build step a maintainer has to run by han
 |---|---|---|
 | **Configuration** | `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml` | Branding, module toggles, copy; colours/fonts/radius; the entry content model; header links. The only files a deployment is expected to edit. |
 | **Structural data** | `_data/modules.yml` | Path prefixes each togglable module owns; read by `_plugins/modules.rb` to drop a disabled module's pages from the build. Not a deployment-facing toggle — see `_data/site.yml`'s `modules:` map for that. |
-| **Feature data** | `_data/events.yml`, `_data/cohorts/<year>.yml`, `_data/resources.yml` | Content for the optional `events`, `cohorts`, `resources` modules. |
+| **Feature data** | `_data/events.yml`, `_data/cohorts/<year>.yml`, `_data/resources.yml`, `_data/governance.yml` | Content for the optional `events`, `cohorts`, `resources` and `governance` modules. |
 | **Search tuning** | `_data/search.yml` | Synonyms, per-option search aliases, and the bounds on the generated facet landing pages. Optional — see `docs/search.md`. |
 | **Content** | `catalog/<slug>/index.md` (+ `screenshots/`, `thumb.jpg`, `deck.pdf`) | One folder per entry; front matter keys are schema field keys. |
 | **Templates** | `_layouts/`, `_includes/` | Liquid that renders whatever the schema declares. Never names a field key. |

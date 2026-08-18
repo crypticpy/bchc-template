@@ -22,7 +22,9 @@ This site is maintained by **{{ cfg.organization.name }}**. It is a shared, publ
 4. The site rebuilds and the entry is live within a couple of minutes.
 
 Every change is versioned, so anything can be corrected or rolled back. If you spot an error on a page, use the *Suggest an edit* link at the bottom of that page.
-
+{% if cfg.modules.governance %}
+The rules reviewers apply — what may be published, who reviews it, how long that takes, licensing, privacy, accessibility and what happens to an entry after it goes live — are on the [governance page]({{ '/governance/' | relative_url }}).
+{% endif %}
 ## Contact
 
 Questions about the catalog or the review process? Email [{{ cfg.organization.contact_email }}](mailto:{{ cfg.organization.contact_email }}).

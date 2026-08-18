@@ -53,8 +53,8 @@ group a section in the page body, `rail` makes it a card in the sticky sidebar.
 question on the submission form and the issue form. `description` is the help text under it.
 
 **module** — a section of the site that can be switched on or off in `_data/site.yml`: `catalog`,
-`submit`, `carousel`, `stats`, `events`, `cohorts`, `resources`. Pages belonging to a module that
-is off are dropped from the build entirely.
+`submit`, `carousel`, `stats`, `events`, `cohorts`, `resources`, `governance`. Pages belonging to
+a module that is off are dropped from the build entirely.
 
 **preset** — a starting configuration the setup wizards offer: AI use case catalog, cohort/program
 portal, resource library, or blank. A preset is a starting point, not a mode — everything it sets

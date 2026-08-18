@@ -21,7 +21,8 @@ This repository is shipped configured as the **Big Cities Health Coalition (BCHC
 - **Compare and print a decision.** Shortlist up to three entries from the catalog and read them field by field at `/compare/`, with the rows they agree on folded away and the shortlist in the URL so it pastes into an email. One button prints the comparison — or any entry page — as a clean brief with the links spelled out and a source stamp. See [`docs/compare.md`](docs/compare.md).
 - **Screenshots and links as first-class fields.** An `images` field gives an entry a gallery with a keyboard-navigable lightbox and honest alt text; a `links` field carries labelled resources — a shared drive folder, a recorded demo, a vendor page — without needing a field per link.
 - **Two configurators.** A no-terminal setup wizard at `/setup/` on the deployed site, and an equivalent CLI wizard (`npm run setup`). Both offer starting presets (AI use case catalog, cohort/program portal, resource library, blank) and write the same configuration files from the same shared logic.
-- **Modules.** Turn catalog, submit, carousel, stats, events, cohorts and resources on or off independently; navigation and the home page adapt automatically, and pages under a disabled module are dropped from the build.
+- **Governance on the site, not in a PDF.** A `governance` module publishes how review works (tiers, targets, criteria), who does what, and the standing policies — privacy, licensing, data governance, accessibility, maintenance, appeals, conduct — from one data file, [`_data/governance.yml`](_data/governance.yml). Deprecated entries are kept for the record rather than deleted, a contributor guide walks submitters through review from their side, and a `CODE_OF_CONDUCT.md` covers everyone.
+- **Modules.** Turn catalog, submit, carousel, stats, events, cohorts, resources and governance on or off independently; navigation and the home page adapt automatically, and pages under a disabled module are dropped from the build.
 - **Theming.** Colors, fonts and corner rounding live in [`_data/theme.yml`](_data/theme.yml) and become CSS variables consumed by Tailwind — no CSS editing required for a rebrand. Every colour has one semantic job, so a re-skin cannot quietly break contrast.
 - **Accessibility as a build rule, not a pass.** Nothing is signalled by colour or icon alone, every control has a visible focus ring and a ≥3:1 border, filter changes are announced once, and the whole catalog still works with JavaScript disabled.
 - **CI content pipeline.** Front-matter and file-size validation on every pull request, automatic thumbnail generation from uploaded PDFs, and workflows that scaffold cohort years, events and schedule updates from issues.
@@ -31,7 +32,7 @@ This repository is shipped configured as the **Big Cities Health Coalition (BCHC
 1. **Use this template** on GitHub (or clone it) to create your own repository.
 2. **Turn on the three settings**: Pages source (Settings → Pages → Source → **GitHub Actions**), pull requests for Actions (Settings → Actions → General → Workflow permissions → **Allow GitHub Actions to create and approve pull requests**), and the content labels (Actions tab → **Bootstrap labels** → *Run workflow*).
 3. **Configure the site** — open `/setup/` on the deployed site for the browser wizard (no terminal), or run `npm install && npm run setup` locally. Both write `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`, `_config.yml` and `.github/ISSUE_TEMPLATE/new-entry.yml`, from the same four presets. With no terminal, paste the wizard's three `_data/*.yml` files into the **Apply setup** issue form and the automation opens the pull request for you.
-4. **Clear the demo content** — ten fictional organizations, a sample events calendar, a sample cohort. Until they are gone every page carries a *Demo content* banner saying so. `npm run eject:samples` removes it all and turns the banner off; the Apply setup issue has a checkbox that does the same thing.
+4. **Clear the demo content** — ten fictional organizations, a sample events calendar, a sample cohort. Until they are gone every page carries a *Demo content* banner saying so. `npm run eject:samples` removes it all, turns the banner off and switches the `governance` module off until you have rewritten `_data/governance.yml` in your own words; the Apply setup issue has a checkbox that does the same thing.
 5. **Commit and push.** `Build & Deploy` publishes to `https://<owner>.github.io/<repo>/`, working out `url`/`baseurl` on its own (root domain for a `<owner>.github.io` repo or a `CNAME` file, `/<repo>` otherwise); an explicit `url` in `_config.yml` always wins.
 
 Each of those steps has a detail you will want on the day: **[`docs/launch.md`](docs/launch.md)** is the full tutorial — the same path with what breaks if you skip a step, a first test submission end to end, and the pre-launch checklist.
@@ -47,15 +48,17 @@ Each of those steps has a detail you will want on the day: **[`docs/launch.md`](
 
 ### What an entry holds
 
-The shipped AI use case schema has 26 fields in six groups. In outline:
+The shipped AI use case schema has 40 fields in eight groups. In outline:
 
 | Group | Fields |
 |---|---|
-| About | title, one-sentence summary, result in one line, organization, what is being shared, area of work, stage |
+| About | title, one-sentence summary, result in one line, organization, what is being shared, use case category, area of work, stage, review status (maintainer-only) |
 | How it's built | how AI is involved, types of AI, AI tools & models, where it runs, vendor or partner |
 | Reuse | skills needed to set it up, readiness, source code, live demo, documentation, other resources, screenshots, slide deck |
-| Data & access | data it touches, data sources, who sees the output |
-| Contact | contact name, contact email |
+| Sharing & licensing | license, access terms, portability, portability notes |
+| What it took | cost band, running cost, procurement, approvals, equity note |
+| Data & access | no-PII/PHI attestation, data it touches, data sources, who sees the output, data governance notes |
+| Contact | contact name, contact title, contact email |
 | The story | the full write-up, which becomes the page body |
 
 Every one of those is a line in `_data/schema.yml` and none of them is named anywhere else — rename, remove or replace the lot for a different subject and the forms, filters, cards and validator follow. [`docs/content-model.md`](docs/content-model.md) documents each property, the `images` and `links` shapes, and how to design a taxonomy that people actually filter by.
@@ -119,7 +122,7 @@ Contributing to the template itself? Start with [`CONTRIBUTING.md`](CONTRIBUTING
 
 ```
 _config.yml              Jekyll build mechanics (title/description fall back to _data/site.yml)
-_data/                   site.yml, theme.yml, schema.yml, navigation.yml, events.yml, resources.yml, cohorts/<year>.yml
+_data/                   site.yml, theme.yml, schema.yml, navigation.yml, governance.yml, events.yml, resources.yml, cohorts/<year>.yml
 _layouts/, _includes/    schema-driven templates (entry cards, filters, field rendering, etc.)
 _plugins/                schema_filters.rb (card/weight/group/option_meta rules), theme_filters.rb, search_index.rb (/search.json), events.rb, modules.rb
 assets/js/configurator/  shared logic behind both configurators (core.js, presets/, setup-page.js + steps/ + wizard/)
@@ -130,13 +133,15 @@ scripts/                 setup.mjs, generate.mjs, validate.mjs, and the issue-to
 catalog/<slug>/index.md  published entries; screenshots live in catalog/<slug>/screenshots/
                          (ten sample entries ship with the template, marked `sample: true`)
 cohorts/<year>/          cohort landing page + event pages (module: cohorts)
+governance/              /governance/ — review process, roles and policies from _data/governance.yml (module: governance)
 styleguide/              /styleguide/ — live rendering of the design system against your theme (noindex)
-docs/                    index.md (start here), launch.md, admin-guide.md, incidents.md, configuration.md,
-                         content-model.md, search.md, images.md, upgrading.md, decisions.md, glossary.md,
-                         design-brief.md, design-system.md, roadmap.md
+docs/                    index.md (start here), launch.md, admin-guide.md, contributor-guide.md, incidents.md,
+                         configuration.md, content-model.md, search.md, images.md, upgrading.md, decisions.md,
+                         glossary.md, design-brief.md, design-system.md, roadmap.md
 quality/                 pa11y-ci and Lighthouse CI config, plus urls.js (shared URL discovery for both)
 test/                    configurator/, plugins/, scripts/ and fixtures/ — Node's test runner + Ruby minitest
-ARCHITECTURE.md          how the pieces fit; CONTRIBUTING.md — working on the template itself; SECURITY.md
+ARCHITECTURE.md          how the pieces fit; CONTRIBUTING.md — working on the template itself; SECURITY.md;
+CODE_OF_CONDUCT.md       how contributors and reviewers engage (linked from the governance page)
 ```
 
 ## License

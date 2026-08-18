@@ -40,7 +40,9 @@ fictional health departments with nothing to say so.
 
 It is turned off by whatever removes the content: `npm run eject:samples`, the **Remove the demo
 content** checkbox on the Apply setup issue, or `npm run setup`'s last question. Delete the key
-entirely once the catalog is yours — a missing `demo` is the same as `false`.
+entirely once the catalog is yours — a missing `demo` is the same as `false`. The same step
+switches the `governance` module off, because `_data/governance.yml` is a worked example rather
+than sample rows (see [`_data/governance.yml`](#_datagovernanceyml)).
 
 The banner is deliberately quiet: a warn-tinted band above the header, one line, no dismiss button.
 It has to be impossible to miss, but it sits on every page of the site, so it must not read as an
@@ -57,15 +59,16 @@ modules:
   events: true      # Events calendar (agenda list) from _data/events.yml
   cohorts: true     # Cohort / program-year pages with timelines & materials
   resources: false      # Curated resource library from _data/resources.yml
+  governance: true    # /governance/ — review process, roles and policies from _data/governance.yml
 ```
 
 Each toggle does three things:
 
 1. Removes (or restores) the module's link from the header, via `_data/navigation.yml`'s `module:` key.
 2. Shows or hides the module's block on the home page (`index.md` checks `cfg.modules.<name>`).
-3. **Removes the module's pages from the build entirely.** `_plugins/modules.rb` runs on `post_read` and drops any page whose URL starts with the module's path prefix when that module is off — those pages are not built, not in the sitemap, and not in `search.json`. Prefixes come from `_data/modules.yml` (`/cohorts/`, `/events/`, `/resources/`, `/submit/`); `catalog`'s prefix is derived from the schema's `entry.path` instead, since it has to track the configured entry folder. Turning the module back on brings its pages back on the next build without further changes.
+3. **Removes the module's pages from the build entirely.** `_plugins/modules.rb` runs on `post_read` and drops any page whose URL starts with the module's path prefix when that module is off — those pages are not built, not in the sitemap, and not in `search.json`. Prefixes come from `_data/modules.yml` (`/cohorts/`, `/events/`, `/governance/`, `/resources/`, `/submit/`); `catalog`'s prefix is derived from the schema's `entry.path` instead, since it has to track the configured entry folder. Turning the module back on brings its pages back on the next build without further changes.
 
-The shipped BCHC configuration has `catalog`, `submit`, `carousel` and `stats` on, and `events`, `cohorts` and `resources` off. Sample data for the three off-by-default modules still ships in `_data/`, so turning one on gives you something to look at immediately.
+The shipped BCHC configuration has `catalog`, `submit`, `carousel`, `stats` and `governance` on, and `events`, `cohorts` and `resources` off. Sample data for the three off-by-default modules still ships in `_data/`, so turning one on gives you something to look at immediately.
 
 ### Home page copy
 
@@ -117,14 +120,24 @@ footer:
     - { label: "…", url: "…" }
     - { label: "…", url: "/submit/", module: submit }   # hidden when that module is off
   copyright: "…"
+  accessibility: "…"   # optional one-line accessibility statement in the bottom bar
 ```
 
 A footer link may carry `module:`, the same way an item in `_data/navigation.yml`
 does: the link is only rendered when that module is enabled under
 `site.modules`. Use it for every link that points at a page a module owns
-(`/submit/`, `/events/`, `/cohorts/`, `/resources/`) so turning the module off
+(`/submit/`, `/events/`, `/cohorts/`, `/resources/`, `/governance/`) so turning the module off
 does not leave a link to a page that is no longer built. Links without
 `module:` — an organization homepage, a maintainer guide — always render.
+
+`footer.accessibility` is an optional sentence for the bottom bar ("This site
+is built to WCAG 2.1 AA … tell us and it will be treated as a defect"). When the
+`governance` module is on and `_data/governance.yml` has a policy with
+`id: accessibility` it is followed by a *Read the accessibility statement* link
+to `/governance/#accessibility`; leave the key blank to drop the line. The
+bottom bar also carries a *Feed* link to the catalog's Atom feed whenever the
+catalog has entries — the visible twin of the `<link rel="alternate">` in
+`<head>`, guarded by the same emptiness test.
 
 ### Analytics
 
@@ -227,6 +240,35 @@ landing:
 `landing` is the knob to reach for when the build gets slow: every generated page costs render
 time. Full reference, and how the search box uses all of it: [`search.md`](search.md).
 
+## `_data/governance.yml`
+
+Everything on `/governance/` comes from this file; the page (`governance/index.md`) has no copy of its own. Every block is optional — an empty list drops its section, and the "On this page" list is built only from blocks that render — so a fork can start from one policy and grow.
+
+```yaml
+eyebrow: "Governance"
+title: "How this catalog is governed"
+summary: "…"                    # one paragraph under the title
+intro: |                        # Markdown
+  …
+review:
+  intro: "…"
+  steps:                        # numbered timeline; `target` is optional
+    - { name: "Intake triage", who: "Intake Team · Tier 1", target: "about 5 business days", body: "…" }
+  criteria_intro: "…"
+  criteria:                     # the checklist reviewers apply
+    - { name: "Completeness", body: "…" }
+roles_intro: "…"
+roles:
+  - { name: "Governance Committee", body: "…" }
+policies:                       # one section each; `id` is the anchor
+  - { id: accessibility, title: "Accessibility and quality", body: "…" }
+outro: "…"                      # closing paragraph beside the contact button
+```
+
+`body` fields are Markdown. Policy `id`s become section anchors, so keep them stable once published — the footer links to `#accessibility` when a policy with that id exists, and outside pages may link to any of them; do not reuse the page's own section ids (`review`, `criteria`, `roles`, `questions`). The closing block renders a mail button from `organization.contact_email` and links to the repository's `docs/contributor-guide.md` and `CODE_OF_CONDUCT.md`, built from `github.repository`/`github.branch`, so a fork's links point at the fork.
+
+It ships with the Big Cities Health Coalition text as a worked example. Unlike `events.yml` and `resources.yml`, it is not sample rows that can be emptied — an empty file would render a page of bare headings — and it names one coalition's committees and timelines, so `npm run eject:samples` (and the wizard's *Remove the demo content* step) switch the module off (`governance: false` in `_data/site.yml`) rather than touching the file. Rewrite it in your own words, then turn the module back on.
+
 ## Modules in detail
 
 | Module | Turns on | Turns off / removes when disabled |
@@ -238,6 +280,7 @@ time. Full reference, and how the search box uses all of it: [`search.md`](searc
 | `events` | `/events/` calendar, home page "Upcoming events" card | Event pages under `/events/` |
 | `cohorts` | `/cohorts/` index and `/cohorts/<year>/` pages, cohort filter facet on entries with a `cohort` field | All cohort and cohort-event pages |
 | `resources` | `/resources/` curated link library from `_data/resources.yml` | The resources page |
+| `governance` | `/governance/` — how review works, who does what, and the standing policies (privacy, licensing, data governance, accessibility, maintenance, appeals, conduct) from `_data/governance.yml`; the *Governance* nav link, the governance paragraph on `/about/` and `/submit/`, and the footer's *Read the accessibility statement* link | The governance page and every link to it |
 
 ## The three ways to configure
 

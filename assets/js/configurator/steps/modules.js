@@ -14,6 +14,8 @@ const MODULE_HELP = {
   events: 'An events calendar rendered from _data/events.yml.',
   cohorts: 'Cohort / program-year pages with timelines and materials.',
   resources: 'A separate curated resource library from _data/resources.yml.',
+  governance:
+    'A governance & policies page — review process, roles, licensing, privacy, accessibility — from _data/governance.yml. It ships as a worked example; removing the demo content switches it off until you have rewritten it.',
 };
 
 /** @returns {{body: HTMLElement}} step 3 body. */

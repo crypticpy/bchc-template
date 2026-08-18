@@ -17,6 +17,9 @@
   module: resources
 - label: About
   url: /about/
+- label: Governance
+  url: /governance/
+  module: governance
 - label: Submit
   url: /submit/
   module: submit

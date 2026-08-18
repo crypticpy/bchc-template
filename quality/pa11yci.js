@@ -7,7 +7,7 @@ const yaml = require('js-yaml');
 const { qualityUrls } = require('./urls.js');
 
 const BASE = process.env.QUALITY_BASE_URL || 'http://127.0.0.1:4173';
-const { home, catalog, submit, entries } = qualityUrls(BASE);
+const { home, catalog, submit, governance, entries } = qualityUrls(BASE);
 const mobile = { width: 390, height: 844, isMobile: true, hasTouch: true };
 const setup = `${BASE}/setup/`;
 
@@ -50,6 +50,7 @@ module.exports = {
     ...entries,
     submit,
     `${BASE}/about/`,
+    ...(governance ? [governance] : []),
     setup,
     // Wizard steps that only exist after interaction: Look (live preview) and
     // Entry model (field builder). Selected by step id, not position — the

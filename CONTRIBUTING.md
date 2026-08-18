@@ -86,6 +86,11 @@ Most feature work touches the same chain. Suppose you add a new presentation hin
   in the same commit as the schema change that produced them.
 - Don't hand-edit generated files — CI's `generate.mjs --check` will fail.
 
+## Code of conduct
+
+[`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) applies to this repository and to every deployment's
+review threads; it is short. Concerns go to the maintainers' address in the site footer.
+
 ## Reporting problems
 
 Open an issue with the page URL (or file), what you expected, what happened, and browser/width if it

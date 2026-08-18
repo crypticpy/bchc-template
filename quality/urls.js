@@ -71,10 +71,22 @@ function sampleEntryPaths(root = ROOT) {
   return [withImages, without].filter(Boolean).map((slug) => `/${entryPath()}/${slug}/`);
 }
 
+/** Whether `_data/site.yml` has the module switched on (off when unreadable). */
+function moduleOn(name) {
+  try {
+    const site = yaml.load(fs.readFileSync(path.join(ROOT, '_data', 'site.yml'), 'utf8'));
+    return Boolean(site?.modules?.[name]);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Absolute URLs for the gate: the static pages plus the sample entries.
+ * `governance` is null when that module is off — `_plugins/modules.rb` drops
+ * the page, so auditing it would only find a 404.
  * @param {string} base e.g. `http://127.0.0.1:4173`.
- * @returns {{ home: string, catalog: string, submit: string, entries: string[] }}
+ * @returns {{ home: string, catalog: string, submit: string, governance: string|null, entries: string[] }}
  */
 function qualityUrls(base) {
   const at = (p) => `${base.replace(/\/$/, '')}${p}`;
@@ -82,6 +94,7 @@ function qualityUrls(base) {
     home: at('/'),
     catalog: at(`/${entryPath()}/`),
     submit: at('/submit/'),
+    governance: moduleOn('governance') ? at('/governance/') : null,
     entries: sampleEntryPaths().map(at),
   };
 }

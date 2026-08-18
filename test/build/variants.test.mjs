@@ -259,4 +259,75 @@ describe('preset build matrix', { skip: ready.ok ? false : ready.reason, concurr
       assert.equal(page(siteDir, url).querySelectorAll('h1').length, 1, `/${url}/ has no single <h1>`);
     }
   });
+
+  test(
+    'shipped: the governance page renders every block from _data/governance.yml and the footer links to it',
+    { skip: needs('shipped') },
+    () => {
+      const { dir, siteDir } = built.get('shipped');
+      const gov = yaml.load(fs.readFileSync(path.join(dir, '_data', 'governance.yml'), 'utf8'));
+      const doc = page(siteDir, 'governance');
+      assert.equal(doc.querySelectorAll('h1').length, 1, '/governance/ has no single <h1>');
+      // Every step, criterion, role and policy that the data file declares is on
+      // the page, and every policy id is a real anchor — the footer and the
+      // "On this page" list link to those ids.
+      assert.equal(doc.querySelectorAll('.gov-step').length, gov.review.steps.length);
+      assert.equal(doc.querySelectorAll('.gov-criterion').length, gov.review.criteria.length);
+      assert.equal(doc.querySelectorAll('.gov-role').length, gov.roles.length);
+      for (const policy of gov.policies) {
+        const section = doc.getElementById(policy.id);
+        assert.ok(section, `policy #${policy.id} has no anchor`);
+        assert.equal(section.textContent.trim(), policy.title);
+      }
+      const nav = [...doc.querySelectorAll('.gov-nav a')].map((a) => a.getAttribute('href'));
+      for (const href of nav) {
+        assert.ok(
+          doc.getElementById(href.slice(1)),
+          `"On this page" links to ${href}, which is not on the page`
+        );
+      }
+      // The footer: the accessibility line points at the policy section, and the
+      // feed link is present because the shipped catalog has entries.
+      const footer = doc.querySelector('footer');
+      const a11y = [...footer.querySelectorAll('a')].find((a) =>
+        /accessibility statement/i.test(a.textContent)
+      );
+      assert.ok(a11y, 'the footer has no accessibility-statement link');
+      assert.ok(a11y.getAttribute('href').endsWith('/governance/#accessibility'));
+      assert.ok(doc.getElementById('accessibility'), 'the accessibility statement anchor is missing');
+      const feed = [...footer.querySelectorAll('a')].find((a) => /\bFeed\b/.test(a.textContent));
+      assert.ok(feed, 'the footer has no feed link');
+      assert.ok(
+        fs.existsSync(path.join(siteDir, feed.getAttribute('href'))),
+        'the footer feed link is a 404'
+      );
+      // The header navigation carries the module's link.
+      const header = doc.querySelector('header');
+      assert.ok(
+        [...header.querySelectorAll('a')].some((a) => a.getAttribute('href').endsWith('/governance/')),
+        'the header does not link to /governance/'
+      );
+    }
+  );
+
+  test(
+    'blank: with the governance module off the page is not built and nothing links to it',
+    { skip: needs('blank') },
+    () => {
+      const { dir, siteDir } = built.get('blank');
+      const site = yaml.load(fs.readFileSync(path.join(dir, '_data', 'site.yml'), 'utf8'));
+      assert.equal(site.modules.governance, false, 'the blank preset should ship with governance off');
+      assert.equal(
+        fs.existsSync(path.join(siteDir, 'governance', 'index.html')),
+        false,
+        '/governance/ was built'
+      );
+      const doc = page(siteDir, '');
+      const links = [...doc.querySelectorAll('a')].map((a) => a.getAttribute('href') ?? '');
+      assert.ok(
+        !links.some((href) => href.includes('/governance/')),
+        'a page links to the dropped /governance/'
+      );
+    }
+  );
 });

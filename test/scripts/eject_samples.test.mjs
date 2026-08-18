@@ -22,6 +22,7 @@ import {
   ejectSummary,
   emptiedYaml,
   headerComment,
+  siteYamlWithModuleOff,
   siteYamlWithoutDemo,
 } from '../../scripts/eject_samples.mjs';
 
@@ -35,7 +36,10 @@ function fixture() {
     fs.writeFileSync(path.join(root, relative), text, 'utf8');
   };
   write('_data/schema.yml', 'entry:\n  path: "catalog"\nfields: []\n');
-  write('_data/site.yml', '# Site configuration\nname: "Demo"\ndemo: true\nmodules:\n  catalog: true\n');
+  write(
+    '_data/site.yml',
+    '# Site configuration\nname: "Demo"\ndemo: true\nmodules:\n  catalog: true\n  governance: true   # the policies page\n'
+  );
   write(
     '_data/events.yml',
     '# Site-wide events.\n# Cohort events live elsewhere.\n- id: one\n  name: "A call"\n'
@@ -77,6 +81,22 @@ test('a nested `demo: true` belonging to something else is not touched', () => {
   assert.equal(siteYamlWithoutDemo('features:\n  demo: true\n'), null);
 });
 
+test('siteYamlWithModuleOff flips one indented module line and keeps its comment', () => {
+  const before = 'demo: true\nmodules:\n  catalog: true\n  governance: true   # the policies page\n';
+  const after = siteYamlWithModuleOff(before, 'governance');
+  assert.match(after, /^ {2}governance: false {3}# the policies page$/m);
+  assert.match(after, /^ {2}catalog: true$/m, 'the other modules are untouched');
+  assert.match(after, /^demo: true$/m, 'the demo flag is someone else’s job');
+  assert.equal(yaml.load(after).modules.governance, false);
+  assert.equal(siteYamlWithModuleOff(before, 'events'), null, 'a module that is not there is not a change');
+  assert.equal(siteYamlWithModuleOff('modules:\n  governance: false\n', 'governance'), null, 'already off');
+  assert.equal(
+    siteYamlWithModuleOff('governance: true\n', 'governance'),
+    null,
+    'a top-level key is not a module'
+  );
+});
+
 test('only entries marked sample are removed', () => {
   const repo = fixture();
   const result = ejectSamples(repo.root);
@@ -110,6 +130,16 @@ test('the demo banner is turned off', () => {
   assert.equal(site.name, 'Demo', 'the rest of the configuration is untouched');
 });
 
+test('the governance module is switched off, because its data file is the shipped example', () => {
+  const repo = fixture();
+  const result = ejectSamples(repo.root);
+  assert.deepEqual(result.modulesOff, ['governance']);
+  const site = yaml.load(fs.readFileSync(path.join(repo.root, '_data', 'site.yml'), 'utf8'));
+  assert.equal(site.modules.governance, false);
+  assert.equal(site.modules.catalog, true);
+  assert.equal(site.demo, false, 'both site.yml edits land in one write');
+});
+
 test('--dry-run reports exactly what a real run would do, and writes nothing', () => {
   const repo = fixture();
   const planned = ejectSamples(repo.root, { dryRun: true });
@@ -123,7 +153,7 @@ test('a second run is a no-op with nothing to report', () => {
   const repo = fixture();
   ejectSamples(repo.root);
   const again = ejectSamples(repo.root);
-  assert.deepEqual(again, { entries: [], cohorts: [], emptied: [], demo: false });
+  assert.deepEqual(again, { entries: [], cohorts: [], emptied: [], demo: false, modulesOff: [] });
   assert.deepEqual(ejectSummary(again), [], 'the CLI prints "nothing to remove" off this');
 });
 
@@ -134,6 +164,7 @@ test('the summary names every kind of thing it removed', () => {
   assert.match(lines, /_data\/cohorts\/2026\.yml/);
   assert.match(lines, /_data\/events\.yml and _data\/resources\.yml/);
   assert.match(lines, /demo banner off/);
+  assert.match(lines, /governance module off/);
 });
 
 test('cohortYears reads the shipped repository', () => {

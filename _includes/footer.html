@@ -43,9 +43,34 @@
         {% endif %}
       </div>
     </div>
-    <div class="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-brand-on-dark/70 sm:flex-row sm:items-center sm:justify-between">
-      <p>&copy; {{ 'now' | date: '%Y' }} {{ ft_cfg.footer.copyright | default: ft_cfg.organization.name }}</p>
-      <p>Built with an open, GitHub-managed catalog template.</p>
+    {%- comment -%}
+    The accessibility statement is one sentence here and a section on the
+    governance page. `footer.accessibility` is optional copy; when the
+    governance module is on and _data/governance.yml has a policy with
+    `id: accessibility` it links to that section, otherwise it stands alone.
+    The feed link is the visible twin of the <link rel="alternate"> in head.html,
+    for the reader who wants to subscribe and would never look at the source —
+    and it is guarded by the same emptiness test, because
+    _plugins/catalog_feed.rb writes no feed for a catalog with no entries.
+    {%- endcomment -%}
+    {%- assign ft_a11y = ft_cfg.footer.accessibility | default: '' -%}
+    {%- assign ft_a11y_policy = site.data.governance.policies | where: 'id', 'accessibility' | first -%}
+    {%- assign ft_entry_pages = site.data.entry_pages -%}
+    {%- unless ft_entry_pages -%}{%- assign ft_entry_pages = site.pages | where: 'layout', 'entry' -%}{%- endunless -%}
+    {%- assign ft_entry_count = ft_entry_pages | size -%}
+    {%- assign ft_entry_path = site.data.schema.entry.path | default: 'catalog' -%}
+    {%- assign ft_feed = '/' | append: ft_entry_path | append: '/feed.xml' -%}
+    <div class="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-brand-on-dark/70">
+      {%- if ft_a11y != '' -%}
+      <p>{{ ft_a11y }}{% if ft_cfg.modules.governance and ft_a11y_policy %} <a class="underline underline-offset-2 hover:text-white" href="{{ '/governance/#accessibility' | relative_url }}">Read the accessibility statement</a>.{% endif %}</p>
+      {%- endif -%}
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p>&copy; {{ 'now' | date: '%Y' }} {{ ft_cfg.footer.copyright | default: ft_cfg.organization.name }}</p>
+        <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {%- if ft_cfg.modules.catalog != false and ft_entry_count > 0 -%}<a class="inline-flex items-center gap-1 underline underline-offset-2 hover:text-white" href="{{ ft_feed | relative_url }}">{% include icon.html name='rss' size='xs' %}Feed</a><span aria-hidden="true">·</span>{%- endif -%}
+          <span>Built with an open, GitHub-managed catalog template.</span>
+        </p>
+      </div>
     </div>
   </div>
 </footer>

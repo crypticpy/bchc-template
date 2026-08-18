@@ -42,5 +42,5 @@ body:
     attributes:
       label: While you are here
       options:
-        - label: Remove the demo content — the sample entries, events, cohort and resources — and turn the demo banner off
+        - label: Remove the demo content — the sample entries, events, cohort and resources — turn the demo banner off, and switch the governance page off until you have rewritten _data/governance.yml
           required: false

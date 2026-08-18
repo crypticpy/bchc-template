@@ -28,6 +28,15 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const EMPTIED_DATA = ['_data/events.yml', '_data/resources.yml'];
 
 /**
+ * Modules whose data file is a worked example rather than sample rows: it
+ * cannot be emptied (the page would render blank headings) and should not be
+ * published as-is (it names the shipping organization's committees and
+ * timelines). The ejector switches the module off in `_data/site.yml` and the
+ * fork turns it back on once the file says what they mean.
+ */
+export const EXAMPLE_MODULES = ['governance'];
+
+/**
  * The leading `#` comment block of a YAML file — the part that documents what
  * the file is for, which a fork should keep.
  *
@@ -86,17 +95,35 @@ export function siteYamlWithoutDemo(text) {
 }
 
 /**
+ * `_data/site.yml` with the named module switched off — the two-space
+ * `<name>: true` line inside `modules:` becomes `<name>: false`, comment kept.
+ * A textual edit for the same reason as `siteYamlWithoutDemo`.
+ *
+ * @param {string} text the whole file.
+ * @param {string} name a module key from `_data/modules.yml`.
+ * @returns {string|null} the new contents, or null when the module was already
+ *   off or absent.
+ */
+export function siteYamlWithModuleOff(text, name) {
+  const source = String(text ?? '');
+  const line = new RegExp(`^(  ${name}:[ \t]*)true([ \t]*(?:#.*)?)$`, 'm');
+  if (!line.test(source)) return null;
+  return source.replace(line, '$1false$2');
+}
+
+/**
  * Remove the demo content.
  *
  * @param {string} root repository root.
  * @param {{dryRun?: boolean}} [options] `dryRun` reports without writing.
- * @returns {{entries: string[], cohorts: string[], emptied: string[], demo: boolean}}
- *   repo-relative paths, and whether the demo banner was turned off.
+ * @returns {{entries: string[], cohorts: string[], emptied: string[], demo: boolean, modulesOff: string[]}}
+ *   repo-relative paths, whether the demo banner was turned off, and which
+ *   example-data modules were switched off.
  */
 export function ejectSamples(root, options = {}) {
   const dryRun = options.dryRun === true;
   const relative = (file) => path.relative(root, file).split(path.sep).join('/');
-  const result = { entries: [], cohorts: [], emptied: [], demo: false };
+  const result = { entries: [], cohorts: [], emptied: [], demo: false, modulesOff: [] };
 
   for (const dir of listSampleEntries(root, entryPathFrom(readSchema(root)))) {
     result.entries.push(relative(dir));
@@ -126,11 +153,22 @@ export function ejectSamples(root, options = {}) {
 
   const siteFile = path.join(root, '_data', 'site.yml');
   if (fs.existsSync(siteFile)) {
-    const next = siteYamlWithoutDemo(fs.readFileSync(siteFile, 'utf8'));
-    if (next !== null) {
+    let site = fs.readFileSync(siteFile, 'utf8');
+    let changed = false;
+    const withoutDemo = siteYamlWithoutDemo(site);
+    if (withoutDemo !== null) {
       result.demo = true;
-      if (!dryRun) fs.writeFileSync(siteFile, next, 'utf8');
+      site = withoutDemo;
+      changed = true;
     }
+    for (const name of EXAMPLE_MODULES) {
+      const off = siteYamlWithModuleOff(site, name);
+      if (off === null) continue;
+      result.modulesOff.push(name);
+      site = off;
+      changed = true;
+    }
+    if (changed && !dryRun) fs.writeFileSync(siteFile, site, 'utf8');
   }
 
   return result;
@@ -148,6 +186,10 @@ export function ejectSummary(result) {
   if (result.emptied.length)
     lines.push(`Emptied ${result.emptied.join(' and ')} (the header comments stay).`);
   if (result.demo) lines.push('Turned the demo banner off (`demo: false` in _data/site.yml).');
+  for (const name of result.modulesOff)
+    lines.push(
+      `Switched the ${name} module off (\`${name}: false\` in _data/site.yml) — _data/${name}.yml is the shipped example; rewrite it, then turn the module back on.`
+    );
   return lines;
 }
 
