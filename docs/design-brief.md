@@ -18,7 +18,7 @@ The catalog is a **working tool, not a brochure**. It spends its ink on the data
 
 ## System
 
-**Type** (heading font / body font from `theme.yml`): Display 40/44 (−0.02em) · H1 32/38 · H2 24/30 · H3 20/26 · Card title 18/24 · Body 16/26 · Small 14/22 · Micro 12/16 · Eyebrow 11/16 at 0.12em tracking (not 0.28em). Body measure ≤ 68ch. Sentence case everywhere; ALL-CAPS only for the single eyebrow.
+**Type** (heading font / body font from `theme.yml`): Display 40/44 (−0.02em) · H1 32/38 · H2 24/30 · H3 20/26 · Card title 18/24 · Body 16/26 · Small 14/22 · Micro 12/16 · Eyebrow 11/16 at 0.12em tracking (not 0.28em). Body measure ~68 characters, set in rem as `theme.yml → type.measure` (the CSS `ch` unit is the width of "0", so 65ch renders ~88 characters). Sentence case everywhere; ALL-CAPS only for the single eyebrow.
 
 **Spacing**: 4px base; use only 4/8/12/16/24/32/48/64/96. Card padding 20 (mobile) / 24 (desktop); grid gutter 24; section rhythm 64/96. Inside a card: 8 between related lines, 16 between blocks.
 
@@ -81,7 +81,7 @@ Home / Use cases / Overdose Spike Brief
 │ [3 list rows]                              │  Report an issue │
 └────────────────────────────────────────────┴──────────────────┘
 ```
-Reading order (and DOM order): breadcrumb → h1 → impact → provenance → fact strip ("Is this reusable for us?") → gallery → TOC (only when ≥3 h2) → body (68ch) → sidebar (`aside`) → related. On mobile the fact strip and reuse actions come **before** the prose. Fact-strip items are a `<dl>`: icon `aria-hidden` + visible text (`option_meta.short` with the full value in `title`/sr-only). Gallery: `<dialog>` lightbox, arrow keys, captions from `alt`. Layout degrades by emptying blocks (a 5-field schema collapses the strip to one meta line and the sidebar to Links + Provenance).
+Reading order (and DOM order): breadcrumb → h1 → impact → provenance → fact strip ("Is this reusable for us?") → gallery → TOC (only when ≥3 h2) → body (`--measure`) → sidebar (`aside`) → related. On mobile the fact strip and reuse actions come **before** the prose. Fact-strip items are a `<dl>`: icon `aria-hidden` + visible text (`option_meta.short` with the full value in `title`/sr-only). Gallery: `<dialog>` lightbox, arrow keys, captions from `alt`. Layout degrades by emptying blocks (a 5-field schema collapses the strip to one meta line and the sidebar to Links + Provenance).
 
 ## Home
 
@@ -94,7 +94,7 @@ One page, not a multi-page wizard (survives Back, slow devices, locked-down brow
 ## Accessibility acceptance checklist (automated where possible)
 
 1. axe/pa11y clean on `/`, `/catalog/`, an entry, `/submit/`, `/setup/` at 390 and 1400.
-2. One `h1` per page; no skipped levels. 3. All text ≥4.5:1 (chips, badges, footer). 4. Control borders/focus rings ≥3:1. 5. Visible focus on every interactive element. 6. Tab order = visual order. 7. Skip link → `#main-content`. 8. Card = one heading link, name ≤10 words. 9. Targets ≥24×24, ≥44×44 under lg. 10. Every input has a programmatic label; `for` never targets a fieldset. 11. Help text via `aria-describedby`. 12. Required conveyed beyond `*`. 13. Errors: summary + inline + `aria-invalid`; focus moves to summary. 14. Filter results announced once per change. 15. Filter state round-trips through the URL; Back undoes it. 16. Mobile filter sheet traps focus, Esc closes, focus returns. 17. Search dropdown keyboard-navigable. 18. Every `img` has alt; decorative art `aria-hidden`. 19. New-tab links say so. 20. 200% zoom / 320px width: no horizontal scroll. 21. `prefers-reduced-motion` honoured. 22. Usable with JS disabled (all entries render). 23. `lang` on `<html>`, unique `<title>`. 24. Carousel has prev/next labels and is not the only path to content. 25. HTML validates (no nested interactive elements).
+2. One `h1` per page; no skipped levels. 3. All text ≥4.5:1 (chips, badges, footer). 4. Control borders/focus rings ≥3:1. 5. Visible focus on every interactive element. 6. Tab order = visual order. 7. Skip link → `#main-content`. 8. Card = one heading link, name ≤10 words. 9. Targets ≥24×24, ≥44×44 under lg. 10. Every input has a programmatic label; `for` never targets a fieldset. 11. Help text via `aria-describedby`. 12. Required conveyed beyond `*`. 13. Errors: summary + inline + `aria-invalid`; focus moves to summary. 14. Filter results announced once per change. 15. Filter state round-trips through the URL; Back undoes it. 16. Mobile filter sheet traps focus, Esc closes, focus returns. 17. Search dropdown keyboard-navigable. 18. Every `img` has alt; decorative art `aria-hidden`. 19. New-tab links say so. 20. 200% zoom / 320px width: no horizontal scroll. 21. `prefers-reduced-motion` honoured. 22. Usable with JS disabled (all entries render). 23. `lang` on `<html>`, unique `<title>`. 24. Carousel has prev/next labels and is not the only path to content. 25. HTML validates (no nested interactive elements). 26. Selected, current and complete states stay distinguishable under `forced-colors: active` (High Contrast Mode drops shadows and gradients — see the "Forced colours" section of `docs/design-system.md`).
 
 ## Review rubric (used by the persona panel at each checkpoint)
 

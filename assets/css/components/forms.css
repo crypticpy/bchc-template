@@ -14,11 +14,6 @@
   .radio { @apply mt-0.5 h-4 w-4 border-brand-line-strong text-brand-primary focus:ring-brand-primary; }
 
   /* ---- Submit page ------------------------------------------------------ */
-  /* Tailwind's display utilities outrank the plain [hidden] attribute, so every
-     element the submit JS toggles needs a more specific rule to stay hidden. */
-  [data-submit-form] [hidden],
-  [data-preview-panel] [hidden] { display: none; }
-
   /* "Required" is spelled out, never conveyed by an asterisk alone (a11y #12). */
   .field-required { @apply ml-1.5 align-middle text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-muted; }
   .field-options { @apply grid gap-2 sm:grid-cols-2; }

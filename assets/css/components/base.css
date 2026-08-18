@@ -18,12 +18,19 @@
      the two blues). A translucent ring (primary/30 = 1.67:1) failed AA non-text. */
   :focus-visible { @apply outline-none ring-2 ring-brand-primary ring-offset-2 ring-offset-surface-card; }
   ::selection { @apply bg-brand-primary/15; }
+  /* Tailwind 3's @layer is a sort order, not a native cascade layer, so a display utility
+     on an element outranks the plain [hidden] attribute. Doubling the attribute makes this
+     0,2,0 — above any single class — so no component can resurrect a hidden element, and
+     the per-surface restatements this used to need are gone. `until-found` is excluded
+     because that value must stay find-in-page discoverable. */
+  [hidden][hidden]:not([hidden="until-found"]) { display: none; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    /* The home carousel's smooth scroll comes from the `scroll-smooth` utility on
-       its track, which sits in a later layer than this rule — hence !important.
+    /* The home carousel's smooth scroll comes from the `scroll-smooth` utility on its
+       track, which sits in a later layer than this rule — the doubled attribute (0,2,0)
+       outranks it without !important.
        assets/js/carousel.js also switches scrollBy to behavior: 'instant'. */
-    [data-carousel-track] { scroll-behavior: auto !important; }
+    [data-carousel-track][data-carousel-track] { scroll-behavior: auto; }
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 }

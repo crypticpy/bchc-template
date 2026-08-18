@@ -7,14 +7,16 @@
   .eyebrow { @apply text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-primary; }
   .eyebrow-muted { @apply eyebrow text-brand-muted; }
   .eyebrow-on-dark { @apply eyebrow text-brand-on-dark/80; }
-  /* Page H1: one size everywhere (32px, 38px from sm) so pages read as one family. */
-  .page-title { @apply font-heading text-[2rem] font-semibold leading-tight text-brand-primary-dark sm:text-[2.375rem]; }
+  /* Page H1: one size everywhere (32px -> 38px) so pages read as one family. Fluid rather
+     than a 640px step, so the heading never jumps mid-resize; `balance` stops it leaving a
+     single orphaned word on the last line. */
+  .page-title { @apply font-heading font-semibold leading-tight text-brand-primary-dark; font-size: clamp(2rem, 1.72rem + 1.4vw, 2.375rem); text-wrap: balance; }
   .page-title-on-dark { @apply page-title text-white; }
   /* Headings that receive focus from a script (step change, filter results): a quiet
      dashed outline hugging the text instead of the control ring, which on a block
      element draws a column-wide box. */
   .focus-target { @apply w-fit rounded-sm focus-visible:outline-dashed focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-primary/60 focus-visible:ring-0 focus-visible:ring-offset-0; }
-  .section-title { @apply font-heading text-2xl font-semibold leading-tight text-brand-primary-dark; }
+  .section-title { @apply font-heading text-2xl font-semibold leading-tight text-brand-primary-dark; text-wrap: balance; }
   .section-lead { @apply text-sm text-brand-muted; }
   .link-row { @apply flex items-center justify-between gap-3 rounded-xl border border-brand-line bg-surface-card px-4 py-3 text-sm font-semibold text-brand-ink transition-colors duration-120 hover:border-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2; }
   /* Home hero stat line: separators are decorative pseudo-elements, so they are
@@ -31,6 +33,16 @@
   .hero-latest-meta > span { @apply min-w-0 truncate; }
   .hero-latest-meta > time { @apply shrink-0 whitespace-nowrap; }
   .hero-latest-meta > * + *::before { content: "\00b7"; @apply mr-2; }
-  .prose-body { @apply prose prose-slate max-w-prose prose-headings:font-heading prose-headings:scroll-mt-24; }
+  /* No `prose-slate` and no `max-w-prose`: both set properties `prose` already sets, and
+     @apply emits in stylesheet order rather than in the order written, so slate's
+     --tw-prose-* block and prose's own 65ch measure won every time. The brand palette and
+     the measure live in tailwind.config.js's typography() block; test/styles/prose.test.mjs
+     guards it. See "Composing with @apply" in docs/design-system.md. */
+  .prose-body { @apply prose prose-headings:font-heading prose-headings:scroll-mt-24; }
+  /* Last line of a paragraph never left as a single short word. Progressive: ignored
+     where unsupported, and it never changes the measure. */
+  .prose-body p { text-wrap: pretty; }
+  /* The display measure: headings and lead copy read wider than 16px body text. */
+  .measure-display { max-width: var(--measure-display); }
   .sr-only-focusable:not(:focus):not(:active) { @apply sr-only; }
 }

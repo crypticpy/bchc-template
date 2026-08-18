@@ -16,3 +16,5 @@
 @import "./components/setup.css";
 @import "tailwindcss/utilities";
 @import "./components/utilities.css";
+/* Last: it corrects the layers above it and must outrank all of them. */
+@import "./components/forced-colors.css";

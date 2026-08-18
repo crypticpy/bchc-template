@@ -26,5 +26,13 @@ fonts:
   body: "Inter"
   google_fonts_url: ""
 
+type:
+  # Line length. Set in rem, not ch: the CSS `ch` unit is the width of the digit
+  # zero (~0.66em in Inter), while an average character in running English is
+  # ~0.48em — so "65ch" actually renders about 88 characters. Widen these if you
+  # switch `fonts.body` to a narrower family.
+  measure: "33rem"          # body copy — ~68 characters at 16px Inter
+  measure_display: "44rem"  # headings, impact line, summary
+
 # Corner rounding scale: "sharp" | "soft" | "round"
 radius: "soft"

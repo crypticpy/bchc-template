@@ -1,6 +1,7 @@
+/* Only utilities Tailwind does not ship. `line-clamp-*` lived here until it moved into
+   core in Tailwind 3.3; the hand-written copies shadowed the real ones and took
+   `line-clamp-none` and variant support with them. */
 @layer utilities {
-  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   .tabular { font-variant-numeric: tabular-nums; }

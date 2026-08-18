@@ -8,6 +8,10 @@ import typography from '@tailwindcss/typography';
 const rgb = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
 
 export default {
+  // Wraps every `hover:` rule (including the ones composed with @apply inside
+  // components/*.css) in `@media (hover: hover)`, so a tap on a touch device no longer
+  // leaves a pill or a card stuck in its hover state. +95 B gzip; Tailwind 4's default.
+  future: { hoverOnlyWhenSupported: true },
   content: [
     './_layouts/**/*.html',
     './_includes/**/*.html',
@@ -73,6 +77,12 @@ export default {
       typography: () => ({
         DEFAULT: {
           css: {
+            // The measure is a theme token (_data/theme.yml -> type.measure, emitted as
+            // --measure by _includes/theme.html), not `ch`: the CSS `ch` unit is the advance
+            // width of "0" (~0.66em in Inter) while an average running-English character is
+            // ~0.48em, so Tailwind's 65ch prose default renders ~88 characters. Owning it
+            // here rather than via `max-w-prose` also keeps `@apply prose` collision-free.
+            maxWidth: 'var(--measure)',
             '--tw-prose-body': 'rgb(var(--c-ink))',
             '--tw-prose-headings': 'rgb(var(--c-primary-dark))',
             '--tw-prose-links': 'rgb(var(--c-primary))',
@@ -90,7 +100,17 @@ export default {
             h1: { fontFamily: 'var(--font-heading)' },
             h2: { fontFamily: 'var(--font-heading)' },
             h3: { fontFamily: 'var(--font-heading)' },
-            a: { textDecoration: 'none', fontWeight: '500', '&:hover': { textDecoration: 'underline' } },
+            // Links keep their colour on --tw-prose-links (so the variable contract still
+            // holds) and carry a permanent underline: colour alone is not a sufficient
+            // distinguisher for in-text links (WCAG 1.4.1). The 35% decoration keeps the
+            // rule quiet at body size and goes solid on hover.
+            a: {
+              fontWeight: '500',
+              textDecoration: 'underline',
+              textDecorationColor: 'rgb(var(--c-primary) / 0.35)',
+              textUnderlineOffset: '2px',
+              '&:hover': { color: 'rgb(var(--c-primary-dark))', textDecorationColor: 'currentColor' },
+            },
           },
         },
       }),

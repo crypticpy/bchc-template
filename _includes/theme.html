@@ -22,6 +22,8 @@
     --c-warn: {{ th_c.warn | default: '#B45309' | hex_to_rgb }};
     --font-heading: "{{ th_theme.fonts.heading | default: 'Source Sans 3' }}";
     --font-body: "{{ th_theme.fonts.body | default: 'Inter' }}";
+    --measure: {{ th_theme.type.measure | default: '33rem' }};
+    --measure-display: {{ th_theme.type.measure_display | default: '44rem' }};
     --radius-sm: {{ th_radii[0] }};
     --radius-md: {{ th_radii[1] }};
     --radius-lg: {{ th_radii[2] }};

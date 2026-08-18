@@ -122,6 +122,10 @@ export const THEME = {
     "body": "Inter",
     "google_fonts_url": ""
   },
+  "type": {
+    "measure": "33rem",
+    "measure_display": "44rem"
+  },
   "radius": "soft"
 };
 
