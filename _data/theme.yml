@@ -36,3 +36,16 @@ type:
 
 # Corner rounding scale: "sharp" | "soft" | "round"
 radius: "soft"
+
+# Motion is a token too, but it is not written here yet: the /setup/ configurator
+# does not round-trip a `motion:` block, so adding one would silently disappear the
+# next time the wizard rewrites this file. The durations and easing live as Liquid
+# defaults in _includes/theme.html (--motion-fast/base/slow, --ease-brand) and every
+# component duration resolves to them, so a fork that wants calmer motion can add the
+# block below by hand today and it will take effect immediately:
+#
+#   motion:
+#     fast: "120ms"   # state changes: colour, opacity, pressed
+#     base: "180ms"   # hover lift, expand/collapse
+#     slow: "240ms"   # sheets, dialogs, page transitions
+#     ease: "cubic-bezier(0.2, 0, 0, 1)"

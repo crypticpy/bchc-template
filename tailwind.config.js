@@ -28,9 +28,10 @@ export default {
     './styleguide/**/*.{md,html}',
     './assets/js/**/*.js',
   ],
-  // Tone classes are composed at render time (`badge-{{ tone }}`, `signal-…`),
-  // so the scanner cannot see the literals; keep every tone variant.
-  safelist: [{ pattern: /^(badge|chip|signal)-/ }],
+  // No safelist. Badge tones are `class="badge" data-tone="…"` (see
+  // assets/css/components/badges.css) and every chip/signal variant is a literal in a
+  // template, so Tailwind's scanner sees everything it needs. test/styles/tokens.test.mjs
+  // builds the stylesheet and fails if a tone ever goes missing again.
   theme: {
     extend: {
       colors: {
@@ -56,7 +57,20 @@ export default {
         sans: ['var(--font-body)', ...defaultTheme.fontFamily.sans],
       },
       borderRadius: {
+        // Semantic names — what component CSS should use. Each says what it is for, so
+        // the token it returns cannot drift out of step with its name the way the numeric
+        // scale below has (`rounded-lg` returns the *medium* token).
+        hairline: 'var(--radius-xs)', // checkbox-sized corners, focus targets
+        control: 'var(--radius-md)', // inputs, toggles, small panels
+        card: 'var(--radius-xl)', // cards, panels
+        sheet: 'var(--radius-2xl)', // sheets, dialogs, hero blocks
+        pill: '9999px', // badges, chips, buttons — never themed
+        // Legacy numeric names, kept because page markup uses them widely. The offset
+        // (`lg` → --radius-md) is preserved deliberately: correcting it would resize every
+        // corner on the site. `sm` used to escape the theme entirely at Tailwind's fixed
+        // 0.125rem, which looked wrong under `radius: round`; it now maps to --radius-xs.
         DEFAULT: 'var(--radius-sm)',
+        sm: 'var(--radius-xs)',
         md: 'var(--radius-sm)',
         lg: 'var(--radius-md)',
         xl: 'var(--radius-lg)',
@@ -71,8 +85,22 @@ export default {
         card: '0 1px 2px rgb(var(--c-ink) / 0.06), 0 8px 16px -8px rgb(var(--c-ink) / 0.12)',
         subtle: 'none',
       },
-      transitionTimingFunction: { brand: 'cubic-bezier(0.2, 0, 0, 1)' },
-      transitionDuration: { 120: '120ms', 180: '180ms', 240: '240ms' },
+      // Motion, like colour and radius, is a theme token: _data/theme.yml → motion,
+      // emitted as --motion-* / --ease-brand by _includes/theme.html. A fork that wants
+      // calmer motion changes one YAML key instead of grepping ~20 component rules.
+      transitionTimingFunction: { brand: 'var(--ease-brand)' },
+      animationTimingFunction: { brand: 'var(--ease-brand)' },
+      transitionDuration: {
+        fast: 'var(--motion-fast)', // state changes
+        base: 'var(--motion-base)', // hover, expand
+        slow: 'var(--motion-slow)', // sheets, overlays
+        // Legacy numeric aliases: the same three tokens under their old default values'
+        // names, so existing `duration-120/180/240` markup keeps working and keeps
+        // tracking the theme. Prefer the semantic names in new CSS.
+        120: 'var(--motion-fast)',
+        180: 'var(--motion-base)',
+        240: 'var(--motion-slow)',
+      },
       maxWidth: { prose: '68ch' },
       typography: () => ({
         DEFAULT: {
