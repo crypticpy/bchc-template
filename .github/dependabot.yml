@@ -16,6 +16,11 @@ updates:
     groups:
       npm:
         patterns: ["*"]
+    ignore:
+      # Tailwind 4 raises the browser floor past what a public-sector audience
+      # can be assumed to have; see "Browser support" in docs/design-system.md.
+      - dependency-name: tailwindcss
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: bundler
     directory: /
     schedule:

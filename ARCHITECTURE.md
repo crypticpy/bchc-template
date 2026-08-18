@@ -31,7 +31,7 @@ There is no server, no database and no build step a maintainer has to run by han
 | **Content** | `catalog/<slug>/index.md` (+ `screenshots/`, `thumb.jpg`, `deck.pdf`) | One folder per entry; front matter keys are schema field keys. |
 | **Templates** | `_layouts/`, `_includes/` | Liquid that renders whatever the schema declares. Never names a field key. |
 | **Build plugins** | `_plugins/*.rb` | Small Jekyll hooks/filters that keep the templates schema-agnostic (see below). |
-| **Styling** | `assets/css/tailwind.css` → `components/*.css` → `assets/css/site.css` (built) | Tailwind 3 with one component file per surface; tokens come from `theme.yml` as CSS variables. |
+| **Styling** | `assets/css/tailwind.css` → `components/*.css` → `assets/css/site.css` (built) | Tailwind 3.4 (kept there deliberately for browser reach — see "Browser support" in `docs/design-system.md`) with one component file per surface; tokens come from `theme.yml` as CSS variables. |
 | **Behaviour** | `assets/js/*.js` | Small vanilla-JS IIFEs, one per concern, progressively enhancing server-rendered HTML. |
 | **Automation** | `scripts/*.mjs`, `scripts/*.rb`, `.github/workflows/*.yml` | Issue → PR scaffolding, validation, thumbnails, generation of derived files. |
 | **Configurators** | `assets/js/configurator/` (shared core), `setup/` (browser), `scripts/setup.mjs` (CLI) | Produce the four `_data` files + `_config.yml` + issue template from a handful of answers or a preset. |

@@ -185,6 +185,17 @@ accessibility ≥ 0.95). The recurring rules:
 - One `role="status"` per surface, debounced.
 - Decorative separators are CSS `::before`, so they are neither read nor contrast-checked.
 
+## Browser support
+
+The CSS is built with **Tailwind 3.4, on purpose**. Tailwind 4 needs Safari 16.4, Chrome 111 or
+Firefox 128 (all March 2023 or later) and degrades without colour or spacing on anything older; a
+public-sector catalog is read from managed desktops and hand-me-down phones that lag those floors
+by years. Version 3 output works back to Safari 15 / Chrome 88-era browsers (`aspect-ratio` on media
+frames is the oldest hard requirement), and the newest feature the components use —
+`grid-template-rows: subgrid` on the fact strip — falls back to a plain stack. Revisit when Tailwind 3 stops receiving fixes or the audience's browser mix has moved on;
+`.github/dependabot.yml` ignores the major bump until then so the weekly PR is not a standing
+temptation.
+
 ## Changing the system
 
 1. Token change → `theme.yml` (per deployment) or the defaults in `_includes/theme.html`

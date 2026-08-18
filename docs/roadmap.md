@@ -9,6 +9,7 @@ Status legend: ☐ not started · ◐ in progress · ☑ done. Decisions taken a
 - **Readiness is one multiselect of flags** (`readiness`), each option carrying an icon/tone. Simpler to author, filter and render than several booleans.
 - **Light mode only** for now. Theme tokens stay the single source of colour so dark mode can be added later without touching components.
 - **Configurator field builder is phase 6** — everything else ships first.
+- **Tailwind stays on 3.4.** Tailwind 4's browser floor (Safari 16.4 / Chrome 111 / Firefox 128) is too high for a public-sector audience on managed and older devices, and it fails hard rather than gracefully below it. Documented under "Browser support" in `docs/design-system.md`; Dependabot ignores the major.
 - **Quality bar** is checked by a persona review panel (design principal · civic digital-service UX/a11y lead · staff front-end engineer · non-technical program manager · technical writer) at three checkpoints; we iterate until no P1/P2 findings remain.
 
 ## Phases
