@@ -6,6 +6,9 @@ assets/js/lunr.min.js
 assets/js/configurator/defaults.generated.js
 _includes/icon.html
 .github/ISSUE_TEMPLATE/new-entry.yml
+# Written by scripts/derive_images.mjs, in CI as well as by hand; reformatting it
+# here would make every bot commit fail the check it just passed.
+_data/derivatives.json
 package-lock.json
 catalog/
 docs/
