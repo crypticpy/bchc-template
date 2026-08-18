@@ -390,3 +390,78 @@ test('the abort timer stays armed until the body has been read', async () => {
   assert.match(result.warnings[0], /aborted/i);
   assert.equal(files.written.size, 0);
 });
+
+test('a streamed body is cut off at the cap instead of being buffered whole', async () => {
+  // `Content-Length` is optional, so the cap cannot wait for the whole body:
+  // this server answers 200 with no length and then streams for ever. The read
+  // has to stop within a few chunks of the cap and abort the request.
+  const files = stubFs();
+  let pulled = 0;
+  let aborted = false;
+  const CHUNK = 1024;
+
+  const result = await downloadImages([{ url: 'https://e.org/endless.png' }], {
+    destDir: '/d',
+    publicPrefix: '/p',
+    maxTotalBytes: 4 * CHUNK,
+    dnsImpl: PUBLIC_DNS,
+    fsImpl: files,
+    fetchImpl: async (_url, init) => ({
+      ok: true,
+      status: 200,
+      headers: { get: (name) => (name.toLowerCase() === 'content-type' ? 'image/png' : null) },
+      body: {
+        async *[Symbol.asyncIterator]() {
+          init.signal.addEventListener('abort', () => {
+            aborted = true;
+          });
+          for (let i = 0; i < 100_000; i += 1) {
+            if (init.signal.aborted) return;
+            pulled += 1;
+            yield new Uint8Array(CHUNK);
+          }
+        },
+      },
+      arrayBuffer: async () => {
+        throw new Error('the stream should have been read incrementally');
+      },
+    }),
+  });
+
+  assert.deepEqual(result.items, []);
+  assert.match(result.warnings[0], /size cap/);
+  assert.equal(files.written.size, 0);
+  // Five chunks: four fit the cap, the fifth crosses it and ends the read.
+  assert.equal(pulled, 5);
+  assert.equal(aborted, true);
+});
+
+test('a streamed body under the cap is reassembled byte for byte', async () => {
+  const files = stubFs();
+  const result = await downloadImages([{ url: 'https://e.org/ok.png', alt: 'Fine' }], {
+    destDir: '/d',
+    publicPrefix: '/p',
+    dnsImpl: PUBLIC_DNS,
+    fsImpl: files,
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: (name) => (name.toLowerCase() === 'content-type' ? 'image/png' : null) },
+      // Split across chunks, including one that lands mid-magic-number.
+      body: {
+        async *[Symbol.asyncIterator]() {
+          yield PNG.slice(0, 3);
+          yield PNG.slice(3, 6);
+          yield PNG.slice(6);
+        },
+      },
+      arrayBuffer: async () => {
+        throw new Error('the stream should have been read incrementally');
+      },
+    }),
+  });
+
+  assert.deepEqual(result.items, [{ src: '/p/01.png', alt: 'Fine' }]);
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(new Uint8Array([...files.written.values()][0]), PNG);
+});

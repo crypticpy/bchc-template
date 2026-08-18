@@ -214,6 +214,46 @@ function fetchable(url) {
   }
 }
 
+/** The size-cap message, phrased the same wherever the cap is hit. */
+function sizeCapMessage(limit) {
+  return `it is larger than the ${Math.round(limit / (1024 * 1024))} MB size cap`;
+}
+
+/**
+ * Read a response body stream, giving up the moment it crosses `limit` bytes.
+ *
+ * Buffering the whole body and checking afterwards is not a cap: `Content-Length`
+ * is optional (chunked transfer-encoding is a streaming server's default), so a
+ * hostile URL that answers without one could stream for the whole timeout and
+ * OOM the runner before anything looked at the size.
+ *
+ * @param {AsyncIterable<Uint8Array>} body
+ * @param {number} limit bytes this file may occupy
+ * @param {() => void} onOverflow called before throwing, to abort the socket
+ * @returns {Promise<Uint8Array>}
+ */
+async function readCapped(body, limit, onOverflow) {
+  /** @type {Uint8Array[]} */
+  const chunks = [];
+  let received = 0;
+  for await (const chunk of body) {
+    const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+    received += bytes.byteLength;
+    if (received > limit) {
+      onOverflow();
+      throw new Error(sizeCapMessage(limit));
+    }
+    chunks.push(bytes);
+  }
+  const out = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
+}
+
 /**
  * One guarded download: every redirect hop is followed by hand so its host can
  * be re-checked, and the abort timer stays armed until the body has been read
@@ -264,13 +304,16 @@ async function fetchImage(url, { fetchImpl, dnsImpl, timeoutMs, maxBytes, token 
 
       const declared = Number(response.headers?.get?.('content-length'));
       if (Number.isFinite(declared) && declared > maxBytes) {
-        throw new Error(`it is larger than the ${Math.round(maxBytes / (1024 * 1024))} MB size cap`);
+        throw new Error(sizeCapMessage(maxBytes));
       }
 
-      const bytes = new Uint8Array(await response.arrayBuffer());
-      if (bytes.length > maxBytes) {
-        throw new Error(`it is larger than the ${Math.round(maxBytes / (1024 * 1024))} MB size cap`);
-      }
+      // Streams are read incrementally against the cap; `arrayBuffer` is the
+      // fallback for a response that has no body stream (every test double).
+      const streamed = typeof response.body?.[Symbol.asyncIterator] === 'function';
+      const bytes = streamed
+        ? await readCapped(response.body, maxBytes, () => controller.abort())
+        : new Uint8Array(await response.arrayBuffer());
+      if (bytes.length > maxBytes) throw new Error(sizeCapMessage(maxBytes));
       return { response, bytes };
     }
     throw new Error(`it redirects more than ${MAX_REDIRECTS} times`);
@@ -336,14 +379,22 @@ export async function downloadImages(refs, options) {
       continue;
     }
 
+    // What is left of the shared budget, so eight files can never move eight
+    // times the cap across the wire before the total is checked.
+    const remaining = maxTotalBytes - total;
+    if (remaining <= 0) {
+      warnings.push(
+        `Skipped ${url} — the images add up to more than ${Math.round(maxTotalBytes / (1024 * 1024))} MB.`
+      );
+      continue;
+    }
+
     try {
       const { response, bytes } = await fetchImage(url, {
         fetchImpl,
         dnsImpl,
         timeoutMs,
-        // Per-file ceiling. Nothing bigger than the whole budget is ever
-        // buffered, so a 4 GB "image" is refused on its Content-Length.
-        maxBytes: maxTotalBytes,
+        maxBytes: remaining,
         token,
       });
 
