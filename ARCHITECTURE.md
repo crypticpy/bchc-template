@@ -125,6 +125,10 @@ committed. Fonts are self-hosted latin woff2 subsets (`assets/fonts/README.md`).
 - `npm run validate` — parses every `_data/*.yml`, then runs the front-matter and file-size checks.
 - `npm run a11y` / `npm run lighthouse` — the same audits `quality.yml` runs, against a local server
   on port 4173 (see `CONTRIBUTING.md`).
+- `npm run test:flows` — `test/a11y/flows.test.mjs`, keyboard-only walkthroughs in a real browser
+  against that same server. Skipped by a bare `node --test` (RUN_FLOW_TESTS), and the third audit
+  lane in `quality.yml`: it catches what a per-page audit cannot, the seams between pages and
+  states (focus order, focus rings, live-region announcements, dead ends).
 
 ## Design principles
 
