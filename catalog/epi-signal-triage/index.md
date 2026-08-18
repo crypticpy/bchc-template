@@ -11,7 +11,9 @@ featured: true
 sample: true
 impact: "Cut daily alert review from 90 to 30 minutes for two analysts"
 organization: "Lakeshore City Department of Public Health"
+review_status: "Reviewed & approved"
 solution_type: "Source code"
+use_case_category: "Coding & brainstorming"
 area:
   - "Epidemiology & surveillance"
   - "Data & informatics"
@@ -44,6 +46,9 @@ screenshots:
     alt: "Triage queue listing seven ranked syndromic signals with area, what changed, signal strength and status."
   - src: /catalog/epi-signal-triage/screenshots/02.png
     alt: "Draft triage note for a gastrointestinal signal beside a bar chart of daily visit counts, marked as awaiting analyst review."
+license: "MIT"
+portability: "Partially — with rework"
+portability_notes: "The triage code and prompts are portable Python. The alert export reader is written against our ESSENCE extract format and the deployment scripts assume Azure Functions."
 cost_band: "No new spend"
 run_cost: "Under $10k/yr"
 procurement:
@@ -55,6 +60,7 @@ approvals:
   - "Research ethics / IRB"
   - "AI governance body"
 equity_note: "The model ranks signals, so a systematic miss in one part of the city becomes a slower public health response there. We compare precision and recall by reporting facility and by ZIP-code tercile every month, and the two safety-net hospitals are held to the same recall floor as the academic centers. Nothing is auto-dismissed: an epidemiologist sees every signal regardless of rank."
+no_pii_attestation: true
 data_sensitivity:
   - "De-identified data"
   - "Internal, non-public data"
@@ -63,7 +69,9 @@ data_sources:
   - "Facility visit counts"
   - "Syndrome definitions"
 audience: "Internal staff"
+data_governance_notes: "The alert export is de-identified at source; the repository ships synthetic sample data only. Reusing teams should confirm their own syndromic vendor's export format and data-use terms."
 contact_name: "Priya Natarajan"
+contact_title: "Senior Epidemiologist"
 contact_email: "priya.natarajan@example.org"
 ---
 

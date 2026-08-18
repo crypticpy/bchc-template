@@ -283,6 +283,19 @@ for (const field of fields) {
   entries.push([key, coerce(field, raw)]);
 }
 
+// Review status (schema `entry.status_key`): a maintainer-only field the
+// submitter never saw, so it arrives blank. Start it at the value the schema
+// names for a fresh submission — the reviewer flips it in the same pull request
+// (the checklist below says so) — and skip it entirely when the schema has no
+// status field, so other presets keep their front matter unchanged.
+const statusKey = String(schema.entry?.status_key ?? '');
+const statusStart = schema.entry?.status_scaffold_value;
+if (statusKey && typeof statusStart === 'string' && statusStart !== '') {
+  const statusIndex = entries.findIndex(([k]) => k === statusKey);
+  if (statusIndex !== -1) entries[statusIndex] = [statusKey, statusStart];
+  else entries.push([statusKey, statusStart]);
+}
+
 const content = `${frontMatter(entries)}\n${bodyText || 'Write-up forthcoming.'}\n`;
 
 // --- reviewer preview ------------------------------------------------------

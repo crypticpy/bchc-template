@@ -253,6 +253,49 @@ module CatalogTemplate
       { "key" => best_key, "date" => best.strftime("%Y-%m-%d"), "days" => days, "stale" => days > limit }
     end
 
+    # Whether an entry carries the schema's "deprecated" review status.
+    #
+    # Reads `entry.status_key` and `entry.deprecated_value` from the schema, so
+    # no template names the field; a schema without them never deprecates
+    # anything. Deprecated entries stay in the catalog and the search index —
+    # this is what lets the templates show a notice, sort them last and keep
+    # them out of the featured carousel (see docs/content-model.md).
+    #
+    # @param entry [#[]] the entry page/document (a plain Hash in tests)
+    # @param schema [Hash] `site.data.schema`
+    # @return [Boolean]
+    # @example
+    #   {%- if page | deprecated_entry: site.data.schema %}…{% endif -%}
+    def deprecated_entry(entry, schema)
+      settings = schema.respond_to?(:[]) ? schema["entry"] : nil
+      return false unless settings.respond_to?(:[]) && entry.respond_to?(:[])
+
+      key = settings["status_key"].to_s
+      value = settings["deprecated_value"].to_s
+      return false if key.empty? || value.empty?
+
+      entry[key].to_s == value
+    end
+
+    # The entries that are not deprecated (see `deprecated_entry`), in order.
+    # @param entries [Array<#[]>]
+    # @param schema [Hash] `site.data.schema`
+    # @return [Array]
+    # @example
+    #   {%- assign live = entries | live_entries: site.data.schema -%}
+    def live_entries(entries, schema)
+      Array(entries).reject { |entry| deprecated_entry(entry, schema) }
+    end
+
+    # The deprecated entries only — the complement of `live_entries`, so a
+    # caller can put them after everything else without a second pass.
+    # @param entries [Array<#[]>]
+    # @param schema [Hash] `site.data.schema`
+    # @return [Array]
+    def deprecated_entries(entries, schema)
+      Array(entries).select { |entry| deprecated_entry(entry, schema) }
+    end
+
     private
 
     # Coerce a front matter date value to a Date. Anything that is not a real

@@ -9,7 +9,9 @@ featured: true
 sample: true
 impact: "Cut brief turnaround from three days to under one hour"
 organization: "Harbor City Health Department"
+review_status: "Reviewed & approved"
 solution_type: "Source code"
+use_case_category: "Communications, media & writing"
 area:
   - "Epidemiology & surveillance"
   - "Clinical & community services"
@@ -42,6 +44,9 @@ screenshots:
     alt: "Draft situational brief showing four summary tiles, a bar chart of naloxone runs by neighbourhood, and the drafted narrative."
   - src: /catalog/overdose-spike-brief/screenshots/02.png
     alt: "Brief generator form with an alert window, a neighbourhood checklist and a generate button."
+license: "Apache 2.0"
+portability: "Yes — platform-agnostic"
+portability_notes: "A local Python tool: it reads a CSV, calls a locally hosted model, and writes a document. Nothing vendor-specific."
 cost_band: "No new spend"
 run_cost: "Under $10k/yr"
 procurement:
@@ -52,6 +57,7 @@ approvals:
   - "Community or advisory review"
   - "Equity impact assessment"
 equity_note: "Overdose geography is also policing geography, so a brief that names a corner can be read as a deployment recommendation. The harm-reduction advisory board asked us to report at neighborhood rather than block level and to suppress counts under five, and the brief header states in writing that it is not for law enforcement targeting."
+no_pii_attestation: true
 data_sensitivity:
   - "Health information (PHI)"
   - "De-identified data"
@@ -62,7 +68,9 @@ data_sources:
   - "Medical examiner preliminary reports"
   - "Law enforcement naloxone reports"
 audience: "Internal staff"
+data_governance_notes: "Runs on-premises against identifiable EMS and medical-examiner extracts under an existing data-use agreement; the repository and this entry contain synthetic data only, and briefs are reviewed before any distribution."
 contact_name: "Renee Okafor"
+contact_title: "Overdose Prevention Epidemiologist"
 contact_email: "renee.okafor@example.org"
 ---
 

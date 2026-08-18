@@ -22,6 +22,9 @@ entry:
   path: "catalog"          # folder + URL base for entries — keep as "catalog" unless you know why
   sort: "published"        # default catalog ordering key
   sort_order: "desc"       # asc | desc
+  status_key: review_status          # optional — the select field that carries review status
+  deprecated_value: "Deprecated"     # optional — which option of it means "kept for the record"
+  status_scaffold_value: "Under review"  # optional — what the scaffolder stamps on a new entry
 
 groups:                    # ordered; group filters and submit-form sections
   - key: about
@@ -38,6 +41,8 @@ fields:
 
 `entry.path` is also read by `_plugins/modules.rb` (to know which pages belong to the `catalog` module) and by every script that scaffolds or reads entries.
 
+The three `status_*` keys are optional pointers, in the same spirit as `verified`: they name a field rather than hardcoding one, so a schema without a review status simply leaves them out and nothing downstream looks for it. See [Review status and deprecation](#review-status-and-deprecation).
+
 ### Groups
 
 A group is `{key, title, description?, icon?, placement?}`. `key` is what a field's `group` points at; `title` heads the filter block, the submit-form step and the entry-page section.
@@ -50,7 +55,7 @@ A group is `{key, title, description?, icon?, placement?}`. `key` is what a fiel
 | `icon` | Optional icon name from `_includes/icon.html`, shown beside a rail card's heading. |
 | `placement` | `main` (default) or `rail`. **Entry page only** — a `rail` group becomes a sidebar card instead of a body section. Everywhere else (filters, submit form, issue template) placement is ignored. |
 
-`placement: rail` is for the short, act-on-it groups: the links someone follows to reuse the thing, and the person they email. The rail is 280px and sticky, so a group whose fields hold sentences belongs in `main`. Inside a rail card the entry page renders, in order: a person block when the group has an `email` field with a value (plus the first `text` field of the same group as the name), each `links` field as a compact icon + label + host list, then everything else as a label/value list. `url` fields are skipped — they are already the primary buttons in the page header — as are fields the header, fact strip or gallery has shown. A rail group whose fields are all empty or already shown renders nothing at all.
+`placement: rail` is for the short, act-on-it groups: the links someone follows to reuse the thing, and the person they email. The rail is 280px and sticky, so a group whose fields hold sentences belongs in `main`. Inside a rail card the entry page renders, in order: a person block when the group has an `email` field with a value (the first `text` field of the same group is the name, any further `text` fields with a value — a title, a role — become muted lines under it), each `links` field as a compact icon + label + host list, then everything else as a label/value list. `url` fields are skipped — they are already the primary buttons in the page header — as are fields the header, fact strip or gallery has shown. A rail group whose fields are all empty or already shown renders nothing at all.
 
 ## Reserved keys
 
@@ -74,6 +79,20 @@ Sample entries shipped with the template also carry `sample: true`, which is how
 An entry is "last confirmed" on the **newest** of `verified`, `updated` and `published` — three progressively weaker answers to the same question, and the newest one is the honest one. Past `catalog.verify_after_days` in `_data/site.yml` (default 365) the entry page shows a quiet note near the fact strip, cards carry a one-line "Last confirmed …", and the default catalog order puts the entry after fresher ones. Nothing is hidden and nothing turns amber: an unconfirmed entry is still the best account of that project anyone has written down.
 
 Because the newest date wins, a fresh catalog shows no notices at all, and a maintainer clears one by setting `verified:` — not by touching `updated:`, which would claim an edit that did not happen.
+
+### Review status and deprecation
+
+A catalog with a review process needs two things the dates cannot say: *where an entry is in that process*, and *whether it is still a live recommendation*. Both hang off one ordinary `select` field that the schema points at with `entry.status_key` — in the shipped schema, `review_status`, with the options **Under review · Reviewed & approved · Revisions requested · Deprecated**. It is `form: false` (maintainer-only, never asked in the forms), `facet: true` (a reader can filter by it), and `option_meta` gives each option a tone so the badge reads at a glance.
+
+Three pointers make it schema-driven rather than a special case:
+
+| Key | Meaning |
+|---|---|
+| `entry.status_key` | The field's key. Absent → nothing below happens. |
+| `entry.deprecated_value` | The option that means "kept for the record". An entry carrying it is **deprecated**: it stays published, its page opens with a warning-toned notice ("kept for the record — the tool, its costs or its contact may no longer be current"), its card and list row carry the same one-liner, the home page leaves it out of Featured and Latest, the catalog lists it after every live entry, and the default sort demotes it below stale entries. It is never hidden, never deleted: the record is the point. |
+| `entry.status_scaffold_value` | What `scripts/new_entry_from_issue.mjs` stamps on a freshly scaffolded entry, so a submission opens as **Under review** without anyone typing it. A maintainer sets the final value in the PR. |
+
+The Liquid filters behind this are `deprecated_entry`, `live_entries` and `deprecated_entries` in `_plugins/schema_filters.rb`; every template goes through them rather than comparing strings. Deprecation supersedes staleness: a deprecated entry never also shows the "last confirmed" note, because "may no longer be current" already covers it. See [admin-guide.md](admin-guide.md#editing-or-removing-an-existing-entry) for when to deprecate versus delete.
 
 ## Field spec
 
@@ -218,17 +237,19 @@ Deliberately not on the card: platform, tools, vendor, data sources, contact, li
 
 ## Shipped fields (AI use case catalog)
 
-31 fields in seven groups, listed in group order and then by weight — the order the submit wizard asks them in. `body` is the page body; everything else is front matter.
+40 fields in eight groups, listed in group order and then by weight — the order the submit wizard asks them in. `body` is the page body; everything else is front matter. `review_status` is maintainer-only (`form: false`).
 
 | Key | Type | Group | Req | Facet | Card | Weight |
 |---|---|---|:--:|:--:|---|:--:|
 | `title` | text | about | yes | | (heading) | 1 |
 | `solution_type` | select | about | yes | yes | badge | 3 |
-| `area` | multiselect | about | yes | yes | chip | 4 |
-| `stage` | select | about | yes | yes | meta | 5 |
-| `summary` | textarea | about | yes | | (summary) | 6 |
-| `impact` | text | about | | | line | 7 |
-| `organization` | text | about | yes | yes | meta | 8 |
+| `use_case_category` | select | about | yes | yes | fact | 4 |
+| `area` | multiselect | about | yes | yes | chip | 5 |
+| `stage` | select | about | yes | yes | meta | 6 |
+| `summary` | textarea | about | yes | | (summary) | 7 |
+| `impact` | text | about | | | line | 8 |
+| `organization` | text | about | yes | yes | meta | 9 |
+| `review_status` | select | about | | yes | | 9 |
 | `ai_role` | select | build | yes | yes | | 1 |
 | `ai_types` | multiselect | build | | yes | | 2 |
 | `ai_tools` | list | build | | yes | | 3 |
@@ -242,16 +263,23 @@ Deliberately not on the card: platform, tools, vendor, data sources, contact, li
 | `resources` | links | reuse | | | | 6 |
 | `screenshots` | images | reuse | | | (card image) | 7 |
 | `deck_pdf` | file (`deck.pdf`) | reuse | | | | 8 |
+| `license` | select | sharing | yes | yes | fact | 1 |
+| `access_terms` | textarea | sharing | | | | 2 |
+| `portability` | select | sharing | yes | yes | fact | 3 |
+| `portability_notes` | textarea | sharing | | | | 4 |
 | `cost_band` | select | cost | | yes | fact | 1 |
 | `run_cost` | select | cost | | yes | | 2 |
 | `procurement` | multiselect | cost | | yes | | 3 |
 | `approvals` | multiselect | cost | | yes | fact | 4 |
 | `equity_note` | textarea | cost | | | | 5 |
-| `data_sensitivity` | multiselect | data | yes | yes | icon | 1 |
-| `data_sources` | list | data | | | | 2 |
-| `audience` | select | data | yes | yes | icon | 3 |
+| `no_pii_attestation` | boolean | data | yes | | | 1 |
+| `data_sensitivity` | multiselect | data | yes | yes | icon | 2 |
+| `data_sources` | list | data | | | | 3 |
+| `audience` | select | data | yes | yes | icon | 4 |
+| `data_governance_notes` | textarea | data | | | | 5 |
 | `contact_name` | text | contact | yes | | | 1 |
-| `contact_email` | email | contact | yes | | | 2 |
+| `contact_title` | text | contact | | | | 2 |
+| `contact_email` | email | contact | yes | | | 3 |
 | `body` | markdown | story | yes | | | 1 |
 
 `organization` is last in **About** on purpose: it is a disambiguator, not an entry point. At weight 2 the filter rail opened with a column of one-off organization names and pushed "Area of work" below the fold.
@@ -261,6 +289,14 @@ Deliberately not on the card: platform, tools, vendor, data sources, contact, li
 `cost_band`, `run_cost`, `procurement`, `approvals` and `equity_note` are the questions a peer asks second — after "does it work" comes "what would it cost us, who has to sign it off, and who does it affect". None of them is required: a submitter who cannot share a cost leaves it blank or picks **Not disclosed**, and **Not yet reviewed** under `approvals` is a legitimate, useful answer.
 
 The option lists are a **starting draft, not a standard.** The dollar bands are a US-local choice and the review names ("Records retention review", "Research ethics / IRB") are the ones a US public health department recognises. Rewrite them to match how your organization actually budgets, buys and approves — nothing downstream depends on the particular strings.
+
+### The "Sharing & licensing" group
+
+`license`, `access_terms`, `portability` and `portability_notes` answer the question a peer asks *before* they ask about cost: **may I take this, and will it work anywhere but where it was built?** `license` and `portability` are required selects that reach the fact strip, so the answer is visible without scrolling; the two textareas are where the caveats go ("MIT for the code, the prompts are ours", "assumes an Esri stack"). **Not yet decided** is a legitimate `license` answer — it tells a reader to ask, which beats silence — and **Ask first** on `access_terms` is what most internal tools honestly are.
+
+### The attestation and governance notes
+
+`no_pii_attestation` is a required `boolean`: the wizard shows it as a checkbox that must be ticked, the issue form as a Yes/No dropdown, and the page as **Yes/No**. It exists so a submitter has to say, in their own name, that nothing in the write-up, screenshots or example data is personal or protected — the coalition's baseline for anything published, and the one thing a reviewer will spot-check first. `data_governance_notes` is the free-text companion for the answers that need a sentence (which agreement covers the data, what was de-identified, who approved sharing).
 
 ## Worked example
 

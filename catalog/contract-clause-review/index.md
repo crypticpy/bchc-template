@@ -10,7 +10,9 @@ featured: false
 sample: true
 impact: "Cut first-pass contract review from five business days to one"
 organization: "Summit Ridge County Health Department"
+review_status: "Reviewed & approved"
 solution_type: "Vendor product"
+use_case_category: "Administrative & task automation"
 area:
   - "Finance, procurement & contracts"
   - "Legal & compliance"
@@ -42,6 +44,10 @@ resources:
 screenshots:
   - src: /catalog/contract-clause-review/screenshots/01.png
     alt: "Clause summary table listing indemnification, data ownership and other clauses with plain-language summaries and comparison flags."
+license: "Not open source — description only"
+access_terms: "A commercial product; the write-up describes the pilot, the vendor evaluation and the contract terms we negotiated. Contact us for the evaluation rubric."
+portability: "No — tied to its platform"
+portability_notes: "The product is the vendor's hosted service; what transfers is the evaluation approach and the clause taxonomy, not software."
 cost_band: "$25k–$100k"
 run_cost: "Over $50k/yr"
 procurement:
@@ -51,13 +57,16 @@ approvals:
   - "Security review or authority to operate"
   - "Records retention review"
 equity_note: "Internal to procurement, with no resident-facing output. The one thing we watch is whether the summaries flag unfamiliar contract language more often for small and minority-owned vendors, whose paperwork looks least like the big vendors the tool has seen most of. A flagged clause is only ever a prompt to read it, never a scoring input."
+no_pii_attestation: true
 data_sensitivity:
   - "Internal, non-public data"
 data_sources:
   - "Executed vendor agreements"
   - "Standard terms and conditions library"
 audience: "Internal staff"
+data_governance_notes: "Executed agreements are uploaded to the vendor's tenant under a business associate agreement and a data processing addendum; no agreement text appears in this entry."
 contact_name: "Grace Idowu"
+contact_title: "Procurement Analyst"
 contact_email: "grace.idowu@example.org"
 ---
 

@@ -10,7 +10,9 @@ featured: true
 sample: true
 impact: "Median reading level of published notices dropped from grade 14 to grade 7"
 organization: "Prairie Ridge County Health Department"
+review_status: "Reviewed & approved"
 solution_type: "Playbook or write-up"
+use_case_category: "Communications, media & writing"
 area:
   - "Communications & outreach"
   - "Emergency preparedness"
@@ -40,6 +42,9 @@ resources:
 screenshots:
   - src: /catalog/plain-language-notices/screenshots/01.png
     alt: "Side-by-side view of an original boil water notice and its plain-language rewrite, with a pre-publication review checklist."
+license: "Creative Commons (CC BY / CC0)"
+portability: "Yes — platform-agnostic"
+portability_notes: "A prompt kit and a style guide; they work in any generative text tool."
 cost_band: "No new spend"
 run_cost: "Under $10k/yr"
 procurement:
@@ -49,13 +54,16 @@ approvals:
   - "Community or advisory review"
   - "Equity impact assessment"
 equity_note: "The whole point is the residents the old notices lost: we measure reading level before and after, and the community review panel reads the rewrite before it ships. Translation is where it can quietly go wrong — a rewrite that gets simpler in English can get less precise in Spanish and Vietnamese, so both translations are reviewed by a human, never machine-translated from the rewrite."
+no_pii_attestation: true
 data_sensitivity:
   - "Public data only"
 data_sources:
   - "Published notice archive"
   - "Required regulatory wording list"
 audience: "Public-facing"
+data_governance_notes: "Only already-published notices are used; nothing internal or personal is involved."
 contact_name: "Sam Whitcomb"
+contact_title: "Communications Director"
 contact_email: "sam.whitcomb@example.org"
 ---
 

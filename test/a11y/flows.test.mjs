@@ -152,11 +152,22 @@ describe('assistive-technology flows', { skip: SKIP, concurrency: false }, () =>
   test('search -> result', async () => {
     const page = await openPage(browser, catalogPath);
 
-    const box = await tabUntil(page, (stop) => stop.id === 'catalog-search', {
-      what: 'the search box',
+    // The rail is DOM-first and every facet option is a tab stop, so the way a
+    // keyboard user reaches the search box is the rail's own "Skip filters"
+    // link: it must be reachable in a handful of stops, be visible when
+    // focused, and land one Tab short of the box.
+    const skipFilters = await tabUntil(page, (stop) => /skip filters/i.test(stop.name), {
+      what: 'the "Skip filters" link',
+      max: 20,
     });
-    assertUsableStops(box.trail, 'catalog');
-    assert.equal(box.stop.role, 'combobox');
+    assertUsableStops(skipFilters.trail, 'catalog');
+    assert.ok(skipFilters.stop.visible, 'the "Skip filters" link stays sr-only when focused');
+    await page.keyboard.press('Enter');
+    const results = await focusStop(page);
+    assert.equal(results.id, 'results-heading', `"Skip filters" put focus on ${describeStop(results)}`);
+    const box = await tab(page);
+    assert.equal(box.id, 'catalog-search', `the stop after the results heading is ${describeStop(box)}`);
+    assert.equal(box.role, 'combobox');
 
     await page.keyboard.type('data');
     await page.waitForFunction(

@@ -5,15 +5,21 @@
  */
 
 /**
- * 1 for an entry nobody has re-confirmed inside the site's verification window,
- * 0 otherwise. `data-entry-stale` is written by _includes/entry-card.html at build
- * time (see the `verification` filter) — the browser never re-derives the dates,
- * so a page served from a stale CDN copy cannot disagree with what it shows.
+ * 2 for a deprecated entry, 1 for one nobody has re-confirmed inside the site's
+ * verification window, 0 otherwise. `data-entry-stale` and `data-entry-deprecated`
+ * are written by _includes/entry-card.html at build time (see the `verification`
+ * and `deprecated_entry` filters) — the browser never re-derives the dates, so a
+ * page served from a stale CDN copy cannot disagree with what it shows.
  * @param {HTMLElement} el a card element.
- * @returns {0|1}
+ * @returns {0|1|2}
  */
 function staleness(el) {
-  return el && el.hasAttribute && el.hasAttribute('data-entry-stale') ? 1 : 0;
+  if (!el || !el.hasAttribute) return 0;
+  // Deprecated (the schema's review status, written the same way at build time)
+  // outranks stale: an entry nobody stands behind any more sorts after one that
+  // merely has not been re-confirmed.
+  if (el.hasAttribute('data-entry-deprecated')) return 2;
+  return el.hasAttribute('data-entry-stale') ? 1 : 0;
 }
 
 /**

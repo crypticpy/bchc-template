@@ -10,7 +10,9 @@ featured: false
 sample: true
 impact: "Built in three weeks against a four-month estimate; replaced four hand-merged spreadsheets"
 organization: "Baytown Metro Health District"
+review_status: "Reviewed & approved"
 solution_type: "Internal tool"
+use_case_category: "Coding & brainstorming"
 area:
   - "IT & operations"
   - "Environmental health"
@@ -41,6 +43,10 @@ screenshots:
     alt: "Backlog dashboard with open and past-due totals and bar charts of past-due inspections by district and by inspection type."
   - src: /catalog/inspection-backlog-dashboard/screenshots/02.png
     alt: "Filtered list of past-due inspections in one district showing facility, type, assigned inspector, due date and days past due."
+license: "Not open source — available on request"
+access_terms: "The dashboard SQL and the notes on how the coding assistant was used are shared with other departments on request."
+portability: "Yes — platform-agnostic"
+portability_notes: "Plain SQL views and a Power BI file; the views port to any warehouse and the visuals rebuild in any BI tool."
 cost_band: "Not disclosed"
 run_cost: "Not disclosed"
 procurement:
@@ -49,13 +55,16 @@ approvals:
   - "Security review or authority to operate"
   - "Labor or workforce consultation"
 equity_note: "The backlog it surfaces is not evenly distributed: the two districts with the oldest housing stock carry most of it, and making that visible was the point. We watch the reverse risk too — a dashboard that ranks inspectors by closure rate would push them toward the quick inspections, so it reports by district and never by individual."
+no_pii_attestation: true
 data_sensitivity:
   - "Internal, non-public data"
 data_sources:
   - "Inspections database"
   - "Staff assignment roster"
 audience: "Internal staff"
+data_governance_notes: "The inspections database holds establishment records, not personal data; addresses of home-based establishments are excluded from the dashboard extract."
 contact_name: "Ray Solomon"
+contact_title: "Environmental Health Data Analyst"
 contact_email: "ray.solomon@example.org"
 ---
 

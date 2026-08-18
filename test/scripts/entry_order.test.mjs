@@ -16,7 +16,9 @@ import { comparatorFor } from '../../assets/js/lib/entry-order.js';
  */
 const card = (data) => ({
   dataset: data,
-  hasAttribute: (name) => name === 'data-entry-stale' && data.entryStale !== undefined,
+  hasAttribute: (name) =>
+    (name === 'data-entry-stale' && data.entryStale !== undefined) ||
+    (name === 'data-entry-deprecated' && data.entryDeprecated !== undefined),
   getAttribute: (name) => {
     const key = name.replace(/^data-/, '').replace(/-([a-z])/g, (_, c) => c.toUpperCase());
     return key in data ? data[key] : null;
@@ -106,4 +108,32 @@ test('missing attributes never throw', () => {
   for (const sort of ['newest', 'az', 'updated', 'relevance', 'field:missing']) {
     assert.doesNotThrow(() => order(cards, sort));
   }
+});
+
+/* ------------------------------------------------------------ deprecated */
+
+test('newest sorts deprecated entries after stale ones, whatever their dates', () => {
+  const cards = [
+    card({ entryId: 'dep-new', entryDate: '2026-08-01', entryDeprecated: '' }),
+    card({ entryId: 'stale', entryDate: '2024-01-01', entryStale: '900' }),
+    card({ entryId: 'fresh', entryDate: '2025-06-06' }),
+    card({ entryId: 'dep-old', entryDate: '2023-01-01', entryDeprecated: '' }),
+  ];
+  assert.deepEqual(order(cards, 'newest'), ['fresh', 'stale', 'dep-new', 'dep-old']);
+});
+
+test('relevance keeps a deprecated match above an unranked fresh entry', () => {
+  const cards = [
+    card({ entryId: 'fresh-unranked', entryDate: '2026-01-01' }),
+    card({ entryId: 'dep-ranked', entryDate: '2026-02-02', entryDeprecated: '' }),
+  ];
+  assert.deepEqual(order(cards, 'relevance', ['dep-ranked']), ['dep-ranked', 'fresh-unranked']);
+});
+
+test('a–z ignores deprecation, like it ignores staleness', () => {
+  const cards = [
+    card({ entryId: 'b', entryTitle: 'Bravo' }),
+    card({ entryId: 'a', entryTitle: 'Alpha', entryDeprecated: '' }),
+  ];
+  assert.deepEqual(order(cards, 'az'), ['a', 'b']);
 });

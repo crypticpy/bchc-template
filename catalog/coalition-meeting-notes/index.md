@@ -10,7 +10,9 @@ featured: false
 sample: true
 impact: "Action lists reach partners in one day instead of two weeks"
 organization: "Northgate City Health Department"
+review_status: "Reviewed & approved"
 solution_type: "Playbook or write-up"
+use_case_category: "Communications, media & writing"
 area:
   - "Staff & partner coordination"
   - "Emergency preparedness"
@@ -40,6 +42,9 @@ resources:
 screenshots:
   - src: /catalog/coalition-meeting-notes/screenshots/01.png
     alt: "Transcript excerpt beside a drafted action item table listing each action, the owning organization, a due date and status."
+license: "Creative Commons (CC BY / CC0)"
+portability: "Yes — platform-agnostic"
+portability_notes: "A prompt set and a review checklist — they work in any enterprise AI workspace that accepts a system prompt."
 cost_band: "No new spend"
 run_cost: "No ongoing cost"
 procurement:
@@ -49,13 +54,16 @@ approvals:
   - "Records retention review"
   - "Community or advisory review"
 equity_note: "Partner organizations are named in the notes, so a mis-attributed commitment lands on a small community group harder than on a hospital system. Every draft goes back to the coalition before it is filed, and the standing agenda item asking whether anyone was misquoted has caught three errors in eight months."
+no_pii_attestation: true
 data_sensitivity:
   - "Internal, non-public data"
 data_sources:
   - "Meeting recordings"
   - "Prior meeting action lists"
 audience: "Partner organizations"
+data_governance_notes: "Meeting recordings are deleted after the notes are approved; partner organizations were told in writing that recordings feed an AI drafting step."
 contact_name: "Deb Fuentes"
+contact_title: "Coalition Coordinator"
 contact_email: "deb.fuentes@example.org"
 ---
 

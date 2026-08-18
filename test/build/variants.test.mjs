@@ -221,6 +221,23 @@ describe('preset build matrix', { skip: ready.ok ? false : ready.reason, concurr
   );
 
   test(
+    'blank-empty: the filter rail opens with a "Skip filters" link that lands on the results heading',
+    { skip: needs('blank-empty') },
+    () => {
+      const { dir, siteDir } = built.get('blank-empty');
+      const document = page(siteDir, entryNoun(dir).path);
+      const rail = document.querySelector('[data-filter-rail]');
+      const skip = rail?.querySelector('a.rail-skip');
+      assert.ok(skip, 'no .rail-skip link inside the rail');
+      assert.equal(rail.firstElementChild, skip, 'the skip link must be the first thing in the rail');
+      const target = skip.getAttribute('href').replace(/^#/, '');
+      const heading = document.getElementById(target);
+      assert.ok(heading, `#${target} is not on the page`);
+      assert.equal(heading.getAttribute('tabindex'), '-1', `#${target} is not programmatically focusable`);
+    }
+  );
+
+  test(
     'all-modules: every cohort event is linked from its cohort page',
     { skip: needs('all-modules') },
     () => {

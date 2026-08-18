@@ -11,7 +11,9 @@ featured: false
 sample: true
 impact: "Cut first-week help desk tickets from 11 to 3 per new hire"
 organization: "Two Rivers Regional Health District"
+review_status: "Reviewed & approved"
 solution_type: "Internal tool"
+use_case_category: "Administrative & task automation"
 area:
   - "HR & workforce"
   - "IT & operations"
@@ -45,6 +47,10 @@ screenshots:
     alt: "Onboarding checklist for a new inspector, grouped by before day one, day one, week one and week two, with progress tiles."
   - src: /catalog/onboarding-checklist-assistant/screenshots/02.png
     alt: "Chat transcript where the assistant answers badge and access questions with handbook citations and declines a pay question."
+license: "Not open source — available on request"
+access_terms: "The Power Platform solution file is available to other agencies on request; it needs an Azure OpenAI deployment of your own."
+portability: "No — tied to its platform"
+portability_notes: "Built in Power Apps and Power Automate against Azure OpenAI; moving it means rebuilding the flows on another low-code platform."
 cost_band: "No new spend"
 run_cost: "No ongoing cost"
 procurement:
@@ -53,6 +59,7 @@ approvals:
   - "Labor or workforce consultation"
   - "Records retention review"
 equity_note: "Every new hire meets it in their first week, which makes it an accessibility question before anything else. We tested the checklist with a screen reader and with our two colleagues who use one daily, and the plain-language pass brought it from a grade 14 reading level to grade 8 — the same standard we hold public notices to."
+no_pii_attestation: true
 data_sensitivity:
   - "Personal information (PII)"
   - "Internal, non-public data"
@@ -61,7 +68,9 @@ data_sources:
   - "Staff handbook"
   - "IT access catalog"
 audience: "Internal staff"
+data_governance_notes: "New-hire records include personal information; the assistant reads only the checklist status fields, and the HR system remains the record of truth."
 contact_name: "Alicia Rand"
+contact_title: "HR Systems Lead"
 contact_email: "alicia.rand@example.org"
 ---
 

@@ -9,7 +9,9 @@ featured: false
 sample: true
 impact: "92% of drafted summaries passed the weekly style review without edits"
 organization: "Cedar Valley County Health Department"
+review_status: "Reviewed & approved"
 solution_type: "Source code"
+use_case_category: "Communications, media & writing"
 area:
   - "Environmental health"
   - "Communications & outreach"
@@ -35,6 +37,9 @@ resources:
 screenshots:
   - src: /catalog/restaurant-inspection-summaries/screenshots/01.png
     alt: "Review table pairing inspector code citations with drafted resident summaries, style rule checks and an approve or reject decision."
+license: "MIT"
+portability: "Partially — with rework"
+portability_notes: "The summarisation code is plain Python; the prototype calls Vertex AI and would need a different model client elsewhere."
 cost_band: "No new spend"
 run_cost: "No ongoing cost"
 procurement:
@@ -42,13 +47,16 @@ procurement:
 approvals:
   - "Not yet reviewed"
 equity_note: "Still an idea, so nothing has been checked. If it ships, the obvious hazard is a summary that reads harsher for a small independent restaurant than for a chain with tidier paperwork describing the same violation, and the summary would be published next to the establishment's name. That comparison is the first thing we would test."
+no_pii_attestation: true
 data_sensitivity:
   - "Public data only"
 data_sources:
   - "Food inspection results"
   - "Inspection code reference table"
 audience: "Public-facing"
+data_governance_notes: "Inspection results are public records; the summaries name establishments, not people, and inspector names are stripped before generation."
 contact_name: "Tomás Herrera"
+contact_title: "Open Data Program Lead"
 contact_email: "tomas.herrera@example.org"
 ---
 

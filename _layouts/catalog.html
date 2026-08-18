@@ -8,6 +8,12 @@ include_search: true
 {%- assign sort_key = schema.entry.sort | default: 'published' -%}
 {%- assign entries = site.pages | where: 'layout', 'entry' | sort: sort_key, 'first' -%}
 {%- if schema.entry.sort_order != 'asc' -%}{%- assign entries = entries | reverse -%}{%- endif -%}
+{%- comment -%} Deprecated entries (schema `entry.status_key`) come last in the served
+order so the page reads right before assets/js/lib/entry-order.js applies the same
+rule client-side; they stay in the count because they stay in the catalog. {%- endcomment -%}
+{%- assign cat_live = entries | live_entries: schema -%}
+{%- assign cat_deprecated = entries | deprecated_entries: schema -%}
+{%- assign entries = cat_live | concat: cat_deprecated -%}
 {%- assign count = entries | size -%}
 {%- assign plural = schema.entry.plural | default: 'Entries' -%}
 {%- assign singular = schema.entry.singular | default: 'Entry' -%}

@@ -93,8 +93,16 @@ schema keeps the link. {%- endcomment -%}
   {%- endfor -%}
 {%- endfor -%}
 
+{%- assign ent_deprecated = page | deprecated_entry: ent_schema -%}
 {%- capture ent_stale_notice -%}
-  {%- if ent_check.stale -%}
+  {%- if ent_deprecated -%}
+    {%- comment -%} Deprecated (schema `entry.status_key` / `deprecated_value`) replaces
+    the staleness note: it says more, and it says it first. {%- endcomment -%}
+    <aside class="entry-stale entry-stale--warn">
+      {% include icon.html name='warning' size='sm' class='mt-0.5 shrink-0' %}
+      <p><strong>This {{ ent_schema.entry.singular | downcase }} is deprecated.</strong> It is kept for the record — the tool, its costs or its contact may no longer be current. {% if ent_contact_anchor != '' %}<a href="{{ ent_contact_anchor }}">Ask the contact</a>{% else %}Ask the contact{% endif %} before building on it.</p>
+    </aside>
+  {%- elsif ent_check.stale -%}
     {%- if ent_check.key == ent_verified_key -%}
       {%- capture ent_stale_lead -%}Last verified {{ ent_check.date | date: '%B %Y' }}{%- endcapture -%}
     {%- elsif ent_check.key == ent_updated_key -%}

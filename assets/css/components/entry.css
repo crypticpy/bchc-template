@@ -42,6 +42,15 @@
   .entry-stale-note { @apply flex items-center gap-1.5 text-[11px] font-medium leading-4 text-brand-muted; }
   .entry-foot .entry-stale-note { @apply mt-3; }
 
+  /* Deprecated IS the caution case: the review committee has said the entry no
+     longer describes something anyone maintains. Warn ink on the same panel — a
+     triangle, not a clock — and a hairline in the warn colour so the notice reads
+     as a decision, not a date. Deprecated entries keep their content and their
+     place in the catalog; see docs/content-model.md ("Review status"). */
+  .entry-stale--warn { @apply text-brand-ink; box-shadow: inset 4px 0 0 rgb(var(--c-warn)); }
+  .entry-stale--warn strong { @apply text-brand-warn; }
+  .entry-stale-note--warn { @apply text-brand-warn; }
+
   /* ---- Sidebar rail --------------------------------------------------- */
   /* Tinted, not carded: the rail is reference material beside the prose, and four
      bordered white boxes stacked in a 280px column read as chrome. */

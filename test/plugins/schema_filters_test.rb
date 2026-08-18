@@ -234,6 +234,36 @@ class SchemaFiltersTest < Minitest::Test
     assert_equal "", @filters.first_image([])
   end
 
+  # -- deprecated_entry / live_entries / deprecated_entries -------------------
+
+  STATUS_SCHEMA = { "entry" => { "status_key" => "review_status", "deprecated_value" => "Deprecated" } }.freeze
+
+  def test_deprecated_entry_reads_the_key_and_value_from_the_schema
+    assert @filters.deprecated_entry({ "review_status" => "Deprecated" }, STATUS_SCHEMA)
+    refute @filters.deprecated_entry({ "review_status" => "Reviewed & approved" }, STATUS_SCHEMA)
+    refute @filters.deprecated_entry({}, STATUS_SCHEMA)
+  end
+
+  # A schema without the pointers never deprecates anything, so other presets
+  # are untouched by the feature.
+  def test_deprecated_entry_is_false_when_the_schema_has_no_status_key
+    refute @filters.deprecated_entry({ "review_status" => "Deprecated" }, { "entry" => {} })
+    refute @filters.deprecated_entry({ "review_status" => "Deprecated" }, {})
+    refute @filters.deprecated_entry({ "review_status" => "Deprecated" }, nil)
+  end
+
+  def test_live_and_deprecated_entries_partition_in_order
+    entries = [
+      { "slug" => "a", "review_status" => "Reviewed & approved" },
+      { "slug" => "b", "review_status" => "Deprecated" },
+      { "slug" => "c" },
+      { "slug" => "d", "review_status" => "Deprecated" }
+    ]
+    assert_equal %w[a c], @filters.live_entries(entries, STATUS_SCHEMA).map { |e| e["slug"] }
+    assert_equal %w[b d], @filters.deprecated_entries(entries, STATUS_SCHEMA).map { |e| e["slug"] }
+    assert_equal [], @filters.live_entries(nil, STATUS_SCHEMA)
+  end
+
   # -- verification -------------------------------------------------------------
 
   NOW = "2026-08-17"

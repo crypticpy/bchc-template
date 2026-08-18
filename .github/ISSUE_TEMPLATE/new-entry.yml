@@ -36,6 +36,24 @@ body:
         - Vendor product
         - Internal tool
         - Playbook or write-up
+        - Dataset
+        - Dashboard or report
+        - Prompt library
+        - Training material
+        - Governance or policy document
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: use_case_category
+    attributes:
+      label: Use case category
+      description: Which of the four coalition categories fits best? The HHS-adapted categories the DMWG inventory uses. Area of work (below) is the finer cut.
+      options:
+        - "Administrative & task automation"
+        - "Communications, media & writing"
+        - "Coding & brainstorming"
+        - "Operations & logistics"
     validations:
       required: true
   - type: dropdown
@@ -251,6 +269,54 @@ body:
   - type: markdown
     attributes:
       value: |-
+        ### Sharing & licensing
+
+        How another jurisdiction may use it, and how portable it is.
+  - type: dropdown
+    id: license
+    attributes:
+      label: License
+      description: "Under what license is it shared? The coalition default is a permissive open license (MIT, Apache 2.0, CC BY). Submitting does not transfer ownership — your organization keeps authorship."
+      options:
+        - MIT
+        - Apache 2.0
+        - GPL / AGPL
+        - Creative Commons (CC BY / CC0)
+        - Other open license
+        - Not open source — available on request
+        - Not open source — description only
+    validations:
+      required: true
+  - type: textarea
+    id: access_terms
+    attributes:
+      label: Access terms
+      description: "If it is not open source, how can a peer jurisdiction get access? Government-to-government only, agreement required, contact us — whatever applies. Leave blank for open-licensed resources."
+      placeholder: Available to other health departments under a data-sharing agreement — email the contact below.
+    validations:
+      required: false
+  - type: dropdown
+    id: portability
+    attributes:
+      label: Portable to other platforms
+      description: "Could it be adapted outside its original vendor ecosystem? Microsoft-built but portable to AWS is 'partially'."
+      options:
+        - Yes — platform-agnostic
+        - Partially — with rework
+        - No — tied to its platform
+    validations:
+      required: true
+  - type: textarea
+    id: portability_notes
+    attributes:
+      label: Portability notes
+      description: "What would porting it involve? Which pieces are vendor-specific, and what a team on a different stack would need to swap."
+      placeholder: The prompt set and the evaluation harness are plain Python; the retrieval layer uses Azure AI Search and would need replacing.
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |-
         ### What it took
 
         Money, contracting and approvals — the part a budget or governance conversation needs.
@@ -333,6 +399,16 @@ body:
 
         What data it touches and who sees the output.
   - type: dropdown
+    id: no_pii_attestation
+    attributes:
+      label: No PII/PHI in the shared material
+      description: "Do you confirm that no personal or protected health information appears in the resource, its documentation, example data or screenshots? The coalition's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
+      options:
+        - "Yes"
+        - "No"
+    validations:
+      required: true
+  - type: dropdown
     id: data_sensitivity
     attributes:
       label: Data it touches
@@ -366,6 +442,14 @@ body:
         - Partner organizations
     validations:
       required: true
+  - type: textarea
+    id: data_governance_notes
+    attributes:
+      label: Data-governance caveats
+      description: "Anything a reusing jurisdiction should know about data handling? Data-use agreements, retention rules, de-identification steps — the caveats that travel with the resource."
+      placeholder: "Outputs are retained 90 days under our records schedule; the model was tuned on our own 311 transcripts, so expect to re-tune."
+    validations:
+      required: false
   - type: markdown
     attributes:
       value: |-
@@ -380,6 +464,14 @@ body:
       placeholder: Jordan Lee
     validations:
       required: true
+  - type: input
+    id: contact_title
+    attributes:
+      label: Contact title
+      description: What is their role or title? So a peer knows who they are writing to.
+      placeholder: Informatics Manager
+    validations:
+      required: false
   - type: input
     id: contact_email
     attributes:

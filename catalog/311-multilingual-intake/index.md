@@ -11,7 +11,9 @@ featured: true
 sample: true
 impact: "Median time from complaint to routed work order fell from two days to four minutes"
 organization: "Riverbend County Public Health"
+review_status: "Reviewed & approved"
 solution_type: "Cloud deployment"
+use_case_category: "Administrative & task automation"
 area:
   - "Environmental health"
   - "Communications & outreach"
@@ -44,6 +46,10 @@ resources:
 screenshots:
   - src: /catalog/311-multilingual-intake/screenshots/01.png
     alt: "Inspector queue showing translated complaints with the original language, assigned category, urgency tier and routing status."
+license: "Not open source — available on request"
+access_terms: "The CloudFormation templates and the prompt set are shared with other health departments on request; email the contact below and we will add you to the private repository."
+portability: "Partially — with rework"
+portability_notes: "The intake logic and prompts are plain Python; transcription and translation use Amazon Transcribe and Translate, which another cloud would need to replace with its equivalents."
 cost_band: "$100k–$500k"
 run_cost: "$10k–$50k/yr"
 procurement:
@@ -55,6 +61,7 @@ approvals:
   - "Legal or contracts review"
   - "Equity impact assessment"
 equity_note: "Reaches every resident who files a complaint, including the 31% who file in a language other than English — the group the old queue served worst. We sample 40 translated complaints a month against a bilingual reviewer and track routing accuracy by source language; Haitian Creole and Amharic run below the others and stay on the review-everything list until they close the gap."
+no_pii_attestation: true
 data_sensitivity:
   - "Personal information (PII)"
   - "Internal, non-public data"
@@ -63,7 +70,9 @@ data_sources:
   - "Web complaint form"
   - "Inspections database"
 audience: "Public-facing"
+data_governance_notes: "Complaint transcripts contain caller names and addresses; they are retained under our environmental health records schedule and never leave the department's AWS account. Nothing in this entry or its screenshots is real caller data."
 contact_name: "Marcus Ellison"
+contact_title: "Environmental Health Program Manager"
 contact_email: "marcus.ellison@example.org"
 ---
 

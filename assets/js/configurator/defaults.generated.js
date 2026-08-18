@@ -35,7 +35,8 @@ export const SITE = {
     "stats": true,
     "events": false,
     "cohorts": false,
-    "resources": false
+    "resources": false,
+    "governance": true
   },
   "hero": {
     "eyebrow": "Big Cities Health Coalition · AI Community of Practice",
@@ -73,7 +74,7 @@ export const SITE = {
   },
   "submit": {
     "intro": "Share an AI use case, tool or project with the coalition. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved.",
-    "turnaround": "A maintainer reviews it, usually within two weeks.",
+    "turnaround": "Intake checks it within about five business days and the Governance Committee reviews it within about ten more; you keep ownership of anything you share.",
     "review_note": "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content.",
     "fallback_email": "info@bigcitieshealth.org"
   },
@@ -100,7 +101,8 @@ export const SITE = {
         "url": "https://github.com/crypticpy/bchc-template/blob/main/docs/admin-guide.md"
       }
     ],
-    "copyright": "Big Cities Health Coalition"
+    "copyright": "Big Cities Health Coalition",
+    "accessibility": "This site is built to WCAG 2.1 AA and tested on every build; if something does not work for you, tell us and it will be treated as a defect."
   },
   "analytics": {
     "plausible_domain": ""
@@ -149,7 +151,10 @@ export const SCHEMA = {
     "plural": "Use cases",
     "path": "catalog",
     "sort": "published",
-    "sort_order": "desc"
+    "sort_order": "desc",
+    "status_key": "review_status",
+    "deprecated_value": "Deprecated",
+    "status_scaffold_value": "Under review"
   },
   "groups": [
     {
@@ -167,6 +172,12 @@ export const SCHEMA = {
       "title": "Reuse",
       "description": "What it would take for another team to use this.",
       "placement": "rail"
+    },
+    {
+      "key": "sharing",
+      "title": "Sharing & licensing",
+      "description": "How another jurisdiction may use it, and how portable it is.",
+      "icon": "share"
     },
     {
       "key": "cost",
@@ -210,7 +221,7 @@ export const SCHEMA = {
       "type": "text",
       "required": true,
       "group": "about",
-      "weight": 8,
+      "weight": 9,
       "facet": true,
       "card": "meta",
       "search": true,
@@ -234,7 +245,13 @@ export const SCHEMA = {
         "Cloud deployment",
         "Vendor product",
         "Internal tool",
-        "Playbook or write-up"
+        "Playbook or write-up",
+        "Dataset",
+        "Dashboard or report",
+        "Prompt library",
+        "Training material",
+        "Governance or policy document",
+        "Other"
       ],
       "option_meta": {
         "Source code": {
@@ -255,10 +272,74 @@ export const SCHEMA = {
         },
         "Playbook or write-up": {
           "icon": "book-open",
-          "description": "Guidance, policy, evaluation or lessons — no software to install."
+          "description": "Guidance, evaluation, an implementation guide or lessons — no software to install."
+        },
+        "Dataset": {
+          "icon": "database",
+          "description": "A shareable data product — an extract, reference table or synthetic set — with its documentation."
+        },
+        "Dashboard or report": {
+          "short": "Dashboard",
+          "icon": "chart-bar",
+          "description": "A Power BI, Tableau, Looker or custom dashboard others can rebuild or reuse."
+        },
+        "Prompt library": {
+          "icon": "chat",
+          "description": "Prompts, system instructions or agent configurations, with the context they were written for."
+        },
+        "Training material": {
+          "short": "Training",
+          "icon": "academic-cap",
+          "description": "Slides, curricula, exercises or recordings used to train staff."
+        },
+        "Governance or policy document": {
+          "short": "Policy doc",
+          "icon": "document",
+          "description": "Policy, guidance, an evaluation rubric or an approval template."
+        },
+        "Other": {
+          "icon": "adjustments",
+          "description": "Anything else — say what in the summary."
         }
       },
       "description": "Pick the closest match."
+    },
+    {
+      "key": "use_case_category",
+      "label": "Use case category",
+      "prompt": "Which of the four coalition categories fits best?",
+      "type": "select",
+      "required": true,
+      "group": "about",
+      "weight": 4,
+      "facet": true,
+      "card": "fact",
+      "icon": "grid",
+      "options": [
+        "Administrative & task automation",
+        "Communications, media & writing",
+        "Coding & brainstorming",
+        "Operations & logistics"
+      ],
+      "option_meta": {
+        "Administrative & task automation": {
+          "short": "Admin & tasks",
+          "description": "Forms, intake, scheduling, records — the routine work that eats staff time."
+        },
+        "Communications, media & writing": {
+          "short": "Communications",
+          "description": "Drafting, translating, summarising and publishing."
+        },
+        "Coding & brainstorming": {
+          "short": "Coding",
+          "description": "Writing or reviewing code, analysis, and idea generation."
+        },
+        "Operations & logistics": {
+          "short": "Operations",
+          "description": "Planning, dispatch, inventory, inspections and field work."
+        }
+      },
+      "description": "The HHS-adapted categories the DMWG inventory uses. Area of work (below) is the finer cut."
     },
     {
       "key": "area",
@@ -267,7 +348,7 @@ export const SCHEMA = {
       "type": "multiselect",
       "required": true,
       "group": "about",
-      "weight": 4,
+      "weight": 5,
       "facet": true,
       "card": "chip",
       "icon": "tag",
@@ -336,7 +417,7 @@ export const SCHEMA = {
       "type": "select",
       "required": true,
       "group": "about",
-      "weight": 5,
+      "weight": 6,
       "facet": true,
       "card": "meta",
       "icon": "flag",
@@ -373,7 +454,7 @@ export const SCHEMA = {
       "type": "textarea",
       "required": true,
       "group": "about",
-      "weight": 6,
+      "weight": 7,
       "description": "Shown on the catalog card. Plain language, no jargon.",
       "placeholder": "Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first."
     },
@@ -383,12 +464,55 @@ export const SCHEMA = {
       "prompt": "What is the single most concrete result so far?",
       "type": "text",
       "group": "about",
-      "weight": 7,
+      "weight": 8,
       "card": "line",
       "icon": "trending-up",
       "search": true,
       "placeholder": "Cut brief turnaround from 3 days to 1 hour",
       "description": "A number if you have one."
+    },
+    {
+      "key": "review_status",
+      "label": "Review status",
+      "prompt": "Where is this entry in the coalition's review?",
+      "type": "select",
+      "form": false,
+      "group": "about",
+      "weight": 9,
+      "facet": true,
+      "icon": "shield-check",
+      "options": [
+        "Reviewed & approved",
+        "Under review",
+        "Revisions requested",
+        "Not yet reviewed",
+        "Deprecated"
+      ],
+      "option_meta": {
+        "Reviewed & approved": {
+          "short": "Approved",
+          "tone": "primary",
+          "description": "Passed intake and Governance Committee review."
+        },
+        "Under review": {
+          "description": "Published provisionally while the committee reviews it."
+        },
+        "Revisions requested": {
+          "short": "Revisions",
+          "tone": "warn",
+          "description": "The committee has asked the submitter for changes."
+        },
+        "Not yet reviewed": {
+          "short": "Unreviewed",
+          "tone": "warn",
+          "description": "Listed before any review took place."
+        },
+        "Deprecated": {
+          "tone": "warn",
+          "description": "No longer maintained or accurate — kept for the record."
+        }
+      },
+      "description": "Set by the review committee, not the submitter."
     },
     {
       "key": "ai_role",
@@ -731,6 +855,111 @@ export const SCHEMA = {
       "description": "Attach the slide deck here. A thumbnail is generated from its first page."
     },
     {
+      "key": "license",
+      "label": "License",
+      "prompt": "Under what license is it shared?",
+      "type": "select",
+      "required": true,
+      "group": "sharing",
+      "weight": 1,
+      "facet": true,
+      "card": "fact",
+      "icon": "document",
+      "options": [
+        "MIT",
+        "Apache 2.0",
+        "GPL / AGPL",
+        "Creative Commons (CC BY / CC0)",
+        "Other open license",
+        "Not open source — available on request",
+        "Not open source — description only"
+      ],
+      "option_meta": {
+        "MIT": {
+          "tone": "primary",
+          "description": "Permissive; reuse with attribution."
+        },
+        "Apache 2.0": {
+          "tone": "primary",
+          "description": "Permissive, with a patent grant."
+        },
+        "GPL / AGPL": {
+          "description": "Copyleft — derivatives must stay open."
+        },
+        "Creative Commons (CC BY / CC0)": {
+          "short": "CC BY / CC0",
+          "tone": "primary",
+          "description": "For documents, prompts, datasets and training material."
+        },
+        "Other open license": {
+          "short": "Other open",
+          "description": "Name it in the access terms below."
+        },
+        "Not open source — available on request": {
+          "short": "On request",
+          "description": "Peer jurisdictions can ask; say how in the access terms below."
+        },
+        "Not open source — description only": {
+          "short": "Write-up only",
+          "description": "The write-up is what is shared, not the artifact itself."
+        }
+      },
+      "description": "The coalition default is a permissive open license (MIT, Apache 2.0, CC BY). Submitting does not transfer ownership — your organization keeps authorship."
+    },
+    {
+      "key": "access_terms",
+      "label": "Access terms",
+      "prompt": "If it is not open source, how can a peer jurisdiction get access?",
+      "type": "textarea",
+      "group": "sharing",
+      "weight": 2,
+      "placeholder": "Available to other health departments under a data-sharing agreement — email the contact below.",
+      "description": "Government-to-government only, agreement required, contact us — whatever applies. Leave blank for open-licensed resources."
+    },
+    {
+      "key": "portability",
+      "label": "Portable to other platforms",
+      "prompt": "Could it be adapted outside its original vendor ecosystem?",
+      "type": "select",
+      "required": true,
+      "group": "sharing",
+      "weight": 3,
+      "facet": true,
+      "card": "fact",
+      "icon": "server",
+      "options": [
+        "Yes — platform-agnostic",
+        "Partially — with rework",
+        "No — tied to its platform"
+      ],
+      "option_meta": {
+        "Yes — platform-agnostic": {
+          "short": "Portable",
+          "tone": "primary",
+          "description": "Runs on any comparable stack with configuration changes only."
+        },
+        "Partially — with rework": {
+          "short": "With rework",
+          "description": "Some pieces are vendor-specific and would need swapping."
+        },
+        "No — tied to its platform": {
+          "short": "Platform-tied",
+          "description": "Depends on one vendor's services end to end."
+        }
+      },
+      "description": "Microsoft-built but portable to AWS is 'partially'."
+    },
+    {
+      "key": "portability_notes",
+      "label": "Portability notes",
+      "prompt": "What would porting it involve?",
+      "type": "textarea",
+      "group": "sharing",
+      "weight": 4,
+      "placeholder": "The prompt set and the evaluation harness are plain Python; the retrieval layer uses Azure AI Search and would need replacing.",
+      "description": "Which pieces are vendor-specific, and what a team on a different stack would need to swap."
+    },
+    {
       "key": "cost_band",
       "label": "Cost to stand up",
       "prompt": "Roughly what did it cost to get it running the first time?",
@@ -910,13 +1139,24 @@ export const SCHEMA = {
       "description": "Optional but strongly encouraged. Which populations the output reaches, what you checked for uneven performance, and what you would watch."
     },
     {
+      "key": "no_pii_attestation",
+      "label": "No PII/PHI in the shared material",
+      "prompt": "Do you confirm that no personal or protected health information appears in the resource, its documentation, example data or screenshots?",
+      "type": "boolean",
+      "required": true,
+      "group": "data",
+      "weight": 1,
+      "icon": "shield-check",
+      "description": "The coalition's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
+    },
+    {
       "key": "data_sensitivity",
       "label": "Data it touches",
       "prompt": "What kind of data does it touch?",
       "type": "multiselect",
       "required": true,
       "group": "data",
-      "weight": 1,
+      "weight": 2,
       "facet": true,
       "card": "icon",
       "icon": "shield",
@@ -971,7 +1211,7 @@ export const SCHEMA = {
       "prompt": "Which data sources does it use?",
       "type": "list",
       "group": "data",
-      "weight": 2,
+      "weight": 3,
       "search": true,
       "icon": "database",
       "placeholder": "Immunization registry, 311 call transcripts, ESSENCE",
@@ -984,7 +1224,7 @@ export const SCHEMA = {
       "type": "select",
       "required": true,
       "group": "data",
-      "weight": 3,
+      "weight": 4,
       "facet": true,
       "card": "icon",
       "icon": "users",
@@ -1013,6 +1253,16 @@ export const SCHEMA = {
       "description": "Pick the widest group that sees anything it produces."
     },
     {
+      "key": "data_governance_notes",
+      "label": "Data-governance caveats",
+      "prompt": "Anything a reusing jurisdiction should know about data handling?",
+      "type": "textarea",
+      "group": "data",
+      "weight": 5,
+      "placeholder": "Outputs are retained 90 days under our records schedule; the model was tuned on our own 311 transcripts, so expect to re-tune.",
+      "description": "Data-use agreements, retention rules, de-identification steps — the caveats that travel with the resource."
+    },
+    {
       "key": "contact_name",
       "label": "Contact name",
       "prompt": "Who can people contact?",
@@ -1024,13 +1274,23 @@ export const SCHEMA = {
       "description": "Someone happy to answer questions from another team."
     },
     {
+      "key": "contact_title",
+      "label": "Contact title",
+      "prompt": "What is their role or title?",
+      "type": "text",
+      "group": "contact",
+      "weight": 2,
+      "placeholder": "Informatics Manager",
+      "description": "So a peer knows who they are writing to."
+    },
+    {
       "key": "contact_email",
       "label": "Contact email",
       "prompt": "What is their email?",
       "type": "email",
       "required": true,
       "group": "contact",
-      "weight": 2,
+      "weight": 3,
       "placeholder": "jordan.lee@city.gov"
     },
     {
@@ -1076,6 +1336,11 @@ export const NAVIGATION = [
   {
     "label": "About",
     "url": "/about/"
+  },
+  {
+    "label": "Governance",
+    "url": "/governance/",
+    "module": "governance"
   },
   {
     "label": "Submit",
@@ -1152,6 +1417,7 @@ export const ICON_NAMES = [
   "plus",
   "presentation",
   "rocket",
+  "rss",
   "search",
   "server",
   "share",

@@ -17,12 +17,15 @@ entries, never invented. All labels come from _data/schema.yml.
 {%- assign epath = schema.entry.path | default: 'catalog' -%}
 {%- assign catalog_url = '/' | append: epath | append: '/' -%}
 {%- assign entries = site.pages | where: 'layout', 'entry' | sort: 'published', 'first' | reverse -%}
+{%- comment -%} Deprecated entries (schema `entry.status_key`) still count in the stats —
+they happened — but they do not get featured, listed beside the hero or shown as recent. {%- endcomment -%}
+{%- assign live = entries | live_entries: schema -%}
 {%- assign total = entries | size -%}
-{%- assign featured = entries | where: 'featured', true -%}
+{%- assign featured = live | where: 'featured', true -%}
 {%- assign featured_count = cfg.home.featured_count | default: 6 -%}
 {%- if featured.size < featured_count -%}
   {%- assign fill = featured_count | minus: featured.size -%}
-  {%- assign others = entries | where_exp: 'e', 'e.featured != true' | slice: 0, fill -%}
+  {%- assign others = live | where_exp: 'e', 'e.featured != true' | slice: 0, fill -%}
   {%- assign featured = featured | concat: others -%}
 {%- endif -%}
 {%- assign featured = featured | slice: 0, featured_count -%}
@@ -73,7 +76,7 @@ leads with; remaining facets fill in only if fewer than four qualify.
 
 {%- assign hero_latest_count = cfg.home.hero_latest_count | default: 3 -%}
 {%- assign hero_latest = "" | split: "" -%}
-{%- if cfg.modules.catalog and hero_latest_count > 0 -%}{%- assign hero_latest = entries | slice: 0, hero_latest_count -%}{%- endif -%}
+{%- if cfg.modules.catalog and hero_latest_count > 0 -%}{%- assign hero_latest = live | slice: 0, hero_latest_count -%}{%- endif -%}
 {%- assign hero_meta_field = schema.fields | card_fields: 'meta' | first -%}
 
 <section class="hero">
@@ -201,14 +204,18 @@ the eye reads "here is how the collection is organised" before the first entry. 
     </div>
     {% assign recent_count = cfg.home.recent_count | default: 6 %}
     <ul role="list" class="entry-grid">
-      {% for e in entries limit: recent_count %}{% assign home_r_lcp = false %}{% if forloop.first and home_has_carousel == false %}{% assign home_r_lcp = true %}{% endif %}{% include entry-card.html entry=e eager=home_r_lcp fetchpriority=home_r_lcp %}{% endfor %}
+      {% for e in live limit: recent_count %}{% assign home_r_lcp = false %}{% if forloop.first and home_has_carousel == false %}{% assign home_r_lcp = true %}{% endif %}{% include entry-card.html entry=e eager=home_r_lcp fetchpriority=home_r_lcp %}{% endfor %}
     </ul>
     {%- comment -%} No CTA when submissions are off: _plugins/modules.rb drops /submit/
     from the build, and an empty catalog makes "browse the catalog" a second dead end.
     {%- endcomment -%}
     {% assign home_empty_cta = '' %}
     {% if cfg.modules.submit %}{% assign home_empty_cta = '/submit/' %}{% endif %}
-    {% if total == 0 %}{% include empty-state.html icon='sparkles' title='Nothing published yet' body='Once the first entries are approved they will show up here.' cta_url=home_empty_cta cta_label='Submit the first one' %}{% endif %}
+    {%- comment -%} The grid lists live entries, so it can be empty while the catalog
+    is not (everything deprecated); that case points at the catalog, which keeps
+    deprecated entries for the record. {%- endcomment -%}
+    {% if total == 0 %}{% include empty-state.html icon='sparkles' title='Nothing published yet' body='Once the first entries are approved they will show up here.' cta_url=home_empty_cta cta_label='Submit the first one' %}
+    {% elsif live.size == 0 %}{% include empty-state.html icon='sparkles' title='Nothing current right now' body='Every entry is marked deprecated. They are kept for the record in the catalog.' cta_url=catalog_url cta_label='Browse the catalog' %}{% endif %}
   </section>
   {% endif %}
 
