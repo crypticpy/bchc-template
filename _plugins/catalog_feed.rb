@@ -87,7 +87,7 @@ module CatalogTemplate
     # @return [String] an Atom 1.0 document
     def render(site, dir, entries)
       cfg = site.data["site"] || {}
-      base = site.config["url"].to_s.chomp("/") + site.config["baseurl"].to_s.chomp("/")
+      base = site_base(site)
       self_url = "#{base}/#{dir}/feed.xml"
       home_url = "#{base}/#{dir}/"
       facets = Array(site.data.dig("schema", "fields")).select { |f| f["facet"] }.map { |f| f["key"] }
@@ -104,6 +104,37 @@ module CatalogTemplate
       entries.each { |page| body << entry_xml(page, base, facets) }
       body << "</feed>\n"
       body
+    end
+
+    # The absolute site root every `<id>` and `href` in the feed hangs off.
+    #
+    # Atom requires `<id>` to be an IRI, so a feed built with `url: ""` (what
+    # `_config.yml` ships) is not a valid document — its ids and its `self`
+    # link are site-relative. In practice the deploy never hits that case:
+    # `.github/workflows/pages.yml` works out the Pages origin (CNAME, a
+    # `<user>.github.io` repo, or `<owner>.github.io/<repo>`) and builds with an
+    # overlay `_config.ci.yml` that sets both `url` and `baseurl`, so the
+    # published feed is absolute. This falls back to `site.github.url` for a
+    # fork that runs `jekyll-github-metadata` instead of that workflow, and
+    # warns once when there is nothing to use — a local `jekyll build` still
+    # produces a feed, it just is not portable, which is the correct trade for
+    # a dev build.
+    # @param site [Jekyll::Site]
+    # @return [String] origin + baseurl, no trailing slash
+    def site_base(site)
+      url = site.config["url"].to_s.strip
+      if url.empty?
+        # A Drop when jekyll-github-metadata is installed, nil when it is not.
+        github = site.config["github"]
+        url = github["url"].to_s.strip if github.respond_to?(:[])
+      end
+      if url.empty? && !@warned
+        @warned = true
+        Jekyll.logger.warn "Catalog feed:", "no `url` in _config.yml — feed <id>s will be relative. " \
+                                            "The Pages workflow sets it at build time; set it yourself " \
+                                            "for any other deploy."
+      end
+      url.chomp("/") + site.config["baseurl"].to_s.chomp("/")
     end
 
     # @param page [Jekyll::Page]

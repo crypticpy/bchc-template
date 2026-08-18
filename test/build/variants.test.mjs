@@ -112,6 +112,53 @@ describe('preset build matrix', { skip: ready.ok ? false : ready.reason, concurr
       assert.ok(entries > 0, 'the feed advertised in <head> has no entries');
     });
 
+    test(`${variant.id}: the A–Z directory and the facet landing pages are real pages`, () => {
+      const { dir, siteDir } = built.get(variant.id);
+      const noun = entryNoun(dir);
+      const az = path.join(siteDir, noun.path, 'a-z', 'index.html');
+      if (variant.entries === 'none') {
+        // Nothing to index: _plugins/facet_pages.rb generates neither, rather
+        // than publishing an empty directory of an empty catalog.
+        assert.equal(fs.existsSync(az), false, 'an empty catalog should not get an A–Z page');
+        return;
+      }
+      assert.ok(fs.existsSync(az), `${noun.path}/a-z/ was not generated`);
+
+      const directory = page(siteDir, `${noun.path}/a-z`);
+      const landing = [...directory.querySelectorAll('a[href]')]
+        .map((a) => a.getAttribute('href'))
+        .filter((href) => new RegExp(`^/${noun.path}/[^/]+/[^/]+/$`).test(href));
+      assert.ok(landing.length > 0, 'the A–Z page links to no facet landing pages');
+
+      // Every link it makes has to resolve, and land on a page with a heading
+      // and a route back into the live filter.
+      for (const href of landing.slice(0, 5)) {
+        const document = page(siteDir, href);
+        assert.equal(document.querySelectorAll('h1').length, 1, `${href} does not have exactly one <h1>`);
+        assert.ok(
+          document.querySelector(`a[href*="/${noun.path}/?"]`),
+          `${href} does not link back to the live filter`
+        );
+        assert.ok(document.querySelector('link[rel="canonical"]'), `${href} has no canonical link`);
+        const title = document.querySelector('title')?.textContent ?? '';
+        assert.ok(title.length > 0 && !/^\s*·/.test(title), `${href} has an empty <title>`);
+      }
+
+      // A crawler finds them the same way: through the sitemap.
+      const sitemap = fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8');
+      assert.ok(sitemap.includes(`${noun.path}/a-z/`), 'the A–Z page is missing from sitemap.xml');
+      assert.ok(sitemap.includes(landing[0]), `${landing[0]} is missing from sitemap.xml`);
+    });
+
+    test(`${variant.id}: the catalog search box is a <search> landmark`, () => {
+      const { dir, siteDir } = built.get(variant.id);
+      const document = page(siteDir, entryNoun(dir).path);
+      const landmark = document.querySelector('search[role="search"]');
+      assert.ok(landmark, 'the results header has no <search> landmark');
+      assert.ok(landmark.getAttribute('aria-label'), 'the <search> landmark has no accessible name');
+      assert.equal(landmark.querySelector('[data-filter="search"]')?.getAttribute('type'), 'search');
+    });
+
     test(`${variant.id}: every entry page has one <h1> and a related section`, () => {
       const { dir, siteDir } = built.get(variant.id);
       const noun = entryNoun(dir);

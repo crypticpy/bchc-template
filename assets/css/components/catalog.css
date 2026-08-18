@@ -180,11 +180,43 @@
   html:not(.js) .results-header-controls, html:not(.js) .filter-rail, html:not(.js) .filter-bar { display: none; }
 
   /* ---------- Search combobox ------------------------------------------ */
+  /* <search> is display:block in the HTML rendering spec, but a browser that
+     predates the element treats it as an unknown inline and the flex sizing
+     around the combobox collapses. Tailwind's preflight does not cover it. */
+  search { @apply block; }
+  /* The platform clear button sits where the listbox's scrollbar and the pill
+     row already are; the combobox has its own Escape-to-clear, so hide it. */
+  .search-box::-webkit-search-cancel-button { @apply hidden appearance-none; }
   .search-box { @apply h-11 lg:h-9 w-full rounded-full border border-brand-line-strong bg-surface-card pl-9 pr-3 text-sm text-brand-ink placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
   .search-listbox { @apply absolute left-0 right-0 z-40 mt-1 max-h-72 list-none overflow-y-auto rounded-xl border border-brand-line bg-surface-card p-0 shadow-e2; }
   .search-option { @apply flex cursor-pointer items-center justify-between gap-3 border-b border-l-4 border-brand-line border-l-transparent px-3 py-2 text-sm last:border-b-0; }
   /* A tint alone was 1.18:1 against the neighbouring rows; the rule carries it. */
   .search-option.is-active, .search-option[aria-selected="true"] { @apply border-l-brand-primary bg-brand-primary/15; }
+  /* A row that applies a filter is not one more document in a list of
+     documents: the standing left rule says so before the chip is read. */
+  .search-option-facet { @apply border-l-brand-primary/40 bg-brand-primary/5; }
+  .search-facet-chip { @apply inline-flex items-center rounded-full bg-brand-primary px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white; }
+
+  /* ---------- A–Z directory + facet landing pages ---------------------- */
+  /* _layouts/facet-index.html. The jump bar is a real nav of anchors, so it
+     works with JavaScript off — which is the point of the whole page. */
+  .az-jump { @apply flex flex-wrap gap-1 border-y border-brand-line py-2; }
+  .az-jump a { @apply inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg px-2 text-sm font-semibold tabular-nums text-brand-primary transition-colors duration-120 hover:bg-brand-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base; }
+  .az-block { @apply mt-6 grid gap-x-6 gap-y-2 sm:grid-cols-[3rem_minmax(0,1fr)]; }
+  .az-letter { @apply font-heading text-2xl font-semibold leading-none text-brand-line-strong; }
+  /* A facet's title is a word, not a letter, so it gets its own row rather than
+     the .az-block letter gutter, which is sized for one character. */
+  .az-facet-block { @apply mt-6 space-y-2; }
+  .az-facet-title { @apply flex items-center gap-2 font-heading text-base font-semibold text-brand-primary-dark; }
+  /* Two columns at sm, so a 40-organization directory is a page, not a scroll. */
+  .az-list { @apply m-0 list-none space-y-3 p-0 sm:columns-2 sm:gap-8 sm:space-y-0; }
+  /* break-inside: a two-line row must not be split across the column gutter. */
+  .az-list > li { @apply mb-3 break-inside-avoid text-sm leading-6; }
+  .az-list a { @apply font-medium text-brand-primary-dark hover:text-brand-primary hover:underline; }
+  .az-note { @apply mt-0.5 block text-xs leading-5 text-brand-muted; }
+  .az-tags { @apply m-0 flex list-none flex-wrap gap-1.5 p-0; }
+  .az-tags a { @apply inline-flex min-h-[36px] items-center gap-2 rounded-full border border-brand-line-strong bg-surface-card px-3.5 text-[13px] font-medium text-brand-ink transition-colors duration-120 hover:border-brand-primary hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base; }
+  .az-count { @apply text-[11px] tabular-nums text-brand-muted; }
 
   /* ---------- Mobile filter bar + sheet --------------------------------- */
   .filter-bar { @apply fixed inset-x-0 bottom-0 z-30 flex items-center justify-center gap-3 border-t border-brand-line bg-surface-card px-4 py-3 shadow-e2 lg:hidden; }

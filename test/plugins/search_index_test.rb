@@ -221,6 +221,62 @@ class SearchIndexGeneratorTest < Minitest::Test
     assert_equal [], docs_for(site)
   end
 
+  # -- synonyms ------------------------------------------------------------
+
+  def test_synonyms_are_bidirectional_lowercased_and_deduplicated
+    site = build_site
+    site.data["search"] = { "synonyms" => { "Chatbot" => ["Chat Assistant", "conversational"] } }
+
+    result = @generator.send(:synonyms, site)
+
+    assert_equal ["chat assistant", "conversational"], result["chatbot"]
+    assert_equal ["chatbot"], result["chat assistant"]
+    assert_equal ["chatbot"], result["conversational"]
+  end
+
+  # Deliberately not transitive: a => b and b => c does not make a => c, so an
+  # editor can widen one term without silently widening its neighbours too.
+  def test_a_pair_listed_from_both_sides_appears_once_and_does_not_chain
+    site = build_site
+    site.data["search"] = { "synonyms" => { "a" => ["b"], "b" => ["a", "c"] } }
+    result = @generator.send(:synonyms, site)
+
+    assert_equal ["b"], result["a"]
+    assert_equal %w[a c], result["b"]
+    assert_equal ["b"], result["c"]
+  end
+
+  def test_blank_and_self_referential_synonyms_are_dropped
+    site = build_site
+    site.data["search"] = { "synonyms" => { "  " => ["x"], "rag" => ["", "RAG", "document q&a"] } }
+
+    result = @generator.send(:synonyms, site)
+
+    assert_equal ["document q&a"], result["rag"]
+    refute result.key?("")
+    refute result.key?("  ")
+  end
+
+  def test_a_missing_or_malformed_search_data_file_yields_no_synonyms
+    assert_empty @generator.send(:synonyms, build_site)
+
+    site = build_site
+    site.data["search"] = { "synonyms" => "not a hash" }
+    assert_empty @generator.send(:synonyms, site)
+  end
+
+  def test_the_payload_carries_the_synonyms_beside_the_docs
+    site = build_site(pages: [{
+      "dir" => "catalog/thing", "layout" => "entry", "slug" => "thing", "title" => "Thing"
+    }])
+    site.data["search"] = { "synonyms" => { "llm" => ["large language model"] } }
+    @generator.generate(site)
+
+    parsed = JSON.parse(JSON.generate(site.static_files.last.instance_variable_get(:@payload)))
+    assert_equal ["large language model"], parsed["synonyms"]["llm"]
+    assert_equal ["llm"], parsed["synonyms"]["large language model"]
+  end
+
   def test_the_payload_serializes_to_json
     site = build_site(pages: [{
       "dir" => "catalog/thing", "layout" => "entry", "slug" => "thing",

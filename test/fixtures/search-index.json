@@ -1,5 +1,9 @@
 {
   "generated_at": "2026-08-17T00:00:00Z",
+  "synonyms": {
+    "multilingual": ["translation"],
+    "translation": ["multilingual"]
+  },
   "docs": [
     {
       "id": "notice-translation",
