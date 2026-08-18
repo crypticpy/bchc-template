@@ -176,6 +176,42 @@ class CatalogFeedGeneratorTest < Minitest::Test
     assert_equal 'She said "hi" & left', REXML::XPath.first(feed, "/feed/entry/summary").text
   end
 
+  # -- site_base: where the absolute IRIs come from --------------------------
+
+  def test_site_base_joins_url_and_baseurl_without_a_trailing_slash
+    site = build_site(config: { "url" => "https://example.org/", "baseurl" => "/repo/" })
+
+    assert_equal "https://example.org/repo", @generator.send(:site_base, site)
+  end
+
+  def test_site_base_falls_back_to_the_github_metadata_url
+    site = build_site(config: { "url" => "" })
+    site.config["github"] = { "url" => "https://owner.github.io/repo" }
+
+    assert_equal "https://owner.github.io/repo", @generator.send(:site_base, site)
+  end
+
+  def test_site_base_ignores_a_github_value_that_is_not_a_hash
+    site = build_site(config: { "url" => "" })
+    site.config["github"] = nil
+
+    assert_equal "", @generator.send(:site_base, site)
+  end
+
+  def test_a_configured_url_wins_over_github_metadata
+    site = build_site(config: { "url" => "https://catalog.example.gov" })
+    site.config["github"] = { "url" => "https://owner.github.io/repo" }
+
+    assert_equal "https://catalog.example.gov", @generator.send(:site_base, site)
+  end
+
+  def test_with_no_url_at_all_the_feed_still_builds_with_relative_ids
+    site = build_site(entries: sample(1), config: { "url" => "" })
+    feed = feed_for(site)
+
+    assert_equal "/catalog/e1/", REXML::XPath.first(feed, "/feed/entry/id").text
+  end
+
   def test_an_entry_with_no_dates_still_renders
     feed = feed_for(build_site(entries: [{ "slug" => "e1", "title" => "E1" }]))
     entry = REXML::XPath.first(feed, "/feed/entry")
