@@ -28,6 +28,7 @@ There is no server, no database and no build step a maintainer has to run by han
 | **Configuration** | `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml` | Branding, module toggles, copy; colours/fonts/radius; the entry content model; header links. The only files a deployment is expected to edit. |
 | **Structural data** | `_data/modules.yml` | Path prefixes each togglable module owns; read by `_plugins/modules.rb` to drop a disabled module's pages from the build. Not a deployment-facing toggle — see `_data/site.yml`'s `modules:` map for that. |
 | **Feature data** | `_data/events.yml`, `_data/cohorts/<year>.yml`, `_data/resources.yml` | Content for the optional `events`, `cohorts`, `resources` modules. |
+| **Search tuning** | `_data/search.yml` | Synonyms, per-option search aliases, and the bounds on the generated facet landing pages. Optional — see `docs/search.md`. |
 | **Content** | `catalog/<slug>/index.md` (+ `screenshots/`, `thumb.jpg`, `deck.pdf`) | One folder per entry; front matter keys are schema field keys. |
 | **Templates** | `_layouts/`, `_includes/` | Liquid that renders whatever the schema declares. Never names a field key. |
 | **Build plugins** | `_plugins/*.rb` | Small Jekyll hooks/filters that keep the templates schema-agnostic (see below). |
@@ -45,6 +46,7 @@ presentation hints (`facet`, `card`, `search`, `weight`, `icon`, `group`,
 - `_layouts/entry.html`, `_includes/entry-card.html`, `_includes/fact-strip.html`, `_includes/gallery.html`,
   `_includes/reuse-card.html`, `_includes/facet-filters.html` and friends — rendering.
 - `_plugins/search_index.rb` — which fields feed `/search.json`.
+- `_plugins/facet_pages.rb` — which facet fields get their own crawlable page.
 - `submit/index.md` + `assets/js/submit/*` — the form, validation and live card preview.
 - `scripts/new_entry_from_issue.mjs` — issue body → front matter.
 - `scripts/check_front_matter.rb` — CI validation of every entry.
@@ -61,7 +63,8 @@ a hint to the schema instead. `docs/content-model.md` documents each hint's exac
 |---|---|
 | `schema_filters.rb` | Liquid filters that answer schema questions so templates stay declarative: `sort_by_weight`, `facet_fields`, `form_fields`, `fields_in_group`, `groups_for`, `groups_placed`, `card_slot`, `card_fields`, `option_meta`, `option_short`, `as_list`, `image_item`, `first_image`. |
 | `theme_filters.rb` | Presentation helpers: `hex_to_rgb`, `facet_values`, `slugify_list`, `link_host`, `query_encode`. |
-| `search_index.rb` | Generates `/search.json` from fields marked `search`/`facet` (plus a slice of the write-up), consumed by `assets/js/search.js` (Lunr). |
+| `search_index.rb` | Generates `/search.json` from fields marked `search`/`facet` (plus a slice of the write-up) and the synonym map from `_data/search.yml`, consumed by `assets/js/search.js` (Lunr). |
+| `facet_pages.rb` | Generates the crawlable browse surface from the same facet fields: one page per facet value at `/<entry.path>/<field>/<value>/` plus the A–Z directory, bounded by `_data/search.yml`'s `landing` block. See `docs/search.md`. |
 | `modules.rb` | At `post_read`, drops every page under a disabled module's path (from `_data/modules.yml`, `catalog` derived from the schema's `entry.path`) so it is never built, indexed or listed in the sitemap. |
 | `events.rb` | Merges `_data/events.yml` with per-cohort events into `site.data.events_all` for the events/cohort layouts. |
 
