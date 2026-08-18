@@ -213,7 +213,7 @@ export function parseLinks(raw) {
     if (!text) continue;
 
     let label = '';
-    let url = '';
+    let url;
 
     const markdown = /^\[([^\]]*)\]\((\S+?)\)$/.exec(text);
     const separated = /^(.*?)\s*[|—–]\s*(\S+)$/.exec(text);

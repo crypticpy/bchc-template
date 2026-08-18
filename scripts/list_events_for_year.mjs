@@ -15,7 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 
 import { setOutput } from './lib/actions_output.mjs';
 import { FIELD, FINAL_LABEL, readEventForm, YEAR_PATTERN } from './lib/event_issue.mjs';

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import jsYaml from 'js-yaml';
+import * as jsYaml from 'js-yaml';
 
 import { renderDefaults, OUTPUT_PATH } from '../../scripts/build_defaults.mjs';
 import { defaultConfig, DEFAULT_JEKYLL_CONFIG } from '../../assets/js/configurator/default-config.js';

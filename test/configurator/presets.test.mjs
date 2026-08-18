@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import jsYaml from 'js-yaml';
+import * as jsYaml from 'js-yaml';
 
 import { presets } from '../../assets/js/configurator/presets.js';
 import { checkSchema } from '../../assets/js/configurator/schema-validate.js';

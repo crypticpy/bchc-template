@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import jsYaml from 'js-yaml';
+import * as jsYaml from 'js-yaml';
 
 import { toYaml, quoteYamlString } from '../../assets/js/configurator/yaml-emit.js';
 

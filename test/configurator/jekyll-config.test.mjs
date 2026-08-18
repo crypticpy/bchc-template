@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import jsYaml from 'js-yaml';
+import * as jsYaml from 'js-yaml';
 
 import { jekyllConfig, patchJekyllConfig } from '../../assets/js/configurator/jekyll-config.js';
 import { defaultConfig, DEFAULT_JEKYLL_CONFIG } from '../../assets/js/configurator/default-config.js';

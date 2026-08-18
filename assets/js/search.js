@@ -95,7 +95,7 @@
     if (!idx) return [];
     const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
     if (!terms.length) return [];
-    let hits = [];
+    let hits;
     try {
       hits = idx.query((qb) => {
         terms.forEach((t) => {

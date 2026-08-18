@@ -144,7 +144,7 @@ export function clearSaved() {
  * @returns {boolean} true when a previous session was actually resumed.
  */
 export function restore() {
-  let stored = null;
+  let stored;
   try {
     stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
   } catch {

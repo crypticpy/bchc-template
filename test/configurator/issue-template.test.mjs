@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import jsYaml from 'js-yaml';
+import * as jsYaml from 'js-yaml';
 
 import { issueTemplateFromSchema, groupedFormFields } from '../../assets/js/configurator/issue-template.js';
 import { defaultConfig } from '../../assets/js/configurator/default-config.js';
