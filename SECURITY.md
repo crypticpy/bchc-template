@@ -167,3 +167,8 @@ If private reporting is not enabled, email the address in
 security issue, so it is not handled as a normal submission.
 
 Expect an acknowledgement within a few working days. There is no bounty.
+
+Something published that should not have been — a takedown request, a leaked
+email address, protected data in a screenshot — is not a vulnerability report;
+follow [docs/incidents.md](docs/incidents.md), which covers removing the page,
+purging it from git history, and asking GitHub Support to clear the caches.

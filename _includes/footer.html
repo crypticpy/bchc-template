@@ -26,6 +26,7 @@
         <h2 class="text-sm font-semibold uppercase tracking-wide text-brand-on-dark/80">Links</h2>
         <ul class="mt-4 space-y-2 text-sm text-brand-on-dark/85">
           {% for link in ft_cfg.footer.links %}
+            {% if link.module %}{% assign ft_link_enabled = ft_cfg.modules[link.module] %}{% unless ft_link_enabled %}{% continue %}{% endunless %}{% endif %}
             {% if link.url contains '://' %}
               <li><a class="transition hover:text-white hover:underline" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}<span class="sr-only"> (opens in a new tab)</span></a></li>
             {% else %}

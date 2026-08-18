@@ -84,6 +84,7 @@ Give it a short expiry and re-issue it on a calendar reminder; the workflows fal
 - **Small edit**: every entry page has a **Suggest an edit on GitHub** link (bottom of the page) that opens the file directly in GitHub's editor, pre-targeted at `catalog/<slug>/index.md` on the configured branch. Commit directly or via a PR.
 - **Larger edit / local**: edit `catalog/<slug>/index.md` in a checkout, run `npm run validate` before pushing.
 - **Remove**: delete the entry's folder (`catalog/<slug>/`) in a PR. There's no soft-delete/archive mechanism — removing the folder is the only way to unpublish.
+  Deleting the folder removes the page but not the git history: if the entry contained protected data, a real person's contact details, or anything published without consent, stop here and follow [incidents.md](incidents.md) instead.
 - **Un-feature / feature**: toggle `featured: true`/`false` in the entry's front matter. `featured` is a reserved key set by automation to `false` on scaffold; there's no UI for it, it's maintainer-only (the schema's `form: false` fields, like `featured` would be if added, are hidden from submission forms by design).
 - Every entry page also has a **Report an issue with this entry** link, which opens a blank pre-titled GitHub issue (not labelled, so it does not trigger automation) — read and triage these manually.
 
