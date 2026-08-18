@@ -152,11 +152,10 @@ Pill shape, 44px min-height under `lg` (40 above), no translate on hover — col
   so contrast holds on any image), `secondary`. `.badge-md`, `.badge-lg` sizes. Write
   `{% include badge.html label="…" tone="warn" %}`; an unknown tone falls back to `neutral`.
   The tone is an attribute, not part of the class name, which is why `tailwind.config.js` needs
-  no `safelist` — see "Adding a tone" below. The composed `.badge-<tone>` classes still work but
-  are deprecated: their only remaining emitter is the `/setup/` live preview.
+  no `safelist` — see "Adding a tone" below. There is no composed `.badge-<tone>` class; the
+  last emitter of that spelling (the `/setup/` live preview) was migrated and the aliases deleted.
 - `.chip` — one taxonomy family per card (hairline, `secondary` dot). `.chip-plain` (no dot),
-  `.chip-warn` (sensitive values), `.chip-neutral` (the "+n" overflow, same hairline, no dot),
-  `.chip-secondary` (legacy alias for `.chip`).
+  `.chip-warn` (sensitive values), `.chip-neutral` (the "+n" overflow, same hairline, no dot).
 - `.signal` / `.signal-warn` / `.signal-primary` — icon + short text at 12px, monochrome; the
   strip is `.signal-strip` (hairline top). ≤ 4 items including one trailing "+n"
   (`_includes/signal-strip.html`).

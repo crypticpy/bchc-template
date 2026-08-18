@@ -81,7 +81,7 @@ export function isHexColor(value) {
  * `fg` and `bg` are `theme.colors` keys, or a literal `#rrggbb` where the CSS
  * hard-codes a colour (`.btn-primary` paints `text-white`, not `on_dark`).
  * `level: 'warn'` is for pairs a fork can reasonably trade away — the accent is
- * decorative and only carries text inside `.badge-accent`.
+ * decorative and only carries text inside `.badge[data-tone="accent"]`.
  *
  * @type {{fg: string, bg: string, min: number, level: 'error'|'warn', what: string}[]}
  */

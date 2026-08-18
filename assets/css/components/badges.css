@@ -20,24 +20,18 @@
  * A tone is three custom properties and an alpha, not a re-composition of the base.
  */
 @layer components {
-  .badge,
-  /* @deprecated — the legacy composed classes. Their only remaining emitter is
-     assets/js/configurator/theme-preview.js (the /setup/ live preview), which this
-     unit does not own. They ride along on the same rules as `.badge`, so purge keeps
-     them without a safelist; delete these six selectors here and on each tone rule
-     below once that file emits `class="badge" data-tone="…"`. */
-  .badge-primary, .badge-secondary, .badge-accent, .badge-neutral, .badge-warn, .badge-on-dark {
+  .badge {
     @apply inline-flex max-w-full items-center gap-1 truncate rounded-pill px-2.5 py-0.5 text-[11px] font-semibold leading-4 ring-1 ring-inset;
     background-color: rgb(var(--tone-bg, var(--c-ink)) / var(--tone-bg-a, 0.05));
     color: rgb(var(--tone-fg, var(--c-ink)));
     --tw-ring-color: rgb(var(--tone-ring, var(--c-line)) / var(--tone-ring-a, 1));
   }
-  .badge[data-tone="primary"], .badge-primary {
+  .badge[data-tone="primary"] {
     --tone-bg: var(--c-primary); --tone-bg-a: 0.1;
     --tone-fg: var(--c-primary-dark);
     --tone-ring: var(--c-primary); --tone-ring-a: 0.2;
   }
-  .badge[data-tone="secondary"], .badge-secondary {
+  .badge[data-tone="secondary"] {
     --tone-bg: var(--c-secondary); --tone-bg-a: 0.1;
     --tone-fg: var(--c-ink);
     --tone-ring: var(--c-secondary); --tone-ring-a: 0.25;
@@ -45,14 +39,14 @@
   /* Solid, not a tint: "Featured" is the one badge that has to sit over a photograph
      (the card's media band) and still hold >= 4.5:1, and one definition means the
      style guide shows the badge the catalog actually renders. */
-  .badge[data-tone="accent"], .badge-accent {
+  .badge[data-tone="accent"] {
     --tone-bg: var(--c-accent); --tone-bg-a: 1;
     --tone-fg: var(--c-ink);
     --tone-ring: var(--c-accent); --tone-ring-a: 1;
   }
   /* Neutral is the fall-through: ink/5 ground, ink text, a plain line ring — the
      same values the base rule defaults to, restated so the tone is greppable. */
-  .badge[data-tone="neutral"], .badge-neutral {
+  .badge[data-tone="neutral"] {
     --tone-bg: var(--c-ink); --tone-bg-a: 0.05;
     --tone-fg: var(--c-ink);
     --tone-ring: var(--c-line); --tone-ring-a: 1;
@@ -61,7 +55,7 @@
      4.69:1 wherever the badge lands (a bare warn/5 drops to 4.38:1 on surface).
      The tint is a gradient over the card colour rather than a --tone-bg alpha,
      because the alpha alone would composite against whatever is behind it. */
-  .badge[data-tone="warn"], .badge-warn {
+  .badge[data-tone="warn"] {
     --tone-bg: var(--c-card); --tone-bg-a: 1;
     --tone-fg: var(--c-warn);
     --tone-ring: var(--c-warn); --tone-ring-a: 0.3;
@@ -72,7 +66,7 @@
      Opaque, not ink/80 with a backdrop blur: a contrast checker cannot compute a
      ratio through a translucent layer over a photo, so it reports a hard error —
      and a reader on a pale screenshot really was reading a washed-out label. */
-  .badge[data-tone="on-dark"], .badge-on-dark {
+  .badge[data-tone="on-dark"] {
     --tone-bg: var(--c-ink); --tone-bg-a: 1;
     --tone-fg: 255 255 255;
     --tone-ring: 255 255 255; --tone-ring-a: 0.3;
@@ -88,10 +82,6 @@
   /* Hairline like .chip (minus the taxonomy dot) so overflow counters read as the
      same family as the chips they follow, not as a second filled chip style. */
   .chip-neutral { @apply inline-flex items-center rounded-pill border border-brand-line bg-transparent px-2.5 py-0.5 text-xs font-medium leading-5 text-brand-muted; }
-  /* @deprecated — same story as the composed badge classes above: the only emitter is
-     assets/js/configurator/theme-preview.js, which should render a real `.chip` so the
-     /setup/ preview shows the taxonomy dot the catalog shows. Delete with that change. */
-  .chip-secondary { @apply chip; }
 
   .signal { @apply inline-flex min-w-0 items-center gap-1 text-xs font-medium leading-4 text-brand-muted; }
   .signal-warn { @apply signal text-brand-warn; }

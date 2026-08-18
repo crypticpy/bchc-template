@@ -301,17 +301,18 @@ test('every tone the schema accepts has a matching badge class in the CSS', () =
   if (files.length === 0) return;
 
   const css = files.map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
-  // Tones are `.badge[data-tone="…"]`; the composed `.badge-<tone>` form is the
-  // deprecated alias kept for the /setup/ preview. Either spelling counts as styled.
-  const styled = new Set([...css.matchAll(/\.badge(?:-|\[data-tone=")([a-z-]+)/g)].map((m) => m[1]));
+  // A tone is `.badge[data-tone="…"]` and nothing else — the composed
+  // `.badge-<tone>` aliases are gone, including from the /setup/ preview.
+  const styled = new Set([...css.matchAll(/\.badge\[data-tone="([a-z-]+)"/g)].map((m) => m[1]));
 
-  // One direction only: a tone with no class renders an unstyled span, which is
-  // the failure worth catching. The reverse would flag `.badge-md`/`.badge-lg`,
-  // which share the prefix but are size modifiers, not tones.
+  // One direction only: a tone with no rule renders as an unstyled pill (the
+  // base class still lands), which is the failure worth catching. The reverse
+  // would flag nothing useful — the table may carry a tone the schema has
+  // retired.
   assert.deepEqual(
     OPTION_TONES.filter((tone) => !styled.has(tone)),
     [],
-    'schema-validate.js accepts a tone that assets/css/components has no `.badge-<tone>` for'
+    'schema-validate.js accepts a tone that assets/css/components has no `.badge[data-tone]` rule for'
   );
 });
 

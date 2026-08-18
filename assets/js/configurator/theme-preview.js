@@ -1,5 +1,5 @@
 /**
- * Live theme preview for the /setup/ Branding step (browser only).
+ * Live theme preview for the /setup/ Look step (browser only).
  *
  * The site is themed entirely through CSS custom properties that
  * `_includes/theme.html` writes on `:root` (`--c-*` as "r g b" triplets,
@@ -17,15 +17,23 @@ import { el } from './dom.js';
 import { isHexColor, parseHexColor } from './color.js';
 
 /**
- * Corner-radius scales, keyed by the `theme.radius` answer.
- * Mirrors the `case` in `_includes/theme.html` — keep the two in step.
+ * Corner-radius scales, keyed by the `theme.radius` answer, in the order
+ * `RADIUS_STEPS` names them: the `xs` hairline step (checkbox corners, the
+ * focus ring) then the five sm…2xl steps.
+ *
+ * Mirrors the `case` in `_includes/theme.html`, which keeps the same values in
+ * two assigns (`th_rxs` and `th_r`) — a test reads both out of that file and
+ * compares them with these, so keep the two in step.
  * @type {Record<string, string[]>}
  */
 export const RADIUS_SCALES = {
-  sharp: ['0.25rem', '0.375rem', '0.5rem', '0.75rem', '1rem'],
-  soft: ['0.5rem', '0.75rem', '1rem', '1.25rem', '1.75rem'],
-  round: ['0.75rem', '1rem', '1.5rem', '2rem', '2.5rem'],
+  sharp: ['0.125rem', '0.25rem', '0.375rem', '0.5rem', '0.75rem', '1rem'],
+  soft: ['0.25rem', '0.5rem', '0.75rem', '1rem', '1.25rem', '1.75rem'],
+  round: ['0.375rem', '0.75rem', '1rem', '1.5rem', '2rem', '2.5rem'],
 };
+
+/** The `--radius-*` names, in the order `RADIUS_SCALES` lists their values. */
+export const RADIUS_STEPS = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'];
 
 /** Wizard answer key → CSS variable, for the colours the Branding step edits. */
 const COLOR_VARS = [
@@ -56,7 +64,7 @@ export function themeVars(answers = {}) {
   if (answers.bodyFont) decls.push(`--font-body: ${JSON.stringify(String(answers.bodyFont))}`);
   const radii = RADIUS_SCALES[answers.radius];
   if (radii) {
-    ['sm', 'md', 'lg', 'xl', '2xl'].forEach((step, i) => decls.push(`--radius-${step}: ${radii[i]}`));
+    RADIUS_STEPS.forEach((step, i) => decls.push(`--radius-${step}: ${radii[i]}`));
   }
   return decls.length ? decls.join('; ') + ';' : '';
 }
@@ -132,7 +140,7 @@ export function renderThemePreview(container, answers, labels = {}) {
   const card = el('div', { class: 'entry-card' }, [
     el('div', { class: 'entry-body !gap-1.5 !p-4' }, [
       el('p', { class: 'entry-meta' }, [
-        el('span', { class: 'badge-primary badge-md', text: 'Source code' }),
+        el('span', { class: 'badge badge-md', 'data-tone': 'primary', text: 'Source code' }),
         el('span', { class: 'entry-meta-seg entry-meta-seg--lead', text: copy.org }),
         el('span', { class: 'entry-meta-seg', text: 'Pilot' }),
       ]),
@@ -143,7 +151,7 @@ export function renderThemePreview(container, answers, labels = {}) {
       }),
       el('div', { class: 'entry-chips' }, [
         el('span', { class: 'chip', text: 'Topic' }),
-        el('span', { class: 'chip-secondary', text: 'Audience' }),
+        el('span', { class: 'chip', text: 'Audience' }),
         el('span', { class: 'chip-neutral', text: '+2' }),
       ]),
     ]),
@@ -166,9 +174,9 @@ export function renderThemePreview(container, answers, labels = {}) {
       el('span', { class: 'filter-pill !min-h-0 !py-1 !text-xs', text: 'Filter' }),
     ]),
     el('div', { class: 'flex flex-wrap gap-1.5' }, [
-      el('span', { class: 'badge-accent badge-md', text: 'Featured' }),
-      el('span', { class: 'badge-secondary badge-md', text: 'Secondary' }),
-      el('span', { class: 'badge-warn badge-md', text: 'Sensitive data' }),
+      el('span', { class: 'badge badge-md', 'data-tone': 'accent', text: 'Featured' }),
+      el('span', { class: 'badge badge-md', 'data-tone': 'secondary', text: 'Secondary' }),
+      el('span', { class: 'badge badge-md', 'data-tone': 'warn', text: 'Sensitive data' }),
     ]),
     el('p', { class: 'text-xs text-brand-muted' }, [
       el('span', { class: 'font-semibold text-brand-primary', text: 'A link' }),
