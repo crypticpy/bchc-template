@@ -8,6 +8,8 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.7.0] — 2026-08-18
+
 The template now shows its work. Its own deployment used to be one demo catalog
 of fictional health departments, which answered "what does this look like?" for
 exactly one of the things it can be. It is now a landing page introducing the
@@ -837,7 +839,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/crypticpy/bchc-template/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/crypticpy/bchc-template/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/crypticpy/bchc-template/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/crypticpy/bchc-template/compare/v1.4.0...v1.5.0
