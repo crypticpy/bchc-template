@@ -17,8 +17,8 @@ This site is maintained by **{{ cfg.organization.name }}**. It is a shared, publ
 {%- else -%}
 1. Anyone can propose {{ schema.entry.singular | downcase | with_article }} by opening a GitHub issue on the repository. Email [{{ cfg.organization.contact_email }}](mailto:{{ cfg.organization.contact_email }}) if you would like to contribute one.
 {%- endif %}
-2. Automation turns the issue into a draft page in a pull request.
-3. A maintainer reviews the draft, asks for changes if needed, and merges it.
+2. Automation turns the issue into a page in a pull request.
+3. A maintainer reviews the page, asks for changes if needed, and merges it.
 4. The site rebuilds and the entry is live within a couple of minutes.
 
 Every change is versioned, so anything can be corrected or rolled back. If you spot an error on a page, use the *Suggest an edit* link at the bottom of that page.
