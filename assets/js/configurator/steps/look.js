@@ -1,10 +1,16 @@
 /**
- * Step 2 — branding, colours, type and home page copy.
+ * Step 3 — the palette, the type and the corner rounding.
  *
- * The palette swatches, the WCAG contrast checks and the live theme preview
- * all repaint from one `renderPalette()`, wired into every control on the step
- * as its `onChange`. Both preview nodes are recreated on each render, so the
- * module-level handles below never outlive the step body they belong to.
+ * The swatches, the WCAG contrast checks and the live theme preview all
+ * repaint from one `renderPalette()`, wired into every control on the step as
+ * its `onChange`. Both preview nodes are recreated on each render, so the
+ * module-level handles below never outlive the step body they belong to; the
+ * step is the only place they exist, so a render of any other step leaves them
+ * pointing at detached nodes — `renderLook()` replaces them before use.
+ *
+ * The preview also echoes answers given on the Basics and Words steps (the
+ * site name, the hero copy). Those steps do not repaint it: it is not on
+ * screen there, and it reads the current answers every time this step renders.
  */
 
 import { COLOR_QUESTIONS, contrastRatio, isHexColor } from '../core.js';
@@ -12,17 +18,6 @@ import { el } from '../dom.js';
 import { renderThemePreview } from '../theme-preview.js';
 import { colorField, selectField, textField } from '../wizard/controls.js';
 import { baseConfigFor, state } from '../wizard/state.js';
-
-/** Text answers the live preview echoes; changes to these re-render it too. */
-const PREVIEW_TEXT_KEYS = new Set([
-  'siteName',
-  'orgName',
-  'orgShort',
-  'logoText',
-  'heroEyebrow',
-  'heroTitle',
-  'heroLead',
-]);
 
 let paletteNode = null;
 let previewNode = null;
@@ -94,50 +89,13 @@ function renderPalette() {
   );
 }
 
-/** A text field that repaints the preview when the answer feeds it. */
-function copyField(key, label, options = {}) {
-  return textField(key, label, {
-    ...options,
-    onChange: PREVIEW_TEXT_KEYS.has(key) ? renderPalette : undefined,
-  });
-}
-
-/** @returns {{body: HTMLElement}} step 2 body — site/org, GitHub, colours/type and home-page copy. */
-export function renderBranding() {
+/** @returns {{body: HTMLElement}} step 3 body — palette with a live preview, then type and rounding. */
+export function renderLook() {
   paletteNode = el('div', { class: 'px-6 py-5' });
   previewNode = el('div', { class: 'p-4 sm:p-6' });
   const body = el('div', { class: 'space-y-6' }, [
     el('fieldset', { class: 'space-y-4' }, [
-      el('legend', { class: 'section-title', text: 'Site & organization' }),
-      el('div', { class: 'grid gap-4 sm:grid-cols-2' }, [
-        copyField('siteName', 'Site name', { help: 'Shown in the header and browser tab.' }),
-        copyField('tagline', 'Tagline', { help: 'One short line under the site name.' }),
-      ]),
-      copyField('description', 'Description', {
-        textarea: true,
-        help: 'Used for search engines and the RSS feed.',
-      }),
-      el('div', { class: 'grid gap-4 sm:grid-cols-2' }, [
-        copyField('orgName', 'Organization name'),
-        copyField('orgShort', 'Short name / initials', { help: 'Used in tight spaces.' }),
-        copyField('logoText', 'Logo text mark', { help: 'Shown when no logo image is set.' }),
-        copyField('logoImage', 'Logo image path', { help: 'Optional, e.g. /assets/images/logo.svg' }),
-        copyField('orgUrl', 'Organization website', { type: 'url' }),
-        copyField('contactEmail', 'Contact email', { type: 'email' }),
-      ]),
-    ]),
-    el('fieldset', { class: 'space-y-4' }, [
-      el('legend', { class: 'section-title', text: 'GitHub' }),
-      el('div', { class: 'grid gap-4 sm:grid-cols-2' }, [
-        copyField('repository', 'Repository', {
-          help: 'owner/repo — used for submission links and edit links.',
-          placeholder: 'owner/repo',
-        }),
-        copyField('branch', 'Branch', { help: 'The branch GitHub Pages builds from.' }),
-      ]),
-    ]),
-    el('fieldset', { class: 'space-y-4' }, [
-      el('legend', { class: 'section-title', text: 'Colors & type' }),
+      el('legend', { class: 'section-title', text: 'Palette' }),
       el(
         'div',
         { class: 'grid gap-4 sm:grid-cols-2' },
@@ -157,6 +115,9 @@ export function renderBranding() {
         ]),
         paletteNode,
       ]),
+    ]),
+    el('fieldset', { class: 'space-y-4' }, [
+      el('legend', { class: 'section-title', text: 'Type & shape' }),
       el('div', { class: 'grid gap-4 sm:grid-cols-3' }, [
         selectField(
           'headingFont',
@@ -190,27 +151,10 @@ export function renderBranding() {
           renderPalette
         ),
       ]),
-      copyField('googleFontsUrl', 'Google Fonts URL', {
+      textField('googleFontsUrl', 'Google Fonts URL', {
         type: 'url',
         help: 'Only needed if you replace a bundled font with another family. Paste the href from fonts.google.com.',
       }),
-    ]),
-    el('fieldset', { class: 'space-y-4' }, [
-      el('legend', { class: 'section-title', text: 'Home page & footer copy' }),
-      copyField('heroEyebrow', 'Eyebrow', { help: 'Small line above the headline.' }),
-      copyField('heroTitle', 'Headline'),
-      copyField('heroLead', 'Lead paragraph', { textarea: true }),
-      copyField('submitIntro', 'Submission page intro', { textarea: true }),
-      copyField('submitTurnaround', 'What happens after someone submits', {
-        help: 'The last step of "what happens next" on the submission page. Promise a turnaround you can keep.',
-        placeholder: 'A maintainer reviews it, usually within two weeks.',
-      }),
-      copyField('submitReviewNote', 'Submission safety note', {
-        textarea: true,
-        help: 'The warning beside the submission form and at the top of the GitHub issue form — say what your organization must not receive.',
-      }),
-      copyField('footerAbout', 'Footer about', { textarea: true }),
-      copyField('copyright', 'Copyright holder'),
     ]),
   ]);
   renderPalette();

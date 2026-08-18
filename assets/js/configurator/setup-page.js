@@ -13,26 +13,35 @@
  *   wizard/errors.js      the focusable error summary
  *   wizard/validate.js    per-step rules
  *   steps/start.js        1. starting point
- *   steps/branding.js     2. branding, colours, type, copy
- *   steps/modules.js      3. module toggles
- *   steps/entry-model.js  4. the schema's fields
+ *   steps/basics.js       2. site and organization names, the repository
+ *   steps/look.js         3. palette, live preview, type and rounding
+ *   steps/words.js        4. home page, submission page and footer copy
+ *   steps/modules.js      5. module toggles
+ *   steps/entry-model.js  6. the schema's fields
  *   steps/field-rows.js   which field rows are open, and their element ids
- *   steps/add-field.js    the "Add a field" form on step 4
- *   steps/review.js       5. the rendered files
+ *   steps/add-field.js    the "Add a field" form on step 6
+ *   steps/review.js       7. the rendered files
  *
  * The page never writes anything: it renders the files and hands them to the
  * admin to copy, download, or paste into GitHub's web editor.
  */
 
 import { el } from './dom.js';
-import { renderBranding } from './steps/branding.js';
+import { renderBasics } from './steps/basics.js';
 import { renderEntryModel } from './steps/entry-model.js';
+import { renderLook } from './steps/look.js';
 import { renderModules } from './steps/modules.js';
 import { renderReview } from './steps/review.js';
 import { renderStart } from './steps/start.js';
+import { renderWords } from './steps/words.js';
+import { announce } from './wizard/errors.js';
 import { clearSaved, loadStartingPoint, restore, save, state, STEPS } from './wizard/state.js';
-import { validateStep } from './wizard/validate.js';
+import { stepProblems } from './wizard/validate.js';
 
+/**
+ * One entry per id in `STEPS`, in the same order. Short pill labels: seven of
+ * them share one row at 1440 and wrap to two at 390.
+ */
 const STEP_META = [
   {
     label: 'Start',
@@ -41,10 +50,22 @@ const STEP_META = [
     render: renderStart,
   },
   {
-    label: 'Branding',
-    title: 'Branding & contact',
-    lead: 'Names, colors, type and the copy on the home page.',
-    render: renderBranding,
+    label: 'Basics',
+    title: 'Names & contact',
+    lead: 'What the site is called, who runs it, and where its code lives.',
+    render: renderBasics,
+  },
+  {
+    label: 'Look',
+    title: 'Colors & type',
+    lead: 'The palette, the fonts and the corner rounding, previewed as you change them.',
+    render: renderLook,
+  },
+  {
+    label: 'Words',
+    title: 'Home page & footer copy',
+    lead: 'The words on the home page, the submission page and the footer.',
+    render: renderWords,
   },
   {
     label: 'Modules',
@@ -77,6 +98,10 @@ function renderStepNav() {
         type: 'button',
         class: `filter-pill${index === state.step ? ' is-active' : ''}`,
         'aria-current': index === state.step ? 'step' : null,
+        // The step id, not its position: quality/pa11yci.js drives the wizard
+        // through these pills and must not be re-numbered every time a step
+        // is added or split.
+        'data-step': STEPS[index],
         text: `${index + 1}. ${meta.label}`,
         onclick: () => goTo(index),
       })
@@ -88,22 +113,30 @@ function renderStepNav() {
  * Navigate to a step. A forward move (Continue, or a step pill further on)
  * validates every step it would skip, in order, and stops on the first one
  * with problems: that step is shown, its blamed rows come back open, and
- * focus lands on the error summary `validateStep` filled. Moving back is
- * always allowed.
+ * focus lands on the error summary.
+ *
+ * The problems are announced *after* `render()`, never before: the render
+ * replaces every control on the step, so a summary painted first would have
+ * marked controls that no longer exist.
  * @param {number} index target step index.
  */
 function goTo(index) {
   const target = Math.min(Math.max(index, 0), STEPS.length - 1);
   for (let step = state.step; step < target; step += 1) {
-    if (validateStep(step)) continue;
+    const problems = stepProblems(step);
+    if (problems.length === 0) continue;
     state.step = step;
     save();
     render();
-    document.getElementById('wizard-error-summary')?.focus();
+    announce(problems);
     return;
   }
   state.step = target;
   save();
+  // Every step the move passed through was clean; drop whatever the last
+  // failed attempt left in the summary before the new step paints (the review
+  // step's own render may put its schema problems back).
+  announce([]);
   render();
   document.getElementById('step-heading')?.focus();
 }
@@ -159,7 +192,15 @@ function render() {
   root.replaceChildren(
     el('header', { class: 'mb-6' }, [
       el('p', { class: 'eyebrow', text: `Step ${state.step + 1} of ${STEPS.length}` }),
-      el('h2', { id: 'step-heading', class: 'section-title focus-target', tabindex: '-1', text: meta.title }),
+      // my-1.5: the heading takes focus on every step change and `.focus-target`
+      // draws its dashed ring 4px outside the box; without the gap the ring
+      // crosses the eyebrow above and the lead below.
+      el('h2', {
+        id: 'step-heading',
+        class: 'section-title focus-target my-1.5',
+        tabindex: '-1',
+        text: meta.title,
+      }),
       el('p', { class: 'section-lead', text: meta.lead }),
     ]),
     body,

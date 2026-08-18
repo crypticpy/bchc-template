@@ -1,11 +1,18 @@
 /**
  * The wizard's single error summary.
  *
- * `#wizard-errors` (declared in setup/index.md with `role="alert"`) is the one
- * place validation problems appear. The panel inside it takes focus when it
- * fills, so a keyboard or screen-reader user is taken to the problems instead
- * of being told about them somewhere off screen, and each problem that knows
- * which control it belongs to links straight to it.
+ * `#wizard-errors` (declared in setup/index.md) is the one place validation
+ * problems appear. The panel inside it takes focus when it fills, so a
+ * keyboard or screen-reader user is taken to the problems instead of being
+ * told about them somewhere off screen, and each problem that knows which
+ * control it belongs to links straight to it. Focus alone is the announcement:
+ * a `role="alert"` around a container that also takes focus is read twice
+ * (GOV.UK Frontend dropped it from their error summary in v5.0 for that
+ * reason), so the container carries no live-region role.
+ *
+ * `announce()` paints the panel *and* marks the controls, so it must be called
+ * after the step body it is talking about has been rendered — see `goTo()` in
+ * setup-page.js.
  */
 
 import { scrollBehavior } from '../../lib/motion.js';
@@ -134,9 +141,5 @@ export function announce(problems, { focus = true } = {}) {
 
   target.append(panel);
   if (focus) panel.focus();
-
-  // setup-page.js re-renders the step body after validation returns, which
-  // would throw away anything put on a control now. A microtask runs once that
-  // synchronous render has finished, so the marks land on the new controls.
-  queueMicrotask(() => mark(items));
+  mark(items);
 }
