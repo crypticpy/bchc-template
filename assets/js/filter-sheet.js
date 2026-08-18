@@ -1,15 +1,16 @@
 /**
- * The mobile filter sheet: open/close, page inerting, focus trap and Escape.
- * The facet controls inside it are the same markup as the desktop rail and are
+ * The mobile filter sheet. It is a real `<dialog>`, so the focus trap, Escape,
+ * `inert` on the rest of the page and focus restoration on close are the
+ * platform's — this module only opens it, keeps `aria-expanded` and the scroll
+ * lock in sync, and closes it when the viewport crosses into the desktop layout.
+ * The facet controls inside are the same markup as the desktop rail and are
  * driven by assets/js/filters.js, which imports and owns this module.
  *
  * Markup contract (_includes/filter-sheet.html):
  *   [data-sheet-open]   trigger(s); aria-expanded is mirrored here
- *   [data-filter-sheet] role="dialog" aria-modal, `hidden` when closed
+ *   [data-filter-sheet] the <dialog>
  *   [data-sheet-close] / [data-sheet-apply]  close the sheet
  */
-
-const FOCUSABLE = 'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
 
 /**
  * Wire the sheet up. Safe to call on a page without one.
@@ -20,115 +21,51 @@ export function initFilterSheet() {
   const openers = Array.from(document.querySelectorAll('[data-sheet-open]'));
   if (!sheet) return { close() {}, isOpen: () => false };
 
-  let trigger = null;
-  let inerted = [];
+  const modal = typeof sheet.showModal === 'function';
 
-  /** @returns {HTMLElement[]} the sheet's reachable controls, in tab order. */
-  function items() {
-    return Array.from(sheet.querySelectorAll(FOCUSABLE)).filter(
-      (el) => !el.classList.contains('hidden') && !el.closest('[hidden]')
-    );
-  }
-
-  // aria-modal alone does not stop a screen reader reaching the rest of the page,
-  // and the sheet is not a <body> child (it renders inside <main> next to its own
-  // trigger). Walk from the sheet up to <body> marking every sibling on the way
-  // `inert`, so the header, the results, the footer and the trigger itself all
-  // drop out of the a11y tree and the tab ring while the dialog is open.
-  function inertOutside() {
-    releaseInert();
-    let node = sheet;
-    while (node && node !== document.body && node.parentElement) {
-      Array.from(node.parentElement.children).forEach((sib) => {
-        if (sib === node || sib.hasAttribute('inert')) return;
-        sib.setAttribute('inert', '');
-        inerted.push(sib);
-      });
-      node = node.parentElement;
-    }
-  }
-
-  function releaseInert() {
-    inerted.forEach((el) => el.removeAttribute('inert'));
-    inerted = [];
-  }
-
-  /**
-   * Escape and Tab while the sheet is open. Bound on `document`, not on the
-   * sheet: a key pressed before focus has landed inside (or after something
-   * moved it out) must still close the dialog.
-   * @param {KeyboardEvent} e
-   */
-  function onKeydown(e) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      close();
-      return;
-    }
-    if (e.key !== 'Tab') return;
-    // The sheet is `lg:hidden`: if the viewport grew past the breakpoint while
-    // it was open, it is display:none and cannot take focus — release the trap.
-    if (!sheet.offsetParent && getComputedStyle(sheet).display === 'none') {
-      close();
-      return;
-    }
-    const list = items();
-    if (!list.length) return;
-    const first = list[0];
-    const last = list[list.length - 1];
-    if (!sheet.contains(document.activeElement)) {
-      e.preventDefault();
-      (e.shiftKey ? last : first).focus();
-    } else if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
-
-  /**
-   * Open the sheet, inert the rest of the page and move focus in.
-   * @param {HTMLElement} [opener] the button that opened it, refocused on close.
-   */
-  function open(opener) {
-    if (!sheet.hidden) return;
-    trigger = opener || null;
-    sheet.hidden = false;
-    document.body.style.overflow = 'hidden';
+  /** Open the sheet and move focus into it. */
+  function open() {
+    if (sheet.open) return;
+    // showModal() puts the sheet in the top layer and inerts everything else.
+    // Without it (a browser predating dialog, or a dialog inside a detached
+    // tree) the `open` attribute still shows it: no trap, but a usable sheet.
+    if (modal) sheet.showModal();
+    else sheet.open = true;
+    document.documentElement.classList.add('is-dialog-open');
     openers.forEach((b) => b.setAttribute('aria-expanded', 'true'));
-    inertOutside();
-    document.addEventListener('keydown', onKeydown);
-    const first = items()[0];
+    // Autofocus lands on the close button otherwise, which reads as "you are
+    // leaving" before the user has heard what they opened.
+    const first = sheet.querySelector('.filter-sheet-body button, .filter-sheet-body input');
     if (first) first.focus();
   }
 
-  /** Close the sheet, release `inert`, and restore focus to its opener. */
+  /** Close the sheet. `close` fires the `close` event, which does the cleanup. */
   function close() {
-    if (sheet.hidden) return;
-    sheet.hidden = true;
-    document.body.style.overflow = '';
-    openers.forEach((b) => b.setAttribute('aria-expanded', 'false'));
-    document.removeEventListener('keydown', onKeydown);
-    // Release before focusing: the trigger is one of the elements we made inert.
-    releaseInert();
-    if (trigger) trigger.focus();
-    trigger = null;
+    if (!sheet.open) return;
+    sheet.close();
   }
 
-  openers.forEach((b) => b.addEventListener('click', () => open(b)));
+  // Bound on the element, not called from close(): ESC and a form submission
+  // close a dialog without going through us, and all three must clean up.
+  sheet.addEventListener('close', () => {
+    document.documentElement.classList.remove('is-dialog-open');
+    openers.forEach((b) => b.setAttribute('aria-expanded', 'false'));
+  });
+
+  openers.forEach((b) => b.addEventListener('click', open));
+  document
+    .querySelectorAll('[data-sheet-close],[data-sheet-apply]')
+    .forEach((b) => b.addEventListener('click', close));
+
   // Crossing into the desktop layout (resize, rotation, zooming back out) hides
-  // the sheet with CSS; close it properly so `inert` and the scroll lock go too.
+  // the sheet with CSS; close it properly so the scroll lock and the top layer
+  // go with it.
   const desktop = window.matchMedia('(min-width: 1024px)');
   const onDesktop = (mq) => {
     if (mq.matches) close();
   };
   if (typeof desktop.addEventListener === 'function') desktop.addEventListener('change', onDesktop);
   else if (typeof desktop.addListener === 'function') desktop.addListener(onDesktop);
-  document
-    .querySelectorAll('[data-sheet-close],[data-sheet-apply]')
-    .forEach((b) => b.addEventListener('click', close));
 
-  return { close, isOpen: () => !sheet.hidden };
+  return { close, isOpen: () => sheet.open };
 }

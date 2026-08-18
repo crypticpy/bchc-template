@@ -7,7 +7,8 @@ Params: entries (required) — passed through to filter-groups.html.
 
 Markup contract (assets/js/filters.js):
   [data-sheet-open]          trigger; contains [data-filter-count-badge]
-  [data-filter-sheet]        role="dialog" aria-modal, hidden when closed (focus trap + Esc)
+  [data-filter-sheet]        the <dialog>; opened with showModal() (focus trap + Esc are the
+                             platform's), non-modal `open` attribute as the fallback
   [data-sheet-close]         header close button
   [data-sheet-apply]         footer "Show n <schema plural>" (closes the sheet;
                              filters.js keeps [data-entry-count]/[data-entry-count-label] in sync)
@@ -24,7 +25,11 @@ Local assigns are prefixed `fs_`.
   </button>
 </div>
 
-<div class="filter-sheet" id="filter-sheet" role="dialog" aria-modal="true" aria-labelledby="filter-sheet-title" data-filter-sheet hidden>
+{%- comment -%} A real <dialog>: the top layer, the focus trap, the ESC handler, `inert` on
+everything behind it and focus restoration on close are all the platform's, so filter-sheet.js
+only has to open it. Do not add `hidden` — `dialog:not([open])` already hides it, and the two
+attributes disagree the moment showModal() runs. {%- endcomment -%}
+<dialog class="filter-sheet" id="filter-sheet" aria-labelledby="filter-sheet-title" data-filter-sheet>
   <div class="filter-sheet-head">
     <h2 id="filter-sheet-title" class="card-title">Filter {{ fs_plural }}</h2>
     <button type="button" class="icon-btn" data-sheet-close aria-label="Close filters">{% include icon.html name='close' size='md' %}</button>
@@ -36,4 +41,4 @@ Local assigns are prefixed `fs_`.
     <button type="button" class="btn-secondary flex-1" data-filter-clear>Clear</button>
     <button type="button" class="btn-primary flex-1" data-sheet-apply><span>Show <span data-entry-count>{{ fs_count }}</span> <span data-entry-count-label>{% if fs_count == 1 %}{{ fs_singular }}{% else %}{{ fs_plural }}{% endif %}</span></span></button>
   </div>
-</div>
+</dialog>
