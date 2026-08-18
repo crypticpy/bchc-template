@@ -2,9 +2,36 @@
  * String and GitHub-URL helpers used by both wizards.
  */
 
+/**
+ * Letters NFKD leaves whole (no combining mark to strip) that still have an
+ * obvious ASCII spelling. Without this map "Straße" slugs to `stra-e` and
+ * "Łódź" to `d`. Keep in step with LIGATURES in scripts/lib/slugify.rb.
+ */
+const LIGATURES = {
+  ß: 'ss',
+  ẞ: 'ss',
+  ø: 'o',
+  Ø: 'o',
+  ł: 'l',
+  Ł: 'l',
+  đ: 'd',
+  Đ: 'd',
+  æ: 'ae',
+  Æ: 'ae',
+  œ: 'oe',
+  Œ: 'oe',
+  þ: 'th',
+  Þ: 'th',
+  ð: 'd',
+  Ð: 'd',
+  ı: 'i',
+};
+const LIGATURE_RE = new RegExp(`[${Object.keys(LIGATURES).join('')}]`, 'g');
+
 /** URL-safe slug: lowercase, non-alphanumerics collapsed to single hyphens. */
 export function slugify(str) {
   return String(str ?? '')
+    .replace(LIGATURE_RE, (ch) => LIGATURES[ch])
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
