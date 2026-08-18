@@ -108,8 +108,9 @@ class CatalogIndexGeneratorTest < Minitest::Test
 
   def test_field_weight_scales_the_contribution
     fields = [
-      { "key" => "area", "label" => "Area", "facet" => true, "weight" => 9 },
-      { "key" => "org", "label" => "Org", "facet" => true, "weight" => 1 }
+      # Lower weight = more important, as in the card slots: area outranks org.
+      { "key" => "area", "label" => "Area", "facet" => true, "weight" => 1 },
+      { "key" => "org", "label" => "Org", "facet" => true, "weight" => 9 }
     ]
     entries = [
       { "slug" => "me", "area" => "Translation", "org" => "Health" },

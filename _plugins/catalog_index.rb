@@ -19,9 +19,10 @@
 # two free points and the ranking ends up decided by whichever entry carries the
 # most facet values overall. Weighting each shared value by log(N / df) makes a
 # value that appears on every entry contribute exactly 0, which is the right
-# answer and falls out for free. The field's schema `weight` (1..9, default 5)
-# scales its contribution, so "organization similarity matters less than area
-# similarity" is expressible with a knob docs/content-model.md already documents.
+# answer and falls out for free. The field's schema `weight` (1..9, default 5,
+# lower = more important, as everywhere else in the schema) scales its
+# contribution, so "organization similarity matters less than area similarity"
+# is expressible with a knob docs/content-model.md already documents.
 #
 # Runs as a Jekyll::Generator with `priority :high` — after _plugins/modules.rb's
 # `:site, :post_read` hook has dropped pages belonging to disabled modules, and
@@ -36,8 +37,11 @@ module CatalogTemplate
     # many it shows (`limit`); anything beyond this is never reachable.
     RELATED_MAX = 8
 
-    # Schema `weight` that scales a field's contribution by exactly 1.0.
+    # Schema `weight` that scales a field's contribution by exactly 1.0. Weight
+    # 1 (most important) scales by 1.8, weight 9 by 0.2 — the same direction as
+    # the card slots and the fact strip, where lower weight wins.
     NEUTRAL_WEIGHT = 5.0
+    WEIGHT_SPAN = 10.0
 
     # @param site [Jekyll::Site]
     # @return [void]
@@ -77,7 +81,7 @@ module CatalogTemplate
         {
           "key" => f["key"].to_s,
           "label" => (f["label"] || f["key"]).to_s,
-          "weight" => (f["weight"] || NEUTRAL_WEIGHT).to_f / NEUTRAL_WEIGHT,
+          "weight" => (WEIGHT_SPAN - (f["weight"] || NEUTRAL_WEIGHT).to_f.clamp(1.0, 9.0)) / NEUTRAL_WEIGHT,
           "option_meta" => f["option_meta"] || {}
         }
       end
