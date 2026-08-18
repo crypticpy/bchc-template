@@ -9,6 +9,7 @@
  *   strings.js            slugs, snake_case keys, GitHub file URLs
  *   yaml-emit.js          the YAML serializer
  *   color.js              hex parsing and WCAG contrast
+ *   motion.js             the optional theme.yml `motion:` block
  *   defaults.generated.js the shipped _data/*.yml, compiled in (generated)
  *   default-config.js     defaultConfig() over that data
  *   schema-validate.js    schema v2 rules
@@ -21,6 +22,16 @@
 export { slugify, snakeKey, githubNewFileUrl, githubEditFileUrl, prefillNoticeIfTooLong } from './strings.js';
 export { toYaml, quoteYamlString, isPlainObject } from './yaml-emit.js';
 export { parseHexColor, toHexColor, contrastRatio, meetsAA, isHexColor, derivePrimaryDark } from './color.js';
+export {
+  MOTION_PRESETS,
+  MOTION_DURATIONS,
+  MOTION_MAX_MS,
+  DEFAULT_MOTION,
+  motionMs,
+  motionProblems,
+  matchMotionPreset,
+  normalizeMotion,
+} from './motion.js';
 export { defaultConfig, DEFAULT_JEKYLL_CONFIG, DEFAULT_JEKYLL_VALUES, ICON_NAMES } from './default-config.js';
 export {
   checkSchema,

@@ -4,7 +4,7 @@
 verbatim by RADIUS_SCALES in assets/js/configurator/theme-preview.js (a test asserts the two
 match, and it reads the string out of this file) — keep the two in step, and keep the
 assignment on one line. `th_rxs` is a sixth, smaller step for checkbox-sized corners; it is
-half of sm on every scale and sits outside `th_r` so the mirror stays a straight five.
+half of sm on every scale; the mirror reads both assigns out of this file.
 Every value emitted below has a Liquid `default:`, so a theme.yml written before a token
 existed still builds. {%- endcomment -%}
 {%- case th_theme.radius -%}
@@ -13,7 +13,7 @@ existed still builds. {%- endcomment -%}
   {%- else -%}{%- assign th_r = '0.5rem|0.75rem|1rem|1.25rem|1.75rem' -%}{%- assign th_rxs = '0.25rem' -%}
 {%- endcase -%}
 {%- assign th_radii = th_r | split: '|' -%}
-{%- comment -%} Absent until the configurator learns to write it; see _data/theme.yml. {%- endcomment -%}
+{%- comment -%} Optional; the configurator round-trips it. See _data/theme.yml. {%- endcomment -%}
 {%- assign th_m = th_theme.motion -%}
 <style>
   :root {

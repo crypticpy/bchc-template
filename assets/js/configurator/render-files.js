@@ -22,7 +22,9 @@ export const HEADERS = {
     'changing them re-themes the whole site on the next build. Keep text/background\n' +
     'pairs at WCAG AA contrast (4.5:1 for body text). `line_strong` outlines\n' +
     'interactive controls (keep it >= 3:1 on card) and `warn` is reserved for\n' +
-    'sensitive-data indicators and validation errors.\n' +
+    'sensitive-data indicators and validation errors. The optional `motion` block\n' +
+    'sets the transition durations and easing (fast <= base <= slow, up to 1000ms);\n' +
+    'delete it and the built-in defaults apply.\n' +
     REGEN_NOTE,
   schema:
     'Content model for catalog entries. Everything derives from this file: the entry\n' +

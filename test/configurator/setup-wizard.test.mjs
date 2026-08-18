@@ -141,8 +141,9 @@ test('the three branding steps together ask every question the one step asked', 
     goToStep(step);
     for (const control of $$('#wizard [id^="field-"]')) asked.add(control.id.replace('field-', ''));
   }
-  // The question set of v1.2.0's single "Branding & contact" step. Splitting a
-  // step must move questions, never drop them.
+  // The question set of v1.2.0's single "Branding & contact" step, plus the
+  // `motion` control added in 1.3.0. Splitting a step must move questions,
+  // never drop them.
   assert.deepEqual([...asked].sort(), [
     'accent',
     'bodyFont',
@@ -159,6 +160,7 @@ test('the three branding steps together ask every question the one step asked', 
     'lineStrong',
     'logoImage',
     'logoText',
+    'motion',
     'orgName',
     'orgShort',
     'orgUrl',
@@ -212,6 +214,53 @@ test('the Look step renders and the live preview follows the primary colour', ()
   type('#field-primary', '#AA0011');
   assert.match($('#wizard .theme-preview').getAttribute('style'), /--c-primary: 170 0 17/);
   assert.deepEqual(errors, []);
+});
+
+test('the motion control writes a whole block, and a hand-written one is offered back', () => {
+  goToStep(3);
+  const select = type('#field-motion', 'calm', 'change');
+  assert.deepEqual(wizardState.state.answers.motion, {
+    fast: '180ms',
+    base: '280ms',
+    slow: '380ms',
+    ease: 'ease-in-out',
+  });
+  assert.match(select.parentElement.textContent, /Now 180ms \/ 280ms \/ 380ms/);
+  assert.equal(
+    [...select.options].some((option) => option.value === 'custom'),
+    false,
+    'a named speed is not a custom block'
+  );
+
+  // Timings nobody picked here stay picked: the extra option names them rather
+  // than silently resetting the file to a preset.
+  wizardState.state.answers.motion = { fast: '0.1s', base: '0.2s', slow: '0.3s', ease: 'ease-out' };
+  goToStep(1);
+  goToStep(3);
+  const custom = $('#field-motion');
+  assert.equal(custom.value, 'custom');
+  assert.match(custom.parentElement.textContent, /Now 0.1s \/ 0.2s \/ 0.3s, easing ease-out/);
+});
+
+test('a motion block the file cannot use blocks Continue and links to the control', () => {
+  goToStep(3);
+  wizardState.state.answers.motion = { fast: '900ms', base: '200ms', slow: '3s', ease: 'springy' };
+  goToStep(4);
+
+  const summary = $('#wizard-error-summary');
+  assert.ok(summary, 'an unusable motion block was accepted');
+  assert.equal($('#step-heading').textContent, 'Colors & type', 'the step advanced anyway');
+  const messages = [...summary.querySelectorAll('a[href="#field-motion"]')].map((a) => a.textContent);
+  assert.equal(messages.length, 3, messages.join(' | '));
+  assert.ok(messages.some((m) => /between 0 and 1000ms/.test(m)));
+  assert.ok(messages.some((m) => /"fast" must not be slower than "base"/.test(m)));
+  assert.ok(messages.some((m) => /easing must be one of/.test(m)));
+  assert.equal($('#field-motion').getAttribute('aria-invalid'), 'true');
+
+  type('#field-motion', 'default', 'change');
+  goToStep(4);
+  assert.equal($('#wizard-error-summary'), null);
+  assert.equal($('#step-heading').textContent, 'Home page & footer copy');
 });
 
 test('the preview picks up copy answered on the other two steps', () => {
