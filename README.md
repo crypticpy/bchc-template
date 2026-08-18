@@ -21,7 +21,7 @@ This repository is shipped configured as the **Big Cities Health Coalition (BCHC
 - **Compare and print a decision.** Shortlist up to three entries from the catalog and read them field by field at `/compare/`, with the rows they agree on folded away and the shortlist in the URL so it pastes into an email. One button prints the comparison — or any entry page — as a clean brief with the links spelled out and a source stamp. See [`docs/compare.md`](docs/compare.md).
 - **Screenshots and links as first-class fields.** An `images` field gives an entry a gallery with a keyboard-navigable lightbox and honest alt text; a `links` field carries labelled resources — a shared drive folder, a recorded demo, a vendor page — without needing a field per link.
 - **Two configurators.** A no-terminal setup wizard at `/setup/` on the deployed site, and an equivalent CLI wizard (`npm run setup`). Both offer starting presets (AI use case catalog, cohort/program portal, resource library, blank) and write the same configuration files from the same shared logic.
-- **Governance on the site, not in a PDF.** A `governance` module publishes how review works (tiers, targets, criteria), who does what, and the standing policies — privacy, licensing, data governance, accessibility, maintenance, appeals, conduct — from one data file, [`_data/governance.yml`](_data/governance.yml). Deprecated entries are kept for the record rather than deleted, a contributor guide walks submitters through review from their side, and a `CODE_OF_CONDUCT.md` covers everyone.
+- **Governance on the site, not in a PDF.** A `governance` module publishes how review works (tiers, targets, criteria), who does what, and the standing policies — privacy, licensing, data governance, accessibility, maintenance, appeals, conduct — from one data file, [`_data/governance.yml`](_data/governance.yml). Deprecated entries are kept for the record rather than deleted, a contributor guide walks submitters through review from their side, and a `CODE_OF_CONDUCT.md` covers everyone. A monthly workflow counts submissions, publications, contributing organizations and review turnaround from the repository's own issues and pull requests into `_data/metrics.json`, and the page shows them as "How the catalog is doing" — no analytics vendor involved.
 - **Modules.** Turn catalog, submit, carousel, stats, events, cohorts, resources and governance on or off independently; navigation and the home page adapt automatically, and pages under a disabled module are dropped from the build.
 - **Theming.** Colors, fonts and corner rounding live in [`_data/theme.yml`](_data/theme.yml) and become CSS variables consumed by Tailwind — no CSS editing required for a rebrand. Every colour has one semantic job, so a re-skin cannot quietly break contrast.
 - **Accessibility as a build rule, not a pass.** Nothing is signalled by colour or icon alone, every control has a visible focus ring and a ≥3:1 border, filter changes are announced once, and the whole catalog still works with JavaScript disabled.
@@ -122,13 +122,15 @@ Contributing to the template itself? Start with [`CONTRIBUTING.md`](CONTRIBUTING
 
 ```
 _config.yml              Jekyll build mechanics (title/description fall back to _data/site.yml)
-_data/                   site.yml, theme.yml, schema.yml, navigation.yml, governance.yml, events.yml, resources.yml, cohorts/<year>.yml
+_data/                   site.yml, theme.yml, schema.yml, navigation.yml, governance.yml, events.yml, resources.yml, cohorts/<year>.yml,
+                         metrics.json (written monthly by the Catalog metrics workflow)
 _layouts/, _includes/    schema-driven templates (entry cards, filters, field rendering, etc.)
 _plugins/                schema_filters.rb (card/weight/group/option_meta rules), theme_filters.rb, search_index.rb (/search.json), events.rb, modules.rb
 assets/js/configurator/  shared logic behind both configurators (core.js, presets/, setup-page.js + steps/ + wizard/)
 assets/js/submit.js      turns the /submit/ form into a pre-filled GitHub issue URL
 scripts/                 setup.mjs, generate.mjs, validate.mjs, and the issue-to-PR automation scripts
-.github/workflows/       pages, validate, quality (a11y + Lighthouse), smoke, new-entry, thumbnails, new-year, new-event, update-schedule, update-event-attachments
+.github/workflows/       pages, validate, quality (a11y + Lighthouse), smoke, new-entry, thumbnails, new-year, new-event, update-schedule, update-event-attachments,
+                         verification-sweep, metrics
 .github/ISSUE_TEMPLATE/  new-entry.yml is generated — do not hand-edit it, run `npm run generate`
 catalog/<slug>/index.md  published entries; screenshots live in catalog/<slug>/screenshots/
                          (ten sample entries ship with the template, marked `sample: true`)

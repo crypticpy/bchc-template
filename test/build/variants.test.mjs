@@ -311,6 +311,124 @@ describe('preset build matrix', { skip: ready.ok ? false : ready.reason, concurr
   );
 
   test(
+    'shipped: a links_entries value links to the entry it names, which says who adopted it',
+    { skip: needs('shipped') },
+    () => {
+      const { dir, siteDir } = built.get('shipped');
+      const schema = yaml.load(fs.readFileSync(path.join(dir, '_data', 'schema.yml'), 'utf8'));
+      const keys = (schema.fields ?? []).filter((field) => field.links_entries).map((f) => f.key);
+      assert.ok(keys.length, 'the shipped schema declares no links_entries field');
+      const entryPath = schema.entry?.path ?? 'catalog';
+      const catalogDir = path.join(dir, entryPath);
+      const slugs = fs
+        .readdirSync(catalogDir, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && fs.existsSync(path.join(catalogDir, e.name, 'index.md')))
+        .map((e) => e.name);
+
+      // Read the source front matter, so the assertions follow the sample
+      // content instead of naming a slug this test would have to be edited for.
+      const named = new Map();
+      for (const slug of slugs) {
+        const text = fs.readFileSync(path.join(catalogDir, slug, 'index.md'), 'utf8');
+        const front = yaml.load(text.split(/^---\s*$/m)[1] ?? '') ?? {};
+        const targets = keys.flatMap((key) => (Array.isArray(front[key]) ? front[key] : []));
+        if (targets.length) named.set(slug, targets);
+      }
+      assert.ok(named.size, 'no shipped entry uses the links_entries field');
+
+      const adopters = new Map();
+      for (const [slug, targets] of named) {
+        const hrefs = [...page(siteDir, `${entryPath}/${slug}`).querySelectorAll('a.chip-plain')].map((a) =>
+          a.getAttribute('href')
+        );
+        for (const target of targets) {
+          assert.ok(
+            hrefs.includes(`/${entryPath}/${target}/`),
+            `${slug} does not link to the entry it names, ${target}`
+          );
+          adopters.set(target, (adopters.get(target) ?? 0) + 1);
+        }
+      }
+
+      for (const slug of slugs) {
+        const card = page(siteDir, `${entryPath}/${slug}`).getElementById('rail-adopted');
+        const count = adopters.get(slug) ?? 0;
+        if (count === 0) {
+          assert.equal(card, null, `${slug} shows an "Adopted by" card but nothing names it`);
+          continue;
+        }
+        assert.ok(card, `${slug} is named by ${count} entries but has no "Adopted by" card`);
+        assert.match(card.querySelector('h2').textContent, new RegExp(`Adopted by\\s*${count}\\b`));
+        assert.equal(card.querySelectorAll('li a').length, count);
+      }
+    }
+  );
+
+  test(
+    'shipped: the governance page renders "How the catalog is doing" from _data/metrics.json',
+    { skip: needs('shipped') },
+    () => {
+      const { dir, siteDir } = built.get('shipped');
+      const metrics = JSON.parse(fs.readFileSync(path.join(dir, '_data', 'metrics.json'), 'utf8'));
+      const doc = page(siteDir, 'governance');
+      const section = doc.getElementById('metrics');
+      assert.ok(section, 'no #metrics heading');
+      assert.ok(
+        [...doc.querySelectorAll('.gov-nav a')].some((a) => a.getAttribute('href') === '#metrics'),
+        '"On this page" does not list the metrics block'
+      );
+      // One card per figure that has something to say: submissions and
+      // published always; organizations only above zero (0 is truthy in
+      // Liquid, and null means no contributor_key); review time only once
+      // something has been reviewed.
+      const expectedCards =
+        2 + (metrics.totals.organizations > 0 ? 1 : 0) + (metrics.totals.turnaround_days.count > 0 ? 1 : 0);
+      assert.equal(doc.querySelectorAll('.gov-metric').length, expectedCards);
+      const values = [...doc.querySelectorAll('.gov-metric')].map((card) =>
+        card.querySelector('.gov-metric-value').textContent.trim()
+      );
+      assert.equal(values[0], String(metrics.totals.submissions));
+      assert.equal(values[1], String(metrics.totals.published));
+      // One table row per quarter, oldest first, and the organizations column
+      // only when the figure is published.
+      const rows = [...doc.querySelectorAll('.gov-metrics-table tbody tr')];
+      assert.equal(rows.length, metrics.quarters.length);
+      rows.forEach((row, i) => {
+        const cells = [...row.querySelectorAll('td')].map((td) => td.textContent.trim());
+        assert.equal(
+          row.querySelector('th').textContent.trim(),
+          metrics.quarters[i].quarter.replace('-Q', ' Q')
+        );
+        assert.equal(cells[0], String(metrics.quarters[i].submissions));
+        assert.equal(cells[1], String(metrics.quarters[i].published));
+        assert.equal(cells.length, metrics.totals.organizations > 0 ? 3 : 2);
+      });
+      // The shipped catalog has entries, so the feed exists and is linked.
+      const feed = [...section.parentElement.querySelectorAll('a')].find((a) =>
+        /catalog feed/i.test(a.textContent)
+      );
+      assert.ok(feed, 'the metrics block does not name the feed');
+      assert.ok(fs.existsSync(path.join(siteDir, feed.getAttribute('href'))), 'the feed link is a 404');
+    }
+  );
+
+  test(
+    'shipped-empty: figures but no entries — the metrics block renders and does not link to a feed that was not built',
+    { skip: needs('shipped-empty') },
+    () => {
+      const { dir, siteDir } = built.get('shipped-empty');
+      const doc = page(siteDir, 'governance');
+      assert.ok(doc.getElementById('metrics'), 'no #metrics heading');
+      const feed = [...doc.querySelectorAll('a')].find((a) => /catalog feed/i.test(a.textContent));
+      assert.equal(feed, undefined, 'the metrics block links to a feed the empty catalog did not build');
+      assert.ok(
+        !fs.existsSync(path.join(siteDir, entryNoun(dir).path, 'feed.xml')),
+        'precondition: no feed for an empty catalog'
+      );
+    }
+  );
+
+  test(
     'blank: with the governance module off the page is not built and nothing links to it',
     { skip: needs('blank') },
     () => {

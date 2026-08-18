@@ -21,6 +21,12 @@ summary: "What may be published here, who checks it, how long that takes, and wh
 intro: |
   This catalog is a coalition asset, not an unmoderated list. Nothing is published automatically: every submission is checked for completeness, basic privacy hygiene and accuracy by people from member health departments before it appears, and every published entry is revisited on a schedule so what you find here can be trusted to still be true. The rules on this page are the ones the reviewers apply; the contributor guide linked at the foot of the page walks through them from the submitter's side of the form.
 
+# Optional: `metrics_intro` — the sentence above the "How the catalog is
+# doing" block, which renders only once _data/metrics.json exists (written by
+# the monthly Catalog metrics workflow). Default: "Counted from this
+# repository's own issues and pull requests, refreshed monthly."
+# metrics_intro: ""
+
 # --- Review ---------------------------------------------------------------
 review:
   intro: "A submission moves through a lightweight but consistent review. The tiers exist so member jurisdictions can rely on what is listed here without turning review into a bottleneck that discourages sharing."
@@ -77,7 +83,7 @@ roles:
 # `id` becomes the section anchor (the footer's accessibility statement links
 # to #accessibility when a policy with that id exists). Keep ids stable once
 # published, and do not reuse the page's own section ids: review, criteria,
-# roles, questions.
+# roles, metrics, questions.
 policies:
   - id: privacy
     title: "No personal or protected health information"

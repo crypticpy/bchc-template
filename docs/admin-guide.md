@@ -139,6 +139,23 @@ That is the whole protocol. `verified` is a reserved key like `updated`: optiona
 
 **Turning it off.** Set the repository variable `VERIFICATION_SWEEP` to `false` (Settings → Secrets and variables → Actions → Variables), or delete the workflow file. To change the window instead of removing the reminder, edit `catalog.verify_after_days` in `_data/site.yml` — the site notices and the sweep both read it, so they can never disagree.
 
+## The monthly catalog metrics
+
+The governance page can carry a short "How the catalog is doing" block — submissions opened, entries published, distinct contributing organizations and review turnaround, by quarter — so the coalition can see at a glance whether the catalog is being used and how quickly review moves. The figures come from this repository's own issues and pull requests; nothing is installed on the site and no analytics vendor is involved.
+
+**The workflow.** `.github/workflows/metrics.yml` runs at 07:30 UTC on the 2nd of each month (and on demand from the Actions tab). It runs `scripts/metrics.mjs`, which reads the repository through two REST calls and counts, over the last four calendar quarters:
+
+- **Submissions** — issues carrying the `content:new-entry` label (the entry form applies it), by the quarter they were opened. Pull requests never count, whatever their labels.
+- **Published** — merged pull requests whose branch starts with `entry/` (the scaffolder's naming), by the quarter they merged. A hand-made entry PR on such a branch counts too; a dependency bump does not.
+- **Contributing organizations** — the distinct values of the field `entry.contributor_key` names in `_data/schema.yml` (`organization` in the shipped schema), across live entries, `sample: true` content excluded. Delete the key and the figure — and its card and column — disappear.
+- **Review turnaround** — for every published PR whose body says `Closes #N` (again the scaffolder's doing), the days from the issue being opened to the merge; the page shows the median and the 90th percentile with the count they rest on. An unlinked PR still counts as published, just not here.
+
+The script writes `_data/metrics.json` only when the figures differ from the committed file (the generated date alone never causes a commit); the workflow then commits it as `chore(metrics): refresh _data/metrics.json [skip ci]` and dispatches `Build & Deploy` explicitly, so it behaves the same whether the push used `GITHUB_TOKEN` or `CONTENT_BOT_TOKEN`. Until the file exists — a fresh fork, or a repository that ejected the samples, which deletes the template's sample figures — the block, its nav item and the "How the catalog is doing" heading are simply not rendered; the organizations card and column also stay hidden while the count is zero, and the review-time card until something has been reviewed. Run it by hand from the Actions tab whenever you want the numbers current — tick **Preview only** to see the figures in the run summary without committing — or locally with `GITHUB_TOKEN=$(gh auth token) node scripts/metrics.mjs` and commit the file.
+
+The workflow asks for `contents: write` (the commit) and `actions: write` (the dispatch). If branch protection refuses the push, the run summary says so; either let the GitHub Actions app bypass the rule, set `CONTENT_BOT_TOKEN`, or run the script locally.
+
+**Turning it off.** Set the repository variable `CATALOG_METRICS` to `false` (Settings → Secrets and variables → Actions → Variables) to stop the schedule — a manual run still works — or delete the workflow file. Deleting `_data/metrics.json` removes the block from the page. To change the sentence above the figures, set `metrics_intro` in `_data/governance.yml`.
+
 ## Screenshots and images
 
 Fields of type `images` (shipped: `screenshots`) are the one place where files arrive with the submission rather than after it.

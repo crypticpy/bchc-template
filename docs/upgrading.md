@@ -13,7 +13,7 @@ One repository, two kinds of file:
 | | Files | On upgrade |
 |---|---|---|
 | **Template code** | `_layouts/`, `_includes/`, `_plugins/`, `assets/` (except `assets/images/`), `scripts/`, `test/`, `.github/workflows/`, `quality/`, `docs/`, `package.json`, `Gemfile` | Take the template's version. |
-| **Yours** | `_config.yml`, `_data/*.yml`, `catalog/`, `cohorts/`, `events/`, `resources/`, `about/`, `assets/images/`, `README.md`, `CNAME` | Keep yours. The template's copies are the demo's. |
+| **Yours** | `_config.yml`, `_data/*.yml`, `_data/metrics.json`, `catalog/`, `cohorts/`, `events/`, `resources/`, `about/`, `assets/images/`, `README.md`, `CNAME` | Keep yours. The template's copies are the demo's. |
 | **Generated** | `.github/ISSUE_TEMPLATE/new-entry.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `assets/js/configurator/defaults.generated.js` | Keep yours, then `npm run generate` — they are built from *your* `_data/`. |
 
 That split lives in [`.gitattributes`](../.gitattributes), which marks every file in the second and

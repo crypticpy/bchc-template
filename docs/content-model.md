@@ -27,6 +27,7 @@ entry:
   status_scaffold_value: "Under review"  # optional — what the scaffolder stamps on a new entry
   status_approved_value: "Reviewed & approved"  # optional — what approval means; the PR checklist asks for it
   require_link: true       # optional — an entry with no link anywhere fails validation instead of warning
+  contributor_key: organization  # optional — the field the monthly metrics count distinct "contributing organizations" from
 
 groups:                    # ordered; group filters and submit-form sections
   - key: about
@@ -95,6 +96,7 @@ Three pointers make it schema-driven rather than a special case:
 | `entry.status_scaffold_value` | What `scripts/new_entry_from_issue.mjs` stamps on a freshly scaffolded entry, so a submission opens as **Under review** without anyone typing it. A maintainer sets the final value in the PR. |
 | `entry.status_approved_value` | The option that means the review passed. The scaffolded pull request's checklist ends with "`review_status` set to **Reviewed & approved** (the scaffold wrote *Under review*) — or the pull request left open with `review:revisions-requested`", so the flip is on the list the reviewer ticks rather than in their memory. Absent → the checklist has no status line. |
 | `entry.require_link` | The minimum documentation bar. `check_front_matter.rb` already notices an entry with no link anywhere — every `url`-typed field empty and no `links` item — because a reader would have nowhere to go to evaluate or adopt it. By default that is a warning; `require_link: true` makes it a failure, so such an entry cannot merge. Silent for a schema with no `url` or `links` fields at all. |
+| `entry.contributor_key` | The field whose distinct values `scripts/metrics.mjs` counts as **contributing organizations** in `_data/metrics.json` — the figure card and per-quarter column on the governance page's "How the catalog is doing" block. Live entries only, `sample: true` content excluded, values trimmed and blanks skipped. Absent → the figure, its card and its column are not published; everything else in the block still is. |
 
 The Liquid filters behind this are `deprecated_entry`, `live_entries` and `deprecated_entries` in `_plugins/schema_filters.rb`; every template goes through them rather than comparing strings. Deprecation supersedes staleness: a deprecated entry never also shows the "last confirmed" note, because "may no longer be current" already covers it. See [admin-guide.md](admin-guide.md#editing-or-removing-an-existing-entry) for when to deprecate versus delete.
 
@@ -123,6 +125,7 @@ Each item under `fields` is a hash:
 | `form` | `false` → hidden from both submission forms. For maintainer-only fields. |
 | `filename` | `file` fields only. The expected filename in the entry folder, e.g. `deck.pdf`. |
 | `thumbnail` | `file` fields only. `true` → CI renders `thumb.jpg` from the PDF's first page. |
+| `links_entries` | `list` fields only. `true` → the values are slugs of other entries in this catalog. Each renders on the entry page as a chip linking to that entry, labelled with its title, and the entry named gets an **Adopted by** card in its rail listing the live entries that name it (deprecated adopters do not count, and the card is absent at zero). A slug that matches no entry renders as plain text rather than a dead link — and `npm run validate` fails it, naming the field, the value and the entry, so the typo does not sit there silently. There is no relation type: the hint is the whole vocabulary. |
 | `escalate_on` | The answers that call for closer review, as an explicit list: for a `boolean`, `[false]` (or `[true]`); for a `select`/`multiselect`, option strings. When a scaffolded submission's answer matches, the pull request opens with a **Closer review** block naming the field and the answer, and the workflow adds the `review:data-governance` label. A boolean's missing answer counts as `false` — an attestation that was not ticked is not one that passed. `npm run validate` rejects a list that names an option the field does not have. Nothing else reads it: escalation is a review-time signal, not a display rule. |
 
 ### Field types
@@ -136,7 +139,7 @@ Each item under `fields` is a hash:
 | `email` | string | Must contain `@`. Rendered as a `mailto:` link. |
 | `select` | string | One value from `options`. |
 | `multiselect` | list of strings | Any number of values from `options`. Rendered as a multi-select dropdown on GitHub, so the answers survive the hand-off from `/submit/` and `required` is enforceable; GitHub's dropdown carries only the option labels, so the per-option `option_meta.description` shows on this site's own form and catalog but not there. |
-| `list` | list of strings | Free-form: one per line in the issue form, comma-separated in the web form. |
+| `list` | list of strings | Free-form: one per line in the issue form, comma-separated in the web form. With [`links_entries: true`](#field-spec) the strings are entry slugs and render as links to those entries. |
 | `date` | `YYYY-MM-DD` | Rendered as "March 9, 2026". |
 | `number` | number | No range validation. |
 | `boolean` | `true`/`false` | Rendered as Yes/No. |
@@ -242,7 +245,7 @@ Deliberately not on the card: platform, tools, vendor, data sources, contact, li
 
 ## Shipped fields (AI use case catalog)
 
-40 fields in eight groups, listed in group order and then by weight — the order the submit wizard asks them in. `body` is the page body; everything else is front matter. `review_status` is maintainer-only (`form: false`).
+41 fields in eight groups, listed in group order and then by weight — the order the submit wizard asks them in. `body` is the page body; everything else is front matter. `review_status` is maintainer-only (`form: false`).
 
 | Key | Type | Group | Req | Facet | Card | Weight |
 |---|---|---|:--:|:--:|---|:--:|
@@ -272,6 +275,7 @@ Deliberately not on the card: platform, tools, vendor, data sources, contact, li
 | `access_terms` | textarea | sharing | | | | 2 |
 | `portability` | select | sharing | yes | yes | fact | 3 |
 | `portability_notes` | textarea | sharing | | | | 4 |
+| `reused_from` | list (`links_entries`) | sharing | | | | 5 |
 | `cost_band` | select | cost | | yes | fact | 1 |
 | `run_cost` | select | cost | | yes | | 2 |
 | `procurement` | multiselect | cost | | yes | | 3 |
@@ -297,7 +301,7 @@ The option lists are a **starting draft, not a standard.** The dollar bands are 
 
 ### The "Sharing & licensing" group
 
-`license`, `access_terms`, `portability` and `portability_notes` answer the question a peer asks *before* they ask about cost: **may I take this, and will it work anywhere but where it was built?** `license` and `portability` are required selects that reach the fact strip, so the answer is visible without scrolling; the two textareas are where the caveats go ("MIT for the code, the prompts are ours", "assumes an Esri stack"). **Not yet decided** is a legitimate `license` answer — it tells a reader to ask, which beats silence — and **Ask first** on `access_terms` is what most internal tools honestly are.
+`license`, `access_terms`, `portability`, `portability_notes` and `reused_from` answer the question a peer asks *before* they ask about cost: **may I take this, will it work anywhere but where it was built, and has anyone done it already?** `license` and `portability` are required selects that reach the fact strip, so the answer is visible without scrolling; the two textareas are where the caveats go ("MIT for the code, the prompts are ours", "assumes an Esri stack"). **Not yet decided** is a legitimate `license` answer — it tells a reader to ask, which beats silence — and **Ask first** on `access_terms` is what most internal tools honestly are.
 
 ### The attestation and governance notes
 

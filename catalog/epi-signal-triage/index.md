@@ -49,6 +49,8 @@ screenshots:
 license: "MIT"
 portability: "Partially — with rework"
 portability_notes: "The triage code and prompts are portable Python. The alert export reader is written against our ESSENCE extract format and the deployment scripts assume Azure Functions."
+reused_from:
+  - "overdose-spike-brief"
 cost_band: "No new spend"
 run_cost: "Under $10k/yr"
 procurement:

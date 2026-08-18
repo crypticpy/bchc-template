@@ -29,12 +29,25 @@ Local assigns are prefixed `fv_` so nothing leaks into the caller's scope.
   {%- when 'multiselect' or 'list' -%}
     {%- assign fv_values = fv_v | as_list -%}
     {%- if fv_values.size > 0 -%}
+    {%- comment -%}
+    `links_entries: true` (a `list` field) says the values are slugs of other entries
+    in this catalog. Each is resolved against the entry pages and rendered as a chip
+    linking to it, showing that entry's title rather than its slug. A slug that
+    matches nothing stays a plain chip: a typo must not become a dead link.
+    {%- endcomment -%}
+    {%- if fv_f.links_entries -%}{%- assign fv_entry_pages = site.pages | where: 'layout', 'entry' -%}{%- endif -%}
     <ul class="flex flex-wrap gap-1.5" role="list">
       {%- for fv_x in fv_values -%}
+        {%- assign fv_target = nil -%}
+        {%- if fv_f.links_entries -%}{%- assign fv_target = fv_entry_pages | where: 'slug', fv_x | first -%}{%- endif -%}
+        {%- if fv_target -%}
+        <li><a class="chip-plain hover:border-brand-primary hover:text-brand-primary" href="{{ fv_target.url | relative_url | escape }}">{% include icon.html name='link' size='xs' %}{{ fv_target.title | escape }}</a></li>
+        {%- else -%}
         {%- assign fv_xm = fv_f | option_meta: fv_x -%}
         {%- comment -%} Only an option's OWN icon earns a glyph; the field icon would repeat on every chip. {%- endcomment -%}
         {%- assign fv_xraw = fv_f.option_meta[fv_x] -%}
         <li><span class="{% if fv_xm.tone == 'warn' %}chip-warn{% else %}chip-plain{% endif %}">{%- if fv_xraw.icon -%}{% include icon.html name=fv_xraw.icon size='xs' %}{%- endif -%}{{ fv_x | escape }}</span></li>
+        {%- endif -%}
       {%- endfor -%}
     </ul>
     {%- endif -%}

@@ -40,7 +40,7 @@ your browser. In outline (the exact fields are in the form and in
 | **About** | A title, a one-sentence summary, the result in one line, your organization, what is being shared, the use case category, the area of work and the stage it is at. |
 | **How it's built** | How AI is involved, the types of AI, the tools and models, where it runs, and any vendor. |
 | **Reuse** | The skills needed to set it up, how ready it is, and links: source code, a demo, documentation, other resources, screenshots, a slide deck. |
-| **Sharing & licensing** | The license, the access terms if it is not open, whether it is portable outside your stack, and the caveats. |
+| **Sharing & licensing** | The license, the access terms if it is not open, whether it is portable outside your stack, the caveats — and, if you started from another entry in this catalog, its slug under *Adapted from*, so that entry can say it was adopted by yours. |
 | **What it took** | Cost band, running cost, procurement route, approvals, and any equity note. None of these is required. |
 | **Data & access** | Your attestation that no personal or protected health information is in anything you share, what data it touches, where the data comes from, who sees the output, and any governance notes. |
 | **Contact** | The name, title and email of the person peers should write to. |

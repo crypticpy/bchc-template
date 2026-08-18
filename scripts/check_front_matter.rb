@@ -228,8 +228,9 @@ module FrontMatterCheck
   # @param file [String] absolute path to <entry path>/<slug>/index.md
   # @param fields [Array<Hash>] schema fields
   # @param entry [Hash] the schema's `entry` block (`require_link` is read here)
+  # @param slugs [Array<String>] every entry folder name, for `links_entries` fields
   # @return [Array(Array<String>, Array<String>)] failures and warnings
-  def validate_entry(file, fields, entry = {})
+  def validate_entry(file, fields, entry = {}, slugs = [])
     failures = []
     warnings = []
     rel = file.delete_prefix("#{root}/")
@@ -274,6 +275,10 @@ module FrontMatterCheck
       failures << "#{where(rel, front_matter, key)}: `#{key}` (#{data[key].inspect}) is not a YYYY-MM-DD date"
     end
 
+    # Named once, outside the type switch below, so the switch keeps branching
+    # on field types and nothing else (test/configurator/schema-parity.test.mjs).
+    entry_path = (entry["path"] || "catalog").to_s
+
     fields.each do |field|
       key = field["key"].to_s
       type = field["type"].to_s
@@ -302,6 +307,13 @@ module FrontMatterCheck
         elsif type == "multiselect" && value.is_a?(Array) && !options.empty?
           extra = value.map(&:to_s) - options
           failures << "#{spot}: `#{key}` has values outside the allowed options: #{extra.join(', ')}" if extra.any?
+        elsif type == "list" && field["links_entries"] && value.is_a?(Array)
+          # A `links_entries` value is a slug, and the entry page renders a slug
+          # it cannot resolve as plain text rather than a dead link — which is
+          # exactly why the typo has to be caught here instead.
+          value.map(&:to_s).reject { |slug| slugs.include?(slug) }.each do |slug|
+            failures << "#{spot}: `#{key}` names #{slug.inspect}, which is not an entry — expected #{entry_path}/#{slug}/index.md"
+          end
         end
       when "images"
         check_images(value, { rel: rel, entry_dir: entry_dir, key: key, where: spot }, failures, warnings) unless value.nil?
@@ -344,12 +356,18 @@ module FrontMatterCheck
 
   # Schema-level checks that do not depend on any one entry: an `escalate_on`
   # list must name values the field can actually hold, or the scaffolder's
-  # closer-review flag can never fire and nobody notices.
+  # closer-review flag can never fire and nobody notices; `links_entries` only
+  # means anything on a list of slugs.
   # @param fields [Array<Hash>] schema fields
   # @return [Array<String>] failures
   def validate_schema(fields)
     failures = []
     fields.each do |field|
+      if field["links_entries"] && field["type"].to_s != "list"
+        failures << "_data/schema.yml: `#{field['key']}.links_entries` is only valid on a `list` field " \
+                    "(`#{field['key']}` is #{field['type'].inspect})"
+      end
+
       next unless field.key?("escalate_on")
 
       key = field["key"].to_s
@@ -403,8 +421,13 @@ module FrontMatterCheck
     failures = validate_schema(fields)
     warnings = []
 
-    Dir.glob(File.join(root, entry_path, "*", "index.md")).sort.each do |file|
-      entry_failures, entry_warnings = validate_entry(file, fields, entry)
+    entry_files = Dir.glob(File.join(root, entry_path, "*", "index.md")).sort
+    # Every entry folder name, so a `links_entries` field can be checked against
+    # the entries that exist rather than against a second list someone maintains.
+    slugs = entry_files.map { |file| File.basename(File.dirname(file)) }
+
+    entry_files.each do |file|
+      entry_failures, entry_warnings = validate_entry(file, fields, entry, slugs)
       failures.concat(entry_failures)
       warnings.concat(entry_warnings)
     end

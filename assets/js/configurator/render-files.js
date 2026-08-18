@@ -42,8 +42,9 @@ export const HEADERS = {
     'submission forms) · filename + thumbnail (file fields) · escalate_on (values\n' +
     'that call for closer review; the scaffolded pull request says so).\n' +
     'Under `entry`, status_key / deprecated_value / status_scaffold_value /\n' +
-    'status_approved_value point at the review-status field, and require_link\n' +
-    'makes "no link anywhere" a validation failure.\n' +
+    'status_approved_value point at the review-status field, require_link\n' +
+    'makes "no link anywhere" a validation failure, and contributor_key names the\n' +
+    'field the monthly metrics count contributing organizations from.\n' +
     'Only one field may be `markdown` — it becomes the page body. `title`, `slug`,\n' +
     '`summary`, `published`, `updated`, `thumbnail` and `featured` always exist on\n' +
     'every entry.\n' +

@@ -1,5 +1,5 @@
 /* Governance page (/governance/, governance/index.md): the "On this page" nav,
-   the numbered review steps, the criteria list, the role cards. All content
+   the numbered review steps, the criteria list, the role cards, the metrics. All content
    comes from _data/governance.yml; these classes only lay it out. */
 @layer components {
   /* ---------- On this page --------------------------------------------- */
@@ -30,4 +30,18 @@
   .gov-role { @apply card p-5; }
   .gov-role-title { @apply font-heading text-base font-semibold text-brand-primary-dark; }
   .gov-role-body { @apply mt-1.5 text-sm leading-6 text-brand-muted; }
+
+  /* ---------- How the catalog is doing ------------------------------- */
+  /* A stat strip and a small quarterly table from _data/metrics.json. */
+  .gov-metrics { @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]; }
+  .gov-metric { @apply card flex flex-col gap-1 p-4; }
+  .gov-metric dt { @apply text-xs font-semibold uppercase tracking-wide text-brand-muted; }
+  .gov-metric-value { @apply font-heading text-3xl font-semibold leading-none text-brand-primary-dark tabular-nums; }
+  .gov-metric-unit { @apply font-sans text-base font-normal text-brand-muted; }
+  .gov-metric-note { @apply mt-1 block text-xs text-brand-muted; }
+  .gov-metrics-table { @apply w-full min-w-[20rem] border-collapse text-sm; }
+  .gov-metrics-table th, .gov-metrics-table td { @apply border-b border-brand-line px-3 py-2 text-left; }
+  .gov-metrics-table thead th { @apply text-xs font-semibold uppercase tracking-wide text-brand-muted; }
+  .gov-metrics-table tbody th { @apply font-medium text-brand-primary-dark; }
+  .gov-metrics-table .num { @apply text-right tabular-nums; }
 }

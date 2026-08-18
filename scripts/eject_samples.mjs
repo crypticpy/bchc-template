@@ -37,6 +37,14 @@ export const EMPTIED_DATA = ['_data/events.yml', '_data/resources.yml'];
 export const EXAMPLE_MODULES = ['governance'];
 
 /**
+ * Sample data files with no rows to empty: `_data/metrics.json` is the sample
+ * submission and review figures the governance page shows, in the shape
+ * scripts/metrics.mjs writes; the fork's own monthly workflow writes the real
+ * ones. Deleted outright — the governance page hides the block until then.
+ */
+export const SAMPLE_DATA_FILES = ['_data/metrics.json'];
+
+/**
  * The leading `#` comment block of a YAML file — the part that documents what
  * the file is for, which a fork should keep.
  *
@@ -116,14 +124,14 @@ export function siteYamlWithModuleOff(text, name) {
  *
  * @param {string} root repository root.
  * @param {{dryRun?: boolean}} [options] `dryRun` reports without writing.
- * @returns {{entries: string[], cohorts: string[], emptied: string[], demo: boolean, modulesOff: string[]}}
+ * @returns {{entries: string[], cohorts: string[], emptied: string[], removed: string[], demo: boolean, modulesOff: string[]}}
  *   repo-relative paths, whether the demo banner was turned off, and which
  *   example-data modules were switched off.
  */
 export function ejectSamples(root, options = {}) {
   const dryRun = options.dryRun === true;
   const relative = (file) => path.relative(root, file).split(path.sep).join('/');
-  const result = { entries: [], cohorts: [], emptied: [], demo: false, modulesOff: [] };
+  const result = { entries: [], cohorts: [], emptied: [], removed: [], demo: false, modulesOff: [] };
 
   for (const dir of listSampleEntries(root, entryPathFrom(readSchema(root)))) {
     result.entries.push(relative(dir));
@@ -149,6 +157,13 @@ export function ejectSamples(root, options = {}) {
     if (next === current) continue;
     result.emptied.push(name);
     if (!dryRun) fs.writeFileSync(file, next, 'utf8');
+  }
+
+  for (const name of SAMPLE_DATA_FILES) {
+    const file = path.join(root, name);
+    if (!fs.existsSync(file)) continue;
+    result.removed.push(name);
+    if (!dryRun) fs.rmSync(file, { force: true });
   }
 
   const siteFile = path.join(root, '_data', 'site.yml');
@@ -185,6 +200,10 @@ export function ejectSummary(result) {
   if (result.cohorts.length) lines.push(`Removed the sample cohort: ${result.cohorts.join(', ')}.`);
   if (result.emptied.length)
     lines.push(`Emptied ${result.emptied.join(' and ')} (the header comments stay).`);
+  if (result.removed.length)
+    lines.push(
+      `Removed ${result.removed.join(' and ')} — sample figures; your monthly Catalog metrics run writes yours.`
+    );
   if (result.demo) lines.push('Turned the demo banner off (`demo: false` in _data/site.yml).');
   for (const name of result.modulesOff)
     lines.push(

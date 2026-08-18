@@ -81,6 +81,12 @@ card, and a place after fresher entries in the default sort. It is not hidden, f
 issue labelled `verification`, so the decay shows up somewhere a maintainer looks. See
 [admin-guide.md](admin-guide.md#the-monthly-verification-sweep).
 
+**catalog metrics** — the "How the catalog is doing" block on the governance page: submissions,
+publications, contributing organizations and review turnaround by quarter, counted from the
+repository's own issues and pull requests by the monthly `metrics.yml` workflow into
+`_data/metrics.json`. Absent until that workflow has run. See
+[admin-guide.md](admin-guide.md#the-monthly-catalog-metrics).
+
 **scaffold** — what the automation does when a submission arrives: read the issue, write
 `catalog/<slug>/index.md` and download the attached images, and open a pull request. It drafts; it
 never publishes.

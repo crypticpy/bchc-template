@@ -156,7 +156,8 @@ export const SCHEMA = {
     "deprecated_value": "Deprecated",
     "status_scaffold_value": "Under review",
     "status_approved_value": "Reviewed & approved",
-    "require_link": true
+    "require_link": true,
+    "contributor_key": "organization"
   },
   "groups": [
     {
@@ -960,6 +961,18 @@ export const SCHEMA = {
       "weight": 4,
       "placeholder": "The prompt set and the evaluation harness are plain Python; the retrieval layer uses Azure AI Search and would need replacing.",
       "description": "Which pieces are vendor-specific, and what a team on a different stack would need to swap."
+    },
+    {
+      "key": "reused_from",
+      "label": "Adapted from",
+      "prompt": "Did you adapt this from another entry in this catalog?",
+      "type": "list",
+      "group": "sharing",
+      "weight": 5,
+      "links_entries": true,
+      "search": false,
+      "placeholder": "overdose-spike-brief",
+      "description": "Name the source by its slug — the last part of its URL. The entry you name will say it was adopted by yours."
     },
     {
       "key": "cost_band",

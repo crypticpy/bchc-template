@@ -92,6 +92,15 @@ export const VARIANTS = [
     why: 'a fresh fork on day one: the empty state and the filter rail with nothing to filter',
   },
   {
+    id: 'shipped-empty',
+    preset: null,
+    modules: null,
+    entries: 'none',
+    build: true,
+    expectFrontMatter: 'pass',
+    why: 'the shipped configuration with nothing published yet: the governance page carries figures but no feed to link to',
+  },
+  {
     // The wizard's sample-removal step is documented as the thing that keeps a
     // preset switch green; this asserts the failure it protects against is real.
     // `cohort-portal` rather than `blank`: blank's field set is permissive

@@ -27,6 +27,7 @@ _data/navigation.yml                         merge=ours
 _data/events.yml                             merge=ours
 _data/resources.yml                          merge=ours
 _data/cohorts/**                             merge=ours
+_data/metrics.json                           merge=ours
 catalog/**                                   merge=ours
 cohorts/**                                   merge=ours
 events/**                                    merge=ours

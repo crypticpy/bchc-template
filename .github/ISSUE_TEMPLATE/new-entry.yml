@@ -314,6 +314,14 @@ body:
       placeholder: The prompt set and the evaluation harness are plain Python; the retrieval layer uses Azure AI Search and would need replacing.
     validations:
       required: false
+  - type: textarea
+    id: reused_from
+    attributes:
+      label: Adapted from
+      description: "Did you adapt this from another entry in this catalog? Name the source by its slug — the last part of its URL. The entry you name will say it was adopted by yours. One per line, or separated by commas."
+      placeholder: overdose-spike-brief
+    validations:
+      required: false
   - type: markdown
     attributes:
       value: |-

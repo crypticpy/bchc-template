@@ -8,6 +8,72 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+DMWG alignment, wave 4 — metrics and promotion, the last of the four waves in
+[docs/dmwg-alignment-plan.md](docs/dmwg-alignment-plan.md). The governance
+page can now show how the catalog is doing, counted from the repository's own
+issues and pull requests; an entry can say which entry it was adapted from,
+and the source says how many adopted it; and the feed — shipped in 1.2.0 —
+is named on the governance page as the promotion channel it already was.
+
+**Upgrading a fork.** Nothing here changes an entry a fork already has.
+`_data/metrics.json` is sample content and `merge=ours`: a fork that had
+already ejected the samples never gets it, one that had not gets the sample
+figures once and its first monthly run overwrites them (or delete the file —
+the block, its nav item and heading render only while it exists). The
+schedule is off by setting `CATALOG_METRICS` to `false`; a manual run always
+works. `reused_from` and `entry.contributor_key` are yours to add to your
+`merge=ours` schema; without the pointer the metrics simply publish no
+organizations figure.
+
+### Added — wave 4, metrics and promotion
+
+- **How the catalog is doing.** New `scripts/metrics.mjs` and a monthly
+  `.github/workflows/metrics.yml` (07:30 UTC on the 2nd, or on demand):
+  two read-only REST calls count, over the last four calendar quarters,
+  submissions (issues carrying `content:new-entry`; pull requests never
+  count), publications (merged pull requests on an `entry/` branch),
+  distinct contributing organizations (the field `entry.contributor_key`
+  names, `organization` in the shipped schema; live entries only, sample
+  content excluded; no key, no figure) and review turnaround (issue opened →
+  linked pull request merged, median and 90th percentile with the count they
+  rest on). The result is `_data/metrics.json`, written only when the figures
+  changed, committed as `chore(metrics): … [skip ci]` and followed by an
+  explicit `Build & Deploy` dispatch — the same behaviour with `GITHUB_TOKEN`
+  and `CONTENT_BOT_TOKEN`. `/governance/` renders it as a **How the catalog
+  is doing** section — up to four figure cards (organizations only above
+  zero, review time only once something has been reviewed), a per-quarter
+  table, and a line about the feed when there is one — with an optional
+  `metrics_intro` sentence in `_data/governance.yml`; nothing renders until
+  the file exists. Run the workflow from the Actions tab with **Preview only**
+  ticked to see the figures in the run summary without committing. No
+  analytics vendor is involved and nothing is installed on the site; Plausible
+  stays optional for the browsing-vs-contributing question.
+- **`_data/metrics.json` ships as sample content** — figures consistent with
+  the ten sample entries, marked `"sample": true` — so the demo shows the
+  block. `npm run eject:samples` deletes it with the sample entries, and a
+  fork's first monthly run writes its own.
+- **Reuse tracking.** A new per-field schema hint, `links_entries: true`,
+  turns a `list` of entry slugs into links to those entries — and the entry
+  being named gets an **Adopted by *n*** card in its rail listing the live
+  entries that adapted it. The shipped schema uses it for a new optional
+  **Adapted from** field (`reused_from`) in *Sharing & licensing*, so a
+  jurisdiction can say whose work it started from; an unknown slug renders as
+  plain text rather than a dead link, and `npm run validate` fails it (the
+  hint is also refused on anything but a `list` field). Two sample entries
+  now say what they adapted, so the demo shows both sides.
+- **`entry.contributor_key`** — the schema pointer the metrics read
+  (`organization` in the shipped schema), documented alongside the other
+  `entry.*` pointers in [docs/content-model.md](docs/content-model.md).
+- **A `shipped-empty` build variant** — the shipped configuration with
+  nothing published yet — joins `npm run test:build`, so the governance page
+  with figures but no feed to link to, and the empty catalog under the real
+  schema, are built and checked on every pull request.
+- **Promotion, named.** The governance page's metrics block ends by saying
+  where new and updated entries are announced — the Atom feed at
+  `/catalog/feed.xml` (shipped in 1.2.0) and the "it's live" comment on the
+  submitter's own issue — so the coalition's "promotion of new resources"
+  requirement points at something that already runs.
+
 ## [1.5.0] — 2026-08-18
 
 DMWG alignment, waves 1–3 — the content model, then the site, then the review

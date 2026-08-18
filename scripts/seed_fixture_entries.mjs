@@ -73,6 +73,11 @@ export function fixtureValue(field, index, context = { assetBase: '' }) {
     case 'multiselect':
       return options.length ? options.slice(0, 2) : [`${label} ${index + 1}`];
     case 'list':
+      // A `links_entries` list holds slugs of other entries, and the validator
+      // rejects one that names no entry — so point at the first fixture rather
+      // than at generated filler. Fixture 1 has nothing earlier to point at,
+      // which also leaves it as the one showing an "Adopted by" card.
+      if (field.links_entries) return index === 0 ? undefined : ['fixture-1'];
       return [`${label} ${index + 1}`, `${label} ${index + 2}`];
     case 'url':
       return `https://example.org/fixture-${index + 1}`;

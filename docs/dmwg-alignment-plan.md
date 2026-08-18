@@ -367,6 +367,21 @@ check. Labels are applied in a separate best-effort step, because `gh pr create
 
 ## Wave 4 — metrics and promotion
 
+**Status: shipped (2026-08-18, released as v1.6.0).** As built: `scripts/metrics.mjs`
+counts submissions by the `content:new-entry` label, publications by the `entry/`
+branch prefix and turnaround from the scaffolder's `Closes #N`, over the last four
+calendar quarters; contributing organizations come from a new schema pointer,
+`entry.contributor_key` (`organization` in the shipped schema — absent means no
+figure), live entries only. The monthly `metrics.yml` (2nd of the month, 07:30 UTC;
+`CATALOG_METRICS=false` turns it off) writes `_data/metrics.json` only when the figures
+changed, commits it `[skip ci]` and dispatches `pages.yml` explicitly, so it behaves
+the same with either token. `/governance/` renders it as "How the catalog is doing"
+(figure cards, per-quarter table, the feed sentence) and renders nothing until the file
+exists; the template ships sample figures, which `npm run eject:samples` deletes. `reused_from`
+shipped exactly as sketched, with the `links_entries` hint validated by
+`check_front_matter.rb` (slug must exist; `list` fields only) and an "Adopted by *n*"
+rail card on the source. Plausible remains optional.
+
 - `scripts/metrics.mjs` (+ `metrics.yml` monthly workflow): counts submissions opened
   / PRs merged per quarter, distinct contributing organizations, review turnaround
   (issue open → PR merge, median and p90) — written to `_data/metrics.json` and
@@ -400,8 +415,8 @@ Waves are independent enough to commit separately: `feat(schema): dmwg fields`,
 `feat(governance): policies page and code of conduct`, `feat(review): tiers, labels
 and updated stamping`, `feat(metrics): …`. Each wave: full gate list from
 `CLAUDE.md` + screenshots for anything visible; `/freview` before reporting a wave
-done (all four touch ≥6 files). Release as **v1.5.0** after waves 1–3; wave 4 can
-follow as 1.6.
+done (all four touch ≥6 files). Released as **v1.5.0** after waves 1–3 and **v1.6.0**
+after wave 4.
 
 Verification for the whole plan: walk the workgroup document top to bottom and tick
 each field (§1), each workflow step (§2.2), each criterion (§2.3), each platform bullet

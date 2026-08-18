@@ -269,6 +269,14 @@ outro: "…"                      # closing paragraph beside the contact button
 
 It ships with the Big Cities Health Coalition text as a worked example. Unlike `events.yml` and `resources.yml`, it is not sample rows that can be emptied — an empty file would render a page of bare headings — and it names one coalition's committees and timelines, so `npm run eject:samples` (and the wizard's *Remove the demo content* step) switch the module off (`governance: false` in `_data/site.yml`) rather than touching the file. Rewrite it in your own words, then turn the module back on.
 
+### Optional keys the metrics block reads
+
+`metrics_intro` — one sentence above the "How the catalog is doing" figures, replacing the default *Counted from this repository's own issues and pull requests, refreshed monthly.* The block itself renders only when `_data/metrics.json` exists (below); the section id `metrics` is reserved alongside `review`, `criteria`, `roles` and `questions`.
+
+## `_data/metrics.json`
+
+Written, not authored: `scripts/metrics.mjs` counts the last four calendar quarters of entry-form submissions (issues labelled `content:new-entry`), entry pull requests merged (branch `entry/…`), distinct contributing organizations (the field named by `entry.contributor_key` in `_data/schema.yml`, across live entries — no key, no figure) and review turnaround (issue opened → pull request merged, median and 90th percentile), from this repository's own issues and pull requests through two read-only REST calls. The **Catalog metrics** workflow (`.github/workflows/metrics.yml`) runs it on the 2nd of every month, commits the file when the figures changed and dispatches a deploy; the governance page renders it as "How the catalog is doing" and hides the block while the file is absent. Run it by hand with `GITHUB_TOKEN=$(gh auth token) node scripts/metrics.mjs` (`--dry-run` prints instead of writing; `--quarters N` widens the window). Stop the schedule with the repository variable `CATALOG_METRICS=false` (a manual run from the Actions tab still works, and its **Preview only** box shows the figures without committing). Keys: `generated`, `window` (`from`, `to`, `quarters`), `totals` (`submissions`, `published`, `organizations` — `null` without a `contributor_key` — `entries`, the live-entry count, and `turnaround_days` with `count`/`median`/`p90`), and `quarters`, oldest first, each with `quarter`, `from`, `submissions`, `published`, `organizations`. The template ships **sample figures** (marked `"sample": true`, consistent with the ten sample entries) so the demo shows the block; `npm run eject:samples` deletes the file, the file is `merge=ours` for a fork that keeps it, and your first monthly run writes yours.
+
 ## Modules in detail
 
 | Module | Turns on | Turns off / removes when disabled |

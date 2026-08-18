@@ -111,7 +111,10 @@ wrote), each `_data/cohorts/<year>.yml` together with its `cohorts/<year>/` page
 comments intact, so you still have somewhere to put your own. `_data/governance.yml` is different:
 it is the coalition's actual review process and policies as a worked example, not rows to empty,
 so the ejector sets `governance: false` in `_data/site.yml` and leaves the file for you to rewrite
-(the checklist in step 8 has a line for it).
+(the checklist in step 8 has a line for it). `_data/metrics.json` — the sample submission and
+review figures shown on the governance page — is deleted; your monthly **Catalog metrics** run
+writes yours, or run it from the Actions tab whenever you like (see
+[configuration.md](configuration.md#_datametricsjson)).
 
 To see exactly what would go before you run anything:
 

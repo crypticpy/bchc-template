@@ -106,6 +106,7 @@ run identically in tests.
 | `quality.yml` | PR / push to main | `pa11y-ci` (WCAG 2 AA) + Lighthouse CI over `_site` | accessibility gate; performance/SEO warn |
 | `pages.yml` | push to main | `scripts/stamp_updated.mjs` (stamps `updated:` on modified entries, commits back), then CSS build + Jekyll build with the repo-derived `baseurl` | deploys to GitHub Pages, tells the submitter |
 | `smoke.yml` | weekly | full build | catches upstream breakage |
+| `metrics.yml` | monthly (2nd) / manual | `scripts/metrics.mjs` — two read-only REST calls (issues by label, closed PRs by branch prefix) plus the entries' `entry.contributor_key` values, four calendar quarters | commits `_data/metrics.json` when the figures changed, dispatches `pages.yml`; the governance page renders it as "How the catalog is doing" |
 | `bootstrap-labels.yml` | manual | — | creates the labels the automation relies on |
 
 `scripts/setup.mjs` and `setup/` share `assets/js/configurator/core.js`; `renderFiles()` is the single

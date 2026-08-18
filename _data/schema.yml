@@ -52,6 +52,10 @@
 #   escalate_on optional list of values that call for closer review (a boolean's `false`, a
 #               select/multiselect option). The scaffolder lists every match on the pull request
 #               and labels it `review:data-governance`; nothing else reads it.
+#   links_entries (`list` fields only) true -> the values are slugs of other entries in this
+#               catalog, so each one renders as a link to that entry and the entry named gets an
+#               "Adopted by" card listing the entries that name it. A slug with no entry renders
+#               as plain text rather than a dead link, and `npm run validate` fails it.
 #
 # `title`, `slug`, `summary`, `published`, `updated`, `thumbnail`, `featured` are always present
 # in every entry, whether or not they are listed here.
@@ -81,6 +85,11 @@ entry:
   # drawing a warning: nobody could evaluate or adopt a resource nobody can
   # reach.
   require_link: true
+  # Contributing organizations (optional). The field whose distinct values the
+  # monthly metrics workflow (scripts/metrics.mjs) counts as "contributing
+  # organizations" on the governance page — live entries only, sample content
+  # excluded. Absent → the figure is not published.
+  contributor_key: "organization"
 
 # Ordered groups: { key, title, description?, icon?, placement? }.
 # Filters show facet fields grouped this way; the submit wizard turns each group
@@ -621,6 +630,17 @@ fields:
     weight: 4
     placeholder: "The prompt set and the evaluation harness are plain Python; the retrieval layer uses Azure AI Search and would need replacing."
     description: "Which pieces are vendor-specific, and what a team on a different stack would need to swap."
+
+  - key: reused_from
+    label: "Adapted from"
+    prompt: "Did you adapt this from another entry in this catalog?"
+    type: list
+    group: sharing
+    weight: 5
+    links_entries: true
+    search: false
+    placeholder: "overdose-spike-brief"
+    description: "Name the source by its slug — the last part of its URL. The entry you name will say it was adopted by yours."
 
   - key: cost_band
     label: "Cost to stand up"

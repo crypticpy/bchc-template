@@ -45,6 +45,8 @@ screenshots:
 license: "Creative Commons (CC BY / CC0)"
 portability: "Yes — platform-agnostic"
 portability_notes: "A prompt kit and a style guide; they work in any generative text tool."
+reused_from:
+  - "restaurant-inspection-summaries"
 cost_band: "No new spend"
 run_cost: "Under $10k/yr"
 procurement:

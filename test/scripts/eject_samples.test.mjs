@@ -49,6 +49,7 @@ function fixture() {
   write('cohorts/2026/index.md', '---\nlayout: cohort\nyear: "2026"\n---\n');
   write('catalog/sample-one/index.md', '---\ntitle: "Sample"\nsample: true\n---\n');
   write('catalog/ours/index.md', '---\ntitle: "Ours"\n---\n');
+  write('_data/metrics.json', '{ "generated": "2026-08-18", "quarters": [] }\n');
   return { root, exists: (relative) => fs.existsSync(path.join(root, relative)) };
 }
 
@@ -153,7 +154,14 @@ test('a second run is a no-op with nothing to report', () => {
   const repo = fixture();
   ejectSamples(repo.root);
   const again = ejectSamples(repo.root);
-  assert.deepEqual(again, { entries: [], cohorts: [], emptied: [], demo: false, modulesOff: [] });
+  assert.deepEqual(again, {
+    entries: [],
+    cohorts: [],
+    emptied: [],
+    removed: [],
+    demo: false,
+    modulesOff: [],
+  });
   assert.deepEqual(ejectSummary(again), [], 'the CLI prints "nothing to remove" off this');
 });
 
@@ -165,6 +173,16 @@ test('the summary names every kind of thing it removed', () => {
   assert.match(lines, /_data\/events\.yml and _data\/resources\.yml/);
   assert.match(lines, /demo banner off/);
   assert.match(lines, /governance module off/);
+  assert.match(lines, /Removed _data\/metrics\.json/);
+});
+
+test('the shipping repository’s metrics file goes, and the governance page hides the block', () => {
+  const repo = fixture();
+  const planned = ejectSamples(repo.root, { dryRun: true });
+  assert.deepEqual(planned.removed, ['_data/metrics.json']);
+  assert.equal(repo.exists('_data/metrics.json'), true, 'dry run leaves it');
+  ejectSamples(repo.root);
+  assert.equal(repo.exists('_data/metrics.json'), false);
 });
 
 test('cohortYears reads the shipped repository', () => {

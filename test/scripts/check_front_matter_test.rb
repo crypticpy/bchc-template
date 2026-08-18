@@ -441,4 +441,67 @@ class CheckFrontMatterTest < Minitest::Test
     failures, = run_check
     assert(failures.none? { |f| f.include?("escalate_on") }, failures.inspect)
   end
+
+  # A `list` field carrying `links_entries: true` holds slugs of other entries.
+  # The entry page renders an unresolvable slug as plain text rather than a dead
+  # link, so the typo has to be caught here or it is never caught at all.
+  LINKS_ENTRIES_SCHEMA = SCHEMA.sub(
+    "  - key: body\n",
+    "  - key: reused_from\n    label: Adapted from\n    type: list\n    links_entries: true\n  - key: body\n"
+  )
+
+  def write_source_and_adopter(reused)
+    File.write(File.join(@root, "_data", "schema.yml"), LINKS_ENTRIES_SCHEMA)
+    write_entry("source", <<~FM)
+      title: The source
+      slug: source
+      render_with_liquid: false
+      summary: S
+      published: "2026-01-05"
+      repo_url: https://example.org/repo
+    FM
+    write_entry("adopter", <<~FM)
+      title: The adopter
+      slug: adopter
+      render_with_liquid: false
+      summary: S
+      published: "2026-03-05"
+      repo_url: https://example.org/repo
+      reused_from:
+        - #{reused}
+    FM
+  end
+
+  def test_a_links_entries_value_must_name_an_entry_that_exists
+    write_source_and_adopter("no-such-entry")
+
+    failures, = run_check
+    assert(
+      failures.any? { |f| f.include?("adopter/index.md") && f.include?("`reused_from` names \"no-such-entry\"") },
+      failures.inspect
+    )
+    assert(failures.any? { |f| f.include?("catalog/no-such-entry/index.md") }, failures.inspect)
+  end
+
+  def test_a_links_entries_value_that_names_a_real_entry_passes
+    write_source_and_adopter("source")
+
+    failures, = run_check
+    assert(failures.none? { |f| f.include?("reused_from") }, failures.inspect)
+  end
+
+  # The hint only means something on a list of slugs; on any other type it would
+  # be read by nothing, so say so rather than letting it sit there forever.
+  def test_links_entries_is_only_valid_on_a_list_field
+    File.write(
+      File.join(@root, "_data", "schema.yml"),
+      SCHEMA.sub("  - key: repo_url\n    label: Repo\n    type: url\n", "  - key: repo_url\n    label: Repo\n    type: url\n    links_entries: true\n")
+    )
+
+    failures, = run_check
+    assert(
+      failures.any? { |f| f.include?("`repo_url.links_entries` is only valid on a `list` field") },
+      failures.inspect
+    )
+  end
 end
