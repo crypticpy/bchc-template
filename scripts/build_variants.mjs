@@ -30,6 +30,7 @@ import { spawnSync } from 'node:child_process';
 import * as yaml from 'js-yaml';
 
 import { seedFixtureEntries } from './seed_fixture_entries.mjs';
+import { entryPathFrom, listSampleEntries, readSchema } from './lib/setup-io.mjs';
 
 export const ROOT = process.env.BUILD_VARIANTS_ROOT
   ? path.resolve(process.env.BUILD_VARIANTS_ROOT)
@@ -246,6 +247,17 @@ export function preflight() {
   }
   if (!run('bundle', ['--version']).ok) {
     return { ok: false, reason: 'bundler is not on PATH — install Ruby 3.3+ and run `bundle install`.' };
+  }
+  // The `keep` variants build the shipped samples and the assertions read the
+  // template's own governance page, cohort and metrics off them. Once a copy
+  // has ejected that content the matrix is checking a catalog that no longer
+  // exists, so it steps aside instead of failing every pull request in a fork.
+  if (listSampleEntries(ROOT, entryPathFrom(readSchema(ROOT))).length === 0) {
+    return {
+      ok: false,
+      reason:
+        'the shipped sample entries have been removed — the preset build matrix checks the template’s own presets and samples, so it does not apply to this repository.',
+    };
   }
   return { ok: true, reason: '' };
 }

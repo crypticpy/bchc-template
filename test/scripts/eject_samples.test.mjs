@@ -22,6 +22,7 @@ import {
   ejectSummary,
   emptiedYaml,
   headerComment,
+  manifestWithoutEntries,
   siteYamlWithModuleOff,
   siteYamlWithoutDemo,
 } from '../../scripts/eject_samples.mjs';
@@ -50,6 +51,21 @@ function fixture() {
   write('catalog/sample-one/index.md', '---\ntitle: "Sample"\nsample: true\n---\n');
   write('catalog/ours/index.md', '---\ntitle: "Ours"\n---\n');
   write('_data/metrics.json', '{ "generated": "2026-08-18", "quarters": [] }\n');
+  write(
+    '_data/derivatives.json',
+    JSON.stringify(
+      {
+        '/catalog/sample-one/screenshots/01.png': {
+          w: 1280,
+          h: 800,
+          base: '/catalog/sample-one/screenshots/01',
+        },
+        '/catalog/ours/screenshots/01.png': { w: 1280, h: 800, base: '/catalog/ours/screenshots/01' },
+      },
+      null,
+      2
+    ) + '\n'
+  );
   return { root, exists: (relative) => fs.existsSync(path.join(root, relative)) };
 }
 
@@ -159,6 +175,7 @@ test('a second run is a no-op with nothing to report', () => {
     cohorts: [],
     emptied: [],
     removed: [],
+    pruned: [],
     demo: false,
     modulesOff: [],
   });
@@ -174,6 +191,22 @@ test('the summary names every kind of thing it removed', () => {
   assert.match(lines, /demo banner off/);
   assert.match(lines, /governance module off/);
   assert.match(lines, /Removed _data\/metrics\.json/);
+  assert.match(lines, /sample screenshots from _data\/derivatives\.json/);
+});
+
+test('the sample screenshots leave _data/derivatives.json; the fork’s own records stay', () => {
+  const repo = fixture();
+  const planned = ejectSamples(repo.root, { dryRun: true });
+  assert.deepEqual(planned.pruned, ['_data/derivatives.json']);
+  ejectSamples(repo.root);
+  const manifest = JSON.parse(fs.readFileSync(path.join(repo.root, '_data', 'derivatives.json'), 'utf8'));
+  assert.deepEqual(Object.keys(manifest), ['/catalog/ours/screenshots/01.png']);
+  assert.equal(
+    manifestWithoutEntries('{}\n', ['catalog/sample-one']),
+    null,
+    'nothing to drop is not a change'
+  );
+  assert.equal(manifestWithoutEntries('not json', ['catalog/sample-one']), null);
 });
 
 test('the shipping repository’s metrics file goes, and the governance page hides the block', () => {
@@ -185,14 +218,23 @@ test('the shipping repository’s metrics file goes, and the governance page hid
   assert.equal(repo.exists('_data/metrics.json'), false);
 });
 
-test('cohortYears reads the shipped repository', () => {
-  assert.deepEqual(cohortYears(ROOT), ['2026']);
+test('cohortYears lists the years that have a data file', () => {
+  const repo = fixture();
+  assert.deepEqual(cohortYears(repo.root), ['2026']);
+  ejectSamples(repo.root);
+  assert.deepEqual(cohortYears(repo.root), [], 'nothing left to eject');
 });
 
-test('the shipped repository is in demo mode, and every sample entry says so', () => {
+// This one reads the repository itself, so it is a template invariant rather
+// than a unit test: while the sample entries ship, the demo banner must be up.
+// A copy that has ejected them (the normal state of a fork) is skipped, not
+// failed — there is nothing left for the invariant to be about.
+test('while the sample entries ship, the repository is in demo mode', (t) => {
+  const planned = ejectSamples(ROOT, { dryRun: true });
+  if (planned.entries.length === 0) {
+    return t.skip('no sample entries in this checkout — the demo content has been removed');
+  }
   const site = yaml.load(fs.readFileSync(path.join(ROOT, '_data', 'site.yml'), 'utf8'));
   assert.equal(site.demo, true, '_includes/demo-banner.html renders off this');
-  const planned = ejectSamples(ROOT, { dryRun: true });
-  assert.ok(planned.entries.length >= 1, 'the sample entries carry `sample: true`');
-  assert.equal(planned.demo, true);
+  assert.equal(planned.demo, true, 'ejecting would turn the banner off');
 });

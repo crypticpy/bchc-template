@@ -4,6 +4,8 @@ A configurable, GitHub-Pages-hosted catalog and resource site, managed entirely 
 
 This repository is shipped configured as the **Big Cities Health Coalition (BCHC) AI Use Case Catalog**, where member health departments share AI use cases — source repos, cloud deployments, vendor solutions, write-ups. The same template can be re-pointed at other uses without touching layout code: a project/asset portal, a cohort or training-program portal where teams publish outputs, an event calendar, or a curated resource library. See [`docs/configuration.md`](docs/configuration.md) for how to retarget it.
 
+**Live demo:** [crypticpy.github.io/bchc-template](https://crypticpy.github.io/bchc-template/) — the template as shipped, sample content and all. **See what a fresh copy looks like on day one:** [crypticpy.github.io/bchc-catalog-starter](https://crypticpy.github.io/bchc-catalog-starter/) — a copy made from this template by following [`docs/launch.md`](docs/launch.md), configured through the setup wizard, samples removed, one entry published.
+
 <p align="center">
   <img src="docs/images/home.png" alt="Home page: dark hero with search, calls to action, an honest stat line and the newest entries listed alongside; a browse-by grid of the schema's facets underneath." width="720">
 </p>

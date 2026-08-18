@@ -28,6 +28,7 @@ export const SITE = {
     "branch": "main"
   },
   "demo": true,
+  "demo_starter_url": "https://crypticpy.github.io/bchc-catalog-starter/",
   "modules": {
     "catalog": true,
     "submit": true,

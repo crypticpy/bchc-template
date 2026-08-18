@@ -24,7 +24,9 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
 
   <nav aria-label="Sections" class="mt-8 flex flex-wrap gap-2 text-sm">
     {%- assign sg_nav = "colour:Colour|type:Type|buttons:Buttons|badges:Badges, chips, signals|card:Entry card|row:Entry row|filters:Filters and results|entry:Entry page pieces|forms:Forms|elevation:Elevation and motion" | split: "|" -%}
-    {%- for sg_n in sg_nav -%}{%- assign sg_np = sg_n | split: ":" -%}<a class="filter-pill" href="#sg-{{ sg_np[0] }}">{{ sg_np[1] }}</a>{%- endfor -%}
+    {%- comment -%} The card, row and entry sections below need an entry to render; on an empty catalog their pills would point at anchors that do not exist. {%- endcomment -%}
+    {%- assign sg_needs_entry = "card|row|entry" | split: "|" -%}
+    {%- for sg_n in sg_nav -%}{%- assign sg_np = sg_n | split: ":" -%}{%- unless sg_entry -%}{%- if sg_needs_entry contains sg_np[0] -%}{%- continue -%}{%- endif -%}{%- endunless -%}<a class="filter-pill" href="#sg-{{ sg_np[0] }}">{{ sg_np[1] }}</a>{%- endfor -%}
   </nav>
 
   <section id="sg-colour" class="mt-16 scroll-mt-24">

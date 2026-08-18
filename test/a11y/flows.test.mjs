@@ -22,6 +22,7 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  BASE,
   SKIP,
   assertServed,
   assertUsableStops,
@@ -39,6 +40,16 @@ import {
 /** The catalog path is schema-driven; read it off the built home page's nav. */
 let catalogPath = '/catalog/';
 
+/**
+ * Why the two catalog journeys are skipped when the served build has nothing
+ * published — a fresh copy with the samples removed. Filtering and searching
+ * an empty catalog has no card to land on, so those flows wait for a
+ * consequence that never comes; the form and wizard flows still run.
+ */
+let emptyCatalog = false;
+const CATALOG_SKIP =
+  'the catalog is empty (search.json lists no entries), so there is nothing to filter or open';
+
 describe('assistive-technology flows', { skip: SKIP, concurrency: false }, () => {
   /** @type {import('puppeteer').Browser} */
   let browser;
@@ -54,13 +65,18 @@ describe('assistive-technology flows', { skip: SKIP, concurrency: false }, () =>
       return link ? new URL(link.href).pathname : '/catalog/';
     });
     await page.close();
+
+    const index = await fetch(`${BASE}/search.json`);
+    const docs = index.ok ? (await index.json())?.docs : null;
+    emptyCatalog = !Array.isArray(docs) || docs.length === 0;
   });
 
   after(async () => {
     await browser?.close();
   });
 
-  test('home -> catalog -> filter -> entry -> back', async () => {
+  test('home -> catalog -> filter -> entry -> back', async (t) => {
+    if (emptyCatalog) return t.skip(CATALOG_SKIP);
     const page = await openPage(browser, '/');
 
     // The skip link is the first stop, and pressing it must actually land in
@@ -149,7 +165,8 @@ describe('assistive-technology flows', { skip: SKIP, concurrency: false }, () =>
     await page.close();
   });
 
-  test('search -> result', async () => {
+  test('search -> result', async (t) => {
+    if (emptyCatalog) return t.skip(CATALOG_SKIP);
     const page = await openPage(browser, catalogPath);
 
     // The rail is DOM-first and every facet option is a tab stop, so the way a

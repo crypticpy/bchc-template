@@ -1,7 +1,9 @@
 # Launch your catalog
 
 Start to finish: a copy of this template on GitHub, configured, emptied of the sample
-content, and carrying one entry you published yourself.
+content, and carrying one entry you published yourself. What you end up with looks like
+<https://crypticpy.github.io/bchc-catalog-starter/> — a copy made by following exactly this guide,
+with one entry that describes the template.
 
 - **Time:** about 40 minutes, most of it waiting for builds.
 - **You need:** a GitHub account, and permission to create a repository in your organization.
@@ -36,14 +38,22 @@ built and deployed at least once.
       `update-event-attachments` — runs, does its work, and then fails on the last step.
 - [ ] **Create the content labels.** Actions tab → **Bootstrap labels** → **Run workflow**. It
       creates `content:new-entry`, `content:new-event`, `content:schedule`,
-      `content:event-attachments` and `content:new-year`. The issue forms ask GitHub to apply
-      these labels; GitHub silently drops a label that does not exist yet, and the workflows are
-      triggered by the label, so a submission before this step just sits there.
+      `content:event-attachments`, `content:new-year` and `content:site-config` (the Apply setup
+      issue in step 3 needs that last one), plus the `review:*` labels the entry pull requests
+      carry. The issue forms ask GitHub to apply these labels; GitHub silently drops a label that
+      does not exist yet, and the workflows are triggered by the label, so a submission before this
+      step just sits there.
 
-Push any commit (or run **Build & Deploy** from the Actions tab) and wait for the green tick. Your
-site is now at `https://<owner>.github.io/<repo>/`. The build works out `url` and `baseurl` on its
-own: the domain root for an `<owner>.github.io` repository or when a `CNAME` file is present,
-`/<repo>` otherwise.
+The initial commit GitHub made when it created the repository has already triggered **Build &
+Deploy** — look for it in the Actions tab. If it went red because it ran before you set the Pages
+source, re-run it (or push any commit); otherwise wait for the green tick. Your site is now at
+`https://<owner>.github.io/<repo>/`. The build works out `url` and `baseurl` on its own: the domain
+root for an `<owner>.github.io` repository or when a `CNAME` file is present, `/<repo>` otherwise —
+neither is something the configurator asks you for.
+
+Expect a Dependabot pull request or two within minutes of creating the repository
+(`.github/dependabot.yml` ships with the template and keeps the toolchain current). They are not
+part of the launch; merge them whenever their checks are green.
 
 ## 3. Configure the site
 
@@ -67,10 +77,17 @@ GitHub's file editor is where a launch usually goes wrong. Instead:
 
 1. Open **Issues → New issue → Apply setup (creates PR)**.
 2. Paste `_data/site.yml`, `_data/theme.yml` and `_data/schema.yml` from the wizard's review step
-   into the three boxes. You only paste three — `_data/navigation.yml`, `_config.yml` and the
-   submission form are rebuilt from them, so they cannot end up out of step with what you pasted.
+   into the three boxes (the **Copy** button on each file). You only paste three —
+   `_data/navigation.yml`, `_config.yml` and the submission form are rebuilt from them, so they
+   cannot end up out of step with what you pasted.
 3. Tick **Remove the demo content** if you are ready to lose the sample entries (step 4).
 4. Submit. Within a minute the automation replies with a pull request; review the diff and merge.
+   The pull request's checks (`Validate Content`, `Quality`) are dispatched by the workflow itself
+   and appear on the pull request as **(dispatch)** statuses; a second set of runs, triggered by
+   the pull request event, may sit at "action required" — that is GitHub asking for approval to
+   run workflows for a bot-authored pull request, not a failure, and the dispatched runs are the
+   ones that matter. Merge once they are green (**Squash and merge** keeps the history to one
+   commit).
 
 If something is wrong — a typo in the YAML, a colour pair that fails contrast, a schema field with
 no key — the automation says so as a comment on the issue instead of opening a broken pull request.
@@ -83,7 +100,8 @@ GitHub" link, and the contact links in the issue chooser. The `Validate Content`
 pull request where `github.repository` still names the template's repository, so a copy that skips
 this step will not merge.
 
-Commit and push. Wait for `Build & Deploy`, then look at the site.
+Merge the pull request (or commit and push, on the other two paths). Wait for `Build & Deploy`,
+then look at the site.
 
 ## 4. Remove the demo content
 
@@ -108,7 +126,9 @@ Three ways to clear it, all of which do the same thing:
 What "all of it" means: every entry folder whose front matter says `sample: true` (never one you
 wrote), each `_data/cohorts/<year>.yml` together with its `cohorts/<year>/` page, and the rows in
 `_data/events.yml` and `_data/resources.yml` — those two files stay, emptied, with their header
-comments intact, so you still have somewhere to put your own. `_data/governance.yml` is different:
+comments intact, so you still have somewhere to put your own. The sample screenshots' records
+leave `_data/derivatives.json` with them (the responsive-image manifest `derive_images --check`
+verifies on every pull request). `_data/governance.yml` is different:
 it is the coalition's actual review process and policies as a worked example, not rows to empty,
 so the ejector sets `governance: false` in `_data/site.yml` and leaves the file for you to rewrite
 (the checklist in step 8 has a line for it). `_data/metrics.json` — the sample submission and
@@ -141,10 +161,12 @@ Neither is needed to launch; both are worth knowing about before you tell anyone
   scaffold a pull request, so you triage by hand. Delete the variable to reopen.
 - **`CONTENT_BOT_TOKEN`** (Settings → Secrets and variables → Actions → **Secrets**). A
   fine-grained personal access token with `contents: write` and `pull requests: write` on this
-  repository. Pull requests opened with the default `GITHUB_TOKEN` do not trigger other workflows,
-  so the `Validate Content` check does not run on a scaffolded submission. Supply this secret and
-  the content workflows use it instead, so every generated pull request arrives with its checks
-  already running. Leave it unset and validation runs when you push a change to the branch.
+  repository. Without it, the content workflows open their pull requests with the default
+  `GITHUB_TOKEN`, then dispatch `Validate Content` and `Quality` against the branch themselves
+  and report the results as **(dispatch)** statuses on the pull request; the runs GitHub starts
+  for the pull-request event park at "action required" until a maintainer approves them. Supply
+  this secret and the workflows use it instead, so every generated pull request arrives with
+  its checks running the ordinary way, no approval needed.
 
 ## 6. Publish a test entry
 
@@ -162,7 +184,13 @@ Walk the real path, as a submitter would:
      Actions tab for a failed run.
    - The workflow comments the error back on the issue when scaffolding fails. Editing the issue
      re-runs it.
-4. Review the pull request against the checklist in its body, then **merge**.
+   - A field whose answer matches its `escalate_on` list in `_data/schema.yml` (protected data on
+     screen, for instance) adds the `review:data-governance` label — expected on a test entry that
+     answers those questions honestly.
+4. Review the pull request against the checklist in its body. The scaffold writes
+   `review_status: Under review`; the last item on the checklist is to set it to the approved value
+   (`Reviewed & approved` in the shipped schema) — edit the file on the pull request's branch and
+   commit — then **merge**.
 
 ## 7. Check it went live
 

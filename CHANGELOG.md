@@ -8,6 +8,62 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+The launch guide, walked for real: a fresh copy of the template
+([crypticpy/bchc-catalog-starter](https://github.com/crypticpy/bchc-catalog-starter),
+live at <https://crypticpy.github.io/bchc-catalog-starter/>) was made by
+following [docs/launch.md](docs/launch.md) end to end — template button, the
+three settings, the Apply setup issue, one entry through the issue form — and
+everything the walkthrough found wrong is fixed below.
+
+### Added
+
+- **The day-one starter site is linked** from the README (next to the live
+  demo), the opening of [docs/launch.md](docs/launch.md), and the demo
+  banner, so a reader can see what a copy looks like once the guide is done:
+  configured, samples gone, one entry.
+- **`demo_starter_url` in `_data/site.yml`** (optional; documented in
+  [docs/configuration.md](docs/configuration.md#demo-mode)). While `demo` is
+  `true`, the banner adds "See what a fresh copy looks like on day one" with
+  that link; blank or absent, the sentence is not rendered. It rides through
+  the wizard like every other key no question asks about.
+- **The wizard's review step names the Apply setup issue** as the easiest way
+  to publish the files — the path the launch guide recommends — with a direct
+  link when the repository is known, ahead of the file-by-file editor route it
+  described before.
+
+### Fixed
+
+- **An ejected fork's checks are green again.** With the sample content
+  removed, the first pull request in a fresh copy failed `Validate Content`
+  and `Quality` for six reasons that were all the template assuming its own
+  samples: `scripts/generate.mjs --check` reported the wizard defaults stale
+  because the `_data/site.yml` repository-link sync ran after the defaults
+  were compiled (now runs first); the preset build matrix
+  (`scripts/build_variants.mjs`) assumed the shipped samples, cohort and
+  governance data (it now skips, with a reason, when no sample entry is
+  present); three unit tests read the shipped repository's demo state and
+  cohort files (made fork-safe); the style guide's navigation linked to card,
+  row and entry sections that need an entry to render (pills hidden until one
+  exists); the two catalog flow tests timed out on an empty catalog (skipped
+  when `/search.json` lists nothing); and `derive_images --check` failed on
+  `_data/derivatives.json` records for screenshots that no longer existed —
+  `npm run eject:samples` (and so the Apply setup checkbox and `npm run
+  setup`) now drops the sample screenshots' records from the manifest with the
+  entries.
+- **Launch guide corrections from the walkthrough** ([docs/launch.md](docs/launch.md)):
+  the Bootstrap labels list omitted `content:site-config` (the Apply setup
+  issue's label) and the `review:*` labels; the initial commit already runs
+  **Build & Deploy**, so the guide says to check that run rather than push
+  another; Dependabot pull requests arrive on day one and are named as such;
+  `url`/`baseurl` are stated to be the build's, not the wizard's; the Apply
+  setup and `CONTENT_BOT_TOKEN` sections describe what a `GITHUB_TOKEN` pull
+  request actually shows — dispatched **(dispatch)** statuses plus
+  pull-request-event runs parked at "action required" — instead of "checks
+  do not run"; the demo-content section mentions the derivatives manifest;
+  and the test-entry steps say the scaffold writes `review_status: Under
+  review`, that `escalate_on` answers add `review:data-governance`, and that
+  the reviewer sets the approved value before merging.
+
 ## [1.6.0] — 2026-08-18
 
 DMWG alignment, wave 4 — metrics and promotion, the last of the four waves in

@@ -20,6 +20,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
+import { manifestKey } from './lib/derivatives.mjs';
 import { bold, dim, green, entryPathFrom, listSampleEntries, readSchema } from './lib/setup-io.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -43,6 +44,13 @@ export const EXAMPLE_MODULES = ['governance'];
  * ones. Deleted outright — the governance page hides the block until then.
  */
 export const SAMPLE_DATA_FILES = ['_data/metrics.json'];
+
+/**
+ * The responsive-image manifest `scripts/derive_images.mjs` keeps. Its records
+ * for the sample screenshots go with the sample entries: left behind, they are
+ * orphans and `derive_images --check` fails the fork's next pull request.
+ */
+export const DERIVATIVES_MANIFEST = '_data/derivatives.json';
 
 /**
  * The leading `#` comment block of a YAML file — the part that documents what
@@ -120,22 +128,68 @@ export function siteYamlWithModuleOff(text, name) {
 }
 
 /**
+ * The derivatives manifest without the records under the given entry folders,
+ * serialised the way `scripts/derive_images.mjs` writes it (sorted keys, two
+ * spaces, trailing newline).
+ *
+ * @param {string} text the manifest as read from disk.
+ * @param {string[]} entryDirs repo-relative entry folders that were removed.
+ * @returns {string|null} the new file, or null when nothing in it was theirs
+ *   (or it does not parse — a broken manifest is not this script's to fix).
+ */
+export function manifestWithoutEntries(text, entryDirs) {
+  let manifest;
+  try {
+    manifest = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) return null;
+  const prefixes = entryDirs.map((dir) => `${manifestKey(dir)}/`);
+  const kept = {};
+  let dropped = 0;
+  for (const key of Object.keys(manifest).sort()) {
+    if (prefixes.some((prefix) => key.startsWith(prefix))) dropped += 1;
+    else kept[key] = manifest[key];
+  }
+  return dropped === 0 ? null : `${JSON.stringify(kept, null, 2)}\n`;
+}
+
+/**
  * Remove the demo content.
  *
  * @param {string} root repository root.
  * @param {{dryRun?: boolean}} [options] `dryRun` reports without writing.
- * @returns {{entries: string[], cohorts: string[], emptied: string[], removed: string[], demo: boolean, modulesOff: string[]}}
- *   repo-relative paths, whether the demo banner was turned off, and which
- *   example-data modules were switched off.
+ * @returns {{entries: string[], cohorts: string[], emptied: string[], removed: string[], pruned: string[], demo: boolean, modulesOff: string[]}}
+ *   repo-relative paths, the data files whose sample records were dropped,
+ *   whether the demo banner was turned off, and which example-data modules
+ *   were switched off.
  */
 export function ejectSamples(root, options = {}) {
   const dryRun = options.dryRun === true;
   const relative = (file) => path.relative(root, file).split(path.sep).join('/');
-  const result = { entries: [], cohorts: [], emptied: [], removed: [], demo: false, modulesOff: [] };
+  const result = {
+    entries: [],
+    cohorts: [],
+    emptied: [],
+    removed: [],
+    pruned: [],
+    demo: false,
+    modulesOff: [],
+  };
 
   for (const dir of listSampleEntries(root, entryPathFrom(readSchema(root)))) {
     result.entries.push(relative(dir));
     if (!dryRun) fs.rmSync(dir, { recursive: true, force: true });
+  }
+
+  const manifestFile = path.join(root, DERIVATIVES_MANIFEST);
+  if (result.entries.length && fs.existsSync(manifestFile)) {
+    const pruned = manifestWithoutEntries(fs.readFileSync(manifestFile, 'utf8'), result.entries);
+    if (pruned !== null) {
+      result.pruned.push(DERIVATIVES_MANIFEST);
+      if (!dryRun) fs.writeFileSync(manifestFile, pruned, 'utf8');
+    }
   }
 
   for (const year of cohortYears(root)) {
@@ -204,6 +258,7 @@ export function ejectSummary(result) {
     lines.push(
       `Removed ${result.removed.join(' and ')} — sample figures; your monthly Catalog metrics run writes yours.`
     );
+  if (result.pruned.length) lines.push(`Dropped the sample screenshots from ${result.pruned.join(' and ')}.`);
   if (result.demo) lines.push('Turned the demo banner off (`demo: false` in _data/site.yml).');
   for (const name of result.modulesOff)
     lines.push(

@@ -31,12 +31,19 @@ Used to build the `/submit/` form's GitHub issue URL, the "Suggest an edit on Gi
 
 ```yaml
 demo: true
+demo_starter_url: "https://crypticpy.github.io/bchc-catalog-starter/"
 ```
 
-While this is `true`, every page carries a **Demo content** banner
+While `demo` is `true`, every page carries a **Demo content** banner
 (`_includes/demo-banner.html`) saying the content is the template's sample data, linking to
 `/setup/` and the launch guide. It ships on, because a fork deployed unchanged is a site full of
 fictional health departments with nothing to say so.
+
+`demo_starter_url` is optional. Set it to a copy of the template that has already been through
+[launch.md](launch.md) — configured, samples removed, one entry — and the banner adds "See what a
+fresh copy looks like on day one" with that link. It ships pointing at the template's own starter
+copy; blank it (or delete the key) to drop the sentence. It is only read while `demo` is `true`, so
+there is nothing to clean up once the banner is off.
 
 It is turned off by whatever removes the content: `npm run eject:samples`, the **Remove the demo
 content** checkbox on the Apply setup issue, or `npm run setup`'s last question. Delete the key

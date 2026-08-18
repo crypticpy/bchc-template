@@ -2,7 +2,8 @@
  * Step 5 — review and publish.
  *
  * Renders every file the configurator owns and hands it to the admin to copy,
- * download, or paste into GitHub's web editor. Nothing is written from here.
+ * download, or paste — into the Apply setup issue, or into GitHub's web
+ * editor. Nothing is written from here.
  */
 
 import { githubEditFileUrl, renderFiles, validateSchema } from '../core.js';
@@ -154,10 +155,32 @@ export function renderReview() {
   const repository = String(state.answers.repository || '').trim();
   const branch = String(state.answers.branch || 'main').trim() || 'main';
 
+  // The Apply setup issue is the path docs/launch.md recommends: three files
+  // pasted into a form, and the automation opens the pull request. The
+  // file-by-file editor route below it is the fallback for a copy whose
+  // labels or workflows are not in place yet.
+  const applySetupUrl = repository
+    ? `https://github.com/${repository}/issues/new?template=apply-setup.yml`
+    : '';
   const body = el('div', { class: 'space-y-6' }, [
     el('div', { class: 'card' }, [
       el('div', { class: 'card-header' }, [
         el('p', { class: 'card-title', text: 'How to publish these changes' }),
+        el('p', { class: 'section-lead mt-1' }, [
+          el('span', { text: 'Easiest: open the ' }),
+          applySetupUrl
+            ? el('a', {
+                class: 'font-medium underline decoration-brand-accent underline-offset-2',
+                href: applySetupUrl,
+                target: '_blank',
+                rel: 'noopener',
+                text: 'Apply setup issue',
+              })
+            : el('span', { text: 'Apply setup issue (Issues → New issue → Apply setup)' }),
+          el('span', {
+            text: " and paste _data/site.yml, _data/theme.yml and _data/schema.yml into its three boxes — the automation opens a pull request with all six files. Or paste each file into GitHub's editor:",
+          }),
+        ]),
       ]),
       el('ol', { class: 'list-decimal space-y-2 px-10 py-5 text-sm text-brand-ink' }, [
         el('li', { text: 'Press Copy on a file below.' }),

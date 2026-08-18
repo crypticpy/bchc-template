@@ -136,10 +136,10 @@ test('choosing a named speed replaces the whole block, and an absent one stays a
 
 test('site keys the wizard never asks about survive the round trip', () => {
   const base = defaultConfig();
-  // `demo` ships as `true` and is answered by no question; `contact.ask_in_open`
-  // is the same shape one level down. Neither may be dropped by a merge that
-  // only knows about the questions.
-  assert.equal(base.site.demo, true);
+  // `demo` is answered by no question (it ships as `true` and a fork turns it
+  // off); `contact.ask_in_open` is the same shape one level down. Neither may
+  // be dropped by a merge that only knows about the questions.
+  base.site.demo = true;
   base.site.contact = { ...(base.site.contact || {}), ask_in_open: true };
 
   const config = applyAnswers(base, { ...answersFromConfig(base), siteName: 'Renamed' });

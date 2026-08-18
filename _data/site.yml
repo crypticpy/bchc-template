@@ -29,7 +29,11 @@ github:
 # Demo mode. `true` puts a banner on every page saying the content is the
 # template's sample data. `npm run eject:samples` removes that content and sets
 # this to false; delete the line once the catalog is yours.
+# `demo_starter_url` (optional) is a copy of the template that has already been
+# through the launch guide — the banner offers it as "what a fresh copy looks
+# like on day one". Only used while `demo` is true; leave blank to omit the link.
 demo: true
+demo_starter_url: "https://crypticpy.github.io/bchc-catalog-starter/"
 
 # Modules: turn site sections on or off. Navigation, home page blocks and
 # workflows adapt automatically.

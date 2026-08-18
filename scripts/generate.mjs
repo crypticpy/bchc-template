@@ -70,6 +70,29 @@ function sync(relative, content, note = '') {
   return false;
 }
 
+// --- 0. links into our own repository, in _data/site.yml --------------------
+// The shipped footer has a "Maintainer guide" link to a file in this
+// repository, so a fork's public footer keeps pointing at the template until
+// someone rewrites it. Only file-view URLs (/blob/, /tree/, /raw/, /edit/) are
+// rewritten — those name a repository's own source, whereas a bare
+// github.com/org/project link in the footer is a deliberate link out.
+//
+// This runs before anything is derived from _data/site.yml: the wizard defaults
+// below are compiled from the file, so patching it afterwards left them one run
+// stale and `--check` red on the very commit that had just run `generate`.
+
+const repository = String(readData(SITE_DATA_PATH).github?.repository || '').trim();
+const ownRepository = /^[\w.-]+\/[\w.-]+$/.test(repository);
+if (ownRepository) {
+  const siteFile = path.join(ROOT, SITE_DATA_PATH);
+  const original = fs.readFileSync(siteFile, 'utf8');
+  const patched = original.replace(
+    /github\.com\/[\w.-]+\/[\w.-]+(?=\/(?:blob|tree|raw|edit)\/)/g,
+    `github.com/${repository}`
+  );
+  sync(SITE_DATA_PATH, patched, `repository links point at ${repository}`);
+}
+
 // --- 1. wizard defaults, compiled from _data/*.yml --------------------------
 // Written first: core.js imports the generated module.
 
@@ -80,7 +103,7 @@ const core = await import(pathToFileURL(path.join(ROOT, 'assets/js/configurator/
 // --- 2. schema check --------------------------------------------------------
 
 const schema = readData('_data/schema.yml');
-const site = readData('_data/site.yml');
+const site = readData(SITE_DATA_PATH);
 
 const result = core.checkSchema(schema);
 if (!result.ok) {
@@ -112,29 +135,10 @@ if (fs.existsSync(configFile)) {
 // pointing at the template's repository until it is rewritten here.
 
 const contactFile = path.join(ROOT, CONTACT_LINKS_PATH);
-const repository = String(site.github?.repository || '').trim();
-const ownRepository = /^[\w.-]+\/[\w.-]+$/.test(repository);
 if (fs.existsSync(contactFile) && ownRepository) {
   const original = fs.readFileSync(contactFile, 'utf8');
   const patched = original.replace(/github\.com\/[\w.-]+\/[\w.-]+(?=\/)/g, `github.com/${repository}`);
   sync(CONTACT_LINKS_PATH, patched, `links point at ${repository}`);
-}
-
-// --- 6. links into our own repository, in _data/site.yml --------------------
-// Same problem one file over: the shipped footer has a "Maintainer guide" link
-// to a file in this repository, so a fork's public footer keeps pointing at the
-// template until someone rewrites it. Only file-view URLs (/blob/, /tree/,
-// /raw/, /edit/) are rewritten — those name a repository's own source, whereas
-// a bare github.com/org/project link in the footer is a deliberate link out.
-
-if (ownRepository) {
-  const siteFile = path.join(ROOT, SITE_DATA_PATH);
-  const original = fs.readFileSync(siteFile, 'utf8');
-  const patched = original.replace(
-    /github\.com\/[\w.-]+\/[\w.-]+(?=\/(?:blob|tree|raw|edit)\/)/g,
-    `github.com/${repository}`
-  );
-  sync(SITE_DATA_PATH, patched, `repository links point at ${repository}`);
 }
 
 // --- report -----------------------------------------------------------------
