@@ -8,6 +8,8 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.6.1] — 2026-08-18
+
 The launch guide, walked for real: a fresh copy of the template
 ([crypticpy/bchc-catalog-starter](https://github.com/crypticpy/bchc-catalog-starter),
 live at <https://crypticpy.github.io/bchc-catalog-starter/>) was made by
@@ -766,7 +768,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/crypticpy/bchc-template/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/crypticpy/bchc-template/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/crypticpy/bchc-template/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/crypticpy/bchc-template/compare/v1.3.0...v1.4.0
