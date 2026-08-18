@@ -8,6 +8,37 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-08-17
+
+Closes the four P3 findings the v1.0.0 panel left open, and settles the
+toolchain questions Dependabot raised.
+
+### Added
+
+- The 404 page carries the catalog search box (the same plain GET form as the
+  home hero) and the three newest entries, both driven by `_data/schema.yml`
+  and hidden when the `catalog` module is off.
+- "Browser support" section in `docs/design-system.md`.
+
+### Changed
+
+- Entry page: on wide screens the rail (contents, reuse, contact) now sits
+  beside the header instead of starting under it, so the top of the page has
+  no empty column; a rail taller than the viewport scrolls in place instead of
+  hiding its last card. DOM order — and therefore the reading order on phones
+  and screen readers — is unchanged.
+- Fact strip: cells align label and value rows across the strip, cap at three
+  values with a "+n" chip that names the rest, use two columns in the
+  1024–1279 px band beside the rail, and draw hairlines per cell so a short
+  last row no longer ends in a grey block.
+- Filter rail: pill labels are 13 px at `lg` (were 12); zero-count options
+  recede on three cues (muted ink, hairline border, 70 % opacity).
+- Dependencies: ESLint 10 (`@eslint/js` 10), `globals` 17, `js-yaml` 5
+  (`import * as yaml`).
+- Tailwind stays on 3.4 by decision — v4's browser floor is too high for the
+  audience — and Dependabot now ignores the major bump. Rationale in
+  `docs/design-system.md` and `docs/roadmap.md`.
+
 ## [1.0.0] — 2026-08-17
 
 The first release meant to be forked. Three review panels (visual, interaction,
@@ -136,6 +167,7 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/crypticpy/bchc-template/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/crypticpy/bchc-template/compare/38365a5...v1.0.0
 [0.1.0]: https://github.com/crypticpy/bchc-template/commits/38365a5
