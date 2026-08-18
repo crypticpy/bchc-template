@@ -25,11 +25,14 @@ concurrency:
   group: thumbnails-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   thumbnail:
+    permissions:
+      contents: write
+      # Re-dispatching validate.yml onto the branch this job just pushed to.
+      actions: write
     # Pull requests from forks run with a read-only token and cannot be pushed to.
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
@@ -40,6 +43,8 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
+          # The commit step below pushes, so the credentials have to stay.
+          # zizmor: ignore[artipacked]
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -84,6 +89,7 @@ jobs:
 
       - name: Commit thumbnails
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
           ENTRY_PATH: ${{ steps.entry-path.outputs.path }}
         run: |
@@ -97,3 +103,10 @@ jobs:
           fi
           git commit -m "chore: update entry thumbnails"
           git push origin "HEAD:refs/heads/$BRANCH"
+          # This push moves the head SHA the pull request's checks are attached
+          # to, and a GITHUB_TOKEN push does not re-trigger `pull_request` runs.
+          # Without this, a maintainer who saw green before the thumbnail commit
+          # merges a SHA nothing ever validated.
+          if ! gh workflow run validate.yml --ref "$BRANCH"; then
+            echo "Could not dispatch validate.yml; approve the parked run from the Actions tab." >&2
+          fi

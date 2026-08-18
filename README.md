@@ -27,15 +27,12 @@ This repository is shipped configured as the **Big Cities Health Coalition (BCHC
 ## Quick start
 
 1. **Use this template** on GitHub (or clone it) to create your own repository.
-2. **Enable GitHub Pages**: repository Settings → Pages → Source → **GitHub Actions**.
-3. **Allow Actions to open pull requests**: Settings → Actions → General → Workflow permissions → check **Allow GitHub Actions to create and approve pull requests**.
-4. **Create the content labels** the workflows watch for: run the **Bootstrap labels** workflow once from the Actions tab (`Actions → Bootstrap labels → Run workflow`), or create `content:new-entry`, `content:new-event`, `content:schedule`, `content:event-attachments`, `content:new-year` by hand.
-5. **Configure the site** — either:
-   - Push to GitHub first, then open `/setup/` on the deployed site and use the browser wizard (no terminal), or
-   - Locally: `npm install && npm run setup` (or `npm run setup -- --preset <id> --yes` for zero-prompt setup).
+2. **Turn on the three settings**: Pages source (Settings → Pages → Source → **GitHub Actions**), pull requests for Actions (Settings → Actions → General → Workflow permissions → **Allow GitHub Actions to create and approve pull requests**), and the content labels (Actions tab → **Bootstrap labels** → *Run workflow*).
+3. **Configure the site** — open `/setup/` on the deployed site for the browser wizard (no terminal), or run `npm install && npm run setup` locally. Both write `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`, `_config.yml` and `.github/ISSUE_TEMPLATE/new-entry.yml`, from the same four presets.
+4. **Delete the ten sample entries** — they are fictional organizations and they go live with your site. `grep -rl 'sample: true' catalog/` lists them.
+5. **Commit and push.** `Build & Deploy` publishes to `https://<owner>.github.io/<repo>/`, working out `url`/`baseurl` on its own (root domain for a `<owner>.github.io` repo or a `CNAME` file, `/<repo>` otherwise); an explicit `url` in `_config.yml` always wins.
 
-   Either path writes `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`, `_config.yml` and `.github/ISSUE_TEMPLATE/new-entry.yml`. Update `github.repository` in `_data/site.yml` to your `owner/repo` — it drives the submit-form links and "edit this page" links.
-6. **Commit and push.** The `Build & Deploy` workflow builds the site and publishes it to `https://<owner>.github.io/<repo>/`. The build works out the correct `url`/`baseurl` automatically (root domain for a `<owner>.github.io` repo or a `CNAME` file, `/<repo>` otherwise); an explicit `url` in `_config.yml` always wins.
+Each of those steps has a detail you will want on the day: **[`docs/launch.md`](docs/launch.md)** is the full tutorial — the same path with what breaks if you skip a step, a first test submission end to end, and the pre-launch checklist.
 
 ## How content gets in
 
@@ -71,7 +68,7 @@ Cohorts and events follow the same issue → automation → pull request pattern
 - **The entry content model** — `_data/schema.yml` (see [`docs/content-model.md`](docs/content-model.md))
 - **Events, cohort years, resource library** — `_data/events.yml`, `_data/cohorts/<year>.yml`, `_data/resources.yml`
 
-Full reference for every setting: [`docs/configuration.md`](docs/configuration.md).
+Full reference for every setting: [`docs/configuration.md`](docs/configuration.md). Every other document, and who each one is for: [`docs/index.md`](docs/index.md).
 
 ## Local development
 
@@ -114,7 +111,8 @@ catalog/<slug>/index.md  published entries; screenshots live in catalog/<slug>/s
                          (ten sample entries ship with the template, marked `sample: true`)
 cohorts/<year>/          cohort landing page + event pages (module: cohorts)
 styleguide/              /styleguide/ — live rendering of the design system against your theme (noindex)
-docs/                    admin-guide.md, configuration.md, content-model.md, design-brief.md, design-system.md, roadmap.md
+docs/                    index.md (start here), launch.md, admin-guide.md, incidents.md, configuration.md,
+                         content-model.md, decisions.md, glossary.md, design-brief.md, design-system.md, roadmap.md
 quality/                 pa11y-ci and Lighthouse CI config, plus urls.js (shared URL discovery for both)
 test/                    configurator/, plugins/, scripts/ and fixtures/ — Node's test runner + Ruby minitest
 ARCHITECTURE.md          how the pieces fit; CONTRIBUTING.md — working on the template itself; SECURITY.md

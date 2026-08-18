@@ -16,6 +16,12 @@ name: New entry from issue
 #
 # Set the repository variable SUBMISSIONS_OPEN to `false` to accept submissions
 # only from members and collaborators; leaving it unset keeps submissions open.
+#
+# Optional secret CONTENT_BOT_TOKEN (a fine-grained PAT or GitHub App token with
+# contents + pull-requests write): when it is set the pull request is authored by
+# a real actor, so `pull_request` workflows trigger natively. Without it the job
+# dispatches them itself — see the "Run the content checks" step and
+# docs/admin-guide.md § One-time repository setup.
 
 on:
   issues:
@@ -23,10 +29,8 @@ on:
       - opened
       - edited
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+# The job below declares exactly the scopes it needs; nothing is granted by default.
+permissions: {}
 
 # One run per issue: editing an issue three times in a minute must not leave
 # three jobs force-pushing the same branch at each other.
@@ -36,17 +40,30 @@ concurrency:
 
 jobs:
   scaffold:
+    # `state == 'open'` matters: editing a closed, already-merged submission —
+    # to fix a typo, to add a note — would otherwise force-push its branch again
+    # and try to edit a merged pull request.
     if: >-
-      contains(github.event.issue.labels.*.name, 'content:new-entry')
+      github.event.issue.state == 'open'
+      && contains(github.event.issue.labels.*.name, 'content:new-entry')
       && (vars.SUBMISSIONS_OPEN != 'false'
           || contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association))
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      # Dispatching validate.yml/quality.yml onto the generated branch.
+      actions: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          # The push below needs credentials; the checkout keeps them on purpose.
+          # zizmor: ignore[artipacked]
+          token: ${{ secrets.CONTENT_BOT_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -85,7 +102,7 @@ jobs:
                 '',
                 '> ' + detail.split('\n').join('\n> '),
                 '',
-                'Edit this issue to fix the problem and the automation will try again.'
+                'Edit this issue to fix the problem and the automation will try again. If the message above does not tell you what to change, comment here and a maintainer will help.'
               ].join('\n')
             });
             core.setFailed(detail);
@@ -101,6 +118,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
+          # `git add -A` is safe only because this step is gated on the
+          # scaffolder having succeeded: it writes screenshots one at a time, so
+          # a half-finished run would otherwise be committed as if it were whole.
           git add -A
           if git diff --cached --quiet; then
             echo "created=false" >> "$GITHUB_OUTPUT"
@@ -117,18 +137,27 @@ jobs:
         id: pr
         if: steps.commit.outputs.created == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.CONTENT_BOT_TOKEN || secrets.GITHUB_TOKEN }}
           BRANCH: ${{ steps.scaffold.outputs.branch }}
-          SLUG: ${{ steps.scaffold.outputs.slug }}
+          ENTRY_DIR: ${{ steps.scaffold.outputs.entry_dir }}
           ENTRY_TITLE: ${{ steps.scaffold.outputs.title }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           IMAGES: ${{ steps.scaffold.outputs.images }}
           WARNINGS: ${{ steps.scaffold.outputs.warnings }}
+          PREVIEW: ${{ steps.scaffold.outputs.preview }}
         run: |
           set -euo pipefail
+          # Everything between the braces is literal markdown; a backtick here is
+          # a code span, not a command substitution.
+          # shellcheck disable=SC2016
           {
             printf 'Scaffolded from issue #%s.\n\n' "$ISSUE_NUMBER"
             printf 'Closes #%s\n\n' "$ISSUE_NUMBER"
+            # The entry as a reader will meet it, so review is about the page and
+            # not about a YAML diff. Field selection comes from _data/schema.yml.
+            if [ -n "$PREVIEW" ]; then
+              printf '### The entry\n\n%s\n\n' "$PREVIEW"
+            fi
             if [ -n "$IMAGES" ]; then
               printf '### Screenshots downloaded\n\n%s\n\n' "$IMAGES"
             else
@@ -140,9 +169,9 @@ jobs:
             printf '### Maintainer checklist\n\n'
             printf -- '- [ ] The summary reads clearly to someone outside the submitting team\n'
             printf -- '- [ ] Front matter values match the schema options and nothing is missing\n'
-            printf -- '- [ ] Screenshots show no personal, protected or non-public information\n'
-            printf -- '- [ ] Any PDF or extra file is uploaded into `catalog/%s/`\n' "$SLUG"
-            printf -- '- [ ] The "Validate Content" check passes\n'
+            printf -- '- [ ] Screenshots opened at full size — no names, addresses, record numbers or email addresses visible\n'
+            printf -- '- [ ] Any PDF or extra file is uploaded into `%s/`\n' "$ENTRY_DIR"
+            printf -- '- [ ] **Validate Content** is green on the *latest* commit (re-check after any bot thumbnail commit)\n'
             printf -- '- [ ] Merge to publish\n'
           } > /tmp/pr-body.md
 
@@ -161,6 +190,40 @@ jobs:
             echo "url=$url" >> "$GITHUB_OUTPUT"
           fi
 
+      # A pull request opened with GITHUB_TOKEN does not trigger `pull_request`
+      # workflows — GitHub parks them behind "Approve and run" so that a bot
+      # cannot start a run by opening a PR. The maintainer then reads "waiting
+      # for approval" as "still running" and merges past the only content gate
+      # there is. `workflow_dispatch` is the documented exception: a dispatch
+      # fired with GITHUB_TOKEN runs immediately, and its check runs bind to the
+      # branch head SHA, which is the pull request's head SHA — so they show up
+      # in the Checks tab like any other run, just as separate entries.
+      #
+      # With CONTENT_BOT_TOKEN set the pull request has a real author and the
+      # normal triggers fire, so this step stands down rather than duplicating.
+      - name: Run the content checks on the new branch
+        if: steps.commit.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BOT_TOKEN: ${{ secrets.CONTENT_BOT_TOKEN }}
+          BRANCH: ${{ steps.scaffold.outputs.branch }}
+        run: |
+          set -euo pipefail
+          if [ -n "$BOT_TOKEN" ]; then
+            echo "CONTENT_BOT_TOKEN is set, so the pull request triggers its own checks." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "### Checks dispatched on \`$BRANCH\`" >> "$GITHUB_STEP_SUMMARY"
+          for workflow in validate.yml quality.yml; do
+            if gh workflow run "$workflow" --ref "$BRANCH"; then
+              echo "- \`$workflow\`" >> "$GITHUB_STEP_SUMMARY"
+            else
+              # Never fail the job over this: the pull request exists either way,
+              # and a maintainer can approve the parked runs by hand.
+              echo "- \`$workflow\` could not be dispatched; approve the parked run from the Actions tab." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+
       - name: Link the pull request from the issue
         if: steps.pr.outputs.url != ''
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -173,10 +236,10 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: [
-                'Thanks — a draft pull request is open for maintainer review:',
+                'Thanks. Your submission is now a pull request waiting for a maintainer:',
                 '',
                 process.env.PR_URL,
                 '',
-                'Comment here if anything needs changing; edit this issue and the automation runs again.'
+                'Nothing is published until a maintainer merges it. To change an answer, edit this issue — the automation will redo the pull request. To add a screenshot or a PDF, drag it onto this issue and edit it.'
               ].join('\n')
             });

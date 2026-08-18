@@ -5,7 +5,8 @@
  * Input (env):   ISSUE_BODY, ISSUE_TITLE, ISSUE_NUMBER, GITHUB_TOKEN (optional)
  * Output:        <entry path>/<slug>/index.md
  *                <entry path>/<slug>/screenshots/NN.<ext>  (downloaded images)
- *                $GITHUB_OUTPUT:  slug, branch, title, warnings, summary
+ *                $GITHUB_OUTPUT:  slug, entry_dir, branch, title, images,
+ *                                 warnings, preview
  *                $GITHUB_STEP_SUMMARY: a human-readable report
  *
  * Flags:         --dry-run   print the front matter instead of writing files
@@ -24,6 +25,7 @@ import path from 'node:path';
 import process from 'node:process';
 import * as yaml from 'js-yaml';
 
+import { fail, setOutput } from './lib/actions_output.mjs';
 import { frontMatter } from './lib/yaml.mjs';
 import { downloadImages, MAX_FILES } from './lib/images.mjs';
 import {
@@ -32,6 +34,7 @@ import {
   parseImageRefs,
   parseIssueForm,
   rawValue,
+  slugFallback,
   slugify,
   uniqueSlug,
 } from './lib/issue_body.mjs';
@@ -52,27 +55,8 @@ const SLUG_HEADING = 'slug';
 /** A slug is a folder name under the entry path, so keep it to this shape. */
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/**
- * Append a `key<<EOF … EOF` pair to $GITHUB_OUTPUT (no-op outside Actions).
- * @param {string} key
- * @param {string} value
- */
-function setOutput(key, value) {
-  if (!process.env.GITHUB_OUTPUT) return;
-  const delimiter = `GHEOF_${key}_${Math.random().toString(36).slice(2, 10)}`;
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, `${key}<<${delimiter}\n${value}\n${delimiter}\n`);
-}
-
-/**
- * Report a fatal problem on stderr and in $GITHUB_OUTPUT, then exit.
- * @param {string} message
- * @returns {never}
- */
-function fail(message) {
-  console.error(message);
-  setOutput('error', message);
-  process.exit(1);
-}
+/** Longest a single answer may be in the reviewer preview before it is cut. */
+const PREVIEW_MAX_CHARS = 240;
 
 /**
  * Write the run report to stdout and, in Actions, to the job summary.
@@ -133,8 +117,17 @@ const entryPath = String(schema.entry?.path || 'catalog');
 // The schema may cap how many screenshots an entry keeps; MAX_FILES is the ceiling.
 const maxImages = Math.min(Number(schema.entry?.max_images) || MAX_FILES, MAX_FILES);
 const slugOverride = sections.get(SLUG_HEADING);
-const slugSeed = slugify(slugOverride && slugOverride.toLowerCase() !== NO_RESPONSE ? slugOverride : title);
-if (!slugSeed) fail(`Could not derive a URL slug from the title ${JSON.stringify(title)}.`);
+let slugSeed = slugify(slugOverride && slugOverride.toLowerCase() !== NO_RESPONSE ? slugOverride : title);
+if (!slugSeed) {
+  // A title with no Latin characters at all (CJK, emoji) used to end the
+  // submission here, with "could not derive a URL slug" on the issue and no
+  // pull request. The folder name is not worth losing the entry over — the
+  // title itself is unaffected, and a maintainer can rename the folder.
+  slugSeed = slugFallback(issueNumber);
+  warnings.push(
+    `The title has no Latin characters, so the folder is named \`${slugSeed}\`. Rename the folder in this pull request if you want a different URL.`
+  );
+}
 
 const slug = uniqueSlug(slugSeed, (candidate) => fs.existsSync(path.join(ROOT, entryPath, candidate)));
 if (!slug)
@@ -242,6 +235,46 @@ for (const field of fields) {
 
 const content = `${frontMatter(entries)}\n${bodyText || 'Write-up forthcoming.'}\n`;
 
+// --- reviewer preview ------------------------------------------------------
+// Reviewing a generated pull request means reading a YAML diff to judge a page.
+// These lines put the entry itself in front of the maintainer, in the job
+// summary and in the pull request body. Which answers appear is a schema
+// decision: the fields the card shows (`card:`) are the ones a visitor reads
+// first, so they are the ones worth checking before merge — no key is named here.
+
+/**
+ * One answer, flattened to a single line short enough to skim.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function previewValue(value) {
+  const text = Array.isArray(value)
+    ? value.map((item) => (item && typeof item === 'object' ? item.label || item.src || '' : item)).join(', ')
+    : typeof value === 'boolean'
+      ? value
+        ? 'Yes'
+        : 'No'
+      : String(value ?? '');
+  // Newlines would break out of the bullet, and the text came from an issue.
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length > PREVIEW_MAX_CHARS ? `${flat.slice(0, PREVIEW_MAX_CHARS - 1)}…` : flat;
+}
+
+const values = new Map(entries);
+const previewLines = [];
+for (const field of fields) {
+  if (!field?.card || !values.has(field.key)) continue;
+  const rendered = previewValue(values.get(field.key));
+  if (rendered) previewLines.push(`- **${field.label || field.key}**: ${rendered}`);
+}
+// The first `textarea` is the entry's own summary — the sentence the catalog
+// leads with, and the one most likely to need rewriting before merge.
+const summaryField = fields.find((f) => f?.type === 'textarea');
+const summaryText = summaryField ? previewValue(values.get(summaryField.key)) : '';
+if (summaryText) previewLines.unshift(`> ${summaryText}`, '');
+
+const preview = previewLines.join('\n');
+
 // --- write and report ------------------------------------------------------
 
 const savedImages = Object.values(imageValues)
@@ -262,20 +295,29 @@ const summaryLines = [
   `## Scaffolded \`${entryPath}/${slug}/index.md\``,
   '',
   `- Source: issue #${issueNumber || '?'}`,
-  `- Title: ${title}`,
-  `- Files written: ${1 + savedImages.length}`,
+  `- Slug: \`${slug}\``,
+  `- Files written: ${1 + savedImages.length} (1 page, ${savedImages.length} screenshot${savedImages.length === 1 ? '' : 's'})`,
 ];
+if (preview) {
+  summaryLines.push('', `### ${title}`, '', preview);
+}
 if (savedImages.length > 0) {
   summaryLines.push('', '### Screenshots saved', ...savedImages.map((item) => `- \`${item.src}\``));
 }
-if (warnings.length > 0) {
-  summaryLines.push('', '### Warnings', ...warnings.map((warning) => `- ${warning}`));
-}
+summaryLines.push(
+  '',
+  warnings.length > 0 ? '### Warnings' : '### Warnings\n\nNone.',
+  ...(warnings.length > 0 ? ['', ...warnings.map((warning) => `- ${warning}`)] : [])
+);
 
 report(summaryLines.join('\n'));
 
 setOutput('slug', slug);
+// The folder, not just the slug: `entry.path` is a schema setting, so no
+// workflow should be spelling `catalog/` out for itself.
+setOutput('entry_dir', `${entryPath}/${slug}`);
 setOutput('branch', `entry/${slug}${issueNumber ? `-${issueNumber}` : ''}`);
 setOutput('title', title);
 setOutput('images', savedImages.map((item) => `- \`${item.src}\``).join('\n'));
 setOutput('warnings', warnings.map((warning) => `- ${warning}`).join('\n'));
+setOutput('preview', preview);

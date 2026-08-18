@@ -1,7 +1,7 @@
 # Architecture
 
 How the template is put together, and why. Read this before changing anything structural;
-`docs/configuration.md`, `docs/content-model.md` and `docs/admin-guide.md` cover day-to-day use.
+`docs/index.md` routes to the rest, and `docs/decisions.md` records the choices this file assumes.
 
 ## In one paragraph
 

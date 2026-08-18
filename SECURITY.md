@@ -92,6 +92,18 @@ maintainer runs it by hand, onto the branch they chose — and adds only derived
 `.jpg` files under the entry folder. Branch protection on the default branch is
 the backstop; see "What you should still do" below.
 
+**The optional `CONTENT_BOT_TOKEN` is a deliberate delegation.**
+By default the content workflows use the built-in `GITHUB_TOKEN`, which cannot
+trigger other workflows, so they dispatch the validation checks against the new
+branch by hand. A maintainer may instead add a `CONTENT_BOT_TOKEN` secret so the
+pull requests are opened as that token's user and trigger checks normally. That
+token is a real user's credential rather than a per-run one: scope it to this
+repository and to **Contents: write** and **Pull requests: write** only, give it
+a short expiry, and prefer a machine account. The workflows read it as
+`secrets.CONTENT_BOT_TOKEN || secrets.GITHUB_TOKEN`, so removing the secret
+returns them to the default path with no other change.
+See [docs/admin-guide.md](docs/admin-guide.md#checks-on-a-generated-pull-request).
+
 **Third-party actions are pinned.**
 Every `uses:` in `.github/workflows/` names a full commit SHA with the release
 tag in a trailing comment. Dependabot proposes updates weekly.

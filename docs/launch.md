@@ -1,0 +1,166 @@
+# Launch your catalog
+
+Start to finish: a copy of this template on GitHub, configured, emptied of the sample
+content, and carrying one entry you published yourself.
+
+- **Time:** about 40 minutes, most of it waiting for builds.
+- **You need:** a GitHub account, and permission to create a repository in your organization.
+- **You do not need:** a terminal, a server, or a CMS login. Everything below can be done in a
+  browser; where a terminal is faster, it is offered as an alternative.
+
+Reference material lives elsewhere and is linked as you need it: [configuration.md](configuration.md)
+for every setting, [content-model.md](content-model.md) for designing your own fields,
+[admin-guide.md](admin-guide.md) for the day-to-day once you are live.
+
+---
+
+## 1. Create the repository
+
+On the template repository, press **Use this template → Create a new repository**. Pick the
+organization that should own the catalog, name it, and make it **public** — GitHub Pages on a
+private repository needs a paid plan, and a public catalog is the point.
+
+Fork instead of templating only if you intend to send changes back upstream. A fork carries the
+template's whole history and its open issues; a template copy starts clean.
+
+## 2. Turn on the three GitHub settings
+
+Do these before configuring, because the browser configurator only exists once the site has been
+built and deployed at least once.
+
+- [ ] **Pages source.** Settings → Pages → Source → **GitHub Actions** (not "Deploy from a
+      branch"). Without this the `Build & Deploy` workflow has nowhere to publish to.
+- [ ] **Actions can open pull requests.** Settings → Actions → General → Workflow permissions →
+      tick **Allow GitHub Actions to create and approve pull requests**. Without this, every
+      content workflow — `new-entry`, `new-year`, `new-event`, `update-schedule`,
+      `update-event-attachments` — runs, does its work, and then fails on the last step.
+- [ ] **Create the content labels.** Actions tab → **Bootstrap labels** → **Run workflow**. It
+      creates `content:new-entry`, `content:new-event`, `content:schedule`,
+      `content:event-attachments` and `content:new-year`. The issue forms ask GitHub to apply
+      these labels; GitHub silently drops a label that does not exist yet, and the workflows are
+      triggered by the label, so a submission before this step just sits there.
+
+Push any commit (or run **Build & Deploy** from the Actions tab) and wait for the green tick. Your
+site is now at `https://<owner>.github.io/<repo>/`. The build works out `url` and `baseurl` on its
+own: the domain root for an `<owner>.github.io` repository or when a `CNAME` file is present,
+`/<repo>` otherwise.
+
+## 3. Configure the site
+
+Two paths, same result — both run the same code (`assets/js/configurator/core.js`) and write the
+same six files:
+
+| Path | How | Good for |
+|---|---|---|
+| Browser | Open `/setup/` on your deployed site | No terminal. Copy each generated file into GitHub's editor at the end. |
+| Terminal | `npm install && npm run setup` | Anyone with a checkout. Writes the files directly; `npm run setup -- --preset <id> --yes` skips every prompt. |
+
+Both write `_data/site.yml`, `_data/theme.yml`, `_data/schema.yml`, `_data/navigation.yml`,
+`_config.yml` and `.github/ISSUE_TEMPLATE/new-entry.yml`. Four starting presets ship: AI use case
+catalog, cohort/program portal, resource library, and blank.
+
+The wizard asks for your repository as `owner/repo` and writes it to `github.repository` in
+`_data/site.yml`. Get this right: it drives the submit form's issue links, every "Suggest an edit on
+GitHub" link, and the contact links in the issue chooser. The `Validate Content` check fails any
+pull request where `github.repository` still names the template's repository, so a copy that skips
+this step will not merge.
+
+Commit and push. Wait for `Build & Deploy`, then look at the site.
+
+## 4. Remove the sample entries
+
+The template ships with **ten worked examples** so the site looks real before you have content.
+They are fictional organizations — Baytown Metro, Prairie Ridge County, Lakeshore City — and they
+stay live on your public site until you delete them. Every one of them carries `sample: true` in
+its front matter:
+
+```sh
+grep -rl 'sample: true' catalog/     # lists exactly the folders to delete
+```
+
+No terminal? Search your repository on GitHub for `sample: true` (the search box at the top of the
+repository, scoped to "In this repository") — the results are the same list.
+
+- **If you ran `npm run setup`** it offered to delete them for you, but only when you changed the
+  entry model or picked a different preset. Run the `grep` above to see what is actually left.
+- **If you used `/setup/` in the browser** the wizard cannot touch your content, so delete them
+  yourself: open `catalog/` on GitHub, then for each folder that is not yours use the **⋯** menu →
+  **Delete directory**. Do it in one pull request so one click undoes the lot.
+
+Keep one sample until you have published your own first entry. An empty catalog is harder to
+sanity-check than a catalog with one thing in it, and step 6 gives you a real entry to replace it
+with.
+
+The other modules carry sample data too, in `_data/events.yml`, `_data/cohorts/2026.yml` and
+`_data/resources.yml`. If you left the `events`, `cohorts` or `resources` modules on in step 3,
+empty those files as well.
+
+## 5. Optional repository settings
+
+Neither is needed to launch; both are worth knowing about before you tell anyone about the site.
+
+- **`SUBMISSIONS_OPEN`** (Settings → Secrets and variables → Actions → **Variables**). Set it to
+  `false` and the issue-driven workflows only run for issues opened by the repository owner, an
+  organization member or a collaborator. Anyone can still open the issue — it just does not
+  scaffold a pull request, so you triage by hand. Delete the variable to reopen.
+- **`CONTENT_BOT_TOKEN`** (Settings → Secrets and variables → Actions → **Secrets**). A
+  fine-grained personal access token with `contents: write` and `pull requests: write` on this
+  repository. Pull requests opened with the default `GITHUB_TOKEN` do not trigger other workflows,
+  so the `Validate Content` check does not run on a scaffolded submission. Supply this secret and
+  the content workflows use it instead, so every generated pull request arrives with its checks
+  already running. Leave it unset and validation runs when you push a change to the branch.
+
+## 6. Publish a test entry
+
+Walk the real path, as a submitter would:
+
+1. Open `/submit/` on your site, fill it in with something obviously fake ("Test entry — delete
+   me"), and press the button at the end. A GitHub issue form opens in a new tab with your answers
+   already filled in.
+2. Attach a screenshot by dragging an image onto the issue body — this is the only step where
+   files can be added, and it is why the form hands you off to GitHub rather than submitting for
+   you.
+3. Submit the issue. Within a minute the **New entry from issue** workflow comments on it with a
+   link to a pull request containing `catalog/<slug>/index.md` and your screenshot.
+   - Nothing happened? Check the issue carries the `content:new-entry` label (step 2), and the
+     Actions tab for a failed run.
+   - The workflow comments the error back on the issue when scaffolding fails. Editing the issue
+     re-runs it.
+4. Review the pull request against the checklist in its body, then **merge**.
+
+## 7. Check it went live
+
+`Build & Deploy` runs on the merge; give it a couple of minutes, then confirm all four:
+
+- [ ] The entry page renders at `/catalog/<slug>/`, screenshot and all.
+- [ ] It appears on `/catalog/`, and filtering by one of its values keeps it on screen.
+- [ ] `/search.json` contains its title (open the URL and search the page).
+- [ ] The home page stat line counts it.
+
+Then delete the test entry the way you will delete a real one: remove `catalog/<slug>/` in a pull
+request and merge. That is the whole removal mechanism — see
+[incidents.md](incidents.md) for what to do when deleting the folder is not enough.
+
+## 8. Before you tell anyone
+
+- [ ] Sample entries deleted — `grep -rl 'sample: true' catalog/` returns nothing
+- [ ] `_data/site.yml` → `github.repository` is your repository
+- [ ] `_data/site.yml` → `footer.links` point at your organization and your own copy of the
+      maintainer guide, not the template's
+- [ ] `organization.contact_email` and `submit.fallback_email` are inboxes somebody reads
+- [ ] `submit.review_note` says what your organization must not be sent (protected health
+      information, credentials, non-public data)
+- [ ] `submit.turnaround` is a promise you can keep — it is shown to every submitter
+- [ ] Sample data cleared from `_data/events.yml`, `_data/cohorts/` and `_data/resources.yml`, or
+      those modules turned off in `_data/site.yml`
+- [ ] Branch protection on `main`: require a pull request before merging
+      (see [SECURITY.md](../SECURITY.md), "What you should still do")
+- [ ] You have opened one test submission yourself and merged it (steps 6–7)
+- [ ] Someone other than you has merged a pull request, so the process survives your holiday
+
+## Where to go next
+
+- [Maintainer guide](admin-guide.md) — reviewing submissions, editing entries, cohorts and events
+- [Configuration reference](configuration.md) — every key in `_data/*.yml`
+- [Content model](content-model.md) — when the shipped fields are not your fields
+- [When something has to come down](incidents.md) — takedowns and data spills

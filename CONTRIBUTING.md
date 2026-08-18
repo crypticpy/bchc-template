@@ -2,7 +2,9 @@
 
 Thanks for helping. This file is for people changing the **template itself** — templates, styles,
 scripts, workflows, docs. If you want to add or edit a *catalog entry*, you don't need any of this:
-use the site's **Submit** page, or follow `docs/admin-guide.md` if you maintain a deployment.
+use the site's **Submit** page, or follow `docs/admin-guide.md` if you maintain a deployment. If you
+have just created a repository from the template and want it launched, that is
+`docs/launch.md`. [`docs/index.md`](docs/index.md) routes to the rest.
 
 ## Local setup
 
@@ -58,8 +60,9 @@ Run these before opening a pull request; `validate.yml` and `quality.yml` run th
 7. **Accessibility is part of "done".** Keyboard path, focus visibility, 4.5:1 text contrast,
    `prefers-reduced-motion`, and names for icon-only controls. The a11y gate must stay green.
 8. **Document what you add.** New config keys → `docs/configuration.md`; new schema hints →
-   `docs/content-model.md`; new workflows/scripts → `ARCHITECTURE.md` and `docs/admin-guide.md`.
-   User-facing changes get a line in `CHANGELOG.md`.
+   `docs/content-model.md`; new workflows/scripts → `ARCHITECTURE.md` and `docs/admin-guide.md`;
+   a new document → a row in `docs/index.md`. A choice a future contributor would otherwise argue
+   with → `docs/decisions.md`. User-facing changes get a line in `CHANGELOG.md`.
 
 ## Adding a schema hint or field type (walkthrough)
 

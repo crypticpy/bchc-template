@@ -6,10 +6,9 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# Each job declares exactly the scopes it needs; `pages: write` and
+# `id-token: write` belong to the deploy job alone.
+permissions: {}
 
 concurrency:
   group: "pages"
@@ -18,10 +17,14 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
@@ -86,11 +89,83 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+
+  # A contributor opens an issue, a bot says a pull request is open, and then
+  # nothing — their entry goes live and they are never told. For a catalog that
+  # runs on peer contribution that message is the whole retention mechanism, so
+  # it is sent from the deploy that actually published the page.
+  announce:
+    needs: deploy
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    # Never let a courtesy comment turn a successful deploy red.
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Read the entry path from the schema
+        id: entry-path
+        run: |
+          set -euo pipefail
+          echo "value=$(ruby -ryaml -e 'puts((YAML.load_file("_data/schema.yml")["entry"] || {})["path"] || "catalog")')" >> "$GITHUB_OUTPUT"
+
+      - name: Tell the submitter their entry is live
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+          ENTRY_PATH: ${{ steps.entry-path.outputs.value }}
+        with:
+          script: |
+            const pageUrl = process.env.PAGE_URL;
+            if (!pageUrl) return;
+            const { owner, repo } = context.repo;
+
+            // Which pull request this push merged, and which entry it added.
+            const { data: pulls } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner, repo, commit_sha: context.sha,
+            });
+            const entryPath = process.env.ENTRY_PATH;
+            const filePattern = new RegExp(`^${entryPath}/([^/]+)/index\\.md$`);
+
+            for (const pull of pulls) {
+              if (!pull.merged_at) continue;
+              // The scaffolder writes "Closes #N" into the body it generates,
+              // so that is where the submitter's issue number lives.
+              const closes = /(?:^|\s)(?:closes|fixes|resolves)\s+#(\d+)/i.exec(pull.body || '');
+              if (!closes) continue;
+
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner, repo, pull_number: pull.number, per_page: 100,
+              });
+              const added = files
+                .filter((file) => file.status === 'added')
+                .map((file) => filePattern.exec(file.filename))
+                .find(Boolean);
+              if (!added) continue;
+
+              const url = `${pageUrl.replace(/\/$/, '')}/${entryPath}/${added[1]}/`;
+              await github.rest.issues.createComment({
+                owner, repo,
+                issue_number: Number(closes[1]),
+                body: `Your entry is now live at ${url}\n\nThank you for contributing it.`,
+              });
+            }

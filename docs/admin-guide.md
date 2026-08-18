@@ -16,6 +16,7 @@ Day-to-day operation of a site built from this template: repository setup, revie
   The generated issue forms (`.github/ISSUE_TEMPLATE/*.yml`) already apply these labels when someone opens the issue; you just need the labels to exist in the repo first, or GitHub silently drops them.
 - [ ] **`_data/site.yml` → `github.repository`**: set to this repo's `owner/repo`. Drives the submit form's issue links and every "edit on GitHub" link.
 - [ ] Configure branding/theme/schema via `/setup/` or `npm run setup` (see the [README](../README.md) quick start and [configuration reference](configuration.md)).
+- [ ] Optional: **`CONTENT_BOT_TOKEN`** — a fine-grained personal access token that makes the checks on generated pull requests run without a click. See [Checks on a generated pull request](#checks-on-a-generated-pull-request) below for what it changes and what to grant it.
 - [ ] Optional: custom domain — add a `CNAME` file at the repo root; the `pages.yml` build detects it and serves from the domain root.
 
 ## Who can submit
@@ -31,7 +32,7 @@ If you need to close submissions for a while, add a repository variable `SUBMISS
    - If scaffolding fails (e.g. missing title, duplicate slug), the workflow comments the error back on the issue instead of opening a PR. Editing the issue to fix the problem re-triggers the workflow (it also runs on `issues: edited`).
 3. Any images the submitter dropped into the issue are downloaded into the entry folder by the same workflow (see [Screenshots and images](#screenshots-and-images) below), so the pull request already contains the pictures — you review them, you do not have to fetch them.
 4. On the pull request, work through the checklist below.
-5. Merge. The `Build & Deploy` workflow runs on every push to `main` and republishes the site, usually within a couple of minutes.
+5. Merge. The `Build & Deploy` workflow runs on every push to `main` and republishes the site, usually within a couple of minutes. Once it has deployed, the automation comments the published URL back on the issue the submission came from ("Your entry is now live at …"), so the submitter hears the outcome without you writing anything. That comment is best-effort: if it does not appear, nothing is wrong with the deploy.
 
 ### Review checklist
 
@@ -60,6 +61,23 @@ Mechanics
 - [ ] The **Validate Content** check is green (`check_front_matter.rb` and `check_file_sizes.rb`).
 - [ ] If a slide deck was promised, it has been uploaded into `catalog/<slug>/` as `deck.pdf`.
 - [ ] The maintainer checklist in the pull request body is complete. (Generated PRs carry their own checklist; `.github/PULL_REQUEST_TEMPLATE.md` is the one hand-opened PRs get.)
+
+## Checks on a generated pull request
+
+A pull request opened by a workflow using the built-in `GITHUB_TOKEN` does not, by GitHub's design, trigger other workflows — otherwise a workflow could start itself in a loop. Left alone, that means the **Validate Content** and **Quality** checks on a submission's pull request sit at *"This workflow requires approval from a maintainer"* until someone clicks **Approve and run**.
+
+The template handles this without a token: after opening the pull request, each content workflow dispatches `validate.yml` and `quality.yml` against the new branch (`workflow_dispatch` is the exception to the no-loop rule). The run summary lists which workflows it dispatched. Two consequences worth knowing:
+
+- The check runs appear against the **branch**, not against the pull request, so they show up in the Actions tab and on the branch's commit rather than in the PR's own checks box. Look at the latest commit's status, which is what the review checklist asks for.
+- If the bot pushes again afterwards (the thumbnail job does this when a PDF is attached), the checks are re-dispatched for the new head commit. Always read the check status on the *latest* commit.
+
+**With `CONTENT_BOT_TOKEN` set**, the workflows push and open the pull request as that token's user instead, so the pull request triggers `validate.yml` and `quality.yml` normally, the checks appear in the PR's own checks box, and nothing is dispatched by hand. To set it up:
+
+1. Create a fine-grained personal access token (Settings → Developer settings → Personal access tokens → Fine-grained tokens), scoped to **this repository only**.
+2. Grant exactly two repository permissions: **Contents: Read and write** and **Pull requests: Read and write**. Nothing else is needed — the token never touches issues, actions or settings.
+3. Add it as a repository secret named `CONTENT_BOT_TOKEN` (Settings → Secrets and variables → Actions → Secrets).
+
+Give it a short expiry and re-issue it on a calendar reminder; the workflows fall back to `GITHUB_TOKEN` and the dispatch path the moment the secret is absent, so an expired token degrades rather than breaks. The token's user becomes the author of every content commit, so use a machine account if you would rather that not be a person's name. [SECURITY.md](../SECURITY.md) covers the trust this delegates.
 
 ## Editing or removing an existing entry
 
@@ -144,6 +162,15 @@ All four cohort/event workflows follow the same pattern as new-entry: issue → 
 - Confirm the issue actually carries the expected label (`content:new-entry`, etc.) — GitHub only applies labels from an issue form if they already exist in the repo (see setup checklist above).
 - Check Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" is enabled — this is the most common cause of a silently-failed `create-pull-request` step.
 - Check the workflow run itself: on a scaffolding failure, `new-entry.yml` comments the error onto the issue and fails the job rather than opening an empty PR.
+
+**Checks on a generated pull request say "waiting for approval"**
+- Expected on a fresh repository, and not a failure: pull requests opened with the built-in token cannot start other workflows. Either click **Approve and run**, or read the check runs the workflow dispatched against the branch (see [Checks on a generated pull request](#checks-on-a-generated-pull-request)).
+- If the workflow's run summary says a dispatch "could not be dispatched", the job lacked `actions: write` or the workflow file is not on the default branch yet — a dispatch can only target a workflow that already exists on `main`.
+- To make PR checks run normally instead, add a `CONTENT_BOT_TOKEN` secret as described in that section.
+
+**No "your entry is now live" comment after merging**
+- The comment is posted by the `announce` job in `pages.yml` after a successful deploy, and it is deliberately non-fatal: it only fires for a push to `main` whose commit belongs to a merged pull request that closed an issue (`Closes #123` in the PR body — generated PRs always have it) and that added an entry page. A hand-merged squash that rewrote the body, or an edit rather than a new entry, will not produce one.
+- Nothing about the site depends on it. Comment on the issue by hand and close it.
 
 **Thumbnails missing on an entry**
 - Confirm the PDF was actually added to `catalog/<slug>/` under the exact filename the schema expects (`deck.pdf` by default) and that the schema field has `thumbnail: true`.

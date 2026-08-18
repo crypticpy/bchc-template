@@ -3,15 +3,22 @@ name: Bootstrap labels
 # One-time setup helper. Run it from the Actions tab ("Run workflow") after
 # creating a repository from this template. Issue forms only apply labels that
 # already exist, and the content workflows are triggered by these labels.
+#
+# It also prints a short preflight to the run summary, because the two settings
+# the automation depends on are clicks in Settings that no workflow can see from
+# the outside and no README step reliably survives.
 on:
   workflow_dispatch:
 
-permissions:
-  issues: write
+permissions: {}
 
 jobs:
   labels:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      # Reading the Pages configuration in the preflight below.
+      pages: read
     steps:
       - name: Create content labels
         env:
@@ -26,3 +33,47 @@ jobs:
           create "content:event-attachments"  "1B8A7A" "Attach materials to a cohort event"
           create "content:new-year"           "1B8A7A" "Scaffold a new cohort year"
           echo "Labels are ready."
+
+      - name: Preflight the repository settings
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const settings = `https://github.com/${owner}/${repo}/settings`;
+            const rows = [['Labels', '✅', 'Created or refreshed by the step above.']];
+
+            // Pages: the source has to be "GitHub Actions", not a branch.
+            try {
+              const { data: pages } = await github.rest.repos.getPages({ owner, repo });
+              rows.push(
+                pages.build_type === 'workflow'
+                  ? ['Pages source', '✅', 'GitHub Actions.']
+                  : ['Pages source', '⚠️', `Set to "${pages.build_type}" — change it to GitHub Actions at ${settings}/pages`]
+              );
+            } catch (error) {
+              rows.push([
+                'Pages source',
+                '⚠️',
+                error.status === 404
+                  ? `Pages is not enabled. Turn it on, source "GitHub Actions", at ${settings}/pages`
+                  : `Could not read the Pages settings (${error.status}). Check ${settings}/pages`,
+              ]);
+            }
+
+            // GITHUB_TOKEN cannot be granted `administration: read`, so this one
+            // is a pointer rather than a verdict. It is still the setting that
+            // most often silently breaks the "Create pull request" step.
+            rows.push([
+              'Actions may open pull requests',
+              'ℹ️',
+              `Confirm "Allow GitHub Actions to create and approve pull requests" at ${settings}/actions`,
+            ]);
+
+            await core.summary
+              .addHeading('Catalog preflight', 3)
+              .addTable([
+                [{ data: 'Setting', header: true }, { data: '', header: true }, { data: 'What to do', header: true }],
+                ...rows,
+              ])
+              .addLink('Full launch guide', `https://github.com/${owner}/${repo}/blob/HEAD/docs/launch.md`)
+              .write();
