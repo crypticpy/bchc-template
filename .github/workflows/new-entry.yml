@@ -107,6 +107,17 @@ jobs:
             });
             core.setFailed(detail);
 
+      # The scaffolder saves whatever the submitter attached, at whatever size
+      # their screen produced. This writes the AVIF/WebP width variants beside
+      # each one and records them in _data/derivatives.json, so the pull request
+      # carries the images the site will actually serve. Never fatal: without
+      # derivatives _includes/picture.html emits the plain <img> it always did,
+      # and a broken encoder must not cost a submitter their pull request.
+      - name: Build responsive image derivatives
+        if: steps.scaffold.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/derive_images.mjs
+
       - name: Commit the entry on a new branch
         id: commit
         if: steps.scaffold.outcome == 'success'
@@ -177,15 +188,21 @@ jobs:
 
           # An `issues: edited` re-run reuses the pull request that already
           # points at this branch instead of failing.
+          # The label is safe to pass unconditionally: this job only runs for an
+          # issue that already carries `content:new-entry`, so the label exists.
+          # It is what makes generated submissions filterable in the pull
+          # request list, where nothing else distinguishes them.
           url="$(gh pr view "$BRANCH" --json url --jq .url 2>/dev/null || true)"
           if [ -n "$url" ]; then
-            gh pr edit "$BRANCH" --title "Add entry: $ENTRY_TITLE" --body-file /tmp/pr-body.md
+            gh pr edit "$BRANCH" --title "Add entry: $ENTRY_TITLE" --body-file /tmp/pr-body.md \
+              --add-label content:new-entry
             echo "url=" >> "$GITHUB_OUTPUT"
           else
             url="$(gh pr create \
               --base "${GITHUB_REF_NAME}" \
               --head "$BRANCH" \
               --title "Add entry: $ENTRY_TITLE" \
+              --label content:new-entry \
               --body-file /tmp/pr-body.md)"
             echo "url=$url" >> "$GITHUB_OUTPUT"
           fi

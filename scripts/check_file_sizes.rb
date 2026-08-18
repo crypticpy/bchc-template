@@ -4,6 +4,13 @@
 # GitHub rejects pushes containing files over 100 MB and Pages artifacts get
 # unwieldy long before that. Fail hard at 50 MB, nudge at 10 MB.
 #
+# Images get a much lower nudge (2 MB), because 10 MB is nowhere near the size
+# at which a screenshot starts hurting: a retina PNG straight out of a phone or
+# a 5K display lands at 2-4 MB and is painted into a 356px box. `npm run images`
+# writes the AVIF/WebP variants that keep that off the wire, but the original is
+# still what a reader on a browser without them downloads, and it is still what
+# every clone of the repository carries.
+#
 # Walks the whole repo tree (skipping .git, node_modules, vendor, _site) and
 # reports any file over the thresholds.
 #
@@ -18,11 +25,14 @@ require "find"
 MEGABYTE = 1024 * 1024
 FAIL_BYTES = 50 * MEGABYTE
 WARN_BYTES = 10 * MEGABYTE
+IMAGE_WARN_BYTES = 2 * MEGABYTE
+IMAGE_EXTENSIONS = %w[.png .jpg .jpeg .gif .webp .avif .tif .tiff .bmp].freeze
 SKIP_DIRS = %w[.git node_modules vendor _site].freeze
 
 root = File.expand_path("..", __dir__)
 failures = []
 warnings = []
+image_warnings = []
 
 Find.find(root) do |path|
   if File.directory?(path)
@@ -40,10 +50,18 @@ Find.find(root) do |path|
     failures << "#{rel} is #{megabytes} (limit 50 MB)"
   elsif size > WARN_BYTES
     warnings << "#{rel} is #{megabytes}"
+  elsif size > IMAGE_WARN_BYTES && IMAGE_EXTENSIONS.include?(File.extname(path).downcase)
+    image_warnings << "#{rel} is #{megabytes}"
   end
 end
 
 warnings.each { |warning| warn "Warning: large file — #{warning}" }
+
+if image_warnings.any?
+  warn "Warning: large source images — re-export these smaller, or crop them; " \
+       "`npm run images` writes the responsive variants but cannot shrink the original:"
+  image_warnings.each { |warning| warn "  - #{warning}" }
+end
 
 if failures.any?
   warn "File size check failed:"

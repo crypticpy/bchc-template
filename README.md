@@ -130,7 +130,7 @@ catalog/<slug>/index.md  published entries; screenshots live in catalog/<slug>/s
 cohorts/<year>/          cohort landing page + event pages (module: cohorts)
 styleguide/              /styleguide/ — live rendering of the design system against your theme (noindex)
 docs/                    index.md (start here), launch.md, admin-guide.md, incidents.md, configuration.md,
-                         content-model.md, decisions.md, glossary.md, design-brief.md, design-system.md, roadmap.md
+                         content-model.md, decisions.md, glossary.md, images.md, design-brief.md, design-system.md, roadmap.md
 quality/                 pa11y-ci and Lighthouse CI config, plus urls.js (shared URL discovery for both)
 test/                    configurator/, plugins/, scripts/ and fixtures/ — Node's test runner + Ruby minitest
 ARCHITECTURE.md          how the pieces fit; CONTRIBUTING.md — working on the template itself; SECURITY.md

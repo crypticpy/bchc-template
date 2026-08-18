@@ -33,16 +33,29 @@ Local assigns are prefixed `gal_` so nothing leaks into the caller's scope.
       {%- assign gal_item = gal_i | image_item: gal_fallback -%}
       {%- if gal_item.src == '' -%}{%- continue -%}{%- endif -%}
       {%- if gal_item.src contains '://' -%}{%- assign gal_src = gal_item.src -%}{%- else -%}{%- assign gal_src = gal_item.src | relative_url -%}{%- endif -%}
+      {%- comment -%} `sizes` per shape, measured off the built entry page at
+      390/480/639/640/768/900/1023/1024/1279/1280+ rather than guessed, and rounded
+      UP at every breakpoint (under-stating `sizes` ships a blurry image; over-stating
+      it costs a few KB). Measured maxima: two-up lead 605px below 640, 46.9vw to
+      1023, 436px above; the prose column the full-width lead fills is 607px below
+      640, 975px to 1023, 888px above. Re-measure if the grid classes above change.
+      {%- endcomment -%}
       {%- if gal_count <= 2 -%}
         {%- assign gal_shape = 'gallery-lead' -%}{%- assign gal_span = '' -%}
+        {%- assign gal_sizes = '(min-width: 1024px) 440px, (min-width: 640px) 47vw, 95vw' -%}
       {%- elsif forloop.first -%}
         {%- assign gal_shape = 'gallery-lead' -%}{%- assign gal_span = 'col-span-3 sm:col-span-5' -%}
+        {%- assign gal_sizes = '(min-width: 1280px) 888px, (min-width: 1024px) 70vw, 96vw' -%}
       {%- else -%}
         {%- assign gal_shape = 'gallery-thumb' -%}{%- assign gal_span = '' -%}
+        {%- assign gal_sizes = '(min-width: 1280px) 172px, (min-width: 640px) 19vw, 32vw' -%}
       {%- endif -%}
       <li class="{{ gal_span }}">
         <button type="button" class="{{ gal_shape }}" data-gallery-open="{{ forloop.index0 }}" data-gallery-src="{{ gal_src | escape }}" data-gallery-alt="{{ gal_item.alt | escape }}" aria-haspopup="dialog" aria-label="Image {{ forloop.index }} of {{ gal_count }}: {{ gal_item.alt | escape }}">
-          <img src="{{ gal_src | escape }}" alt="{{ gal_item.alt | escape }}"{% unless forloop.first %} loading="lazy" decoding="async"{% endunless %}>
+          {%- comment -%} The lightbox keeps loading the source file (data-gallery-src
+          above): it is shown at up to 70vh, which is the one place the full-size
+          original earns its bytes. {%- endcomment -%}
+          {% include picture.html src=gal_item.src alt=gal_item.alt sizes=gal_sizes eager=forloop.first %}
         </button>
       </li>
     {%- endfor -%}
@@ -82,7 +95,8 @@ Local assigns are prefixed `gal_` so nothing leaks into the caller's scope.
     {%- endif -%}
 <a class="group flex items-center gap-4 rounded-xl border border-brand-line bg-surface-card p-3 transition-colors duration-120 ease-brand hover:border-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30" href="{{ gal_v | relative_url | escape }}" download>
   {%- if gal_thumb and gal_thumb != '' -%}
-  <img class="h-20 w-16 shrink-0 rounded-md border border-brand-line object-cover object-top" src="{{ gal_thumb | relative_url | escape }}" alt="First page of {{ gal_f.label | downcase | escape }}" loading="lazy" decoding="async">
+  {%- capture gal_thumb_alt -%}First page of {{ gal_f.label | downcase }}{%- endcapture -%}
+  {% include picture.html src=gal_thumb alt=gal_thumb_alt sizes="64px" class="h-20 w-16 shrink-0 rounded-md border border-brand-line object-cover object-top" %}
   {%- else -%}
   <span class="inline-flex h-20 w-16 shrink-0 items-center justify-center rounded-md border border-brand-line text-brand-muted">{% include icon.html name='document' size='lg' %}</span>
   {%- endif -%}
