@@ -3,15 +3,19 @@ Catalog card. One <li> for a <ul role="list" data-entry-grid>.
 
 Usage: {% include entry-card.html entry=entry %}
 Params: entry (required); eager (optional; true = the media image loads eagerly —
-        pass it for the first row of a grid so the LCP image is not lazy-loaded).
+        pass it for the first row of a grid so the LCP image is not lazy-loaded);
+        fetchpriority (optional; true = fetchpriority="high" on the media image —
+        pass it for the ONE card that holds the page's LCP candidate).
 
 Everything on the card comes from `_data/schema.yml` presentation hints, resolved by
 _plugins/schema_filters.rb — no field key is named here. Slot caps are enforced by
 this template (design-brief.md → Catalog card):
-  media    16:9 band, rendered only when entry-thumb.html resolves a real image
+  media    16:7 band, rendered only when entry-thumb.html resolves a real image
   badge    "Featured" + the first `card: badge` field (over the image, or inline
            at the start of the meta line when there is no image)
-  meta     <= 2 segments from `card: meta` fields in weight order, joined with ·
+  meta     <= 2 segments from `card: meta` fields in weight order, joined with ·,
+           on exactly ONE line — the lead segment truncates and carries its full
+           value in a sibling sr-only span
   title    h3, the ONLY link on the card; its ::after covers the whole card
   line     the first `card: line` field (icon + one semibold line)
   summary  2-line clamp
@@ -36,7 +40,7 @@ Local assigns are prefixed `ec_`.
 {%- assign ec_line_field = ec_fields | card_fields: 'line' | first -%}
 {%- assign ec_chip_field = ec_fields | card_fields: 'chip' | first -%}
 
-{%- capture ec_thumb -%}{% include entry-thumb.html entry=ec_entry eager=include.eager %}{%- endcapture -%}
+{%- capture ec_thumb -%}{% include entry-thumb.html entry=ec_entry eager=include.eager fetchpriority=include.fetchpriority %}{%- endcapture -%}
 {%- assign ec_thumb = ec_thumb | strip -%}
 {%- assign ec_has_image = false -%}
 {%- if ec_thumb != '' -%}{%- assign ec_has_image = true -%}{%- endif -%}
@@ -64,7 +68,7 @@ Local assigns are prefixed `ec_`.
         {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='accent' icon='star' %}{%- endif -%}
         {%- if ec_badge_value != '' -%}
           {%- assign ec_bm = ec_badge_field | option_meta: ec_badge_value -%}
-          {% include badge.html label=ec_bm.short tone='on-dark' icon=ec_bm.icon title=ec_badge_value %}
+          {% include badge.html label=ec_bm.short tone='on-dark' icon=ec_bm.icon %}
         {%- endif -%}
       </div>
     </div>
@@ -79,7 +83,8 @@ Local assigns are prefixed `ec_`.
         {%- if ec_vals.size > 0 -%}
           {%- assign ec_raw = ec_vals | first -%}
           {%- assign ec_text = ec_f | option_short: ec_raw -%}
-          <span class="entry-meta-seg{% if ec_seg == 0 %} entry-meta-seg--lead{% endif %}" title="{{ ec_f.label | escape }}: {{ ec_raw | escape }}">{{ ec_text | escape }}</span>
+          {%- comment -%} The full value goes to the screen reader and the truncated short form to the eye. A `title` would carry it to a hovering mouse only, and would double-announce. {%- endcomment -%}
+          <span class="entry-meta-seg{% if ec_seg == 0 %} entry-meta-seg--lead{% endif %}"><span class="sr-only">{{ ec_f.label | escape }}: {{ ec_raw | escape }}</span><span aria-hidden="true">{{ ec_text | escape }}</span></span>
           {%- assign ec_seg = ec_seg | plus: 1 -%}
         {%- endif -%}
       {%- endfor -%}
@@ -92,13 +97,15 @@ Local assigns are prefixed `ec_`.
     {%- if ec_meta_line != '' or ec_inline_badges -%}
       <p class="entry-meta">
         {%- if ec_inline_badges -%}
-          {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='accent' icon='star' %}{%- endif -%}
-          {%- if ec_badge_value != '' -%}
-            {%- assign ec_bm2 = ec_badge_field | option_meta: ec_badge_value -%}
-            {% include badge.html label=ec_bm2.short tone='primary' icon=ec_bm2.icon title=ec_badge_value %}
-          {%- endif -%}
+          <span class="entry-meta-badges">
+            {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='accent' icon='star' %}{%- endif -%}
+            {%- if ec_badge_value != '' -%}
+              {%- assign ec_bm2 = ec_badge_field | option_meta: ec_badge_value -%}
+              {% include badge.html label=ec_bm2.short tone='primary' icon=ec_bm2.icon %}
+            {%- endif -%}
+          </span>
         {%- endif -%}
-        {{ ec_meta_line }}
+        {%- if ec_meta_line != '' -%}<span class="entry-meta-segs">{{ ec_meta_line }}</span>{%- endif -%}
       </p>
     {%- endif -%}
 
@@ -123,7 +130,7 @@ Local assigns are prefixed `ec_`.
       {%- if ec_chips.size > 0 -%}
         <ul class="entry-chips" aria-label="{{ ec_chip_field.label | escape }}">
           {%- for ec_v in ec_chips limit: ec_chip_cap -%}
-            <li><span class="chip" title="{{ ec_v | escape }}">{{ ec_chip_field | option_short: ec_v }}</span></li>
+            <li><span class="chip"><span class="sr-only">{{ ec_v | escape }}</span><span aria-hidden="true">{{ ec_chip_field | option_short: ec_v | escape }}</span></span></li>
           {%- endfor -%}
           {%- if ec_chips.size > ec_chip_cap -%}
             {%- assign ec_chip_more = ec_chips.size | minus: ec_chip_cap -%}

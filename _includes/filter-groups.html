@@ -19,6 +19,7 @@ Markup contract (assets/js/filters.js):
         </button>
         … pills past the 8th carry data-overflow and hidden …
         <button data-show-all data-more="N">Show all N</button>
+      <details class="facet-glossary">  ← only when an option has a description
 
 Local assigns are prefixed `fg_`.
 {%- endcomment -%}
@@ -61,12 +62,31 @@ Local assigns are prefixed `fg_`.
               <div class="filter-options">
                 {%- for fg_opt in fg_options -%}
                   {%- assign fg_om = fg_f | option_meta: fg_opt -%}
-                  {%- capture fg_title -%}{{ fg_opt }}{% if fg_om.description != '' %} — {{ fg_om.description }}{% endif %}{%- endcapture -%}
-                  <button type="button" class="filter-pill{% if forloop.index > 8 %} hidden{% endif %}" {% if forloop.index > 8 %}data-overflow {% endif %}data-filter-key="{{ fg_f.key | replace: '_', '-' }}" data-filter-mode="{{ fg_mode }}" data-filter-value="{{ fg_opt | slugify }}" data-filter-label="{{ fg_opt | escape }}" title="{{ fg_title | escape }}" aria-pressed="false"><span>{{ fg_om.short }}</span><span class="filter-count" data-filter-count aria-hidden="true"></span><span class="sr-only" data-filter-count-sr></span></button>
+                  {%- comment -%} No `title`: it reaches a hovering mouse only, and as an
+                  accessible description it is read after the name on every arrow-key pass,
+                  so the pill's name stays the clean "Pilot, 12 matches" the count wiring
+                  produces. The descriptions are in the disclosure below instead. {%- endcomment -%}
+                  <button type="button" class="filter-pill{% if forloop.index > 8 %} hidden{% endif %}" {% if forloop.index > 8 %}data-overflow {% endif %}data-filter-key="{{ fg_f.key | replace: '_', '-' }}" data-filter-mode="{{ fg_mode }}" data-filter-value="{{ fg_opt | slugify }}" data-filter-label="{{ fg_opt | escape }}" aria-pressed="false"><span>{{ fg_om.short }}</span><span class="filter-count" data-filter-count aria-hidden="true"></span><span class="sr-only" data-filter-count-sr></span></button>
                 {%- endfor -%}
               </div>
               {%- if fg_options.size > 8 -%}
                 <button type="button" class="filter-showall" data-show-all data-count="{{ fg_options.size }}">Show all {{ fg_options.size }}</button>
+              {%- endif -%}
+              {%- comment -%} The taxonomy explains itself once per facet, to everyone:
+              collapsed so it never crowds the 272px rail, and outside .filter-options so
+              the "Show all n" reveal and the pill reordering in filters.js never see it. {%- endcomment -%}
+              {%- capture fg_gloss -%}
+                {%- for fg_opt in fg_options -%}
+                  {%- assign fg_gom = fg_f | option_meta: fg_opt -%}
+                  {%- if fg_gom.description != '' -%}<dt>{{ fg_opt | escape }}</dt><dd>{{ fg_gom.description | escape }}</dd>{%- endif -%}
+                {%- endfor -%}
+              {%- endcapture -%}
+              {%- assign fg_gloss = fg_gloss | strip -%}
+              {%- if fg_gloss != '' -%}
+                <details class="facet-glossary">
+                  <summary>What do these mean?</summary>
+                  <dl>{{ fg_gloss }}</dl>
+                </details>
               {%- endif -%}
             </fieldset>
           {%- endif -%}

@@ -159,3 +159,21 @@ export function statusText(shown, total, singular, plural, names = []) {
 export function countLabel(n) {
   return ' (' + n + (n === 1 ? ' match)' : ' matches)');
 }
+
+/**
+ * The members of `next` that were not in `prev` — the cards that just joined the
+ * result set. Everything that survived a filter change is deliberately absent, so
+ * the caller can animate the arrivals and leave the survivors untouched.
+ * @template T
+ * @param {Iterable<T>|null|undefined} prev keys visible before this render.
+ * @param {Iterable<T>|null|undefined} next keys visible after it.
+ * @returns {Set<T>} the arrivals, in `next` order.
+ */
+export function enteredKeys(prev, next) {
+  const before = prev instanceof Set ? prev : new Set(prev || []);
+  const entered = new Set();
+  for (const key of next || []) {
+    if (!before.has(key)) entered.add(key);
+  }
+  return entered;
+}

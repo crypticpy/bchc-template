@@ -33,6 +33,7 @@ import { applyOrder, comparatorFor } from './lib/entry-order.js';
 import {
   countLabel,
   countValue,
+  enteredKeys,
   facetMatches,
   parseQuery,
   pluralize,
@@ -76,6 +77,11 @@ import {
   // No announcement until the visitor has actually changed something: the boot
   // render would otherwise interrupt whatever the screen reader is reading.
   let booted = false;
+  // Card indices visible after the last render, so the next one can tell the
+  // arrivals from the cards that survived the change. Empty until boot, which is
+  // why the first render marks nothing: a page-load fade is the blink, not the fix.
+  let visible = new Set();
+  let emptyShown = false;
 
   const sheet = initFilterSheet();
 
@@ -291,17 +297,38 @@ import {
   }
 
   /**
+   * Fade elements in from the next paint. `is-entering` holds them at opacity 0
+   * for one painted frame (hence the double rAF — one frame is not guaranteed to
+   * paint), and the CSS transition runs as the class comes off.
+   * @param {Element[]} els
+   */
+  function markEntering(els) {
+    if (!els.length) return;
+    els.forEach((el) => el.classList.add('is-entering'));
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() => els.forEach((el) => el.classList.remove('is-entering')))
+    );
+  }
+
+  /**
    * Full re-render: show/hide cards, recompute per-pill live counts, update the
    * count/empty-state text, reorder the grid and sync the sort/view controls.
    * Called after any state change (`update()`) and on `catalog:search`/`popstate`.
+   *
+   * Only the cards that just entered the result set fade in; the ones that were
+   * already there do not move. Fading the whole grid told the visitor that
+   * *something* changed, which is the one thing they already knew.
    */
   function render() {
-    let shown = 0;
+    const nowVisible = new Set();
     cards.forEach((card, i) => {
       const ok = facetMatches(facets[i], state, null) && searchOk(i);
       card.classList.toggle('hidden', !ok);
-      if (ok) shown++;
+      if (ok) nowVisible.add(i);
     });
+    const entering = booted ? Array.from(enteredKeys(visible, nowVisible), (i) => cards[i]) : [];
+    visible = nowVisible;
+    const shown = nowVisible.size;
 
     renderPills();
 
@@ -331,8 +358,15 @@ import {
       el.textContent = active.length ? ' (' + active.length + ')' : '';
     });
 
-    if (emptyState) emptyState.classList.toggle('hidden', shown !== 0 || total === 0);
-    grid.classList.toggle('hidden', shown === 0 && total > 0);
+    const showEmpty = shown === 0 && total > 0;
+    if (emptyState) {
+      emptyState.classList.toggle('hidden', !showEmpty);
+      // A zero-result filter is the moment a visitor is most likely to think they
+      // broke something, so the empty state settles in rather than snapping.
+      if (booted && showEmpty && !emptyShown) entering.push(emptyState);
+    }
+    emptyShown = showEmpty;
+    grid.classList.toggle('hidden', showEmpty);
     if (emptyCause) {
       const names = active.map((a) => a.label);
       if (q) names.push('“' + q + '”');
@@ -342,6 +376,7 @@ import {
     }
 
     appliedOrder = applyOrder(grid, cards, comparatorFor(sort, cards, window.__searchOrder), appliedOrder);
+    markEntering(entering);
     announce(shown, total);
     if (sortSelect) {
       sortSelect.value = sort;
@@ -355,16 +390,8 @@ import {
     viewButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewToggle === view)));
   }
 
-  function fade() {
-    grid.classList.add('is-fading');
-    window.requestAnimationFrame(() =>
-      window.requestAnimationFrame(() => grid.classList.remove('is-fading'))
-    );
-  }
-
   function update(push) {
     writeUrl(push !== false);
-    fade();
     render();
   }
 

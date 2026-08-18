@@ -32,20 +32,21 @@ Local assigns are prefixed `er_`.
       {%- assign er_vals = er_entry[er_f.key] | as_list -%}
       {%- if er_vals.size > 0 -%}
         {%- assign er_raw = er_vals | first -%}
-        <span class="entry-meta-seg{% if er_seg == 0 %} entry-meta-seg--lead{% endif %}" title="{{ er_f.label | escape }}: {{ er_raw | escape }}">{{ er_f | option_short: er_raw | escape }}</span>
+        {%- comment -%} Same anatomy as entry-card.html: full value to the screen reader, truncated short form to the eye, no `title`. {%- endcomment -%}
+        <span class="entry-meta-seg{% if er_seg == 0 %} entry-meta-seg--lead{% endif %}"><span class="sr-only">{{ er_f.label | escape }}: {{ er_raw | escape }}</span><span aria-hidden="true">{{ er_f | option_short: er_raw | escape }}</span></span>
         {%- assign er_seg = er_seg | plus: 1 -%}
       {%- endif -%}
     {%- endfor -%}
   {%- endcapture -%}
   {%- assign er_meta_line = er_meta_line | strip -%}
-  {%- if er_meta_line != '' -%}<p class="entry-meta">{{ er_meta_line }}</p>{%- endif -%}
+  {%- if er_meta_line != '' -%}<p class="entry-meta"><span class="entry-meta-segs">{{ er_meta_line }}</span></p>{%- endif -%}
 
   {%- if er_chip_field -%}
     {%- assign er_chips = er_entry[er_chip_field.key] | as_list -%}
     {%- if er_chips.size > 0 -%}
       <ul class="entry-chips" aria-label="{{ er_chip_field.label | escape }}">
         {%- for er_v in er_chips limit: 2 -%}
-          <li><span class="chip" title="{{ er_v | escape }}">{{ er_chip_field | option_short: er_v | escape }}</span></li>
+          <li><span class="chip"><span class="sr-only">{{ er_v | escape }}</span><span aria-hidden="true">{{ er_chip_field | option_short: er_v | escape }}</span></span></li>
         {%- endfor -%}
         {%- if er_chips.size > 2 -%}
           {%- assign er_chip_more = er_chips.size | minus: 2 -%}

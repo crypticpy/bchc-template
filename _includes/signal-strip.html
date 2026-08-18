@@ -42,7 +42,8 @@ Local assigns are prefixed `ss_`.
       {%- assign ss_tone = 'signal' -%}
       {%- if ss_om.tone == 'warn' -%}{%- assign ss_tone = 'signal-warn' -%}{%- elsif ss_om.tone == 'primary' -%}{%- assign ss_tone = 'signal-primary' -%}{%- endif -%}
       {%- capture ss_sig_label -%}{{ ss_f.label }}: {{ ss_v }}{%- endcapture -%}
-      <span class="{{ ss_tone }}" title="{{ ss_sig_label | escape }}">{% include icon.html name=ss_om.icon size='xs' %}<span aria-hidden="true">{{ ss_om.short | escape }}</span><span class="sr-only">{{ ss_sig_label | escape }}</span></span>
+      {%- comment -%} No `title`: the sr-only span below already carries the same string, and a title on it becomes an accessible description that repeats the name. {%- endcomment -%}
+      <span class="{{ ss_tone }}">{% include icon.html name=ss_om.icon size='xs' %}<span aria-hidden="true">{{ ss_om.short | escape }}</span><span class="sr-only">{{ ss_sig_label | escape }}</span></span>
       {%- assign ss_shown = ss_shown | plus: 1 -%}
       {%- assign ss_glyphs = ss_glyphs | plus: 1 -%}
     {%- endfor -%}

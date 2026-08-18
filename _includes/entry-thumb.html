@@ -3,12 +3,24 @@ Entry image, resolved honestly — no generated placeholder.
 
 Usage: {% include entry-thumb.html entry=page img_class="rounded-md" %}
 Params: entry (required, an entry page object), img_class (extra classes on the <img>),
-        eager (optional; true = loading="eager" for above-the-fold cards, default lazy).
+        eager (optional; true = loading="eager" for above-the-fold cards, default lazy),
+        fetchpriority (optional; true = fetchpriority="high" — pass it for the ONE
+        image that is the page's LCP candidate, never for a row of them).
 
 Fallback order: explicit `thumbnail` front matter -> the first image of the first
 `images`-type schema field -> `<entry.dir>thumb.jpg` when it exists on disk -> NOTHING.
 Callers MUST treat empty output as "this entry has no picture" and omit the media
 band entirely (capture the include and check for blank), per design-brief principle 5.
+
+Presentation-only front matter, like `thumbnail`/`thumbnail_alt` and deliberately not
+in schema.yml (it describes one picture, not the entry):
+  thumbnail_focus  a CSS object-position, default "center top" — the media band is
+                   16:7 and the top is where a deck or a dashboard puts its title.
+
+No width/height: the only size CI can promise is the 800px width from
+.github/workflows/thumbnails.yml (`pdftoppm -scale-to-x 800 -scale-to-y -1` keeps the
+source's aspect ratio, so the height varies by deck), and the media band reserves its
+own box with aspect-[16/7] anyway. A guessed height would be a lie for no layout gain.
 Local assigns are prefixed `et_`.
 {%- endcomment -%}
 {%- assign et_entry = include.entry -%}
@@ -37,5 +49,6 @@ Local assigns are prefixed `et_`.
 {%- endif -%}
 {%- if et_src != '' -%}
   {%- if et_src contains '://' -%}{%- assign et_href = et_src -%}{%- else -%}{%- assign et_href = et_src | relative_url -%}{%- endif -%}
-  <img class="h-full w-full object-cover {{ include.img_class }}" src="{{ et_href }}" alt="{{ et_alt | escape }}" loading="{% if include.eager %}eager{% else %}lazy{% endif %}" decoding="async">
+  {%- assign et_focus = et_entry.thumbnail_focus | default: 'center top' -%}
+  <img class="h-full w-full object-cover {{ include.img_class }}" style="object-position: {{ et_focus | escape }}" src="{{ et_href }}" alt="{{ et_alt | escape }}" loading="{% if include.eager %}eager{% else %}lazy{% endif %}"{% if include.fetchpriority %} fetchpriority="high"{% endif %} decoding="async">
 {%- endif -%}

@@ -6,6 +6,10 @@ Usage:
   {% include field-value.html field=f value=v %}      preferred
   {% include field-value.html field=f entry=page %}   value read from entry[field.key]
 
+`option_meta.description` is NOT rendered here: a `title` tooltip reached a hovering
+mouse only, and the descriptions now surface as a "What do these mean?" disclosure —
+under every facet group in the filter rail, and under the entry page's fact strip.
+
 Local assigns are prefixed `fv_` so nothing leaks into the caller's scope.
 {%- endcomment -%}
 {%- assign fv_f = include.field -%}
@@ -17,9 +21,9 @@ Local assigns are prefixed `fv_` so nothing leaks into the caller's scope.
     {%- if fv_f.card == 'badge' -%}
       {%- assign fv_tone = fv_om.tone -%}
       {%- if fv_tone == 'neutral' -%}{%- assign fv_tone = 'primary' -%}{%- endif -%}
-      {% include badge.html label=fv_v tone=fv_tone size='md' icon=fv_om.icon title=fv_om.description %}
+      {% include badge.html label=fv_v tone=fv_tone size='md' icon=fv_om.icon %}
     {%- else -%}
-      <span class="inline-flex items-center gap-1.5{% if fv_om.tone == 'warn' %} text-brand-warn{% endif %}"{% if fv_om.description != '' %} title="{{ fv_om.description | escape }}"{% endif %}>{%- if fv_om.icon != '' -%}{% include icon.html name=fv_om.icon size='sm' class='text-brand-muted' %}{%- endif -%}{{ fv_v | escape }}</span>
+      <span class="inline-flex items-center gap-1.5{% if fv_om.tone == 'warn' %} text-brand-warn{% endif %}">{%- if fv_om.icon != '' -%}{% include icon.html name=fv_om.icon size='sm' class='text-brand-muted' %}{%- endif -%}{{ fv_v | escape }}</span>
     {%- endif -%}
 
   {%- when 'multiselect' or 'list' -%}
@@ -30,7 +34,7 @@ Local assigns are prefixed `fv_` so nothing leaks into the caller's scope.
         {%- assign fv_xm = fv_f | option_meta: fv_x -%}
         {%- comment -%} Only an option's OWN icon earns a glyph; the field icon would repeat on every chip. {%- endcomment -%}
         {%- assign fv_xraw = fv_f.option_meta[fv_x] -%}
-        <li><span class="{% if fv_xm.tone == 'warn' %}chip-warn{% else %}chip-plain{% endif %}"{% if fv_xm.description != '' %} title="{{ fv_xm.description | escape }}"{% endif %}>{%- if fv_xraw.icon -%}{% include icon.html name=fv_xraw.icon size='xs' %}{%- endif -%}{{ fv_x | escape }}</span></li>
+        <li><span class="{% if fv_xm.tone == 'warn' %}chip-warn{% else %}chip-plain{% endif %}">{%- if fv_xraw.icon -%}{% include icon.html name=fv_xraw.icon size='xs' %}{%- endif -%}{{ fv_x | escape }}</span></li>
       {%- endfor -%}
     </ul>
     {%- endif -%}

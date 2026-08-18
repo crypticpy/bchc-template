@@ -10,15 +10,21 @@
   .badge { @apply inline-flex max-w-full items-center gap-1 truncate rounded-full px-2.5 py-0.5 text-[11px] font-semibold leading-4 ring-1 ring-inset; }
   .badge-primary { @apply badge bg-brand-primary/10 text-brand-primary-dark ring-brand-primary/20; }
   .badge-secondary { @apply badge bg-brand-secondary/10 text-brand-ink ring-brand-secondary/25; }
-  .badge-accent { @apply badge bg-brand-accent/15 text-brand-ink ring-brand-accent/40; }
+  /* Solid, not a tint: "Featured" is the one badge that has to sit over a photograph
+     (the card's media band) and still hold >= 4.5:1, and one definition means the
+     style guide shows the badge the catalog actually renders. */
+  .badge-accent { @apply badge bg-brand-accent text-brand-ink ring-brand-accent; }
   .badge-neutral { @apply badge bg-brand-ink/5 text-brand-ink ring-brand-line; }
   /* The warn tint is painted over an opaque card ground so warn-on-tint keeps
      4.69:1 wherever the badge lands (a bare warn/5 drops to 4.38:1 on surface). */
   .badge-warn { @apply badge bg-surface-card text-brand-warn ring-brand-warn/30;
     background-image: linear-gradient(rgb(var(--c-warn) / 0.05), rgb(var(--c-warn) / 0.05)); }
-  /* Over the media scrim a white/15 fill left the label at ~2:1 on a light photo;
-     an opaque ink ground holds >= 10.7:1 whatever the picture underneath is. */
-  .badge-on-dark { @apply badge bg-brand-ink/80 text-white ring-white/30 backdrop-blur-sm; }
+  /* Over the media band a white/15 fill left the label at ~2:1 on a light photo;
+     a fully opaque ink ground holds >= 10.7:1 whatever the picture underneath is.
+     Opaque, not ink/80 with a backdrop blur: a contrast checker cannot compute a
+     ratio through a translucent layer over a photo, so it reports a hard error —
+     and a reader on a pale screenshot really was reading a washed-out label. */
+  .badge-on-dark { @apply badge bg-brand-ink text-white ring-white/30; }
   .badge-md { @apply px-3 py-1 text-xs leading-4; }
   .badge-lg { @apply px-4 py-1.5 text-sm leading-5; }
 

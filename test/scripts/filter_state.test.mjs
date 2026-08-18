@@ -9,6 +9,7 @@ import test from 'node:test';
 import {
   countLabel,
   countValue,
+  enteredKeys,
   facetMatches,
   parseQuery,
   pluralize,
@@ -188,4 +189,22 @@ test('countLabel gives the pill count a readable screen-reader form', () => {
   assert.equal(countLabel(0), ' (0 matches)');
   assert.equal(countLabel(1), ' (1 match)');
   assert.equal(countLabel(12), ' (12 matches)');
+});
+
+/* --------------------------------------------------------------- entering */
+
+test('enteredKeys returns only the arrivals, never the survivors', () => {
+  assert.deepEqual([...enteredKeys(new Set([0, 1, 2]), new Set([1, 2, 3]))], [3]);
+  assert.deepEqual([...enteredKeys(new Set([0, 1]), new Set([0, 1]))], []);
+  assert.deepEqual([...enteredKeys(new Set([0, 1, 2]), new Set([1]))], []);
+});
+
+test('enteredKeys treats a missing or empty previous set as "everything is new"', () => {
+  assert.deepEqual([...enteredKeys(null, new Set([2, 0]))], [2, 0]);
+  assert.deepEqual([...enteredKeys(new Set(), [5])], [5]);
+  assert.deepEqual([...enteredKeys(new Set([1]), null)], []);
+});
+
+test('enteredKeys accepts any iterable and keeps the next order', () => {
+  assert.deepEqual([...enteredKeys([1, 2], [3, 1, 4])], [3, 4]);
 });

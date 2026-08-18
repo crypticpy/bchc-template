@@ -7,22 +7,37 @@
      difference is data-view on the <ul>, so nothing re-renders on toggle. */
   /* items-start: a text-only card next to an image card keeps its own height instead
      of stretching to match and leaving dead space between its chips and its foot. */
-  .entry-grid { @apply grid list-none grid-cols-1 items-start gap-6 p-0 transition-opacity duration-120 ease-brand sm:grid-cols-2 xl:grid-cols-3; }
+  .entry-grid { @apply grid list-none grid-cols-1 items-start gap-6 p-0 sm:grid-cols-2 xl:grid-cols-3; }
   .entry-grid[data-view="list"] { @apply grid-cols-1 gap-0 border-t border-brand-line sm:grid-cols-1 xl:grid-cols-1; }
-  .entry-grid.is-fading { @apply opacity-0; }
 
   /* ---------- Card ----------------------------------------------------- */
   /* The title link's own box is a sliver (its ::after supplies the hit area), so
      the focus ring is drawn on the card instead — the link opts out in .entry-title a. */
   .entry-card { @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand-line bg-surface-card focus-within:ring-2 focus-within:ring-brand-primary focus-within:ring-offset-2 focus-within:ring-offset-surface-base; }
-  .entry-media { @apply relative aspect-video w-full overflow-hidden border-b border-brand-line bg-brand-ink/5; }
-  .entry-media::after { content: ""; @apply pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-brand-ink/40 to-transparent; }
+  /* The list settles, it does not blink: assets/js/filters.js marks only the cards
+     that just joined the result set (and the empty state) `is-entering`, so a facet
+     toggle never touches the ones that survived it. Opacity only — nothing moves, so
+     prefers-reduced-motion needs no special case. (The two selectors share a rule so
+     the class in it keeps the attribute-only half out of the purge.) */
+  .entry-card, [data-empty-state] { @apply transition-opacity duration-120 ease-brand; }
+  .entry-card.is-entering, [data-empty-state].is-entering { @apply opacity-0; }
+  /* A band, not a cover shot: at 288px a 16:9 deck render is illegible, and the top
+     band is where a slide or a dashboard puts its title. No scrim — both badge tones
+     (.badge-accent, .badge-on-dark) carry their own opaque ground. */
+  .entry-media { @apply relative aspect-[16/7] w-full overflow-hidden border-b border-brand-line bg-brand-ink/5; }
   .entry-badges { @apply absolute left-3 top-3 z-10 flex flex-wrap items-center gap-1.5; }
-  /* Solid accent so "Featured" keeps >= 4.5:1 over a photo and reads as a pill inline. */
-  .entry-badges .badge-accent, .entry-meta .badge-accent { @apply bg-brand-accent text-brand-ink ring-brand-accent; }
-  .entry-body { @apply flex flex-1 flex-col gap-2 p-5 sm:p-6; }
-  .entry-meta { @apply flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-muted; }
+  .entry-body { @apply flex flex-1 flex-col gap-3 p-5 sm:p-6; }
+  /* Exactly one line: the lead segment shrinks and truncates (its full value is in a
+     sibling sr-only span and on the entry page) so the second segment never wraps and
+     the slot below it starts at the same y on every card in the row.
+     tracking-[0.06em], not the 0.12em the design brief reserves for the single page
+     eyebrow: at 0.12em an org name in a 288px card survived only 15 characters, and
+     buying three back costs nothing here — this is a two-segment run, not an eyebrow. */
+  .entry-meta { @apply flex flex-nowrap items-center gap-x-2 text-[11px] font-semibold uppercase leading-4 tracking-[0.06em] text-brand-muted; }
   .entry-meta > * { @apply min-w-0; }
+  .entry-meta-segs { @apply flex min-w-0 flex-nowrap items-center gap-x-2; }
+  /* Badges keep their own width whatever the segments do (imageless card). */
+  .entry-meta-badges { @apply flex shrink-0 flex-wrap items-center gap-1.5; }
   /* An inline badge (imageless card) keeps its own case and tracking. */
   .entry-meta [class*="badge-"] { @apply normal-case tracking-normal; }
   /* Kept for _includes/entry-row.html, which still emits a standalone separator. */
@@ -32,12 +47,21 @@
   .entry-meta-seg { @apply max-w-[24ch] shrink-0 truncate; }
   .entry-meta-seg--lead { @apply min-w-[10ch] max-w-none shrink; }
   .entry-meta-seg + .entry-meta-seg::before { content: "\00b7"; @apply mr-2 text-brand-line-strong; }
-  .entry-title { @apply font-heading text-[18px] font-semibold leading-6 text-brand-primary-dark; }
+  /* Reserved slots. The values are the designed heights (2 lines of the slot's own
+     leading), not observed maxima, so one row of cards shares its baselines however
+     long any single card's text is. Each min-height sits with the leading it belongs
+     to — including in the @container steps below, where the title's leading changes. */
+  /* text-wrap: balance evens the two lines the reserved 3rem slot holds, so a
+     card title never leaves one orphaned word on line two. */
+  .entry-title { @apply min-h-[3rem] font-heading text-[18px] font-semibold leading-6 text-brand-primary-dark; text-wrap: balance; }
   .entry-title a { @apply after:absolute after:inset-0 after:content-[''] hover:text-brand-primary focus-visible:outline-none; }
-  /* Never clamped: the impact line is usually a number and truncates mid-figure. */
-  .entry-line { @apply flex items-start gap-1.5 text-sm font-semibold leading-5 text-brand-ink; }
-  .entry-summary { @apply line-clamp-2 text-sm leading-6 text-brand-muted; }
-  .entry-chips { @apply flex list-none flex-wrap gap-1.5 p-0 pt-1; }
+  /* The row is never clamped — the icon must stay on the first line — so the clamp
+     goes on the inner span. Two lines: an impact line is usually a figure and a
+     truncated figure is worse than a long one, but three cards deep it has to hold. */
+  .entry-line { @apply flex min-h-[2.5rem] items-start gap-1.5 text-sm font-semibold leading-5 text-brand-ink; }
+  .entry-line > span { @apply line-clamp-2; }
+  .entry-summary { @apply line-clamp-2 min-h-[3rem] text-sm leading-6 text-brand-muted; }
+  .entry-chips { @apply flex min-h-[1.75rem] list-none flex-wrap content-start gap-1.5 p-0 pt-1; }
   .entry-foot { @apply px-5 pb-5 sm:px-6; }
   /* No media band: the summary takes the space the picture would have used
      (the card renders a third chip too — see _includes/entry-card.html). */
@@ -54,6 +78,36 @@
   .entry-grid[data-view="list"] .entry-chips { @apply pt-0; }
   .entry-grid[data-view="list"] .entry-foot { @apply px-1 pb-4 sm:px-2; }
   .entry-grid[data-view="list"] .signal-strip { @apply border-t-0 pt-0; }
+  /* One row per entry, so there are no neighbouring cards to share baselines with:
+     the reserved slots collapse and the row keeps its compact rhythm. */
+  .entry-grid[data-view="list"] .entry-title,
+  .entry-grid[data-view="list"] .entry-line,
+  .entry-grid[data-view="list"] .entry-chips { @apply min-h-0; }
+
+  /* The card's internals scale to the CARD, not the viewport: the same component is
+     607px wide in a one-column list at 600px and 288px in the three-up grid beside
+     the 272px rail, which is why the viewport steps below get it backwards. Behind
+     @supports so browsers without container queries (pre Chrome 105 / Safari 16 /
+     Firefox 110) keep exactly today's rendering; @supports adds no specificity, so
+     source order alone is what puts these after the base rules — and the
+     [data-view="list"] rules above stay 0,2,1 and outrank all of it. */
+  @supports (container-type: inline-size) {
+    .entry-card { container-type: inline-size; container-name: card; }
+    .entry-body { @apply p-4; }
+    .entry-foot { @apply px-4 pb-4; }
+    .entry-title { @apply min-h-[2.75rem] text-[16px] leading-[22px]; }
+    @container card (min-width: 340px) {
+      .entry-body { @apply p-6; }
+      .entry-foot { @apply px-6 pb-6; }
+      .entry-title { @apply min-h-[3rem] text-[18px] leading-6; }
+    }
+    /* Wide enough for the one-column case: a third summary line and an org name
+       that no longer has to truncate at ~24 characters. */
+    @container card (min-width: 460px) {
+      .entry-summary { -webkit-line-clamp: 3; }
+      .entry-meta-seg { @apply max-w-[36ch]; }
+    }
+  }
 
   /* ---------- Compact row (entry pages: "Related") --------------------- */
   .entry-row { @apply relative flex flex-col gap-1.5 border-b border-brand-line py-4 last:border-b-0; }
@@ -89,10 +143,20 @@
   .filter-count { @apply text-[11px] tabular-nums text-brand-muted; }
   .filter-pill.is-active .filter-count, .filter-pill[aria-pressed="true"] .filter-count { @apply text-white; }
   .filter-showall { @apply mt-2 inline-flex min-h-[32px] items-center text-xs font-semibold text-brand-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
+  /* The taxonomy's own plain-language glossary (schema `option_meta.description`),
+     as a disclosure instead of a `title` tooltip: a tooltip reaches only a hovering
+     mouse, and on a pill it also becomes an accessible description that repeats the
+     name on every arrow-key pass. Collapsed, because it must not crowd the 272px rail. */
+  .facet-glossary > summary { @apply filter-showall cursor-pointer list-none; }
+  .facet-glossary > summary::-webkit-details-marker { display: none; }
+  .facet-glossary[open] > summary { @apply mb-1; }
+  .facet-glossary dt { @apply text-xs font-semibold text-brand-ink; }
+  .facet-glossary dd { @apply mb-2 text-xs leading-5 text-brand-muted last:mb-0; }
 
   /* ---------- Results header ------------------------------------------- */
   .results-header { @apply sticky top-16 z-30 -mx-4 mb-6 border-b border-brand-line bg-surface-base/95 px-4 py-3 shadow-e2 backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:rounded-b-2xl lg:px-4; }
-  .results-count { @apply font-heading text-lg font-semibold leading-6 text-brand-primary-dark; }
+  /* tabular-nums: "10 use cases" -> "9 use cases" must not shove the label sideways. */
+  .results-count { @apply font-heading text-lg font-semibold tabular-nums leading-6 text-brand-primary-dark; }
   .results-total { @apply font-sans text-sm font-normal text-brand-muted; }
   .results-select { @apply h-11 lg:h-9 rounded-full border border-brand-line-strong bg-surface-card py-0 pl-3 pr-8 text-xs font-medium text-brand-ink focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary; }
   .active-pill { @apply inline-flex min-h-[44px] items-center gap-1 rounded-full border border-brand-primary bg-brand-primary/10 px-3 text-xs font-medium text-brand-primary-dark lg:min-h-[32px] transition-colors duration-120 hover:bg-brand-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card; }
@@ -105,7 +169,8 @@
      top bars rejoin the flow; the filter bar stays, it is the route to the
      facets on small screens. */
   @media (max-height: 560px) {
-    [data-component="site-header"] { @apply !static; } /* utility `sticky` on the element outranks a component rule */
+    /* The doubled attribute makes this 0,2,0, above the utility `sticky` on the element. */
+    [data-component="site-header"][data-component] { position: static; }
     .results-header { @apply static mb-4 rounded-none shadow-none; }
   }
 
@@ -124,8 +189,6 @@
   /* ---------- Mobile filter bar + sheet --------------------------------- */
   .filter-bar { @apply fixed inset-x-0 bottom-0 z-30 flex items-center justify-center gap-3 border-t border-brand-line bg-surface-card px-4 py-3 shadow-e2 lg:hidden; }
   .filter-sheet { @apply fixed inset-0 z-50 flex flex-col bg-surface-card lg:hidden; }
-  /* `hidden` from the UA sheet loses to the class above, so restate it. */
-  .filter-sheet[hidden], .filter-group-panel[hidden], .search-listbox[hidden] { display: none; }
   .filter-sheet-head { @apply flex items-center justify-between gap-3 border-b border-brand-line px-4 py-3; }
   .filter-sheet-body { @apply flex-1 overflow-y-auto px-4 pb-6; }
   .filter-sheet-foot { @apply flex items-center gap-3 border-t border-brand-line px-4 py-3 shadow-e2; }
