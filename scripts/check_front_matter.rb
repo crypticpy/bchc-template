@@ -162,6 +162,21 @@ module FrontMatterCheck
     end
   end
 
+  # Warn when a `file` field points at a path that is not in the repository.
+  # @param value [Object] the front matter value (a site-absolute or entry-relative path)
+  # @param ctx [Hash] {entry_dir:, key:, where:}
+  # @param warnings [Array<String>]
+  def check_file_path(value, ctx, warnings)
+    path = value.to_s.strip
+    return if path.empty? || http_url?(path)
+
+    disk = path.start_with?("/") ? File.join(root, path.delete_prefix("/")) : File.join(ctx[:entry_dir], path)
+    return if File.file?(disk)
+
+    warnings << "#{ctx[:where]}: `#{ctx[:key]}` points at #{path}, which is not in the repository yet — " \
+                "add the file or clear the field before merging"
+  end
+
   # Validate one `links` field value.
   # @param value [Object]
   # @param ctx [Hash] {key:, where:}
@@ -228,8 +243,17 @@ module FrontMatterCheck
     unless date?(data["published"])
       failures << "#{where(rel, front_matter, 'published')}: `published` (#{data['published'].inspect}) is not a YYYY-MM-DD date"
     end
-    if data.key?("updated") && !blank?(data["updated"]) && !date?(data["updated"])
-      failures << "#{where(rel, front_matter, 'updated')}: `updated` (#{data['updated'].inspect}) is not a YYYY-MM-DD date"
+    # `updated` and `verified` are both optional reserved date keys. `verified`
+    # is stronger than `updated` — a maintainer re-checked the facts with the
+    # contact, rather than someone fixing a typo — and the entry page and the
+    # monthly sweep both measure staleness from whichever is newer, so a
+    # malformed one silently reads as absent. Catch it here instead.
+    %w[updated verified].each do |key|
+      next unless data.key?(key)
+      next if blank?(data[key])
+      next if date?(data[key])
+
+      failures << "#{where(rel, front_matter, key)}: `#{key}` (#{data[key].inspect}) is not a YYYY-MM-DD date"
     end
 
     fields.each do |field|
@@ -273,6 +297,13 @@ module FrontMatterCheck
         unless blank?(value) || value.to_s.include?("@")
           failures << "#{spot}: `#{key}` does not look like an email address (#{value.inspect})"
         end
+      when "file"
+        # A warning, never a failure: the scaffolder writes the attachment path
+        # from the issue before the file itself has been committed, so a
+        # generated pull request legitimately arrives with a dangling path. The
+        # reviewer is the one who has to notice it, which is exactly what a line
+        # in the validate output is for.
+        check_file_path(value, { entry_dir: entry_dir, key: key, where: spot }, warnings) unless blank?(value)
       end
     end
 
