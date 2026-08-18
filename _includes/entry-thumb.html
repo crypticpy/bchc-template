@@ -17,10 +17,18 @@ in schema.yml (it describes one picture, not the entry):
   thumbnail_focus  a CSS object-position, default "center top" — the media band is
                    16:7 and the top is where a deck or a dashboard puts its title.
 
-No width/height: the only size CI can promise is the 800px width from
-.github/workflows/thumbnails.yml (`pdftoppm -scale-to-x 800 -scale-to-y -1` keeps the
-source's aspect ratio, so the height varies by deck), and the media band reserves its
-own box with aspect-[16/7] anyway. A guessed height would be a lie for no layout gain.
+Sizes come from picture.html, which serves AVIF/WebP variants when
+_data/derivatives.json has an entry for this file and falls back to the plain
+<img> when it does not. width/height come from the manifest too, so neither is
+guessed.
+
+`sizes` is measured off the built pages, not guessed, and it takes the WIDEST
+box any surface gives a card — the home page's grid is roomier than the
+catalog's, so it sets the number above 1280 (387px) and between 1024 and 1279
+(46.4vw). Below 1280 the widest single-column case is 95vw (at 639) and the
+widest two-column case is 46.9vw (at 1023). Under-stating `sizes` ships a blurry
+image; over-stating it costs a few KB, so where the two grids disagree this
+follows the wider one. Re-measure if either grid changes.
 Local assigns are prefixed `et_`.
 {%- endcomment -%}
 {%- assign et_entry = include.entry -%}
@@ -48,7 +56,9 @@ Local assigns are prefixed `et_`.
   {%- if et_found -%}{%- assign et_src = et_thumb_path -%}{%- endif -%}
 {%- endif -%}
 {%- if et_src != '' -%}
-  {%- if et_src contains '://' -%}{%- assign et_href = et_src -%}{%- else -%}{%- assign et_href = et_src | relative_url -%}{%- endif -%}
   {%- assign et_focus = et_entry.thumbnail_focus | default: 'center top' -%}
-  <img class="h-full w-full object-cover {{ include.img_class }}" style="object-position: {{ et_focus | escape }}" src="{{ et_href }}" alt="{{ et_alt | escape }}" loading="{% if include.eager %}eager{% else %}lazy{% endif %}"{% if include.fetchpriority %} fetchpriority="high"{% endif %} decoding="async">
+  {%- capture et_class -%}h-full w-full object-cover {{ include.img_class }}{%- endcapture -%}
+  {%- capture et_style -%}object-position: {{ et_focus | escape }}{%- endcapture -%}
+  {%- assign et_sizes = '(min-width: 1280px) 390px, (min-width: 640px) 47vw, 95vw' -%}
+  {% include picture.html src=et_src alt=et_alt sizes=et_sizes class=et_class style=et_style eager=include.eager fetchpriority=include.fetchpriority %}
 {%- endif -%}
