@@ -13,6 +13,7 @@ Day-to-day operation of a site built from this template: repository setup, revie
   - `content:new-event` — triggers `new-event.yml`
   - `content:event-attachments` — triggers `update-event-attachments.yml`
   - `content:site-config` — triggers `apply-setup.yml` (maintainers only)
+  - `verification` — applied by `verification-sweep.yml` to its rolling issue; nothing triggers on it
 
   The generated issue forms (`.github/ISSUE_TEMPLATE/*.yml`) already apply these labels when someone opens the issue; you just need the labels to exist in the repo first, or GitHub silently drops them.
 - [ ] **`_data/site.yml` → `github.repository`**: set to this repo's `owner/repo`. Drives the submit form's issue links and every "edit on GitHub" link.

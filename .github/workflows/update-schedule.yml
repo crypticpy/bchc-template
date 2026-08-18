@@ -102,6 +102,7 @@ jobs:
 
             ### Updated events
             ${{ steps.update.outputs.summary }}
+          labels: content:schedule
           delete-branch: true
 
       # A pull request opened with GITHUB_TOKEN does not trigger `pull_request`

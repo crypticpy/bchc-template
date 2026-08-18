@@ -22,7 +22,7 @@ jobs:
       # Reading _data/site.yml in the preflight below.
       contents: read
     steps:
-      - name: Create content labels
+      - name: Create the labels the automation filters on
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -35,6 +35,10 @@ jobs:
           create "content:event-attachments"  "1B8A7A" "Attach materials to a cohort event"
           create "content:new-year"           "1B8A7A" "Scaffold a new cohort year"
           create "content:site-config"        "5B3E96" "Apply a site configuration from the /setup/ wizard (maintainers only)"
+          # Not a content: label — nobody applies this one by hand. The monthly
+          # verification sweep (verification-sweep.yml) applies it to the one
+          # rolling issue it keeps open, so maintainers can find or mute it.
+          create "verification"               "8250DF" "Entries due to be re-confirmed with their contact"
           echo "Labels are ready."
 
       - name: Preflight the repository settings

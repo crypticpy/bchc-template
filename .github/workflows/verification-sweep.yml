@@ -67,10 +67,11 @@ jobs:
             const body = process.env.SWEEP_BODY;
             const labels = ['verification'];
 
-            // The label has to exist before an issue can carry it, and this
-            // workflow may well be the first thing in the repository to want it
-            // (bootstrap-labels.yml only creates the content:* labels a fork
-            // needs on day one). Creating it here is idempotent.
+            // The label has to exist before an issue can carry it.
+            // bootstrap-labels.yml creates it, but that workflow is a manual
+            // one-time step a fork can skip, and this one runs unattended on a
+            // schedule — so it makes sure. Creating it here is idempotent, and
+            // the colour and description match bootstrap-labels.yml.
             try {
               await github.rest.issues.createLabel({
                 owner,

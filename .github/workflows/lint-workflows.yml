@@ -1,8 +1,10 @@
 name: Lint workflows
 
-# Eleven workflow files, expression-heavy `if:` conditions, minimal `permissions`
-# blocks and a documented rule that untrusted issue text only ever reaches a step
-# through `env:` — all of it enforced by review alone until now.
+# Every workflow in this directory: expression-heavy `if:` conditions, minimal
+# `permissions` blocks and a documented rule that untrusted issue text only ever
+# reaches a step through `env:` — all of it enforced by review alone until now.
+# (No count here on purpose: this line said "eleven" for two workflows longer
+# than it was true.)
 #
 #   actionlint  parses every workflow, type-checks the expressions, and runs
 #               shellcheck over each `run:` script.
