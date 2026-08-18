@@ -8,11 +8,54 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
-DMWG alignment, waves 1 and 2 — the content model and then the site catch up
-with the Data Modernization Work Group's governance framework
-([docs/dmwg-alignment-plan.md](docs/dmwg-alignment-plan.md)). Add, never
-delete: every existing field stays; nine join them, and the rules the
-reviewers apply are published on the site rather than in a PDF.
+DMWG alignment, waves 1–3 — the content model, then the site, then the review
+workflow catch up with the Data Modernization Work Group's governance
+framework ([docs/dmwg-alignment-plan.md](docs/dmwg-alignment-plan.md)). Add,
+never delete: every existing field stays; nine join them, the rules the
+reviewers apply are published on the site rather than in a PDF, and the pull
+request a submission becomes now carries those rules, the answers that need a
+closer look, and the tier it is in.
+
+### Added — wave 3, the review workflow
+
+- **The pull request tells its reviewer what to check.** The scaffolded body
+  ends with a **Maintainer checklist** built by the new `scripts/lib/review.mjs`:
+  the review criteria from `_data/governance.yml` when the site publishes them
+  — the same list as `/governance/`, not a second copy in the workflow — or a
+  generic five otherwise; the mechanics; and the review-status flip the schema
+  asks for (`review_status` set to **Reviewed & approved** — the scaffold wrote
+  *Under review* — or left open with `review:revisions-requested`). The
+  workflow's hard-coded `printf` checklist is gone; the scaffolder's new
+  `checklist` output replaces it.
+- **`escalate_on` — the answers that call for closer review.** A new per-field
+  schema hint, an explicit list (a boolean's `false`, select/multiselect
+  options) rather than an inference from tone. The shipped schema flags an
+  unticked PII/PHI attestation, PII/PHI/CJIS under *Data it touches* and a
+  *Public-facing* audience. A matching submission's pull request opens with a
+  **Closer review** block naming each field and answer, the run summary
+  repeats it, and a new best-effort label step adds `review:data-governance`
+  (and `review:intake` on every scaffolded pull request) — reporting rather
+  than failing when a fork has not created the labels. `check_front_matter.rb`
+  rejects a list that names an option the field does not have.
+- **Review-tier labels.** `bootstrap-labels.yml` creates `review:intake`,
+  `review:committee`, `review:partner`, `review:data-governance`,
+  `review:revisions-requested` and `review:declined`, in the purple family
+  next to `content:site-config`; the admin guide gets a "Review tiers and
+  labels" section with a declined-with-rationale comment that has worked.
+- **The minimum documentation bar.** `check_front_matter.rb` notices an entry
+  with no link anywhere — every `url` field empty, no `links` item — because a
+  reader would have nowhere to go to evaluate or adopt it. A warning by
+  default; a failure under the new `entry.require_link: true`, which the
+  shipped schema sets. New `entry.status_approved_value` names what approval
+  means, for the checklist above.
+- **`updated` stamps itself.** A `stamp` job now opens `Build & Deploy`: for
+  every entry file a push to `main` *modified* (not added — a new entry has
+  `published`), `scripts/stamp_updated.mjs` sets `updated:` to that day unless
+  it already says today or later, skips `sample: true` content, edits the
+  front matter as text so comments survive, and commits back; the build job
+  deploys the stamped commit so the page, the feed and "Recently updated"
+  agree. Non-fatal by design: a push refused by branch protection is reported
+  in the run summary with the three ways out, and the site deploys as pushed.
 
 ### Added — wave 2, governance on the site
 
@@ -100,7 +143,12 @@ reviewers apply are published on the site rather than in a PDF.
   consent, and points reviewers at the governance page; `configuration.md`
   documents the `governance` module, `footer.accessibility` and
   `_data/governance.yml`; `docs/index.md` routes submitters to the contributor
-  guide; README, CONTRIBUTING and roadmap updated.
+  guide; README, CONTRIBUTING and roadmap updated. Wave 3: `content-model.md`
+  documents `escalate_on`, `entry.status_approved_value` and
+  `entry.require_link`, and `updated` as automation-written; `admin-guide.md`
+  gains the review-tier table, the declined reply, the documentation-bar line
+  in the checklist and how the `updated` stamp works; the wizard's schema
+  header lists the new hints.
 
 ## [1.4.0] — 2026-08-18
 

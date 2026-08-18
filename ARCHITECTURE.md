@@ -49,7 +49,10 @@ presentation hints (`facet`, `card`, `search`, `weight`, `icon`, `group`,
 - `_plugins/facet_pages.rb` — which facet fields get their own crawlable page.
 - `submit/index.md` + `assets/js/submit/*` — the form, validation and live card preview.
 - `scripts/new_entry_from_issue.mjs` — issue body → front matter.
-- `scripts/check_front_matter.rb` — CI validation of every entry.
+- `scripts/check_front_matter.rb` — CI validation of every entry, and of the schema's own
+  `escalate_on` lists.
+- `scripts/lib/review.mjs` — what the scaffolded pull request tells its reviewer: which answers
+  the schema escalates, and the checklist (criteria from `_data/governance.yml`).
 - `scripts/generate.mjs` — regenerates `.github/ISSUE_TEMPLATE/new-entry.yml`, syncs `_config.yml`
   title/description, and builds `assets/js/configurator/defaults.generated.js`. Run it after every
   schema edit; `node scripts/generate.mjs --check` fails CI when the committed outputs are stale.
@@ -96,12 +99,12 @@ run identically in tests.
 
 | Workflow | Trigger | Script | Result |
 |---|---|---|---|
-| `new-entry.yml` | issue labelled `content:new-entry` | `scripts/new_entry_from_issue.mjs` (+ `lib/issue_body`, `lib/images`, `lib/yaml`) | PR adding `catalog/<slug>/` with downloaded screenshots |
+| `new-entry.yml` | issue labelled `content:new-entry` | `scripts/new_entry_from_issue.mjs` (+ `lib/issue_body`, `lib/images`, `lib/yaml`, `lib/review` for the checklist and `escalate_on`) | PR adding `catalog/<slug>/` with downloaded screenshots, the maintainer checklist and `review:*` labels |
 | `thumbnails.yml` | PR touching `catalog/**` | `scripts/thumbnail_sources.mjs` + `pdftoppm` | commits `thumb.jpg` from `deck.pdf` |
 | `new-event.yml`, `new-year.yml`, `update-schedule.yml`, `update-event-attachments.yml` | issue templates for the events/cohorts modules | matching `scripts/*` | PRs against `_data/` |
 | `validate.yml` | PR / push | `generate.mjs --check`, `npm test`, `npm run test:ruby`, `npm run validate`, CSS + Jekyll build | the merge gate |
 | `quality.yml` | PR / push to main | `pa11y-ci` (WCAG 2 AA) + Lighthouse CI over `_site` | accessibility gate; performance/SEO warn |
-| `pages.yml` | push to main | CSS build + Jekyll build with the repo-derived `baseurl` | deploys to GitHub Pages |
+| `pages.yml` | push to main | `scripts/stamp_updated.mjs` (stamps `updated:` on modified entries, commits back), then CSS build + Jekyll build with the repo-derived `baseurl` | deploys to GitHub Pages, tells the submitter |
 | `smoke.yml` | weekly | full build | catches upstream breakage |
 | `bootstrap-labels.yml` | manual | — | creates the labels the automation relies on |
 

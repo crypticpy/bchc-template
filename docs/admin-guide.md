@@ -36,8 +36,30 @@ The rules you are applying are published on the site's **Governance** page (`/go
 2. The `New entry from issue` workflow (`.github/workflows/new-entry.yml`) runs automatically, scaffolds `catalog/<slug>/index.md` from the issue body, and opens a pull request that closes the issue on merge.
    - If scaffolding fails (e.g. missing title, duplicate slug), the workflow comments the error back on the issue instead of opening a PR. Editing the issue to fix the problem re-triggers the workflow (it also runs on `issues: edited`).
 3. Any images the submitter dropped into the issue are downloaded into the entry folder by the same workflow (see [Screenshots and images](#screenshots-and-images) below), so the pull request already contains the pictures — you review them, you do not have to fetch them.
-4. On the pull request, work through the checklist below.
-5. Merge. The `Build & Deploy` workflow runs on every push to `main` and republishes the site, usually within a couple of minutes. Once it has deployed, the automation comments the published URL back on the issue the submission came from ("Your entry is now live at …"), so the submitter hears the outcome without you writing anything. That comment is best-effort: if it does not appear, nothing is wrong with the deploy.
+4. On the pull request, work through the checklist below. The pull request body already carries a **Maintainer checklist** — the review criteria from `_data/governance.yml` (the same list the governance page shows; a generic five when the site publishes none), the mechanics, and the review-status flip — and, when an answer matched a field's `escalate_on` list in the schema, a **Closer review** block above it naming the field and the answer (the shipped schema flags an unticked PII/PHI attestation, PII/PHI/CJIS under *Data it touches*, and a *Public-facing* audience). Those pull requests also carry the `review:data-governance` label, so you can see from the list which ones are not a five-minute intake.
+5. Set the review status. The scaffold wrote `review_status: "Under review"`; before merging set it to `Reviewed & approved` (the schema names both values: `entry.status_scaffold_value`, `entry.status_approved_value`). If the entry needs changes, leave the pull request open with `review:revisions-requested` and say specifically what to change — the submitter edits the issue or replies on the pull request, and it comes back round.
+6. Merge. The `Build & Deploy` workflow runs on every push to `main` and republishes the site, usually within a couple of minutes. Once it has deployed, the automation comments the published URL back on the issue the submission came from ("Your entry is now live at …"), so the submitter hears the outcome without you writing anything. That comment is best-effort: if it does not appear, nothing is wrong with the deploy.
+
+### Review tiers and labels
+
+The governance page describes review as tiers with turnaround targets; the pull request labels are how the tiers show up in the repository. **Bootstrap labels** (Actions tab, run once) creates them; the scaffolder applies the first, reviewers move the rest by hand.
+
+| Label | Who | Meaning |
+|---|---|---|
+| `review:intake` | Intake team (a small rotating group) | Applied to every scaffolded pull request. Complete, contact reachable, nothing that looks like PII/PHI — within about five business days. |
+| `review:data-governance` | Applied by the scaffolder | An answer matched an `escalate_on` list; the **Closer review** block in the body says which. Not a tier — a flag that intake should route it on. |
+| `review:committee` | Governance committee | Substantive review: does it work as described, are the technology, licensing and portability claims accurate, right category, data-governance baseline met — within about ten more business days. |
+| `review:partner` | A partner reviewer | Referred on: identifiable data, clinical decision support, public-facing use. |
+| `review:revisions-requested` | Whoever reviewed | Sent back with specific changes on the pull request. Swap it for the tier label when the changes land. |
+| `review:declined` | Governance committee | Not published, with a rationale on the pull request; the pull request is closed, the branch may be deleted, and the submitter may appeal to the full committee. |
+
+The labels are a convention the workflow does not enforce; if your process has different tiers, rename them in `bootstrap-labels.yml` — the scaffolder's label step is best-effort and reports, rather than fails, when a label is missing.
+
+**Declining.** Rare, and always with a reason the submitter can act on. A comment that has worked:
+
+> Thanks for submitting this. We are not going to publish it as it stands, because *[the specific reason — e.g. the shared material includes patient-level data and the attestation cannot be made honestly; or there is no working link or reachable contact, so a reader could not evaluate it]*. If *[what would change the outcome]*, please reopen by editing the issue and we will take another look. You can also ask for this decision to go to the full Governance Committee by replying here.
+
+Add `review:declined`, close the pull request without merging, and leave the issue open long enough for the submitter to see the comment — the automation does not comment on a closed pull request.
 
 ### Review checklist
 
@@ -61,6 +83,7 @@ Links
 
 - [ ] Every `resources` entry has a label that says what the reader gets ("Evaluation memo (PDF)", "Six-minute walkthrough video"), not "Link" or a bare URL.
 - [ ] Links resolve, and resolve for someone outside the organization. A shared drive URL that only your staff can open is worse than no link — either make it public or drop it.
+- [ ] There is at least one link somewhere — a URL field or a `resources` item. An entry with none is not published: nobody could evaluate or adopt it. `check_front_matter.rb` says so (a failure in the shipped schema, where `entry.require_link` is on; a warning otherwise); ask the submitter for a link rather than merging around it.
 
 Mechanics
 
@@ -89,6 +112,7 @@ Give it a short expiry and re-issue it on a calendar reminder; the workflows fal
 
 - **Small edit**: every entry page has a **Suggest an edit on GitHub** link (bottom of the page) that opens the file directly in GitHub's editor, pre-targeted at `catalog/<slug>/index.md` on the configured branch. Commit directly or via a PR.
 - **Larger edit / local**: edit `catalog/<slug>/index.md` in a checkout, run `npm run validate` before pushing.
+- **The `updated` date takes care of itself.** When a push to `main` modifies an entry's `index.md`, the `Build & Deploy` workflow's first job (`stamp`, running `scripts/stamp_updated.mjs`) sets `updated:` to that day — only on files git reports as *modified* (a new entry has `published`), never on `sample: true` content, and never backwards: an `updated:` that already says today or later is left alone, which also makes the stamp commit a no-op if it re-triggers a run. It commits back as `chore(entries): stamp updated on N entries [skip ci]` (so the commit starts no second deploy) and the build then deploys that commit, so the page, the feed and "Recently updated" agree. If branch protection refuses the push, the run summary says so and the site deploys as pushed; either let the GitHub Actions app bypass the rule, set `CONTENT_BOT_TOKEN`, or set the date by hand. Set it by hand any time you want a different day — the stamp never overrides a date that is already current.
 - **Deprecate (the default for "this is no longer current")**: set the review-status field to its deprecated option — in the shipped schema, `review_status: "Deprecated"` in the entry's front matter. The entry stays published as a record: its page opens with a warning notice, its card says "Deprecated — kept for the record", the home page stops featuring it, and the catalog lists it after every live entry. Nothing is lost for the reader who already built on it, and the next person still finds out what was tried. The schema names the field and the value (`entry.status_key`, `entry.deprecated_value` — see [content-model.md](content-model.md#review-status-and-deprecation)), so a schema without a review status has no deprecated state either.
 - **Remove**: delete the entry's folder (`catalog/<slug>/`) in a PR. Reserve this for the cases deprecation does not cover — a duplicate, a submission that should never have been merged, a contributor who withdraws consent.
   Deleting the folder removes the page but not the git history: if the entry contained protected data, a real person's contact details, or anything published without consent, stop here and follow [incidents.md](incidents.md) instead.
@@ -111,7 +135,7 @@ The workflow only asks for `issues: write`. It never edits an entry, never close
 verified: "2026-08-17"
 ```
 
-That is the whole protocol. `verified` is a reserved key like `updated`: optional, `YYYY-MM-DD`, never written by automation, and validated by `check_front_matter.rb` when present. Setting it resets the entry's clock even if nothing else about the entry changed — which is the point, since "we checked and it is still accurate" is real information.
+That is the whole protocol. `verified` is a reserved key like `updated`: optional, `YYYY-MM-DD`, validated by `check_front_matter.rb` when present — and, unlike `updated`, never written by automation. Setting it resets the entry's clock even if nothing else about the entry changed — which is the point, since "we checked and it is still accurate" is real information.
 
 **Turning it off.** Set the repository variable `VERIFICATION_SWEEP` to `false` (Settings → Secrets and variables → Actions → Variables), or delete the workflow file. To change the window instead of removing the reminder, edit `catalog.verify_after_days` in `_data/site.yml` — the site notices and the sweep both read it, so they can never disagree.
 

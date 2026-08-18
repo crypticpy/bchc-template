@@ -154,7 +154,9 @@ export const SCHEMA = {
     "sort_order": "desc",
     "status_key": "review_status",
     "deprecated_value": "Deprecated",
-    "status_scaffold_value": "Under review"
+    "status_scaffold_value": "Under review",
+    "status_approved_value": "Reviewed & approved",
+    "require_link": true
   },
   "groups": [
     {
@@ -1147,6 +1149,9 @@ export const SCHEMA = {
       "group": "data",
       "weight": 1,
       "icon": "shield-check",
+      "escalate_on": [
+        false
+      ],
       "description": "The coalition's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
     },
     {
@@ -1203,6 +1208,11 @@ export const SCHEMA = {
           "description": "Data subject to CJIS security policy."
         }
       },
+      "escalate_on": [
+        "Personal information (PII)",
+        "Health information (PHI)",
+        "Criminal justice data (CJIS)"
+      ],
       "description": "Select all that apply. This helps others judge governance and approval effort."
     },
     {
@@ -1250,6 +1260,9 @@ export const SCHEMA = {
           "description": "Shared with specific partner organizations."
         }
       },
+      "escalate_on": [
+        "Public-facing"
+      ],
       "description": "Pick the widest group that sees anything it produces."
     },
     {

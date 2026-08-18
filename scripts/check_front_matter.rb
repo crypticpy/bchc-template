@@ -207,11 +207,29 @@ module FrontMatterCheck
     end
   end
 
+  # Does the entry give a reader anywhere to go — a `url` field with a value,
+  # or a `links` field with at least one item? The minimum documentation bar:
+  # a resource nobody can reach cannot be evaluated or adopted.
+  # @param data [Hash] front matter
+  # @param fields [Array<Hash>] schema fields
+  # @return [Boolean]
+  def linked?(data, fields)
+    fields.any? do |field|
+      value = data[field["key"].to_s]
+      case field["type"].to_s
+      when "url" then !blank?(value)
+      when "links" then value.is_a?(Array) && value.any? { |item| item.is_a?(Hash) && !blank?(item["url"]) }
+      else false
+      end
+    end
+  end
+
   # Validate a single entry file.
   # @param file [String] absolute path to <entry path>/<slug>/index.md
   # @param fields [Array<Hash>] schema fields
+  # @param entry [Hash] the schema's `entry` block (`require_link` is read here)
   # @return [Array(Array<String>, Array<String>)] failures and warnings
-  def validate_entry(file, fields)
+  def validate_entry(file, fields, entry = {})
     failures = []
     warnings = []
     rel = file.delete_prefix("#{root}/")
@@ -307,7 +325,50 @@ module FrontMatterCheck
       end
     end
 
+    # The minimum documentation bar. A warning by default; `entry.require_link:
+    # true` in the schema makes it a failure. Only checked when the schema has
+    # somewhere a link could go, so a preset with no url/links fields is silent.
+    linkable = fields.any? { |field| %w[url links].include?(field["type"].to_s) }
+    if linkable && !linked?(data, fields)
+      message = "#{rel}: no link anywhere — every `url` field is empty and no `links` field has an item; " \
+                "a reader has nowhere to go to evaluate or adopt this"
+      if entry["require_link"] == true
+        failures << message
+      else
+        warnings << message
+      end
+    end
+
     [failures, warnings]
+  end
+
+  # Schema-level checks that do not depend on any one entry: an `escalate_on`
+  # list must name values the field can actually hold, or the scaffolder's
+  # closer-review flag can never fire and nobody notices.
+  # @param fields [Array<Hash>] schema fields
+  # @return [Array<String>] failures
+  def validate_schema(fields)
+    failures = []
+    fields.each do |field|
+      next unless field.key?("escalate_on")
+
+      key = field["key"].to_s
+      list = field["escalate_on"]
+      unless list.is_a?(Array) && !list.empty?
+        failures << "_data/schema.yml: `#{key}.escalate_on` must be a non-empty YAML list"
+        next
+      end
+      options = Array(field["options"]).map(&:to_s)
+      case field["type"].to_s
+      when "select", "multiselect"
+        extra = list.map(&:to_s) - options
+        failures << "_data/schema.yml: `#{key}.escalate_on` names values that are not options: #{extra.join(', ')}" if extra.any?
+      when "boolean"
+        bad = list.reject { |v| [true, false].include?(v) }
+        failures << "_data/schema.yml: `#{key}.escalate_on` on a boolean field must be true or false" if bad.any?
+      end
+    end
+    failures
   end
 
   # Structural check for cohort event pages.
@@ -336,13 +397,14 @@ module FrontMatterCheck
 
     schema = load_yaml(File.read(schema_path), "_data/schema.yml")
     fields = Array(schema["fields"])
-    entry_path = (schema.dig("entry", "path") || "catalog").to_s
+    entry = schema["entry"].is_a?(Hash) ? schema["entry"] : {}
+    entry_path = (entry["path"] || "catalog").to_s
 
-    failures = []
+    failures = validate_schema(fields)
     warnings = []
 
     Dir.glob(File.join(root, entry_path, "*", "index.md")).sort.each do |file|
-      entry_failures, entry_warnings = validate_entry(file, fields)
+      entry_failures, entry_warnings = validate_entry(file, fields, entry)
       failures.concat(entry_failures)
       warnings.concat(entry_warnings)
     end

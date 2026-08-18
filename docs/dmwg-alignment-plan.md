@@ -328,6 +328,20 @@ Everything else landed as planned; the footer also gained a *Feed* link.
 
 ## Wave 3 — review workflow
 
+**Status: shipped (unreleased, 2026-08-18).** Two deviations from the sketch below,
+both deliberate: escalation is driven by an explicit per-field `escalate_on` list in
+the schema (a boolean's `false`, select/multiselect options — validated against
+`options` by `check_front_matter.rb`) rather than inferred from `option_meta.tone`,
+because "this option is warn-toned on a badge" and "this answer needs a second
+reviewer" are different decisions and a preset should be able to make them
+separately; and the PR checklist criteria are read from `_data/governance.yml`
+(`review.criteria`) with a generic five as fallback, so the pull request and the
+governance page can never disagree. The `updated` stamp is a `stamp` job inside
+`pages.yml` (`scripts/stamp_updated.mjs`), non-fatal, with the loop guard being
+idempotency (an `updated` already at today is left alone) plus a head-commit-message
+check. Labels are applied in a separate best-effort step, because `gh pr create
+--label` fails outright on a missing label.
+
 - Labels (`bootstrap-labels.yml`): `review:intake`, `review:committee`,
   `review:partner`, `review:revisions-requested`, `review:data-governance`,
   `review:declined`. Colours in the existing purple family.

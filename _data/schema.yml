@@ -49,6 +49,9 @@
 #   search      true -> included in the search index (title + summary always are; facets always are)
 #   form        false -> hidden from the submission forms (maintainer-only field, e.g. `featured`)
 #   thumbnail   (file fields) true -> a thumb.jpg is generated from this PDF's first page in CI
+#   escalate_on optional list of values that call for closer review (a boolean's `false`, a
+#               select/multiselect option). The scaffolder lists every match on the pull request
+#               and labels it `review:data-governance`; nothing else reads it.
 #
 # `title`, `slug`, `summary`, `published`, `updated`, `thumbnail`, `featured` are always present
 # in every entry, whether or not they are listed here.
@@ -66,10 +69,18 @@ entry:
   # current". When both are set, entries with that value get a notice on their
   # page and card, sort after everything else, and drop out of the featured
   # carousel and the hero panel; they stay in the catalog and the search index.
-  # The scaffolder writes `status_scaffold_value` on new submissions.
+  # The scaffolder writes `status_scaffold_value` on new submissions and asks
+  # the reviewer, in the pull request checklist, to set `status_approved_value`
+  # before merging.
   status_key: "review_status"
   deprecated_value: "Deprecated"
   status_scaffold_value: "Under review"
+  status_approved_value: "Reviewed & approved"
+  # Minimum documentation bar (optional). When true, an entry with no `url`
+  # field set and no `links` field populated fails validation instead of
+  # drawing a warning: nobody could evaluate or adopt a resource nobody can
+  # reach.
+  require_link: true
 
 # Ordered groups: { key, title, description?, icon?, placement? }.
 # Filters show facet fields grouped this way; the submit wizard turns each group
@@ -729,6 +740,7 @@ fields:
     group: data
     weight: 1
     icon: shield-check
+    escalate_on: [false]
     description: "The coalition's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
 
   - key: data_sensitivity
@@ -755,6 +767,7 @@ fields:
       "Personal information (PII)": { short: "PII", icon: shield, tone: warn, description: "Names, addresses, IDs or other personal identifiers." }
       "Health information (PHI)": { short: "PHI", icon: shield, tone: warn, description: "Identifiable health information covered by HIPAA." }
       "Criminal justice data (CJIS)": { short: "CJIS", icon: shield, tone: warn, description: "Data subject to CJIS security policy." }
+    escalate_on: ["Personal information (PII)", "Health information (PHI)", "Criminal justice data (CJIS)"]
     description: "Select all that apply. This helps others judge governance and approval effort."
 
   - key: data_sources
@@ -786,6 +799,7 @@ fields:
       "Public-facing": { short: "Public", icon: globe, description: "Residents or the general public interact with it." }
       "Internal staff": { short: "Internal", icon: lock, description: "Used only inside the organization." }
       "Partner organizations": { short: "Partners", icon: users, description: "Shared with specific partner organizations." }
+    escalate_on: ["Public-facing"]
     description: "Pick the widest group that sees anything it produces."
 
   - key: data_governance_notes

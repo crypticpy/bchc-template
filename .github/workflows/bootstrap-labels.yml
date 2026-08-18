@@ -39,6 +39,17 @@ jobs:
           # verification sweep (verification-sweep.yml) applies it to the one
           # rolling issue it keeps open, so maintainers can find or mute it.
           create "verification"               "8250DF" "Entries due to be re-confirmed with their contact"
+          # Review-tier labels for the pull requests the entry scaffolder opens
+          # (new-entry.yml). `review:intake` goes on every scaffolded pull
+          # request; `review:data-governance` when an answer matches a field's
+          # `escalate_on` list in _data/schema.yml. Reviewers move the rest by
+          # hand as the entry passes through the tiers on the governance page.
+          create "review:intake"              "6E40C9" "Awaiting intake triage: complete, contact reachable, nothing that looks like PII/PHI"
+          create "review:committee"           "6E40C9" "With the governance committee for substantive review"
+          create "review:partner"             "6E40C9" "Referred to a partner reviewer (identifiable data, clinical decision support, public-facing)"
+          create "review:data-governance"     "A371F7" "An answer asks for closer review — set by the scaffolder from the schema's escalate_on"
+          create "review:revisions-requested" "D4A72C" "Sent back to the submitter with specific changes; edit the issue or reply on the pull request"
+          create "review:declined"            "9E6A03" "Not published, with a rationale on the pull request; the submitter may appeal"
           echo "Labels are ready."
 
       - name: Preflight the repository settings

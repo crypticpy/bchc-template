@@ -362,4 +362,83 @@ class CheckFrontMatterTest < Minitest::Test
     assert_equal 1, failures.length
     assert_includes failures.first, "is missing YAML front matter"
   end
+  # The minimum documentation bar: an entry nobody can reach is a warning by
+  # default, and a failure when the schema's `entry.require_link` says so.
+  def test_an_entry_with_no_link_warns_or_fails_per_require_link
+    write_entry("unreachable", <<~FM)
+      title: T
+      slug: unreachable
+      render_with_liquid: false
+      summary: S
+      published: "2026-01-05"
+      resources: []
+    FM
+
+    failures, warnings = run_check
+    assert(failures.none? { |f| f.include?("no link anywhere") }, failures.inspect)
+    assert(warnings.any? { |w| w.include?("unreachable/index.md: no link anywhere") }, warnings.inspect)
+
+    File.write(File.join(@root, "_data", "schema.yml"), SCHEMA.sub("  path: catalog\n", "  path: catalog\n  require_link: true\n"))
+    failures, warnings = run_check
+    assert(failures.any? { |f| f.include?("unreachable/index.md: no link anywhere") }, failures.inspect)
+    assert(warnings.none? { |w| w.include?("no link anywhere") }, warnings.inspect)
+  end
+
+  def test_a_links_item_or_a_url_field_satisfies_the_documentation_bar
+    write_entry("by-links", <<~FM)
+      title: T
+      slug: by-links
+      render_with_liquid: false
+      summary: S
+      published: "2026-01-05"
+      resources:
+        - label: Report
+          url: https://example.org/r.pdf
+    FM
+    write_entry("by-url", <<~FM)
+      title: T
+      slug: by-url
+      render_with_liquid: false
+      summary: S
+      published: "2026-01-05"
+      repo_url: https://example.org/repo
+    FM
+
+    _failures, warnings = run_check
+    assert(warnings.none? { |w| w.include?("no link anywhere") }, warnings.inspect)
+  end
+
+  # A schema with no url/links field has nowhere a link could go, so the bar
+  # is not applied at all — other presets stay silent.
+  def test_the_documentation_bar_is_silent_when_the_schema_has_no_link_fields
+    schema = SCHEMA.lines.reject { |l| l =~ /repo_url|label: Repo|type: url|key: resources|label: Resources|type: links/ }.join
+    File.write(File.join(@root, "_data", "schema.yml"), schema)
+    write_entry("plain", <<~FM)
+      title: T
+      slug: plain
+      render_with_liquid: false
+      summary: S
+      published: "2026-01-05"
+    FM
+
+    _failures, warnings = run_check
+    assert(warnings.none? { |w| w.include?("no link anywhere") }, warnings.inspect)
+  end
+
+  # `escalate_on` is only read by the scaffolder, so a typo there would fail
+  # silently forever; the validator checks it against the field's options.
+  def test_escalate_on_must_name_real_values
+    schema = SCHEMA
+             .sub("    options:\n      - Pilot\n", "    escalate_on: [Prototype]\n    options:\n      - Pilot\n")
+             .sub("    type: email\n", "    type: email\n  - key: attest\n    label: Attest\n    type: boolean\n    escalate_on: [\"no\"]\n")
+    File.write(File.join(@root, "_data", "schema.yml"), schema)
+
+    failures, = run_check
+    assert(failures.any? { |f| f.include?("`stage.escalate_on` names values that are not options: Prototype") }, failures.inspect)
+    assert(failures.any? { |f| f.include?("`attest.escalate_on` on a boolean field must be true or false") }, failures.inspect)
+
+    File.write(File.join(@root, "_data", "schema.yml"), SCHEMA.sub("    options:\n      - Pilot\n", "    escalate_on: [Pilot]\n    options:\n      - Pilot\n"))
+    failures, = run_check
+    assert(failures.none? { |f| f.include?("escalate_on") }, failures.inspect)
+  end
 end

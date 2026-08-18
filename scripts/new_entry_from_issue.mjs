@@ -7,7 +7,7 @@
  *                <entry path>/<slug>/screenshots/NN.<ext>  (downloaded images)
  *                <entry path>/<slug>/<filename>            (uploaded attachments)
  *                $GITHUB_OUTPUT:  slug, entry_dir, branch, title, images,
- *                                 warnings, preview
+ *                                 warnings, preview, checklist, escalate
  *                $GITHUB_STEP_SUMMARY: a human-readable report
  *
  * Flags:         --dry-run   print the front matter instead of writing files
@@ -28,6 +28,7 @@ import * as yaml from 'js-yaml';
 
 import { fail, setOutput } from './lib/actions_output.mjs';
 import { frontMatter } from './lib/yaml.mjs';
+import { escalations, reviewChecklist } from './lib/review.mjs';
 import { downloadAttachment } from './lib/attachments.mjs';
 import { downloadImages, MAX_FILES } from './lib/images.mjs';
 import {
@@ -44,6 +45,9 @@ import {
 
 const ROOT = process.cwd();
 const SCHEMA_PATH = path.join(ROOT, '_data', 'schema.yml');
+// Optional: the published review criteria, so the pull request checklist and
+// the governance page carry the same list.
+const GOVERNANCE_PATH = path.join(ROOT, '_data', 'governance.yml');
 const DRY_RUN = process.argv.includes('--dry-run');
 
 /** Keys written by the fixed header block; a schema field with one of these
@@ -298,6 +302,34 @@ if (statusKey && typeof statusStart === 'string' && statusStart !== '') {
 
 const content = `${frontMatter(entries)}\n${bodyText || 'Write-up forthcoming.'}\n`;
 
+// --- what the reviewer is told ---------------------------------------------
+
+// Closer review: every answer the schema flags with `escalate_on`. The
+// workflow labels the pull request from this; the checklist lists the reasons.
+const flagged = escalations(fields, new Map(entries));
+
+/** `review.criteria` from _data/governance.yml when the site publishes them. */
+function publishedCriteria() {
+  if (!fs.existsSync(GOVERNANCE_PATH)) return [];
+  try {
+    const governance = yaml.load(fs.readFileSync(GOVERNANCE_PATH, 'utf8'));
+    const criteria = governance?.review?.criteria;
+    return Array.isArray(criteria) ? criteria : [];
+  } catch (error) {
+    warnings.push(
+      `_data/governance.yml could not be read (${error.message}); the checklist uses the built-in criteria.`
+    );
+    return [];
+  }
+}
+
+const checklist = reviewChecklist({
+  criteria: publishedCriteria(),
+  status: { key: statusKey, start: statusStart, approved: schema.entry?.status_approved_value },
+  escalations: flagged,
+  entryDir: `${entryPath}/${slug}`,
+});
+
 // --- reviewer preview ------------------------------------------------------
 // Reviewing a generated pull request means reading a YAML diff to judge a page.
 // These lines put the entry itself in front of the maintainer, in the job
@@ -347,6 +379,7 @@ const savedImages = Object.values(imageValues)
 if (DRY_RUN) {
   console.log(`# dry run — would write ${entryPath}/${slug}/index.md\n`);
   console.log(content);
+  console.log(`\n# pull request checklist\n${checklist}`);
   if (warnings.length > 0) console.log(`\n# warnings\n${warnings.map((w) => `- ${w}`).join('\n')}`);
   process.exit(0);
 }
@@ -370,6 +403,9 @@ if (savedImages.length > 0) {
 if (savedAttachments.length > 0) {
   summaryLines.push('', '### Attachments saved', ...savedAttachments.map((item) => `- \`${item}\``));
 }
+if (flagged.length > 0) {
+  summaryLines.push('', '### Closer review', ...flagged.map((item) => `- ${item.reason}`));
+}
 summaryLines.push(
   '',
   warnings.length > 0 ? '### Warnings' : '### Warnings\n\nNone.',
@@ -387,3 +423,7 @@ setOutput('title', title);
 setOutput('images', savedImages.map((item) => `- \`${item.src}\``).join('\n'));
 setOutput('warnings', warnings.map((warning) => `- ${warning}`).join('\n'));
 setOutput('preview', preview);
+setOutput('checklist', checklist);
+// One line per flagged answer; empty when nothing was flagged. The workflow
+// tests emptiness to decide on the `review:data-governance` label.
+setOutput('escalate', flagged.map((item) => item.reason).join('\n'));

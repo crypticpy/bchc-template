@@ -156,6 +156,7 @@ jobs:
           IMAGES: ${{ steps.scaffold.outputs.images }}
           WARNINGS: ${{ steps.scaffold.outputs.warnings }}
           PREVIEW: ${{ steps.scaffold.outputs.preview }}
+          CHECKLIST: ${{ steps.scaffold.outputs.checklist }}
         run: |
           set -euo pipefail
           # Everything between the braces is literal markdown; a backtick here is
@@ -177,13 +178,20 @@ jobs:
             if [ -n "$WARNINGS" ]; then
               printf '### Warnings from the scaffolder\n\n%s\n\n' "$WARNINGS"
             fi
-            printf '### Maintainer checklist\n\n'
-            printf -- '- [ ] The summary reads clearly to someone outside the submitting team\n'
-            printf -- '- [ ] Front matter values match the schema options and nothing is missing\n'
-            printf -- '- [ ] Screenshots opened at full size — no names, addresses, record numbers or email addresses visible\n'
-            printf -- '- [ ] Any PDF or extra file is uploaded into `%s/`\n' "$ENTRY_DIR"
-            printf -- '- [ ] **Validate Content** is green on the *latest* commit (re-check after any bot thumbnail commit)\n'
-            printf -- '- [ ] Merge to publish\n'
+            # The closer-review block (answers the schema flags with
+            # `escalate_on`) and the maintainer checklist — the review criteria
+            # from _data/governance.yml when the site publishes them, then the
+            # mechanics and the review-status flip. Built by scripts/lib/review.mjs
+            # so the pull request and the governance page carry the same list.
+            if [ -n "$CHECKLIST" ]; then
+              printf '%s\n' "$CHECKLIST"
+            else
+              printf '### Maintainer checklist\n\n'
+              printf -- '- [ ] Front matter values match the schema options and nothing is missing\n'
+              printf -- '- [ ] Any PDF or extra file is uploaded into `%s/`\n' "$ENTRY_DIR"
+              printf -- '- [ ] **Validate Content** is green on the *latest* commit\n'
+              printf -- '- [ ] Merge to publish\n'
+            fi
           } > /tmp/pr-body.md
 
           # An `issues: edited` re-run reuses the pull request that already
@@ -205,6 +213,37 @@ jobs:
               --label content:new-entry \
               --body-file /tmp/pr-body.md)"
             echo "url=$url" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Review-tier labels are a separate, best-effort step: `gh pr create
+      # --label` fails outright when a label does not exist, and a fork that has
+      # not run bootstrap-labels.yml (or has renamed its tiers) must still get
+      # its pull request. `review:intake` marks the first tier on the governance
+      # page; `review:data-governance` goes on when an answer matched a field's
+      # `escalate_on` list in _data/schema.yml, so the closer-review block in
+      # the body is also visible from the pull request list.
+      - name: Label the pull request for review
+        if: steps.commit.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.CONTENT_BOT_TOKEN || secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.scaffold.outputs.branch }}
+          ESCALATE: ${{ steps.scaffold.outputs.escalate }}
+        run: |
+          set -euo pipefail
+          labels="review:intake"
+          if [ -n "$ESCALATE" ]; then labels="$labels,review:data-governance"; fi
+          if gh pr edit "$BRANCH" --add-label "$labels" 2>/tmp/label-error.txt; then
+            echo "Labelled the pull request: $labels" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### Review labels not applied"
+              echo
+              echo "Could not add \`$labels\` — run **Bootstrap labels** from the Actions tab once, and future pull requests will be labelled. The pull request itself is fine."
+              echo
+              echo '```'
+              cat /tmp/label-error.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       # A pull request opened with GITHUB_TOKEN does not trigger `pull_request`

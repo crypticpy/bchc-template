@@ -25,6 +25,8 @@ entry:
   status_key: review_status          # optional — the select field that carries review status
   deprecated_value: "Deprecated"     # optional — which option of it means "kept for the record"
   status_scaffold_value: "Under review"  # optional — what the scaffolder stamps on a new entry
+  status_approved_value: "Reviewed & approved"  # optional — what approval means; the PR checklist asks for it
+  require_link: true       # optional — an entry with no link anywhere fails validation instead of warning
 
 groups:                    # ordered; group filters and submit-form sections
   - key: about
@@ -67,7 +69,7 @@ A group is `{key, title, description?, icon?, placement?}`. `key` is what a fiel
 | `slug` | Automation | Must equal the entry's folder name — CI fails otherwise. |
 | `published` | Automation | `YYYY-MM-DD`. The default sort key. |
 | `render_with_liquid` | Automation | Always `false`, and CI fails an entry without it: the body is a submitter's markdown and must not be run through Liquid at build time. |
-| `updated` | Maintainer | Optional `YYYY-MM-DD`. When present, the entry page shows "Updated …" alongside the published date, and "Recently updated" sorting uses it. Set it when the content materially changes, not for typo fixes. |
+| `updated` | Automation, or maintainer | Optional `YYYY-MM-DD`. When present, the entry page shows "Updated …" alongside the published date, and "Recently updated" sorting uses it. The deploy stamps it when a push to `main` modifies the entry file (`scripts/stamp_updated.mjs` — modified files only, never sample content, never backwards; see [admin-guide.md](admin-guide.md#editing-or-removing-an-existing-entry)); set it by hand when you want a different day. |
 | `verified` | Maintainer | Optional `YYYY-MM-DD`. The day someone confirmed with the contact that the entry is still true. Stronger than `updated`, which only says the text changed. The scaffolder never sets it — a maintainer does, in review or when clearing an item from the [monthly sweep](admin-guide.md#the-monthly-verification-sweep). |
 | `featured` | Maintainer | `true` pins the entry into the home carousel and shows a Featured badge. Maintainer-only; there is no submitter path to it. |
 | `thumbnail` | Maintainer | Optional image path. First choice for the card image, ahead of any `images` field. |
@@ -91,6 +93,8 @@ Three pointers make it schema-driven rather than a special case:
 | `entry.status_key` | The field's key. Absent → nothing below happens. |
 | `entry.deprecated_value` | The option that means "kept for the record". An entry carrying it is **deprecated**: it stays published, its page opens with a warning-toned notice ("kept for the record — the tool, its costs or its contact may no longer be current"), its card and list row carry the same one-liner, the home page leaves it out of Featured and Latest, the catalog lists it after every live entry, and the default sort demotes it below stale entries. It is never hidden, never deleted: the record is the point. |
 | `entry.status_scaffold_value` | What `scripts/new_entry_from_issue.mjs` stamps on a freshly scaffolded entry, so a submission opens as **Under review** without anyone typing it. A maintainer sets the final value in the PR. |
+| `entry.status_approved_value` | The option that means the review passed. The scaffolded pull request's checklist ends with "`review_status` set to **Reviewed & approved** (the scaffold wrote *Under review*) — or the pull request left open with `review:revisions-requested`", so the flip is on the list the reviewer ticks rather than in their memory. Absent → the checklist has no status line. |
+| `entry.require_link` | The minimum documentation bar. `check_front_matter.rb` already notices an entry with no link anywhere — every `url`-typed field empty and no `links` item — because a reader would have nowhere to go to evaluate or adopt it. By default that is a warning; `require_link: true` makes it a failure, so such an entry cannot merge. Silent for a schema with no `url` or `links` fields at all. |
 
 The Liquid filters behind this are `deprecated_entry`, `live_entries` and `deprecated_entries` in `_plugins/schema_filters.rb`; every template goes through them rather than comparing strings. Deprecation supersedes staleness: a deprecated entry never also shows the "last confirmed" note, because "may no longer be current" already covers it. See [admin-guide.md](admin-guide.md#editing-or-removing-an-existing-entry) for when to deprecate versus delete.
 
@@ -119,6 +123,7 @@ Each item under `fields` is a hash:
 | `form` | `false` → hidden from both submission forms. For maintainer-only fields. |
 | `filename` | `file` fields only. The expected filename in the entry folder, e.g. `deck.pdf`. |
 | `thumbnail` | `file` fields only. `true` → CI renders `thumb.jpg` from the PDF's first page. |
+| `escalate_on` | The answers that call for closer review, as an explicit list: for a `boolean`, `[false]` (or `[true]`); for a `select`/`multiselect`, option strings. When a scaffolded submission's answer matches, the pull request opens with a **Closer review** block naming the field and the answer, and the workflow adds the `review:data-governance` label. A boolean's missing answer counts as `false` — an attestation that was not ticked is not one that passed. `npm run validate` rejects a list that names an option the field does not have. Nothing else reads it: escalation is a review-time signal, not a display rule. |
 
 ### Field types
 
@@ -298,6 +303,8 @@ The option lists are a **starting draft, not a standard.** The dollar bands are 
 
 `no_pii_attestation` is a required `boolean`: the wizard shows it as a checkbox that must be ticked, the issue form as a Yes/No dropdown, and the page as **Yes/No**. It exists so a submitter has to say, in their own name, that nothing in the write-up, screenshots or example data is personal or protected — the coalition's baseline for anything published, and the one thing a reviewer will spot-check first. `data_governance_notes` is the free-text companion for the answers that need a sentence (which agreement covers the data, what was de-identified, who approved sharing).
 
+Three shipped fields carry `escalate_on`, matching the governance page's "partner review when warranted" tier: `no_pii_attestation` on `[false]`, `data_sensitivity` on the PII, PHI and CJIS options, and `audience` on *Public-facing*. A submission that trips any of them opens as a pull request with a **Closer review** block and the `review:data-governance` label — the reviewer sees at a glance that this one is not a five-minute intake.
+
 ## Worked example
 
 A complete entry, `catalog/epi-signal-triage/index.md`:
@@ -356,7 +363,7 @@ contact_email: "priya.natarajan@example.org"
 …the markdown field's content becomes the page body…
 ```
 
-Rules the validator enforces: `slug` equals the folder name, `published` (and `updated` when present) is a real `YYYY-MM-DD` date, every required field is non-blank, `select`/`multiselect` values appear verbatim in `options`, `url` fields are `http(s)`, `email` fields contain `@`, `images` point at files that exist, `links` have a label and a URL.
+Rules the validator enforces: `slug` equals the folder name, `published` (and `updated` when present) is a real `YYYY-MM-DD` date, every required field is non-blank, `select`/`multiselect` values appear verbatim in `options`, `url` fields are `http(s)`, `email` fields contain `@`, `images` point at files that exist, `links` have a label and a URL, and — a warning by default, a failure under `entry.require_link` — the entry has at least one link somewhere.
 
 The ten sample entries under `catalog/` are working examples of every field type in this schema.
 
