@@ -13,6 +13,9 @@ Local assigns are prefixed `er_`.
 {%- assign er_facets = er_fields | facet_fields -%}
 {%- assign er_metas = er_fields | card_fields: 'meta' -%}
 {%- assign er_chip_field = er_fields | card_fields: 'chip' | first -%}
+{%- comment -%} Same staleness contract as entry-card.html — see the note there. {%- endcomment -%}
+{%- assign er_verify_days = site.data.site.catalog.verify_after_days | default: 365 -%}
+{%- assign er_check = er_entry | verification: site.time, er_verify_days -%}
 
 <li class="entry-row"
   data-entry
@@ -20,6 +23,8 @@ Local assigns are prefixed `er_`.
   data-entry-title="{{ er_entry.title | escape }}"
   data-entry-date="{{ er_entry.published | date: '%Y-%m-%d' | escape }}"
   {% if er_entry.updated %}data-entry-updated="{{ er_entry.updated | date: '%Y-%m-%d' | escape }}" {% endif %}
+  {%- if er_entry.verified %} data-entry-verified="{{ er_entry.verified | date: '%Y-%m-%d' | escape }}"{% endif %}
+  {%- if er_check.stale %} data-entry-stale="{{ er_check.days }}"{% endif %}
   {%- for er_f in er_metas %}{% if er_f.type == 'text' or er_f.type == 'select' %} data-sort-{{ er_f.key | replace: '_', '-' }}="{{ er_entry[er_f.key] | escape }}"{% endif %}{% endfor %}
   {%- for er_f in er_facets %} data-facet-{{ er_f.key | replace: '_', '-' }}="{{ er_entry[er_f.key] | facet_values | escape }}"{% endfor %}>
 
@@ -57,4 +62,7 @@ Local assigns are prefixed `er_`.
   {%- endif -%}
 
   {% include signal-strip.html entry=er_entry class='signal-strip !border-t-0 !pt-1' %}
+  {%- if er_check.stale -%}
+    <p class="entry-stale-note">{% include icon.html name='clock' size='xs' class='shrink-0' %}<span>Last confirmed {{ er_check.date | date: '%b %Y' }}</span></p>
+  {%- endif -%}
 </li>

@@ -20,6 +20,23 @@
   .fact-item { @apply inline-flex min-w-0 items-center gap-1.5; }
   .fact-item-warn { @apply fact-item text-brand-warn; }
 
+  /* ---- Staleness notice ------------------------------------------------ */
+  /* Deliberately NOT a warning: an entry nobody has re-confirmed in a year is
+     still the best account of that project anyone has written down, and painting
+     it amber teaches readers to distrust the catalog rather than to date it. So:
+     muted text, a clock rather than a triangle, and the same hairline the fact
+     strip below it carries — it reads as a caption on the strip, which is what
+     it is. It sits above the strip because it qualifies every fact in it. */
+  .entry-stale { @apply flex items-start gap-2 rounded-xl border border-brand-line bg-surface-card px-4 py-3 text-sm leading-5 text-brand-muted; }
+  .entry-stale a { @apply font-medium text-brand-primary hover:underline; }
+
+  /* The card/row version of the same idea, one line long. It lives here rather
+     than in catalog.css so both halves of the staleness treatment stay together;
+     the margin is scoped to .entry-foot because .entry-row already gaps its
+     children and would double the space. */
+  .entry-stale-note { @apply flex items-center gap-1.5 text-[11px] font-medium leading-4 text-brand-muted; }
+  .entry-foot .entry-stale-note { @apply mt-3; }
+
   /* ---- Sidebar rail --------------------------------------------------- */
   .rail-card { @apply card p-5; }
   .rail-title { @apply text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-muted; }
