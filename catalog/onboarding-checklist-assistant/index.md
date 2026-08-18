@@ -6,6 +6,7 @@ slug: onboarding-checklist-assistant
 summary: "Builds a personalized checklist for each new hire, opens the access requests it can, and answers policy questions from the staff handbook."
 published: 2026-01-27
 updated: 2026-05-11
+verified: 2026-06-05
 featured: false
 sample: true
 impact: "Cut first-week help desk tickets from 11 to 3 per new hire"
@@ -44,6 +45,14 @@ screenshots:
     alt: "Onboarding checklist for a new inspector, grouped by before day one, day one, week one and week two, with progress tiles."
   - src: /catalog/onboarding-checklist-assistant/screenshots/02.png
     alt: "Chat transcript where the assistant answers badge and access questions with handbook citations and declines a pay question."
+cost_band: "No new spend"
+run_cost: "No ongoing cost"
+procurement:
+  - "Existing enterprise licence"
+approvals:
+  - "Labor or workforce consultation"
+  - "Records retention review"
+equity_note: "Every new hire meets it in their first week, which makes it an accessibility question before anything else. We tested the checklist with a screen reader and with our two colleagues who use one daily, and the plain-language pass brought it from a grade 14 reading level to grade 8 — the same standard we hold public notices to."
 data_sensitivity:
   - "Personal information (PII)"
   - "Internal, non-public data"

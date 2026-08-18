@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as jsYaml from 'js-yaml';
 
 import { presets } from '../../assets/js/configurator/presets.js';
-import { checkSchema } from '../../assets/js/configurator/schema-validate.js';
+import { CARD_SLOTS, checkSchema } from '../../assets/js/configurator/schema-validate.js';
 import { renderFiles } from '../../assets/js/configurator/render-files.js';
 import { applyAnswers, answersFromConfig } from '../../assets/js/configurator/answers.js';
 import { checkThemeContrast } from '../../assets/js/configurator/color.js';
@@ -69,7 +69,7 @@ for (const preset of presets) {
     const carded = schema.fields.filter((field) => typeof field.card === 'string');
     assert.ok(carded.length > 0, 'at least one field claims a card slot');
     for (const field of carded) {
-      assert.ok(['badge', 'chip', 'meta', 'icon', 'line'].includes(field.card));
+      assert.ok(CARD_SLOTS.includes(field.card), `${field.key}: "${field.card}" is a real card slot`);
     }
   });
 

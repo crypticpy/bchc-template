@@ -35,6 +35,10 @@ const CASES = [
   'Mairie de Saint-Étienne',
   'Ñandú',
   'Réunion de cohorte',
+  // Letters NFKD leaves whole: mapped to an ASCII spelling, not dropped.
+  'Straße Gesundheitsamt',
+  'Łódź — Øresund',
+  'Ærø kommune / Œuvre',
   // Punctuation that is not a hyphen but reads like one.
   'Data — sharing – agreement',
   "Mayor's office / IT",

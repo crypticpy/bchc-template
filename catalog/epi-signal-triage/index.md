@@ -6,6 +6,7 @@ slug: epi-signal-triage
 summary: "Reads the daily syndromic alert export, drafts a plain-language note for each signal, and ranks the ones an epidemiologist should open first."
 published: 2026-06-18
 updated: 2026-07-30
+verified: 2026-08-04
 featured: true
 sample: true
 impact: "Cut daily alert review from 90 to 30 minutes for two analysts"
@@ -43,6 +44,17 @@ screenshots:
     alt: "Triage queue listing seven ranked syndromic signals with area, what changed, signal strength and status."
   - src: /catalog/epi-signal-triage/screenshots/02.png
     alt: "Draft triage note for a gastrointestinal signal beside a bar chart of daily visit counts, marked as awaiting analyst review."
+cost_band: "No new spend"
+run_cost: "Under $10k/yr"
+procurement:
+  - "No procurement needed"
+  - "In-kind or academic partnership"
+approvals:
+  - "Privacy review"
+  - "Security review or authority to operate"
+  - "Research ethics / IRB"
+  - "AI governance body"
+equity_note: "The model ranks signals, so a systematic miss in one part of the city becomes a slower public health response there. We compare precision and recall by reporting facility and by ZIP-code tercile every month, and the two safety-net hospitals are held to the same recall floor as the academic centers. Nothing is auto-dismissed: an epidemiologist sees every signal regardless of rank."
 data_sensitivity:
   - "De-identified data"
   - "Internal, non-public data"

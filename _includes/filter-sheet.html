@@ -12,7 +12,9 @@ Markup contract (assets/js/filters.js):
   [data-sheet-close]         header close button
   [data-sheet-apply]         footer "Show n <schema plural>" (closes the sheet;
                              filters.js keeps [data-entry-count]/[data-entry-count-label] in sync)
-  [data-filter-clear]        footer "Clear"
+  [data-filter-clear]        footer "Clear", carrying data-filter-clear-persist so
+                             filters.js disables it rather than hiding it (the footer
+                             is a fixed two-button row)
 
 Local assigns are prefixed `fs_`.
 {%- endcomment -%}
@@ -38,7 +40,7 @@ attributes disagree the moment showModal() runs. {%- endcomment -%}
     {% include filter-groups.html entries=include.entries context="sheet" %}
   </div>
   <div class="filter-sheet-foot">
-    <button type="button" class="btn-secondary flex-1" data-filter-clear>Clear</button>
+    <button type="button" class="btn-secondary flex-1" data-filter-clear data-filter-clear-persist>Clear</button>
     <button type="button" class="btn-primary flex-1" data-sheet-apply><span>Show <span data-entry-count>{{ fs_count }}</span> <span data-entry-count-label>{% if fs_count == 1 %}{{ fs_singular }}{% else %}{{ fs_plural }}{% endif %}</span></span></button>
   </div>
 </dialog>

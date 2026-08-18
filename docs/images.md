@@ -34,7 +34,7 @@ one costs speed, never a picture.
 | Command | What it does |
 |---|---|
 | `npm run images` | Write what is missing or out of date, prune orphans, update the manifest. |
-| `npm run images -- --check` | Exit 1 if anything would change. For a CI gate or a pre-merge sanity check; writes nothing. |
+| `npm run images -- --check` | Exit 1 if anything would change; writes nothing. **Validate Content** runs this on every pull request, so a screenshot added by hand needs `npm run images` before the PR goes green. |
 | `npm run images -- catalog/my-entry` | Limit the walk to one path, when a full pass is slower than you want. |
 
 It needs [`sharp`](https://sharp.pixelplumbing.com/), which is a devDependency —

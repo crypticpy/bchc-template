@@ -134,6 +134,25 @@ class SchemaFiltersTest < Minitest::Test
     assert_nil @filters.card_slot({ "card" => "not_a_slot" })
   end
 
+  # `fact` is entry-page-only, but it is still a card slot as far as the resolver
+  # is concerned — the templates decide where to render it, not this filter.
+  def test_card_slot_accepts_the_fact_slot
+    assert_equal "fact", @filters.card_slot({ "type" => "select", "card" => "fact" })
+    assert_includes CatalogTemplate::SchemaFilters::CARD_SLOTS, "fact"
+  end
+
+  def test_card_fields_keeps_fact_separate_from_icon_and_meta
+    fields = [
+      { "key" => "cost", "card" => "fact", "weight" => 2 },
+      { "key" => "approvals", "card" => "fact", "weight" => 1 },
+      { "key" => "readiness", "card" => "icon" },
+      { "key" => "org", "type" => "text", "card" => true }
+    ]
+    assert_equal %w[approvals cost], @filters.card_fields(fields, "fact").map { |f| f["key"] }
+    assert_equal %w[readiness], @filters.card_fields(fields, "icon").map { |f| f["key"] }
+    assert_equal %w[org], @filters.card_fields(fields, "meta").map { |f| f["key"] }
+  end
+
   def test_card_slot_is_nil_safe_for_non_hash_input
     assert_nil @filters.card_slot(nil)
     assert_nil @filters.card_slot("not a field")
@@ -213,5 +232,76 @@ class SchemaFiltersTest < Minitest::Test
     assert_equal "a.png", @filters.first_image([{ "src" => "a.png" }])
     assert_equal "", @filters.first_image(nil)
     assert_equal "", @filters.first_image([])
+  end
+
+  # -- verification -------------------------------------------------------------
+
+  NOW = "2026-08-17"
+
+  def test_verification_picks_the_newest_date_not_the_strongest_key
+    check = @filters.verification(
+      { "published" => "2024-01-01", "updated" => "2026-05-05", "verified" => "2025-02-02" }, NOW
+    )
+    assert_equal "updated", check["key"]
+    assert_equal "2026-05-05", check["date"]
+    refute check["stale"]
+  end
+
+  def test_verification_prefers_verified_when_it_is_newest
+    check = @filters.verification({ "published" => "2020-01-01", "verified" => "2026-08-01" }, NOW)
+    assert_equal "verified", check["key"]
+    assert_equal 16, check["days"]
+  end
+
+  # The point of the whole feature: an old entry that a maintainer re-confirmed
+  # last month is not stale, and a young entry nobody has touched is not either.
+  def test_verification_marks_only_entries_past_the_window
+    old = @filters.verification({ "published" => "2024-06-01" }, NOW)
+    assert old["stale"]
+    assert_equal 807, old["days"]
+
+    rescued = @filters.verification({ "published" => "2019-01-01", "verified" => "2026-07-01" }, NOW)
+    refute rescued["stale"]
+  end
+
+  def test_verification_treats_exactly_the_window_as_fresh
+    refute @filters.verification({ "published" => "2025-08-17" }, NOW)["stale"]
+    assert @filters.verification({ "published" => "2025-08-16" }, NOW)["stale"]
+  end
+
+  def test_verification_honours_a_custom_window
+    assert @filters.verification({ "published" => "2026-06-01" }, NOW, 30)["stale"]
+    refute @filters.verification({ "published" => "2026-06-01" }, NOW, 3650)["stale"]
+  end
+
+  def test_verification_falls_back_to_a_year_for_a_nonsense_window
+    [0, -5, "", nil].each do |bad|
+      assert @filters.verification({ "published" => "2024-01-01" }, NOW, bad)["stale"], "window #{bad.inspect}"
+    end
+  end
+
+  def test_verification_accepts_an_explicit_key_list
+    entry = { "published" => "2020-01-01", "checked" => "2026-08-10" }
+    assert_equal "checked", @filters.verification(entry, NOW, 365, "checked,published")["key"]
+    # Absent from the list, so the newer date is simply not seen.
+    assert_equal "published", @filters.verification(entry, NOW, 365, "published")["key"]
+  end
+
+  def test_verification_ignores_a_malformed_date_rather_than_raising
+    check = @filters.verification({ "published" => "2024-01-01", "verified" => "last spring" }, NOW)
+    assert_equal "published", check["key"]
+  end
+
+  def test_verification_is_unknown_when_nothing_parses
+    %w[key date].each { |k| assert_equal "", @filters.verification({ "title" => "x" }, NOW)[k] }
+    assert_equal(-1, @filters.verification({ "title" => "x" }, NOW)["days"])
+    refute @filters.verification({ "title" => "x" }, NOW)["stale"]
+    refute @filters.verification(nil, NOW)["stale"]
+  end
+
+  def test_verification_accepts_date_and_time_objects
+    entry = { "published" => Date.new(2024, 1, 1) }
+    assert_equal "2024-01-01", @filters.verification(entry, Time.utc(2026, 8, 17))["date"]
+    assert @filters.verification(entry, Time.utc(2026, 8, 17))["stale"]
   end
 end

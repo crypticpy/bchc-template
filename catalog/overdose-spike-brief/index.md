@@ -4,7 +4,7 @@ render_with_liquid: false
 title: "Overdose spike situational brief generator"
 slug: overdose-spike-brief
 summary: "Assembles naloxone runs, emergency department visits and medical examiner reports into a one-page situational brief within an hour of a spike alert."
-published: 2026-03-09
+published: 2025-07-22
 featured: true
 sample: true
 impact: "Cut brief turnaround from three days to under one hour"
@@ -42,6 +42,16 @@ screenshots:
     alt: "Draft situational brief showing four summary tiles, a bar chart of naloxone runs by neighbourhood, and the drafted narrative."
   - src: /catalog/overdose-spike-brief/screenshots/02.png
     alt: "Brief generator form with an alert window, a neighbourhood checklist and a generate button."
+cost_band: "No new spend"
+run_cost: "Under $10k/yr"
+procurement:
+  - "Grant funded"
+  - "Interagency agreement"
+approvals:
+  - "Privacy review"
+  - "Community or advisory review"
+  - "Equity impact assessment"
+equity_note: "Overdose geography is also policing geography, so a brief that names a corner can be read as a deployment recommendation. The harm-reduction advisory board asked us to report at neighborhood rather than block level and to suppress counts under five, and the brief header states in writing that it is not for law enforcement targeting."
 data_sensitivity:
   - "Health information (PHI)"
   - "De-identified data"

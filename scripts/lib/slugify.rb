@@ -14,6 +14,16 @@ module CatalogTemplate
     # Combining marks NFKD decomposition leaves behind (é -> e + U+0301).
     COMBINING_MARKS = /[\u0300-\u036F]/
 
+    # Letters NFKD leaves whole that still have an obvious ASCII spelling
+    # (ß -> ss, ø -> o, ł -> l). Keep in step with LIGATURES in
+    # assets/js/configurator/strings.js.
+    LIGATURES = {
+      "ß" => "ss", "ẞ" => "ss", "ø" => "o", "Ø" => "o", "ł" => "l", "Ł" => "l",
+      "đ" => "d", "Đ" => "d", "æ" => "ae", "Æ" => "ae", "œ" => "oe", "Œ" => "oe",
+      "þ" => "th", "Þ" => "th", "ð" => "d", "Ð" => "d", "ı" => "i"
+    }.freeze
+    LIGATURE_RE = /[#{LIGATURES.keys.join}]/
+
     # Turn free text into a URL/id-safe slug.
     #
     # Accents are folded to their base letter rather than dropped, so a title
@@ -28,6 +38,7 @@ module CatalogTemplate
       # issue body must not take the whole job down.
       text = text.scrub("") unless text.valid_encoding?
       text
+        .gsub(LIGATURE_RE, LIGATURES)
         .unicode_normalize(:nfkd)
         .gsub(COMBINING_MARKS, "")
         .downcase

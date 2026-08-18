@@ -6,6 +6,7 @@ slug: 311-multilingual-intake
 summary: "Translates and classifies resident complaints about rodents, mold, noise and air quality from the 311 feed and web forms into inspector work orders."
 published: 2026-05-02
 updated: 2026-06-22
+verified: 2026-07-15
 featured: true
 sample: true
 impact: "Median time from complaint to routed work order fell from two days to four minutes"
@@ -43,6 +44,17 @@ resources:
 screenshots:
   - src: /catalog/311-multilingual-intake/screenshots/01.png
     alt: "Inspector queue showing translated complaints with the original language, assigned category, urgency tier and routing status."
+cost_band: "$100k–$500k"
+run_cost: "$10k–$50k/yr"
+procurement:
+  - "Competitive solicitation"
+  - "Grant funded"
+approvals:
+  - "Privacy review"
+  - "Security review or authority to operate"
+  - "Legal or contracts review"
+  - "Equity impact assessment"
+equity_note: "Reaches every resident who files a complaint, including the 31% who file in a language other than English — the group the old queue served worst. We sample 40 translated complaints a month against a bilingual reviewer and track routing accuracy by source language; Haitian Creole and Amharic run below the others and stay on the review-everything list until they close the gap."
 data_sensitivity:
   - "Personal information (PII)"
   - "Internal, non-public data"

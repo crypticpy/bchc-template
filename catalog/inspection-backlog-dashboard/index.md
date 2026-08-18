@@ -5,6 +5,7 @@ title: "Inspection backlog dashboard built with an AI coding assistant"
 slug: inspection-backlog-dashboard
 summary: "A nightly operations dashboard for environmental health backlogs, built in three weeks by one developer working with an AI coding assistant."
 published: 2026-07-21
+verified: 2026-08-01
 featured: false
 sample: true
 impact: "Built in three weeks against a four-month estimate; replaced four hand-merged spreadsheets"
@@ -40,6 +41,14 @@ screenshots:
     alt: "Backlog dashboard with open and past-due totals and bar charts of past-due inspections by district and by inspection type."
   - src: /catalog/inspection-backlog-dashboard/screenshots/02.png
     alt: "Filtered list of past-due inspections in one district showing facility, type, assigned inspector, due date and days past due."
+cost_band: "Not disclosed"
+run_cost: "Not disclosed"
+procurement:
+  - "Existing enterprise licence"
+approvals:
+  - "Security review or authority to operate"
+  - "Labor or workforce consultation"
+equity_note: "The backlog it surfaces is not evenly distributed: the two districts with the oldest housing stock carry most of it, and making that visible was the point. We watch the reverse risk too — a dashboard that ranks inspectors by closure rate would push them toward the quick inspections, so it reports by district and never by individual."
 data_sensitivity:
   - "Internal, non-public data"
 data_sources:

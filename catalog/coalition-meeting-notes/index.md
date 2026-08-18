@@ -5,6 +5,7 @@ title: "Meeting notes to action items for a partner coalition"
 slug: coalition-meeting-notes
 summary: "A short playbook for turning regional coalition meeting recordings into a reviewed action list that partner organizations receive the next day."
 published: 2026-04-30
+verified: 2026-06-27
 featured: false
 sample: true
 impact: "Action lists reach partners in one day instead of two weeks"
@@ -39,6 +40,15 @@ resources:
 screenshots:
   - src: /catalog/coalition-meeting-notes/screenshots/01.png
     alt: "Transcript excerpt beside a drafted action item table listing each action, the owning organization, a due date and status."
+cost_band: "No new spend"
+run_cost: "No ongoing cost"
+procurement:
+  - "Existing enterprise licence"
+approvals:
+  - "Privacy review"
+  - "Records retention review"
+  - "Community or advisory review"
+equity_note: "Partner organizations are named in the notes, so a mis-attributed commitment lands on a small community group harder than on a hospital system. Every draft goes back to the coalition before it is filed, and the standing agenda item asking whether anyone was misquoted has caught three errors in eight months."
 data_sensitivity:
   - "Internal, non-public data"
 data_sources:

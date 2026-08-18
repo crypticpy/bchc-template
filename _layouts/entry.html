@@ -10,7 +10,8 @@ named here. Which block a field lands in comes from its `card` slot, `type` and
 `group`:
 
   header      title, summary, `card: line`, `card: badge`, `card: meta`, `url` fields
-  fact strip  `card: icon` fields (+ any `card: meta` field the header did not use)
+  fact strip  `card: icon` and `card: fact` fields (+ any `card: meta` field the
+              header did not use), under a staleness notice when the entry is old
   gallery     `images` and `file` fields
   rail        every group with `placement: rail`, then the TOC and provenance
   sections    every remaining group, in schema `groups` order, as a <dl>
@@ -39,7 +40,7 @@ a group with no populated field never claims space in either place.
 {%- assign ent_groups = ent_all_groups | groups_placed: 'main' -%}
 
 {%- comment -%} 1. Engine keys the page furniture renders itself (schema contract §4). {%- endcomment -%}
-{%- assign ent_shown = '|title|slug|summary|published|updated|thumbnail|featured|' -%}
+{%- assign ent_shown = '|title|slug|summary|published|updated|verified|thumbnail|featured|' -%}
 {%- for ent_f in ent_fields -%}
   {%- if ent_f.type == 'markdown' or ent_f.type == 'image' -%}
     {%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}
@@ -56,13 +57,58 @@ a group with no populated field never claims space in either place.
   {%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}
 {%- endfor -%}
 
-{%- comment -%} 3. Fact strip: the `card: icon` signal fields. {%- endcomment -%}
+{%- comment -%} 3. Fact strip: the `card: icon` signal fields plus the `card: fact` ones. {%- endcomment -%}
 {%- capture ent_facts -%}{% include fact-strip.html fields=ent_fields entry=page shown=ent_shown %}{%- endcapture -%}
 {%- assign ent_facts = ent_facts | strip -%}
 {%- for ent_f in ent_fields -%}
   {%- assign ent_slot = ent_f | card_slot -%}
-  {%- if ent_slot == 'icon' -%}{%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}{%- endif -%}
+  {%- if ent_slot == 'icon' or ent_slot == 'fact' -%}{%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}{%- endif -%}
 {%- endfor -%}
+
+{%- comment -%}
+3b. Verification. `verified` is a reserved key a maintainer sets when they have
+re-confirmed the facts with the contact; when it is absent the newest of
+`updated` / `published` stands in, so a fresh fork shows no notices at all.
+Past `catalog.verify_after_days` (365 by default) the page says so once, quietly,
+above the fact strip — the point is to let a reader discount an old entry, not to
+condemn it, so there is no colour and no icon of alarm.
+{%- endcomment -%}
+{%- assign ent_verified_key = ent_schema.entry.verified_key | default: 'verified' -%}
+{%- assign ent_updated_key = ent_schema.entry.updated_key | default: 'updated' -%}
+{%- capture ent_date_keys -%}{{ ent_verified_key }},{{ ent_updated_key }},published{%- endcapture -%}
+{%- assign ent_verify_days = ent_cfg.catalog.verify_after_days | default: 365 -%}
+{%- assign ent_check = page | verification: site.time, ent_verify_days, ent_date_keys -%}
+
+{%- comment -%} Where "ask the contact" points: the first rail group holding an
+`email` field with a value. Found by type, never by group key, so a renamed
+schema keeps the link. {%- endcomment -%}
+{%- assign ent_contact_anchor = '' -%}
+{%- for ent_cg in ent_rail_groups -%}
+  {%- if ent_contact_anchor != '' -%}{%- break -%}{%- endif -%}
+  {%- assign ent_cgf = ent_fields | fields_in_group: ent_cg.key -%}
+  {%- for ent_cf in ent_cgf -%}
+    {%- if ent_cf.type != 'email' -%}{%- continue -%}{%- endif -%}
+    {%- assign ent_cv = page[ent_cf.key] -%}
+    {%- if ent_cv and ent_cv != '' -%}{%- assign ent_contact_anchor = '#rail-' | append: ent_cg.key -%}{%- break -%}{%- endif -%}
+  {%- endfor -%}
+{%- endfor -%}
+
+{%- capture ent_stale_notice -%}
+  {%- if ent_check.stale -%}
+    {%- if ent_check.key == ent_verified_key -%}
+      {%- capture ent_stale_lead -%}Last verified {{ ent_check.date | date: '%B %Y' }}{%- endcapture -%}
+    {%- elsif ent_check.key == ent_updated_key -%}
+      {%- capture ent_stale_lead -%}Last updated {{ ent_check.date | date: '%B %Y' }} and not verified since{%- endcapture -%}
+    {%- else -%}
+      {%- capture ent_stale_lead -%}Published {{ ent_check.date | date: '%B %Y' }} and not confirmed since{%- endcapture -%}
+    {%- endif -%}
+    <aside class="entry-stale">
+      {% include icon.html name='clock' size='sm' class='mt-0.5 shrink-0' %}
+      <p>{{ ent_stale_lead }}. Details, costs and contacts may have changed — {% if ent_contact_anchor != '' %}<a href="{{ ent_contact_anchor }}">ask the contact</a>{% else %}ask the contact{% endif %} before relying on this.</p>
+    </aside>
+  {%- endif -%}
+{%- endcapture -%}
+{%- assign ent_stale_notice = ent_stale_notice | strip -%}
 
 {%- comment -%} 4. Media: image galleries and downloadable files. {%- endcomment -%}
 {%- capture ent_media -%}
@@ -155,6 +201,8 @@ facts, rail, body.
     <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-brand-muted">
       {%- if page.published -%}<span class="inline-flex items-center gap-1.5">{% include icon.html name='calendar' size='sm' %}Published {{ page.published | date: '%B %-d, %Y' }}</span>{%- endif -%}
       {%- if page.updated -%}<span class="inline-flex items-center gap-1.5">{% include icon.html name='clock' size='sm' %}Updated {{ page.updated | date: '%B %-d, %Y' }}</span>{%- endif -%}
+      {%- assign ent_verified_on = page[ent_verified_key] -%}
+      {%- if ent_verified_on and ent_verified_on != '' -%}<span class="inline-flex items-center gap-1.5">{% include icon.html name='check-circle' size='sm' %}Verified {{ ent_verified_on | date: '%B %-d, %Y' }}</span>{%- endif -%}
     </p>
 
     {%- capture ent_actions -%}
@@ -174,9 +222,13 @@ facts, rail, body.
     {%- endif -%}
   </header>
 
-  {%- if ent_facts != '' or ent_media != '' -%}
+  {%- if ent_stale_notice != '' or ent_facts != '' or ent_media != '' -%}
   <div class="mt-8 space-y-8 lg:col-start-1 lg:row-start-2">
-    {{ ent_facts }}
+    {%- comment -%} The notice belongs TO the strip — it qualifies every fact in
+    it — so the two share a tight block inside the page's 2rem rhythm. {%- endcomment -%}
+    {%- if ent_stale_notice != '' or ent_facts != '' -%}
+    <div class="space-y-3">{{ ent_stale_notice }}{{ ent_facts }}</div>
+    {%- endif -%}
     {%- if ent_media != '' -%}<div class="space-y-6">{{ ent_media }}</div>{%- endif -%}
   </div>
   {%- endif -%}
