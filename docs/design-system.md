@@ -32,12 +32,13 @@ contain a hex value.
 | `secondary` | `brand-secondary` | `#0F6357` | Taxonomy identity — the dot on `.chip`, secondary icons. Never tinted-on-tinted text. |
 | `accent` | `brand-accent` | `#E07A2F` | "Featured" and nothing else. |
 | `warn` | `brand-warn` | `#B45309` | Caution only: sensitive-data signals, validation errors. |
-| `ink` | `brand-ink` | `#1B2430` | Body text; the `badge-on-dark` ground. |
+| `ink` | `brand-ink` | `#1B2430` | Body text; the `badge-on-dark` and `featured` badge grounds; the `shadow-e0` ring at 6 %. |
 | `muted` | `brand-muted` | `#5A6573` | Secondary text at ≥ 11px semibold / ≥ 14px regular (5.9:1 on white). Do not add opacity — `muted/80` fails AA. |
-| `line` | `brand-line` | `#D9E0E8` | Every divider and card border (E0). |
+| `line` | `brand-line` | `#D9E0E8` | Dividers, and the border of anything that is not a card (link rows, wizard choice cards). |
 | `line_strong` | `brand-line-strong` | `#7C8A9B` | Borders of interactive controls — inputs, pills, secondary buttons (3.5:1, non-text AA). Not for text. |
 | `surface` | `surface-base` | `#F5F7FA` | Page ground. |
-| `card` | `surface-card` | `#FFFFFF` | Card / panel ground. |
+| `card` | `surface-card` | `#FFFFFF` | Card ground. |
+| `surface_tint` | `surface-tint` | `#EAF0F7` | Bands and panels — a step darker than the page, so a region reads as a region without a border. |
 | `on_dark` | `brand-on-dark` | `#F7F9FC` | Text over `primary_dark`. |
 
 Alpha modifiers (`bg-brand-primary/10`) work because the variables are RGB triples. Use them for
@@ -50,17 +51,25 @@ colour, it is either one of those meanings or it is `ink`/`muted` on `line` stru
 ### Type
 
 `fonts.heading` / `fonts.body` from `theme.yml` → `--font-heading` / `--font-body` → `font-heading`
-/ `font-sans`. Bundled: Inter and Source Sans 3, one variable latin woff2 subset each covering
-weights 400–700 (57 KB + 49 KB; `npm run fonts` rebuilds them — `assets/fonts/README.md`). Each
-variable is followed in the stack by a metric-matched `"<family> Fallback"` face, so the
-`font-display: swap` handover does not reflow the page. Other families via
-`fonts.google_fonts_url`, which loads non-render-blocking and gets no fallback face.
+/ `font-sans`. Bundled: Source Serif 4, Source Sans 3 and Inter, one variable latin woff2 subset
+each covering weights 400–700 (44 KB + 49 KB + 57 KB; `npm run fonts` rebuilds them —
+`assets/fonts/README.md`). Each variable is followed in the stack by a metric-matched
+`"<family> Fallback"` face (Georgia for the serif), so the `font-display: swap` handover does not
+reflow the page. Other families via `fonts.google_fonts_url`, which loads non-render-blocking and
+gets no fallback face.
+
+The default pairing is **serif headings over a sans body**: Source Serif 4 (optical size pinned
+at 24, so it is cut for titles, not text) for every `font-heading` role — page and entry titles,
+section titles, card titles, rail-card headings, the logo wordmark — and Inter for everything
+else. The serif is what keeps a page of controls, chips and facts from reading as a spreadsheet;
+the sans keeps the controls crisp. A fork that wants an all-sans site sets `fonts.heading:
+"Source Sans 3"` and nothing else changes.
 
 | Role | Size / line | Class or where |
 |---|---|---|
-| Display | 40/44, −0.02em | Home hero `h1` |
+| Display | `clamp(36px, 28px + 2vw, 48px)`/1.08, −0.01em | Home hero `h1` (`.hero-title`) |
 | H1 | 32/38 | Page and entry titles |
-| H2 / section | 24/30 | `.section-title` |
+| H2 / section | 28/34 | `.section-title` (`.section-head` stacks eyebrow → title → lead) |
 | H3 | 20/26 | Rail card headings, prose `h3` |
 | Card title | 18/24 | `.entry-title` (2-line clamp) |
 | Body | 16/26 | `body`, `.prose-body` (measure `--measure`) |
@@ -70,7 +79,7 @@ variable is followed in the stack by a metric-matched `"<family> Fallback"` face
 
 Sentence case everywhere; the eyebrow is the only uppercase style. Never track wider than 0.12em.
 
-**Measure** — `theme.yml → type.measure` (`33rem`, ~68 characters) and `type.measure_display`
+**Measure** — `theme.yml → type.measure` (`36rem`, ~74 characters) and `type.measure_display`
 (`44rem`) become `--measure` / `--measure-display`. `.prose-body` gets the reading measure through
 the typography plugin's `maxWidth`; `.measure-display` applies the wider one to headings, the impact
 line and the summary, which should not wrap at 16px body width; card titles (`.entry-title`),
@@ -101,9 +110,39 @@ mid-resize. `.page-title` and `.section-title` set `text-wrap: balance` and `.pr
   | `rounded-control` | `--radius-md` | 0.75rem | 0.5rem | 1.5rem |
   | `rounded-card` | `--radius-xl` | 1.25rem | 0.75rem | 2rem |
   | `rounded-sheet` | `--radius-2xl` | 1.75rem | 1rem | 2.5rem |
-- **Elevation** — E0 `border-brand-line`, no shadow: the default for all cards. E1 `shadow-e1`: hover
-  lift only (`.card-hover`). E2 `shadow-e2`: things that float — sticky results header, mobile
-  sheet, search listbox, progress rail. Never shadow chips, inputs or badges; never E1 inside E1.
+- **Elevation** — E0 `shadow-e0` (a 1px `ink/10` ring drawn as a shadow, plus a 1px `ink/5`
+  contact shadow and a soft `ink/10` ambient), no border: the default for all cards. E1
+  `shadow-e1`: hover lift only (`.card-hover`). E2 `shadow-e2`: things that float — mobile sheet,
+  search listbox, popovers. Sticky bars and rails sit on `surface_tint` instead of floating.
+  Never shadow chips, inputs or badges; never E1 inside E1.
+  `forced-colors.css` gives `.card`, `.entry-card`, `.panel` and `.hero-latest` a real
+  `CanvasText` border, because Windows high-contrast mode drops box-shadow.
+
+### Surfaces
+
+Three grounds, one step apart, and only one of them has an edge:
+
+| Ground | Class | Token | Edge |
+|---|---|---|---|
+| Page | `body` | `surface` | — |
+| Card | `.card`, `.entry-card` | `card` | `shadow-e0` (ring + ambient) |
+| Band / panel | `.band` (full-bleed section), `.panel` (rounded region) | `surface_tint` | none — the tint *is* the edge |
+
+A band is a horizontal region of the page (the home "Browse by" section); a panel is a rounded
+region inside a column (the results header, the entry fact strip, rail cards, the stale notice,
+the wizard sidebar). Cards can sit *on* a band (white tiles on the tinted browse band) — a panel
+never sits on a panel. Warn text on `surface_tint` is 4.4:1, so `.fact-item-warn` puts its
+sensitive-data label in a white pill (`bg-surface-card` + `warn/30` ring) rather than on the tint.
+
+The dark grounds — `.hero` and `.site-footer` — are `primary_dark` with a `primary` glow
+(`radial-gradient` at one corner, `linear-gradient` across) so the two ends of the page mirror
+each other; the hero also carries a 22px dot grid in `on_dark` at 14 %, masked so it only shows
+toward the top right. `.hero-latest` is a `white/6` inset on that ground with a `white/15` inset
+ring (no backdrop blur: nothing scrolls behind it). `.hero-search` is one pill — the input with the
+Search button (`.hero-search-btn`) set inside its right edge; the primary action beside it is
+`.btn-on-dark-solid` (white on the gradient) and the secondary is the ghost `.btn-on-dark`.
+`.cta-panel` (the home "Share …" section) is a `panel` with a
+`primary/10` ring and a 7 % `primary → secondary` wash — the one place two hues meet in a fill.
 - **Motion** — a theme token like everything else: `duration-fast` (120ms) state changes,
   `duration-base` (180ms) hover/expand, `duration-slow` (240ms) sheets and page transitions;
   `ease-brand` = `cubic-bezier(0.2,0,0,1)`. All four resolve to `--motion-fast/base/slow` and
@@ -147,9 +186,10 @@ Pill shape, 44px min-height under `lg` (40 above), no translate on hover — col
 
 ### Badges, chips, signals (`badges.css`)
 
-- `.badge` + `data-tone` — categorical label. Tones: `primary` (inline card badge), `accent`
-  (Featured), `neutral`, `warn` (caution), `on-dark` (over a screenshot: opaque `ink/80` ground
-  so contrast holds on any image), `secondary`. `.badge-md`, `.badge-lg` sizes. Write
+- `.badge` + `data-tone` — categorical label. Tones: `primary` (inline card badge), `featured`
+  (Featured: `ink` ground, white text, the star icon in `accent` — emphasis by weight, not by an
+  orange pill), `accent`, `neutral`, `warn` (caution), `on-dark` (over a screenshot: opaque
+  `ink/80` ground so contrast holds on any image), `secondary`. `.badge-md`, `.badge-lg` sizes. Write
   `{% include badge.html label="…" tone="warn" %}`; an unknown tone falls back to `neutral`.
   The tone is an attribute, not part of the class name, which is why `tailwind.config.js` needs
   no `safelist` — see "Adding a tone" below. There is no composed `.badge-<tone>` class; the
@@ -243,10 +283,13 @@ on-dark variant `.eyebrow-on-dark`), `.page-title` (the one H1 size everywhere; 
 for dark grounds), `.section-title`, `.section-lead`, `.link-row`, `.prose-body`,
 `.sr-only-focusable`.
 
-Home hero: `.hero-stat` (stat-line segment; its `·` separator is a `::before`, never
-text) and `.hero-latest` / `-item` / `-link` / `-title` / `-meta` — the "Latest
-additions" panel in the hero's right column at ≥1024 px (`home.hero_latest_count`;
-white / on-dark ink on `primary-dark`, 15 % white hairlines).
+Home: `.hero` (dark gradient ground + masked dot grid — see "Surfaces"), `.hero-title`,
+`.hero-stat` (stat-line segment; its `·` separator is a `::before`, never text),
+`.hero-latest` / `-item` / `-link` / `-title` / `-meta` — the inset "Latest additions" panel in
+the hero's right column at ≥1024 px (`home.hero_latest_count`), `.band` for the "Browse by"
+section, `.value-props` / `.value-prop-title` / `.value-prop-body` (the three value propositions
+as text over a hairline, not cards), `.cta-panel` for the "Contribute" section, and
+`.site-footer` (the hero's gradient mirrored).
 
 ### Setup wizard (`setup.css`)
 

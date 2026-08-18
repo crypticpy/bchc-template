@@ -15,7 +15,7 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
 {%- assign sg_entries = site.pages | where: 'layout', 'entry' | sort: 'published', 'first' | reverse -%}
 {%- assign sg_entry = sg_entries | first -%}
 {%- assign sg_fields = site.data.schema.fields -%}
-{%- assign sg_swatches = "primary:Interactive — links, buttons, focus, active filters|primary_dark:Headings, hero and footer ground|secondary:Taxonomy dot / secondary icons|accent:Featured only|warn:Caution — sensitive data, validation|ink:Body text|muted:Secondary text|line:Dividers and card borders|line_strong:Interactive control borders|surface:Page ground|card:Card ground|on_dark:Text on primary_dark" | split: "|" -%}
+{%- assign sg_swatches = "primary:Interactive — links, buttons, focus, active filters|primary_dark:Headings, hero and footer ground|secondary:Taxonomy dot / secondary icons|accent:Featured only|warn:Caution — sensitive data, validation|ink:Body text|muted:Secondary text|line:Dividers|line_strong:Interactive control borders|surface:Page ground|surface_tint:Bands and panels|card:Card ground|on_dark:Text on primary_dark" | split: "|" -%}
 
 <div class="mx-auto max-w-5xl">
   <span class="eyebrow">Design system</span>
@@ -51,13 +51,13 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
     <h2 class="section-title">Type</h2>
     <p class="section-lead mt-2">Headings: <strong>{{ sg_theme.fonts.heading }}</strong> · Body: <strong>{{ sg_theme.fonts.body }}</strong>. Sentence case everywhere; the eyebrow is the only uppercase style.</p>
     <div class="card mt-6 divide-y divide-brand-line">
-      <div class="p-6"><p class="eyebrow">Display 40/44</p><p class="mt-2 font-heading text-[40px] font-semibold leading-[44px] tracking-[-0.02em] text-brand-primary-dark">Every pixel reduces a decision</p></div>
+      <div class="p-6"><p class="eyebrow">Display clamp(36–48)/1.08 · .hero-title</p><p class="hero-title mt-2 text-brand-primary-dark">Every pixel reduces a decision</p></div>
       <div class="p-6"><p class="eyebrow">H1 32/38 · .page-title</p><p class="page-title mt-2">Syndromic surveillance signal triage assistant</p></div>
-      <div class="p-6"><p class="eyebrow">H2 24/30 · .section-title</p><p class="section-title mt-2">What we built</p></div>
+      <div class="p-6"><p class="eyebrow">H2 28/34 · .section-title</p><p class="section-title mt-2">What we built</p></div>
       <div class="p-6"><p class="eyebrow">Card title 18/24 · .entry-title</p><p class="entry-title mt-2">Plain-language rewrites for public notices</p></div>
       <div class="p-6"><p class="eyebrow">Body 16/26 · measure --measure</p><p class="mt-2 text-base leading-relaxed text-brand-ink" style="max-width: var(--measure)">A scheduled job pulls the alert export each night. For every signal it assembles fourteen days of visit history, the expected count from a simple seasonal baseline, and the relevant syndrome definition.</p></div>
       <div class="p-6"><p class="eyebrow">Small 14/22 · .section-lead</p><p class="section-lead mt-2">Secondary text stays at 14px or larger in <code>muted</code>.</p></div>
-      <div class="p-6"><p class="eyebrow">Eyebrow 11/16 · 0.12em</p><p class="entry-meta mt-2"><span class="entry-meta-seg entry-meta-seg--lead">Lakeshore City Department of Public Health</span><span class="entry-meta-seg">Pilot</span></p></div>
+      <div class="p-6"><p class="eyebrow">Eyebrow 11/16 · 0.12em</p><p class="entry-meta mt-2"><span class="entry-meta-seg entry-meta-seg--text">Lakeshore City Department of Public Health</span><span class="entry-meta-seg">Pilot</span></p></div>
     </div>
   </section>
 
@@ -80,7 +80,8 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
     <div class="card mt-6 divide-y divide-brand-line">
       <div class="flex flex-wrap items-center gap-2 p-6">
         {% include badge.html label="Primary" tone="primary" %}
-        {% include badge.html label="Featured" tone="accent" icon="star" %}
+        {% include badge.html label="Accent" tone="accent" %}
+        {% include badge.html label="Featured" tone="featured" icon="star" %}
         {% include badge.html label="Neutral" tone="neutral" %}
         {% include badge.html label="Warn" tone="warn" icon="warning" %}
         <span class="inline-flex rounded-lg bg-brand-primary-dark/80 p-2">{% include badge.html label="On dark" tone="on-dark" icon="code" %}</span>
@@ -191,11 +192,19 @@ Reference: docs/design-system.md. Local assigns are prefixed `sg_`.
 
   <section id="sg-elevation" class="mt-16 scroll-mt-24">
     <h2 class="section-title">Elevation and motion</h2>
-    <p class="section-lead mt-2">E0 hairline for everything at rest; E1 on hover; E2 only for surfaces that float. 120 / 180 / 240 ms with <code>ease-brand</code>; transforms and opacity only.</p>
+    <p class="section-lead mt-2">Three grounds one step apart — page, tinted band/panel, white card — and only the card has an edge: E0 is a 1px ink/10 ring drawn as a shadow, no border. E1 on hover; E2 only for surfaces that float. 120 / 180 / 240 ms with <code>ease-brand</code>; transforms and opacity only.</p>
     <div class="mt-6 grid gap-6 sm:grid-cols-3">
-      <div class="card p-6"><p class="eyebrow">E0</p><p class="mt-2 text-sm text-brand-muted">Cards, panels, inputs — <code>border-brand-line</code>, no shadow.</p></div>
-      <div class="card card-hover p-6"><p class="eyebrow">E1 (hover me)</p><p class="mt-2 text-sm text-brand-muted"><code>.card-hover</code>: border → primary/40, 1px lift, <code>shadow-e1</code>.</p></div>
+      <div class="card p-6"><p class="eyebrow">E0</p><p class="mt-2 text-sm text-brand-muted">Cards — <code>shadow-e0</code> (ink/6 ring + faint ambient), no border.</p></div>
+      <div class="card card-hover p-6"><p class="eyebrow">E1 (hover me)</p><p class="mt-2 text-sm text-brand-muted"><code>.card-hover</code>: 1px lift, <code>shadow-e1</code>.</p></div>
       <div class="card p-6 shadow-e2"><p class="eyebrow">E2</p><p class="mt-2 text-sm text-brand-muted">Sticky results header, mobile sheet, listbox, progress rail.</p></div>
+    </div>
+    <div class="band mt-6 rounded-card p-6">
+      <p class="eyebrow">Band / panel</p>
+      <p class="mt-2 text-sm text-brand-muted"><code>.band</code> (full-bleed section) and <code>.panel</code> (rounded region) sit on <code>surface_tint</code> and carry no edge — the tint is the edge. Cards can sit on a band:</p>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div class="card p-4"><p class="font-heading text-base font-semibold text-brand-primary-dark">A card on a band</p><p class="mt-1 text-sm text-brand-muted">White on tint, raised by E0.</p></div>
+        <div class="card p-4"><p class="font-heading text-base font-semibold text-brand-primary-dark">Another</p><p class="mt-1 text-sm text-brand-muted">A panel never sits on a panel.</p></div>
+      </div>
     </div>
     <p class="section-lead mt-8">Radius is a theme token, drawn live below from <code>_data/theme.yml → radius: {{ site.data.theme.radius | default: 'soft' }}</code>. Prefer the semantic names — they say what the corner is <em>for</em> — over the numeric ones, which carry a historical off-by-one.</p>
     {%- comment -%} Every class below is written out in full rather than composed in a loop:

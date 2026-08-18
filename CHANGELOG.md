@@ -8,6 +8,61 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-08-18
+
+The design pass. v1.3.0 was a working instrument that did not yet look like
+one anyone would choose to keep open; this release is the tastefulness
+without the overhead — no new dependencies, one new 44 KB font file, and
+about a hundred lines of CSS moved rather than added.
+
+### Changed
+
+- **Serif headings.** Source Serif 4 (variable, optical size pinned at 24,
+  44 KB, built by `npm run fonts` like the other two) is now the default
+  `fonts.heading` over the Inter body: page and entry titles, section
+  titles, card titles, rail-card headings and the logo wordmark. A
+  metric-matched Georgia fallback face keeps the swap from reflowing. The
+  wizards' Look step offers it alongside the two sans families; set
+  `fonts.heading: "Source Sans 3"` for an all-sans site.
+- **Three grounds instead of one border.** A new `surface_tint` colour token
+  (`#EAF0F7`) gives bands (the home "Browse by" section) and panels (results
+  header, entry fact strip, rail cards, stale notice, wizard sidebar) an edge
+  without a border. Cards drop their `line` border for `shadow-e0` — a 1px
+  `ink/10` ring drawn as a shadow plus a faint ambient — so a grid of cards
+  reads as objects on a surface rather than a spreadsheet of boxes. The
+  catalog's sticky results header sits on the tint too, without a drop
+  shadow.
+  `forced-colors` mode gets a real border back. `npm run validate` checks
+  `ink`, `muted` and `primary` against the new tint (4.5:1).
+- **Hero and footer.** `primary_dark → primary` gradient with a masked
+  dot-grid texture in the hero's top-right corner; the footer mirrors the
+  same gradient so the page's two dark ends match. The "Latest additions"
+  panel is a `white/6` inset on that ground with a `white/15` ring (no blur —
+  nothing scrolls behind it). The hero search is one pill with the Search
+  button set inside it, the primary action ("Browse the catalog") is a solid
+  white button (`.btn-on-dark-solid`) and "Share …" is the ghost beside it.
+  The display title is `clamp(36px, 28px + 2vw, 48px)`.
+- **Home page rhythm.** Eyebrow → title → lead section heads (`.section-head`,
+  section titles up 24 → 28 px), the three value propositions as text over a
+  hairline instead of three more cards (a highlight is now a `title` and a
+  `body`; an `eyebrow` key on an existing site is ignored), the "Browse by"
+  tiles with their option labels in ink and a reserved icon column, and the
+  "Share …" call to action as a tinted panel with a `primary → secondary` 7 %
+  wash. Carousel arrows hide when the track does not scroll.
+- **Featured** is an `ink` pill with the star in `accent` (`data-tone="featured"`),
+  emphasis by weight rather than by an orange pill; `accent` still means
+  Featured and nothing else. Sensitive-data labels on the fact strip sit in a
+  white pill so `warn` keeps 4.5:1 off the tint.
+- Card meta lines set the free-text segment (the organization name) in
+  sentence case at medium weight (`.entry-meta-seg--text`), so it truncates
+  about 15 % later than in caps; option-valued segments keep the eyebrow
+  style. `--measure` is 36rem (~74 characters) instead of 40. The wizard's
+  step titles are one size down so "Step N of 7" and the title read as one
+  unit.
+- `docs/design-system.md` gains a Surfaces section and the type table now
+  matches the built site; `docs/design-brief.md` carries an amendment note.
+
+
 ## [1.3.0] — 2026-08-17
 
 Contributor panel, wave 2: the six decisions left open by v1.2.0 were taken
@@ -425,7 +480,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/crypticpy/bchc-template/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/crypticpy/bchc-template/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/crypticpy/bchc-template/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/crypticpy/bchc-template/compare/v1.0.0...v1.1.0

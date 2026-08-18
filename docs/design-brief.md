@@ -2,6 +2,18 @@
 
 Synthesized from the phase-0 persona panel (product-design principal, civic digital-service UX/a11y lead, information designer, staff front-end engineer + technical writer). This is the reference every UI change in phases 2–4 is checked against, and the rubric the review panel scores with.
 
+> **Amended in v1.4.0 (design pass).** The brief below is the phase-0 original and still
+> governs *what* the catalog spends its ink on. Three of its surface rules were revised once
+> the tool was working and the question became whether it was pleasant to look at, and
+> `docs/design-system.md` is the current authority for those: (1) headings are a serif
+> (Source Serif 4) over the sans body — the one typographic gesture that keeps a page of
+> controls and facts from reading as a spreadsheet; (2) cards are raised by `shadow-e0`
+> (a 1px `ink/10` ring + faint ambient) instead of a `line` border, and a third ground,
+> `surface_tint`, gives bands and panels an edge without a border; (3) "Featured" is an
+> `ink` pill with the star in `accent`, not an orange pill — `accent` still means Featured
+> and nothing else, it just no longer shouts. The hero and footer are a `primary_dark →
+> primary` gradient with one masked dot-grid texture; nothing else on the page is decorated.
+
 ## Direction
 
 The catalog is a **working tool, not a brochure**. It spends its ink on the data an evaluator needs — *what is it, who runs it, could my team reuse it* — and nothing on decoration a template cannot make meaningful. Structure comes from one hairline (`line`) and disciplined spacing rather than shadow, gradient and colour. Colour appears only where it means something: one interactive hue, one taxonomy hue, one caution hue. Because the visual system is neutral, the same template re-skins convincingly for an event calendar or a resource library.

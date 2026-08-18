@@ -81,9 +81,8 @@ home:
   featured_count: 6   # entries shown in the carousel (featured: true first, then newest, until this many)
   recent_count: 6     # entries shown in the "Recently added" grid (see note below)
   hero_latest_count: 3 # newest entries listed beside the hero at ≥1024px (0 hides the panel)
-  highlights:          # optional 3-up value-proposition cards; leave the list empty to hide the section
-    - eyebrow: "…"
-      title: "…"
+  highlights:          # optional 3-up value propositions (a title and one sentence each, set as text over a hairline); leave the list empty to hide the section
+    - title: "…"
       body: "…"
 ```
 
@@ -149,19 +148,22 @@ colors:
   line: "#D9E0E8"           # dividers and card borders
   line_strong: "#7C8A9B"    # borders of interactive controls — inputs, pills, checkboxes
   surface: "#F5F7FA"        # page background
+  surface_tint: "#EAF0F7"   # tinted bands and panels (browse band, fact strip, rail cards)
   card: "#FFFFFF"           # card background
   on_dark: "#F7F9FC"        # text on primary_dark backgrounds
   warn: "#B45309"           # caution only: sensitive-data indicators, validation errors
 
 fonts:
-  heading: "Source Sans 3"   # bundled: "Inter" or "Source Sans 3"; any other name needs google_fonts_url
+  heading: "Source Serif 4"  # bundled: "Source Serif 4", "Source Sans 3", "Inter"; any other name needs google_fonts_url
   body: "Inter"
   google_fonts_url: ""       # a Google Fonts <link> href, when using a non-bundled font
 
 radius: "soft"                # sharp | soft | round
 ```
 
-Colors are hex values. `_includes/theme.html` converts each one to an `R G B` triple (via the `hex_to_rgb` Liquid filter in `_plugins/theme_filters.rb`) and emits them as CSS custom properties (`--c-primary`, `--c-line-strong`, `--c-warn`, …) that Tailwind's `rgb(var(--c-x) / <alpha>)` utility classes read — so changing a hex value here re-themes the whole site on the next build, no CSS edits required. Keep text/background pairs at WCAG AA contrast (4.5:1 for body text); the setup wizards warn if `on_dark` on `primary_dark` falls under 4.5:1.
+Colors are hex values. `_includes/theme.html` converts each one to an `R G B` triple (via the `hex_to_rgb` Liquid filter in `_plugins/theme_filters.rb`) and emits them as CSS custom properties (`--c-primary`, `--c-line-strong`, `--c-warn`, …) that Tailwind's `rgb(var(--c-x) / <alpha>)` utility classes read — so changing a hex value here re-themes the whole site on the next build, no CSS edits required. Keep text/background pairs at WCAG AA contrast (4.5:1 for body text); the setup wizards warn if `on_dark` on `primary_dark` falls under 4.5:1, and `npm run validate` fails if `ink`, `muted` or `primary` fall under 4.5:1 on `surface_tint`.
+
+Headings default to the bundled serif (Source Serif 4) over an Inter body. For an all-sans site set `fonts.heading: "Source Sans 3"` — the wizard's Look step offers all three bundled families.
 
 Each color has one job, and the templates rely on that (see [`docs/design-brief.md`](design-brief.md)):
 
