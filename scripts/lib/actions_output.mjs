@@ -8,8 +8,10 @@
  * random per write and generated after the issue text is already fixed, so it
  * cannot appear in the value being written.
  *
- * Same shape as the helper in scripts/new_entry_from_issue.mjs. Pure apart from
- * the append; a no-op outside Actions, so the scripts stay runnable by hand.
+ * Every script that writes a step output uses this module — a second copy of a
+ * security-relevant helper is how one of them gets hardened and the other does
+ * not. Pure apart from the append; a no-op outside Actions, so the scripts stay
+ * runnable by hand.
  */
 
 import crypto from 'node:crypto';
@@ -24,11 +26,16 @@ import process from 'node:process';
  */
 export function setOutput(key, value) {
   if (!process.env.GITHUB_OUTPUT) return;
-  const delimiter = `GHEOF_${key}_${crypto.randomBytes(8).toString('hex')}`;
-  fs.appendFileSync(
-    process.env.GITHUB_OUTPUT,
-    `${key}<<${delimiter}\n${String(value ?? '')}\n${delimiter}\n`
-  );
+  const text = String(value ?? '');
+  // Stated rather than assumed: a value that contained the delimiter would end
+  // the heredoc early and let the rest of it forge further outputs. Sixteen
+  // random hex characters make a collision unreachable, but a writer that
+  // cannot assert its own invariant is not finished.
+  let delimiter;
+  do {
+    delimiter = `GHEOF_${key}_${crypto.randomBytes(8).toString('hex')}`;
+  } while (text.includes(delimiter));
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, `${key}<<${delimiter}\n${text}\n${delimiter}\n`);
 }
 
 /**

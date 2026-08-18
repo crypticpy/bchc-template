@@ -9,6 +9,7 @@
  * Writes  .github/ISSUE_TEMPLATE/new-entry.yml          (public submission form)
  * Syncs   _config.yml title/description from _data/site.yml (SEO fallbacks)
  * Syncs   .github/ISSUE_TEMPLATE/config.yml contact-link URLs to site.github.repository
+ * Syncs   _data/site.yml links into this repository's own files (footer guide link)
  *
  * Run this after hand-editing _data/schema.yml or _data/site.yml. It is
  * idempotent: a second run reports no changes.
@@ -25,6 +26,7 @@ const ROOT = process.cwd();
 const ISSUE_TEMPLATE_PATH = '.github/ISSUE_TEMPLATE/new-entry.yml';
 const CONFIG_PATH = '_config.yml';
 const CONTACT_LINKS_PATH = '.github/ISSUE_TEMPLATE/config.yml';
+const SITE_DATA_PATH = '_data/site.yml';
 
 const check = process.argv.slice(2).some((arg) => arg === '--check');
 const changes = [];
@@ -58,7 +60,12 @@ function sync(relative, content, note = '') {
     return false;
   }
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, content, 'utf8');
+  // Write beside the target and rename: every file here is tracked, and a
+  // partial write (ENOSPC, Ctrl-C) would leave a committed file truncated.
+  // A rename within one directory is atomic.
+  const temp = `${file}.tmp`;
+  fs.writeFileSync(temp, content, 'utf8');
+  fs.renameSync(temp, file);
   changes.push(`${existing === null ? 'created' : 'updated'} ${relative}${note ? ` (${note})` : ''}`);
   return false;
 }
@@ -106,10 +113,28 @@ if (fs.existsSync(configFile)) {
 
 const contactFile = path.join(ROOT, CONTACT_LINKS_PATH);
 const repository = String(site.github?.repository || '').trim();
-if (fs.existsSync(contactFile) && /^[\w.-]+\/[\w.-]+$/.test(repository)) {
+const ownRepository = /^[\w.-]+\/[\w.-]+$/.test(repository);
+if (fs.existsSync(contactFile) && ownRepository) {
   const original = fs.readFileSync(contactFile, 'utf8');
   const patched = original.replace(/github\.com\/[\w.-]+\/[\w.-]+(?=\/)/g, `github.com/${repository}`);
   sync(CONTACT_LINKS_PATH, patched, `links point at ${repository}`);
+}
+
+// --- 6. links into our own repository, in _data/site.yml --------------------
+// Same problem one file over: the shipped footer has a "Maintainer guide" link
+// to a file in this repository, so a fork's public footer keeps pointing at the
+// template until someone rewrites it. Only file-view URLs (/blob/, /tree/,
+// /raw/, /edit/) are rewritten — those name a repository's own source, whereas
+// a bare github.com/org/project link in the footer is a deliberate link out.
+
+if (ownRepository) {
+  const siteFile = path.join(ROOT, SITE_DATA_PATH);
+  const original = fs.readFileSync(siteFile, 'utf8');
+  const patched = original.replace(
+    /github\.com\/[\w.-]+\/[\w.-]+(?=\/(?:blob|tree|raw|edit)\/)/g,
+    `github.com/${repository}`
+  );
+  sync(SITE_DATA_PATH, patched, `repository links point at ${repository}`);
 }
 
 // --- report -----------------------------------------------------------------

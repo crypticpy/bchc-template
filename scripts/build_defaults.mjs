@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 import * as yaml from 'js-yaml';
 
 export const OUTPUT_PATH = 'assets/js/configurator/defaults.generated.js';
@@ -105,7 +106,11 @@ export function renderDefaults(root) {
 
 /* --- CLI ------------------------------------------------------------------ */
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Not `file://${argv[1]}`: a checkout path with a space or a non-ASCII
+// character percent-encodes in import.meta.url, the comparison quietly fails,
+// and `--check` then exits 0 having done nothing — a stale-file gate that
+// always passes.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const root = process.cwd();
   const check = process.argv.slice(2).includes('--check');
   const target = path.join(root, OUTPUT_PATH);
