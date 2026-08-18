@@ -183,7 +183,11 @@ export function renderReview() {
             el('p', { class: 'card-title font-mono', text: relative }),
             el('p', { class: 'field-help', text: FILE_HELP[relative] || '' }),
           ]),
-          el('div', { class: 'flex shrink-0 flex-wrap gap-2' }, [
+          // No `shrink-0`: the three buttons are 351px of max-content and a
+          // 390px viewport leaves 342px inside the header's padding, so a
+          // rigid row pushed the whole page 18px wide. Shrinking lets them
+          // wrap instead; at desktop widths there is room and nothing moves.
+          el('div', { class: 'flex flex-wrap gap-2' }, [
             copyButton(text),
             downloadButton(relative, text),
             editUrl
