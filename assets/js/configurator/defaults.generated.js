@@ -79,6 +79,12 @@ export const SITE = {
     "review_note": "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content.",
     "fallback_email": "info@bigcitieshealth.org"
   },
+  "catalog": {
+    "verify_after_days": 365
+  },
+  "contact": {
+    "ask_in_open": true
+  },
   "footer": {
     "about": "A collaborative catalog maintained by the coalition's AI community of practice. Content is contributed by member health departments and reviewed before publication.",
     "links": [
@@ -158,6 +164,12 @@ export const SCHEMA = {
       "placement": "rail"
     },
     {
+      "key": "cost",
+      "title": "What it took",
+      "description": "Money, contracting and approvals — the part a budget or governance conversation needs.",
+      "icon": "credit-card"
+    },
+    {
       "key": "data",
       "title": "Data & access",
       "description": "What data it touches and who sees the output."
@@ -193,7 +205,7 @@ export const SCHEMA = {
       "type": "text",
       "required": true,
       "group": "about",
-      "weight": 2,
+      "weight": 8,
       "facet": true,
       "card": "meta",
       "search": true,
@@ -711,7 +723,186 @@ export const SCHEMA = {
       "group": "reuse",
       "weight": 8,
       "icon": "presentation",
-      "description": "After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically."
+      "description": "Attach the slide deck here. A thumbnail is generated from its first page."
+    },
+    {
+      "key": "cost_band",
+      "label": "Cost to stand up",
+      "prompt": "Roughly what did it cost to get it running the first time?",
+      "type": "select",
+      "group": "cost",
+      "weight": 1,
+      "facet": true,
+      "card": "fact",
+      "icon": "credit-card",
+      "options": [
+        "No new spend",
+        "Under $25k",
+        "$25k–$100k",
+        "$100k–$500k",
+        "Over $500k",
+        "Not disclosed"
+      ],
+      "option_meta": {
+        "No new spend": {
+          "tone": "primary",
+          "description": "Built with licences, staff and infrastructure the organization already had."
+        },
+        "Not disclosed": {
+          "description": "The submitter cannot share cost publicly. Ask the contact."
+        }
+      },
+      "description": "One-time cost: contracts, build, implementation. A band is fine — nobody expects an exact figure."
+    },
+    {
+      "key": "run_cost",
+      "label": "Cost to keep running",
+      "prompt": "What does a normal year cost to run?",
+      "type": "select",
+      "group": "cost",
+      "weight": 2,
+      "facet": true,
+      "icon": "clock",
+      "options": [
+        "No ongoing cost",
+        "Under $10k/yr",
+        "$10k–$50k/yr",
+        "Over $50k/yr",
+        "Not disclosed"
+      ],
+      "option_meta": {
+        "No ongoing cost": {
+          "short": "No run cost",
+          "tone": "primary"
+        },
+        "Not disclosed": {
+          "description": "The submitter cannot share cost publicly. Ask the contact."
+        }
+      },
+      "description": "Licences, hosting and usage charges only — staff time belongs in the write-up."
+    },
+    {
+      "key": "procurement",
+      "label": "How it was bought",
+      "prompt": "How was this paid for or contracted?",
+      "type": "multiselect",
+      "group": "cost",
+      "weight": 3,
+      "facet": true,
+      "icon": "document",
+      "options": [
+        "No procurement needed",
+        "Existing enterprise licence",
+        "Cooperative or piggyback contract",
+        "Competitive solicitation",
+        "Sole source",
+        "Grant funded",
+        "Interagency agreement",
+        "In-kind or academic partnership"
+      ],
+      "option_meta": {
+        "No procurement needed": {
+          "short": "None needed"
+        },
+        "Existing enterprise licence": {
+          "short": "Already owned",
+          "description": "Covered by a contract the organization already held."
+        },
+        "Cooperative or piggyback contract": {
+          "short": "Cooperative",
+          "description": "Bought off another jurisdiction's or a co-op's contract."
+        },
+        "Competitive solicitation": {
+          "short": "Competitive",
+          "description": "An RFP, RFQ or equivalent open competition."
+        },
+        "Sole source": {
+          "description": "Awarded without competition, with a written justification."
+        },
+        "Grant funded": {
+          "short": "Grant"
+        },
+        "Interagency agreement": {
+          "short": "Interagency",
+          "description": "Paid through an agreement with another public agency."
+        },
+        "In-kind or academic partnership": {
+          "short": "Partnership"
+        }
+      },
+      "description": "Select all that apply. This is the question peers ask most and the one that is hardest to find out."
+    },
+    {
+      "key": "approvals",
+      "label": "Reviews it went through",
+      "prompt": "Which internal reviews or approvals did it need?",
+      "type": "multiselect",
+      "group": "cost",
+      "weight": 4,
+      "facet": true,
+      "card": "fact",
+      "icon": "shield-check",
+      "options": [
+        "Privacy review",
+        "Security review or authority to operate",
+        "Legal or contracts review",
+        "Records retention review",
+        "Labor or workforce consultation",
+        "Community or advisory review",
+        "Equity impact assessment",
+        "Research ethics / IRB",
+        "AI governance body",
+        "None required",
+        "Not yet reviewed"
+      ],
+      "option_meta": {
+        "Security review or authority to operate": {
+          "short": "Security",
+          "description": "A security assessment, ATO or equivalent sign-off."
+        },
+        "Legal or contracts review": {
+          "short": "Legal"
+        },
+        "Records retention review": {
+          "short": "Records",
+          "description": "Confirmed how long the outputs must be kept and where."
+        },
+        "Labor or workforce consultation": {
+          "short": "Labor",
+          "description": "Discussed with the union or the affected staff before rollout."
+        },
+        "Community or advisory review": {
+          "short": "Community",
+          "icon": "users"
+        },
+        "Equity impact assessment": {
+          "short": "Equity review",
+          "icon": "users"
+        },
+        "Research ethics / IRB": {
+          "short": "IRB"
+        },
+        "AI governance body": {
+          "short": "AI governance",
+          "description": "An internal AI review board or committee signed off."
+        },
+        "Not yet reviewed": {
+          "short": "No review yet",
+          "tone": "warn",
+          "description": "Shared honestly — this has not been through a formal review."
+        }
+      },
+      "description": "Select all that apply. Saying 'not yet reviewed' is more useful to a peer than leaving it blank."
+    },
+    {
+      "key": "equity_note",
+      "label": "Who it affects",
+      "prompt": "Who could this help or harm, and how did you check?",
+      "type": "textarea",
+      "group": "cost",
+      "weight": 5,
+      "placeholder": "Reaches everyone who calls the hotline, including the ~18% who use it in Spanish. We compared triage accuracy across language groups monthly and would stop if the gap grew.",
+      "description": "Optional but strongly encouraged. Which populations the output reaches, what you checked for uneven performance, and what you would watch."
     },
     {
       "key": "data_sensitivity",

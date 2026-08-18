@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "date"
+
 # Liquid filters that resolve `_data/schema.yml` presentation hints in one place,
 # so layouts and includes never re-implement the rules (see docs/content-model.md).
 #
@@ -22,10 +24,22 @@ module CatalogTemplate
       "list" => "chip",
       "multiselect" => "chip"
     }.freeze
-    CARD_SLOTS = %w[badge chip meta icon line].freeze
+    # `fact` is the odd one out: it is the ENTRY PAGE fact strip and nothing
+    # else. The card's signal strip is capped at four glyphs, so a fifth
+    # `card: icon` field would silently push an existing one behind a "+n" on
+    # every card; a fact that only pays off in a governance conversation
+    # (cost, approvals) belongs on the page, not in that budget.
+    CARD_SLOTS = %w[badge chip meta icon line fact].freeze
     # Where a group renders on the entry page.
     GROUP_PLACEMENTS = %w[main rail].freeze
     GROUP_PLACEMENT_DEFAULT = "main"
+    # Reserved date keys that count as "someone looked at this", strongest first
+    # (see `verification`). Not a schema field list — these are engine keys.
+    VERIFICATION_KEYS = %w[verified updated published].freeze
+    # A year: long enough that a maintainer is not chased over a quiet quarter,
+    # short enough that a vendor acquisition or a staff departure is caught.
+    # Overridable per site with `catalog.verify_after_days` in _data/site.yml.
+    VERIFY_AFTER_DAYS = 365
 
     # Stable sort by `weight` (default 5). Fields without weight keep their
     # relative schema order among equals.
@@ -188,6 +202,75 @@ module CatalogTemplate
     def first_image(value)
       first = Array(value).first
       first.is_a?(Hash) ? first["src"].to_s : first.to_s
+    end
+
+    # How long ago an entry was last confirmed accurate, and whether that is
+    # long enough to say so.
+    #
+    # "Last confirmed" is the NEWEST of three reserved keys, because they answer
+    # progressively weaker versions of the same question:
+    #   verified   a maintainer re-checked the facts with the contact
+    #   updated    someone edited the text
+    #   published  nothing at all has happened since it landed
+    # An entry with no `verified` is therefore not treated as unverified — it is
+    # treated as last confirmed on the day it was last touched, which is the
+    # honest reading and means a fresh fork shows no notices at all.
+    #
+    # Pure: the reference instant is passed in (`site.time`) rather than read
+    # from the clock, so a build is reproducible and the filter is testable.
+    #
+    # @param entry [#[]] the entry page/document (a plain Hash in tests)
+    # @param now [Time, Date, String] reference instant, normally `site.time`
+    # @param after_days [Integer] age at which the entry counts as stale
+    # @param keys [String, nil] comma-separated front matter keys to consider
+    # @return [Hash] {"key", "date", "days", "stale"}; "" / -1 / false when the
+    #   entry carries none of the keys
+    # @example
+    #   {%- assign v = page | verification: site.time, 365 -%}
+    #   {%- if v.stale %}Last {{ v.key }} {{ v.date | date: '%B %Y' }}{% endif -%}
+    def verification(entry, now, after_days = VERIFY_AFTER_DAYS, keys = nil)
+      unknown = { "key" => "", "date" => "", "days" => -1, "stale" => false }
+      return unknown unless entry.respond_to?(:[])
+
+      names = keys.to_s.split(",").map(&:strip).reject(&:empty?)
+      names = VERIFICATION_KEYS if names.empty?
+
+      best_key = nil
+      best = nil
+      names.each do |name|
+        parsed = iso_date(entry[name])
+        next if parsed.nil? || (best && parsed <= best)
+
+        best = parsed
+        best_key = name
+      end
+      return unknown if best.nil?
+
+      today = iso_date(now) || Date.today
+      limit = after_days.to_i
+      limit = VERIFY_AFTER_DAYS unless limit.positive?
+      days = (today - best).to_i
+      { "key" => best_key, "date" => best.strftime("%Y-%m-%d"), "days" => days, "stale" => days > limit }
+    end
+
+    private
+
+    # Coerce a front matter date value to a Date. Anything that is not a real
+    # date (a typo, a blank, a number) is nil rather than an exception — a
+    # malformed date must not take the whole build down, and
+    # scripts/check_front_matter.rb is what fails the pull request over it.
+    # @param value [Object]
+    # @return [Date, nil]
+    def iso_date(value)
+      return nil if value.nil?
+      return value.to_date if value.respond_to?(:to_date)
+
+      text = value.to_s.strip
+      return nil if text.empty?
+
+      Date.iso8601(text)
+    rescue ArgumentError, TypeError, Date::Error
+      nil
     end
   end
 end
