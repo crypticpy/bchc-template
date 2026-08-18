@@ -31,6 +31,11 @@
     {% if page.include_carousel or layout.include_carousel %}
       <script defer src="{{ '/assets/js/carousel.js' | relative_url }}"></script>
     {% endif %}
+    {%- comment -%} The example switcher only exists in the demo banner of a showcase
+    example build (_includes/demo-banner.html), and there on every page. {%- endcomment -%}
+    {% if site.showcase.role == 'example' %}
+      <script defer src="{{ '/assets/js/example-switcher.js' | relative_url }}"></script>
+    {% endif %}
     {%- comment -%}
     Extra per-page/per-layout scripts. Declare `scripts:` (a list of paths under
     /assets/js/) in a page's or layout's front matter; each is emitted as a

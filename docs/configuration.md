@@ -357,6 +357,40 @@ calls the same `renderFiles()` and opens a pull request.
 
 After hand-editing any `_data/*.yml` file directly (without going through a wizard), run `npm run generate`. It regenerates `.github/ISSUE_TEMPLATE/new-entry.yml` and `assets/js/configurator/defaults.generated.js`, and resyncs `_config.yml`'s title and description. It is idempotent, and `npm run generate -- --check` is the CI gate that fails when a generated file is out of date — so regenerate and commit in the same change.
 
+## The showcase
+
+The template's own deployment is not one site but several: a landing page at the root introducing
+the template, and a complete live example of every wizard preset under `/examples/<preset-id>/`.
+`scripts/build_showcase.mjs` builds them, each from a fresh copy of this repository run through
+`npm run setup --preset <id>` with the sample content in `_showcase/<preset-id>/` laid over it — so
+an example is exactly what picking that preset gives you, not a mockup maintained by hand.
+
+```bash
+npm run build:showcase                        # the landing and every example, into _site
+npm run build:showcase -- cohort-portal       # the landing and one example (faster while editing)
+```
+
+| File | What it holds |
+| --- | --- |
+| `_data/showcase.yml` | Everything the landing page says: headline, the blurb and screenshot for each example, the feature list, the "how publishing works" steps. |
+| `_showcase/<preset-id>/` | The sample content each example is built from — entries, and any module data that preset turns on. |
+| `assets/images/showcase/` | The screenshots on the landing's example cards. A card whose file is missing shows a framed placeholder instead, so the page is complete without them. |
+| `_data/showcase_presets.json` | Generated at build time from `assets/js/configurator/presets.js`: the per-example facts each card states — field and filter counts, entry noun, which modules are on. Never hand-written, so it cannot drift from the wizard. |
+
+The example matching the site's own name — the configuration this repository ships with — is the
+**flagship**: it is built from the working tree as-is and keeps the live GitHub issue loop. The
+others are built with `github.repository` blank, so their submission forms explain that there is
+nowhere to send answers rather than linking at a repository that is not theirs.
+
+**This is the template's deployment, not yours.** The showcase is opt-in: `.github/workflows/pages.yml`
+builds it only when the repository variable `CATALOG_SHOWCASE` is `true` (Settings → Secrets and
+variables → Actions → Variables) *and* `demo` is still `true` in `_data/site.yml`. A copy of the
+template never has the variable, so it deploys the single ordinary build from its first push — even
+before the samples are ejected. Set the variable to `true` on your own copy only if you want your
+own showcase, and delete it to stop.
+`npm run eject:samples` removes `_showcase/`, `_data/showcase.yml` and `assets/images/showcase/`
+along with the rest of the sample content, and turning `demo` off is what ends the showcase.
+
 ## Quality checks
 
 `npm run a11y` (pa11y-ci) and `npm run lighthouse` (Lighthouse CI) run against a

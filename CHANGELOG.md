@@ -8,6 +8,75 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+The template now shows its work. Its own deployment used to be one demo catalog
+of fictional health departments, which answered "what does this look like?" for
+exactly one of the things it can be. It is now a landing page introducing the
+template, with four complete example sites behind it — one per setup-wizard
+preset, each built from this repository by the same `npm run setup` a fork
+runs, each with its own fields, filters, colours and sample content. Nothing in
+a fork changes: the showcase is built only while `demo` is `true`, and
+`npm run eject:samples` deletes it.
+
+### Added
+
+- **A landing page for the template** (`/`), written entirely in
+  [`_data/showcase.yml`](_data/showcase.yml) and laid out by
+  `_includes/showcase-landing.html`: what the template is, a card per example
+  with a screenshot and what it is configured like, what you get whichever one
+  you start from, how publishing works, and the ways in — the launch guide, the
+  browser wizard, the day-one starter site.
+- **Four live examples**, each a full build at `/examples/<preset-id>/`:
+  [AI use case catalog](https://crypticpy.github.io/bchc-template/examples/ai-use-cases/)
+  (the configuration this repository ships with),
+  [cohort portal](https://crypticpy.github.io/bchc-template/examples/cohort-portal/)
+  (six team projects across two cohort years, with the cohorts and events
+  modules on),
+  [resource library](https://crypticpy.github.io/bchc-template/examples/resource-library/)
+  (six guides, toolkits and datasets) and
+  [blank catalog](https://crypticpy.github.io/bchc-template/examples/blank/)
+  (three entries on the smallest useful schema). The per-example facts on the
+  landing's cards — how many fields, how many filters, which modules — are
+  generated from `assets/js/configurator/presets.js`, so they cannot drift from
+  what picking that preset gives you.
+- **`scripts/build_showcase.mjs` and `npm run build:showcase`** — the builder
+  behind that: a scratch copy of the repository per example, run through the
+  CLI wizard with the preset, the sample content in `_showcase/<preset-id>/`
+  laid over it, then `jekyll build` into `_site/examples/<preset-id>/`. The
+  landing is a build of this repository too, reduced to `/`, `/setup/` and
+  `/404.html` by `_plugins/showcase.rb`. Documented in
+  [docs/configuration.md](docs/configuration.md#the-showcase) and
+  [docs/showcase-plan.md](docs/showcase-plan.md).
+- **An example switcher** on every example site: the demo banner becomes a menu
+  for moving between the four and back to the landing, so a visitor can compare
+  them without the back button.
+- **Sample content for three more presets** (`_showcase/`), authored against
+  each preset's own schema and validated by the same `check_front_matter.rb`
+  the catalog uses.
+- **The showcase is in the accessibility gate.** `quality.yml` builds the
+  landing and one example and pa11y-ci audits the landing, the example's home
+  page, one entry page and the switcher's open state — under the same gate as
+  the deploy, so a fork's gate is unchanged.
+
+### Changed
+
+- **The template's own deployment.** <https://crypticpy.github.io/bchc-template/>
+  is now the landing page; the AI use case catalog it used to be lives at
+  [`/examples/ai-use-cases/`](https://crypticpy.github.io/bchc-template/examples/ai-use-cases/),
+  unchanged. The showcase is opt-in: `pages.yml` builds it only when the
+  repository variable `CATALOG_SHOWCASE` is `true` *and* `_data/site.yml`
+  still has `demo: true`; a copy of the template never has the variable, so it
+  deploys the single ordinary build it always did — from its very first push.
+- **The submission form no longer offers a link it cannot honour.** Without
+  `github.repository` set — the three non-flagship examples on purpose, a fork
+  that has not filled it in yet — `/submit/` used to render a Submit button
+  pointing at `github.com//issues/new`. It now says there is no catalog
+  repository behind the site and keeps everything that still works: the
+  questions, the live card preview, the copy-out buttons and the email
+  fallback, with the send button renamed to what it actually does.
+- **`npm run eject:samples` removes the showcase too** — `_showcase/`,
+  `_data/showcase.yml` and `assets/images/showcase/` — along with the rest of
+  the sample content. A fork's home page is its catalog.
+
 ## [1.6.1] — 2026-08-18
 
 The launch guide, walked for real: a fresh copy of the template

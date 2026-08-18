@@ -16,9 +16,11 @@
 @import "./components/entry.css";
 @import "./components/media.css";
 @import "./components/site.css";
+@import "./components/example-switcher.css";
 @import "./components/setup.css";
 @import "./components/compare.css";
 @import "./components/governance.css";
+@import "./components/showcase.css";
 @import "./components/print.css";
 @import "tailwindcss/utilities";
 @import "./components/utilities.css";

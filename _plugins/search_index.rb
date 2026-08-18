@@ -4,6 +4,8 @@ require "json"
 require "fileutils"
 require "time"
 
+require_relative "showcase"
+
 # Generates /search.json for the client-side Lunr search. Which fields are
 # indexed comes from _data/schema.yml (fields with `search: true` or
 # `facet: true`); title and summary are always separate indexed fields. Events
@@ -63,6 +65,9 @@ module CatalogTemplate
     # @param site [Jekyll::Site]
     # @return [void]
     def generate(site)
+      # The showcase landing has no catalog to search; each example builds its own.
+      return if CatalogTemplate::Showcase.landing?(site)
+
       schema = site.data["schema"] || {}
       fields = Array(schema["fields"])
       searchable = fields.select { |f| f["search"] || f["facet"] }.map { |f| f["key"] }

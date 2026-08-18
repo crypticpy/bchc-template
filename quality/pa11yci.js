@@ -4,10 +4,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const yaml = require('js-yaml');
-const { qualityUrls } = require('./urls.js');
+const { qualityUrls, showcaseUrls } = require('./urls.js');
 
 const BASE = process.env.QUALITY_BASE_URL || 'http://127.0.0.1:4173';
 const { home, catalog, submit, governance, entries } = qualityUrls(BASE);
+// The showcase (landing + examples) is a separate build on a separate port, and
+// only exists when quality.yml made one — see showcaseUrls().
+const showcase = showcaseUrls(process.env.QUALITY_SHOWCASE_BASE_URL || '');
 const mobile = { width: 390, height: 844, isMobile: true, hasTouch: true };
 const setup = `${BASE}/setup/`;
 
@@ -92,6 +95,18 @@ module.exports = {
           },
         ]
       : []),
+    // The showcase landing and, per example built, its home and one entry —
+    // pages the single build above does not have. Empty on a fork.
+    ...showcase,
+    // The example switcher's open state: a <details> menu, so it is real markup
+    // either way, but the open one is what a reader actually navigates.
+    ...showcase.slice(1, 2).map((url) => ({
+      url,
+      actions: [
+        'click element [data-component="example-switcher"] summary',
+        'wait for element [data-component="example-switcher"] .example-switcher-menu to be visible',
+      ],
+    })),
     // The entry gallery lightbox (<dialog> opened by the first thumbnail).
     ...(galleryEntry
       ? [

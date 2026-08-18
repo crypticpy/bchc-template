@@ -195,8 +195,10 @@
    *
    * @param {HTMLFormElement} form
    * @param {object[]} fields descriptors from readFields
-   * @param {{onSend: () => void, onBack: () => void}} handlers
+   * @param {{onSend: () => void, onBack: () => void, sendLabel?: string}} handlers
    *   `onSend` hands the answers to GitHub; `onBack` returns to the questions.
+   *   `sendLabel` renames the send button — a site with no repository behind it
+   *   has nothing to send to, and gets the copy-out route under its own name.
    */
   ns.renderReview = function renderReview(form, fields, handlers) {
     const host = panelHost(form);
@@ -256,7 +258,7 @@
         el('button', {
           type: 'button',
           class: 'btn-primary',
-          text: 'Send to GitHub',
+          text: (handlers && handlers.sendLabel) || 'Send to GitHub',
           onclick: () => {
             if (handlers && handlers.onSend) handlers.onSend();
           },

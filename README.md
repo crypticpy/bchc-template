@@ -4,7 +4,14 @@ A configurable, GitHub-Pages-hosted catalog and resource site, managed entirely 
 
 This repository is shipped configured as the **Big Cities Health Coalition (BCHC) AI Use Case Catalog**, where member health departments share AI use cases — source repos, cloud deployments, vendor solutions, write-ups. The same template can be re-pointed at other uses without touching layout code: a project/asset portal, a cohort or training-program portal where teams publish outputs, an event calendar, or a curated resource library. See [`docs/configuration.md`](docs/configuration.md) for how to retarget it.
 
-**Live demo:** [crypticpy.github.io/bchc-template](https://crypticpy.github.io/bchc-template/) — the template as shipped, sample content and all. **See what a fresh copy looks like on day one:** [crypticpy.github.io/bchc-catalog-starter](https://crypticpy.github.io/bchc-catalog-starter/) — a copy made from this template by following [`docs/launch.md`](docs/launch.md), configured through the setup wizard, samples removed, one entry published.
+**Live demo:** [crypticpy.github.io/bchc-template](https://crypticpy.github.io/bchc-template/) — a landing page introducing the template, with four complete sites built from this same repository behind it. Each is a real build with its own fields, filters, colours and sample content, search and submission form included:
+
+- [AI use case catalog](https://crypticpy.github.io/bchc-template/examples/ai-use-cases/) — the configuration this repository ships with.
+- [Cohort portal](https://crypticpy.github.io/bchc-template/examples/cohort-portal/) — a training program's teams, cohort by cohort, with the events and cohorts modules on.
+- [Resource library](https://crypticpy.github.io/bchc-template/examples/resource-library/) — shorter entries and more of them: guides, toolkits and datasets.
+- [Blank catalog](https://crypticpy.github.io/bchc-template/examples/blank/) — the smallest useful starting point, ready to be renamed.
+
+**See what a fresh copy looks like on day one:** [crypticpy.github.io/bchc-catalog-starter](https://crypticpy.github.io/bchc-catalog-starter/) — a copy made from this template by following [`docs/launch.md`](docs/launch.md), configured through the setup wizard, samples removed, one entry published.
 
 <p align="center">
   <img src="docs/images/home.png" alt="Home page: dark hero with search, calls to action, an honest stat line and the newest entries listed alongside; a browse-by grid of the schema's facets underneath." width="720">
@@ -127,13 +134,16 @@ _config.yml              Jekyll build mechanics (title/description fall back to 
 _data/                   site.yml, theme.yml, schema.yml, navigation.yml, governance.yml, events.yml, resources.yml, cohorts/<year>.yml,
                          metrics.json (written monthly by the Catalog metrics workflow)
 _layouts/, _includes/    schema-driven templates (entry cards, filters, field rendering, etc.)
-_plugins/                schema_filters.rb (card/weight/group/option_meta rules), theme_filters.rb, search_index.rb (/search.json), events.rb, modules.rb
+_plugins/                schema_filters.rb (card/weight/group/option_meta rules), theme_filters.rb, search_index.rb (/search.json), events.rb, modules.rb,
+                         showcase.rb (only active in a showcase build)
 assets/js/configurator/  shared logic behind both configurators (core.js, presets/, setup-page.js + steps/ + wizard/)
 assets/js/submit.js      turns the /submit/ form into a pre-filled GitHub issue URL
-scripts/                 setup.mjs, generate.mjs, validate.mjs, and the issue-to-PR automation scripts
+scripts/                 setup.mjs, generate.mjs, validate.mjs, build_showcase.mjs, and the issue-to-PR automation scripts
 .github/workflows/       pages, validate, quality (a11y + Lighthouse), smoke, new-entry, thumbnails, new-year, new-event, update-schedule, update-event-attachments,
                          verification-sweep, metrics
 .github/ISSUE_TEMPLATE/  new-entry.yml is generated — do not hand-edit it, run `npm run generate`
+_showcase/<id>/          sample content for the live examples on the template's own deployment; _data/showcase.yml is the
+                         landing page's copy. Both are removed by `npm run eject:samples` (docs/showcase-plan.md)
 catalog/<slug>/index.md  published entries; screenshots live in catalog/<slug>/screenshots/
                          (ten sample entries ship with the template, marked `sample: true`)
 cohorts/<year>/          cohort landing page + event pages (module: cohorts)

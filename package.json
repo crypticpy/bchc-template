@@ -25,6 +25,7 @@
     "build:css": "tailwindcss -i ./assets/css/tailwind.css -o ./assets/css/site.css --minify",
     "watch:css": "tailwindcss -i ./assets/css/tailwind.css -o ./assets/css/site.css --watch",
     "build": "npm run generate && npm run build:css && bundle exec jekyll build",
+    "build:showcase": "npm run build:css && node scripts/build_showcase.mjs",
     "serve": "npm run build:css && bundle exec jekyll serve --livereload",
     "dev": "node scripts/dev.mjs",
     "lint": "eslint .",

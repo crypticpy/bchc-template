@@ -51,6 +51,9 @@ function fixture() {
   write('catalog/sample-one/index.md', '---\ntitle: "Sample"\nsample: true\n---\n');
   write('catalog/ours/index.md', '---\ntitle: "Ours"\n---\n');
   write('_data/metrics.json', '{ "generated": "2026-08-18", "quarters": [] }\n');
+  write('_data/showcase.yml', 'title: "The template"\nexamples: []\n');
+  write('_showcase/cohort-portal/catalog/a-project/index.md', '---\ntitle: "A project"\nsample: true\n---\n');
+  write('assets/images/showcase/cohort-portal-home.png', 'png');
   write(
     '_data/derivatives.json',
     JSON.stringify(
@@ -175,6 +178,7 @@ test('a second run is a no-op with nothing to report', () => {
     cohorts: [],
     emptied: [],
     removed: [],
+    showcase: [],
     pruned: [],
     demo: false,
     modulesOff: [],
@@ -191,7 +195,19 @@ test('the summary names every kind of thing it removed', () => {
   assert.match(lines, /demo banner off/);
   assert.match(lines, /governance module off/);
   assert.match(lines, /Removed _data\/metrics\.json/);
+  assert.match(lines, /showcase \(_showcase, _data\/showcase\.yml, assets\/images\/showcase\)/);
   assert.match(lines, /sample screenshots from _data\/derivatives\.json/);
+});
+
+test('the showcase goes with the samples: a fork’s home page is its catalog', () => {
+  const repo = fixture();
+  const planned = ejectSamples(repo.root, { dryRun: true });
+  assert.deepEqual(planned.showcase, ['_showcase', '_data/showcase.yml', 'assets/images/showcase']);
+  assert.equal(repo.exists('_showcase/cohort-portal/catalog/a-project/index.md'), true, 'dry run leaves it');
+  ejectSamples(repo.root);
+  assert.equal(repo.exists('_showcase'), false, 'the whole directory goes, not just its entries');
+  assert.equal(repo.exists('_data/showcase.yml'), false);
+  assert.equal(repo.exists('assets/images/showcase'), false, 'the landing’s screenshots go too');
 });
 
 test('the sample screenshots leave _data/derivatives.json; the fork’s own records stay', () => {

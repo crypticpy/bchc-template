@@ -70,6 +70,7 @@ a hint to the schema instead. `docs/content-model.md` documents each hint's exac
 | `facet_pages.rb` | Generates the crawlable browse surface from the same facet fields: one page per facet value at `/<entry.path>/<field>/<value>/` plus the A–Z directory, bounded by `_data/search.yml`'s `landing` block. See `docs/search.md`. |
 | `modules.rb` | At `post_read`, drops every page under a disabled module's path (from `_data/modules.yml`, `catalog` derived from the schema's `entry.path`) so it is never built, indexed or listed in the sitemap. |
 | `events.rb` | Merges `_data/events.yml` with per-cohort events into `site.data.events_all` for the events/cohort layouts. |
+| `showcase.rb` | Only active in a showcase landing build (`site.config["showcase"].role == 'landing'`): at `post_read` it reduces the build to `/`, `/setup/` and `/404.html`, so the landing does not ship a second copy of the catalog above the examples. |
 
 All plugins are pure Ruby with no gems beyond Jekyll; GitHub Pages builds them because `pages.yml`
 runs Jekyll in Actions (not the legacy Pages builder, which disallows plugins).
@@ -104,7 +105,7 @@ run identically in tests.
 | `new-event.yml`, `new-year.yml`, `update-schedule.yml`, `update-event-attachments.yml` | issue templates for the events/cohorts modules | matching `scripts/*` | PRs against `_data/` |
 | `validate.yml` | PR / push | `generate.mjs --check`, `npm test`, `npm run test:ruby`, `npm run validate`, CSS + Jekyll build | the merge gate |
 | `quality.yml` | PR / push to main | `pa11y-ci` (WCAG 2 AA) + Lighthouse CI over `_site` | accessibility gate; performance/SEO warn |
-| `pages.yml` | push to main | `scripts/stamp_updated.mjs` (stamps `updated:` on modified entries, commits back), then CSS build + Jekyll build with the repo-derived `baseurl` | deploys to GitHub Pages, tells the submitter |
+| `pages.yml` | push to main | `scripts/stamp_updated.mjs` (stamps `updated:` on modified entries, commits back), then CSS build + Jekyll build with the repo-derived `baseurl` — or `scripts/build_showcase.mjs` when this deployment is the showcase (see below) | deploys to GitHub Pages, tells the submitter |
 | `smoke.yml` | weekly | full build | catches upstream breakage |
 | `metrics.yml` | monthly (2nd) / manual | `scripts/metrics.mjs` — two read-only REST calls (issues by label, closed PRs by branch prefix) plus the entries' `entry.contributor_key` values, four calendar quarters | commits `_data/metrics.json` when the figures changed, dispatches `pages.yml`; the governance page renders it as "How the catalog is doing" |
 | `bootstrap-labels.yml` | manual | — | creates the labels the automation relies on |
@@ -114,6 +115,29 @@ place that turns answers into files, so both configurators cannot drift. Browser
 beside it — `dom.js` (element builder), `theme-preview.js` (the Branding step's live miniature,
 which re-declares the same CSS variables `_includes/theme.html` writes) — and are not imported by
 the CLI.
+
+### The showcase (the template's own deployment)
+
+`scripts/build_showcase.mjs` builds this repository several times into one tree: once per wizard
+preset as a complete example site at `/examples/<preset-id>/`, and once as the landing page at the
+root that introduces them. Each example is a scratch copy of the repository run through
+`scripts/setup.mjs --preset <id>` — the same code path `/setup/` and the CLI wizard use — with the
+sample content in `_showcase/<preset-id>/` copied over it, so an example cannot drift from what
+choosing that preset actually produces. `scripts/lib/build-tree.mjs` makes those copies.
+
+The builder writes each build a `_config.showcase.yml` carrying `showcase.role`
+(`landing`/`example`), the example's id and the list of all of them. Three things read it:
+`_plugins/showcase.rb` (above), `_includes/demo-banner.html` — which on an example becomes the
+switcher for moving between them, `assets/js/example-switcher.js` — and `index.md`, which renders
+`_includes/showcase-landing.html` from `_data/showcase.yml` instead of the home page. The
+per-example facts on the landing's cards come from `_data/showcase_presets.json`, generated from
+`assets/js/configurator/presets.js` at build time.
+
+`pages.yml` runs it only when the repository variable `CATALOG_SHOWCASE` is `true` and `demo` is
+still `true` (opt-in, so a copy of the template never builds it); every fork deploys the ordinary single build, and `npm run eject:samples` deletes the
+showcase's content outright. `test/build/showcase.test.mjs` covers the builder's pure functions
+(the config override, the flagship rule, the site patches); `docs/showcase-plan.md` records why it
+is built this way.
 
 ### Styling
 

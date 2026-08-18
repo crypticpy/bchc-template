@@ -74,6 +74,45 @@ jobs:
           for _ in $(seq 1 30); do curl -sf "$QUALITY_BASE_URL/" >/dev/null && break; sleep 1; done
           curl -sf -o /dev/null "$QUALITY_BASE_URL/" || { echo "server did not start"; exit 1; }
 
+      # The template's own deployment is not the single build above: it is a
+      # showcase — a landing page at the root and a complete live example of
+      # every preset (docs/showcase-plan.md) — and none of those pages exist in
+      # _site. Gated exactly like the deploy in pages.yml: demo content, unless
+      # the repository variable says otherwise. A fork builds no showcase and
+      # audits nothing extra.
+      - name: Decide whether to audit the showcase
+        id: showcase
+        env:
+          CATALOG_SHOWCASE: ${{ vars.CATALOG_SHOWCASE }}
+        run: |
+          set -euo pipefail
+          demo="$(ruby -ryaml -e 'puts YAML.load_file("_data/site.yml")["demo"] == true')"
+          build=false
+          if [[ "$demo" == "true" && "$CATALOG_SHOWCASE" == "true" ]]; then build=true; fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "Showcase: $build (demo=$demo, CATALOG_SHOWCASE='${CATALOG_SHOWCASE}')"
+
+      # The landing and one example — enough for the landing's markup and the
+      # example switcher without quadrupling the build. Built outside the
+      # repository so the next scratch copy does not pick it up, and served on
+      # its own port; quality/urls.js reads the pages out of the built tree.
+      - name: Build and serve the showcase (127.0.0.1:4174)
+        if: steps.showcase.outputs.build == 'true'
+        env:
+          JEKYLL_ENV: production
+          SHOWCASE_BASE_URL: http://127.0.0.1:4174
+          SHOWCASE_DIR: ${{ runner.temp }}/showcase
+        run: |
+          set -euo pipefail
+          node scripts/build_showcase.mjs --destination "$SHOWCASE_DIR" --url "$SHOWCASE_BASE_URL" cohort-portal
+          python3 -m http.server 4174 --directory "$SHOWCASE_DIR" >/dev/null 2>&1 &
+          for _ in $(seq 1 30); do curl -sf "$SHOWCASE_BASE_URL/" >/dev/null && break; sleep 1; done
+          curl -sf -o /dev/null "$SHOWCASE_BASE_URL/" || { echo "showcase server did not start"; exit 1; }
+          {
+            echo "QUALITY_SHOWCASE_BASE_URL=$SHOWCASE_BASE_URL"
+            echo "QUALITY_SHOWCASE_DIR=$SHOWCASE_DIR"
+          } >> "$GITHUB_ENV"
+
       # pa11y-ci pulls in whatever puppeteer it resolves at run time and that
       # puppeteer expects its own pinned Chrome build, which `npx --yes` does not
       # download. Point it at the runner's preinstalled Chrome instead so the

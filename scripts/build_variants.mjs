@@ -26,21 +26,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { spawnSync } from 'node:child_process';
-import * as yaml from 'js-yaml';
 
 import { seedFixtureEntries } from './seed_fixture_entries.mjs';
+import { copyTree, readYaml, removeEntries, run, writeYaml } from './lib/build-tree.mjs';
 import { entryPathFrom, listSampleEntries, readSchema } from './lib/setup-io.mjs';
 
 export const ROOT = process.env.BUILD_VARIANTS_ROOT
   ? path.resolve(process.env.BUILD_VARIANTS_ROOT)
   : process.cwd();
-
-/**
- * Directories never copied into a scratch tree: build output, caches, and the
- * two big ones (`node_modules`, `.git`) that nothing in a Jekyll build reads.
- */
-const SKIP = new Set(['.git', '.jekyll-cache', '.lighthouseci', '_site', 'node_modules', 'panel2', 'vendor']);
 
 /**
  * The configurations CI has to keep green.
@@ -118,41 +111,11 @@ export const VARIANTS = [
 
 /* -------------------------------------------------------------------------- */
 
-/** Recursive copy of `from` into `to`, skipping {@link SKIP} at the top level. */
-function copyTree(from, to) {
-  fs.mkdirSync(to, { recursive: true });
-  for (const item of fs.readdirSync(from, { withFileTypes: true })) {
-    if (SKIP.has(item.name)) continue;
-    const source = path.join(from, item.name);
-    const target = path.join(to, item.name);
-    if (item.isDirectory()) copyTree(source, target);
-    else if (item.isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(source), target);
-    else if (item.isFile()) fs.copyFileSync(source, target);
-  }
-}
-
-/** Run a command, capturing output. Never throws; the caller reads `.ok`. */
-function run(command, args, options = {}) {
-  const result = spawnSync(command, args, { encoding: 'utf8', ...options });
-  const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
-  return { ok: result.status === 0, status: result.status, output, error: result.error };
-}
-
 /** Turn on/off modules in a scratch `_data/site.yml`. Comments are not preserved. */
 function patchModules(file, modules) {
-  const site = yaml.load(fs.readFileSync(file, 'utf8')) ?? {};
+  const site = readYaml(file);
   site.modules = { ...(site.modules ?? {}), ...modules };
-  fs.writeFileSync(file, yaml.dump(site, { lineWidth: 100, noRefs: true }));
-}
-
-/** Delete every `<entry.path>/<slug>/` folder in a scratch tree. */
-function removeEntries(root) {
-  const schema = yaml.load(fs.readFileSync(path.join(root, '_data', 'schema.yml'), 'utf8')) ?? {};
-  const dir = path.join(root, String(schema?.entry?.path || 'catalog').replace(/^\/+|\/+$/g, ''));
-  if (!fs.existsSync(dir)) return;
-  for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (item.isDirectory()) fs.rmSync(path.join(dir, item.name), { recursive: true, force: true });
-  }
+  writeYaml(file, site);
 }
 
 /**

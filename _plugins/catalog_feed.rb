@@ -4,6 +4,8 @@ require "fileutils"
 require "time"
 require "date"
 
+require_relative "showcase"
+
 # Generates an Atom feed of the newest catalog entries at
 # `/<schema.entry.path>/feed.xml` (so `/catalog/feed.xml` by default).
 #
@@ -56,6 +58,9 @@ module CatalogTemplate
     # @param site [Jekyll::Site]
     # @return [void]
     def generate(site)
+      # The showcase landing has no catalog to syndicate; each example has its own feed.
+      return if CatalogTemplate::Showcase.landing?(site)
+
       entries = newest(site, LIMIT)
       return if entries.empty?
 

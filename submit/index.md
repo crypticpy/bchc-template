@@ -55,17 +55,35 @@ scripts:
 {%- assign line_fields = ff | card_fields: 'line' -%}
 {%- assign icon_fields = ff | card_fields: 'icon' -%}
 {%- assign fallback_email = cfg.submit.fallback_email | default: cfg.organization.contact_email | default: '' -%}
+{%- comment -%}
+  The catalog's repository, and with it the whole GitHub route: the form's
+  no-script action, the prefilled issue, the "press Submit new issue" step. A
+  site can be published without one — the showcase examples are built that way
+  on purpose (see docs/showcase-plan.md), and a fork that has not filled in
+  `github.repository` yet is in the same position. Rather than hand out a link
+  to `github.com//issues/new`, the page says there is nowhere to send answers
+  and keeps everything that still works: the questions, the card preview, the
+  copy-out buttons and the email fallback. Tested with `!= ''`, not for
+  truthiness — an empty string is truthy in Liquid.
+{%- endcomment -%}
+{%- assign gh_repo = cfg.github.repository | default: '' -%}
 
 <section class="max-w-prose">
   <span class="eyebrow">Contribute</span>
   <h1 class="page-title mt-2">Submit {{ singular | downcase | with_article }}</h1>
   <p class="mt-4 text-lg text-brand-muted">{{ cfg.submit.intro | default: 'Tell us about your work. Maintainers review every submission before it is published.' }}</p>
-  <p class="mt-3 text-sm text-brand-muted">Nothing is sent from this page. Your answers stay in this browser until you press a button.{% if fallback_email != '' %} You'll need a free GitHub account — or use <em>Email it instead</em>.{% else %} You'll need a free GitHub account.{% endif %}</p>
+  <p class="mt-3 text-sm text-brand-muted">Nothing is sent from this page. Your answers stay in this browser until you press a button.{% if gh_repo != '' %}{% if fallback_email != '' %} You'll need a free GitHub account — or use <em>Email it instead</em>.{% else %} You'll need a free GitHub account.{% endif %}{% endif %}</p>
+  {%- if gh_repo != '' -%}
   <ol class="mt-4 space-y-1 text-sm text-brand-muted" data-form-chrome>
     <li><strong class="text-brand-ink">1.</strong> Answer the questions below.</li>
     <li><strong class="text-brand-ink">2.</strong> Check your answers, then send them to GitHub.</li>
     <li><strong class="text-brand-ink">3.</strong> Press <em>Submit new issue</em> on GitHub — that is what actually submits it.</li>
   </ol>
+  {%- else -%}
+  <p class="mt-4 flex items-start gap-1.5 rounded-lg border border-brand-line bg-surface-base p-4 text-sm text-brand-ink" data-form-chrome>
+    {% include icon.html name='warning' size='sm' class='mt-0.5 shrink-0' %}<span>This site has no catalog repository behind it, so nothing here can be submitted. The questions, the card preview and the copy buttons all work — the last step, which on a published catalog opens a prefilled GitHub issue for a maintainer to review, has nowhere to go{% if fallback_email != '' %}, so <em>Email it instead</em> is the way out of this page{% endif %}.</span>
+  </p>
+  {%- endif -%}
   {%- if cfg.modules.governance -%}
   <p class="mt-3 text-sm text-brand-muted">Before you start, the <a class="font-medium text-brand-primary underline-offset-2 hover:underline" href="{{ '/governance/' | relative_url }}">governance page</a> has the five things reviewers check and the rules on privacy and licensing — you keep ownership of anything you share.</p>
   {%- endif -%}
@@ -80,11 +98,12 @@ scripts:
 {%- endcomment -%}
 <noscript>
   <div class="mt-8 rounded-lg border border-brand-line bg-surface-base p-4 text-sm text-brand-ink">
-    <p class="font-semibold">JavaScript is off, so this page cannot check your answers, preview your card or save a draft.</p>
-    <p class="mt-2 text-brand-muted">The form still works. Fill it in and press <em>Check your answers</em>: without scripts that goes straight to the GitHub issue form with your answers carried across, where you can read them over before pressing <em>Submit new issue</em>. Questions that ask for several links can only be answered on GitHub.</p>{% if fallback_email != '' %}
+    <p class="font-semibold">JavaScript is off, so this page cannot check your answers, preview your card or save a draft.</p>{% if gh_repo != '' %}
+    <p class="mt-2 text-brand-muted">The form still works. Fill it in and press <em>Check your answers</em>: without scripts that goes straight to the GitHub issue form with your answers carried across, where you can read them over before pressing <em>Submit new issue</em>. Questions that ask for several links can only be answered on GitHub.</p>{% else %}
+    <p class="mt-2 text-brand-muted">And this site has no catalog repository behind it, so there is nothing the form can be sent to either. The questions below are still the real ones — the outline underneath is what a submission looks like.</p>{% endif %}{% if fallback_email != '' %}
     <p class="mt-2 text-brand-muted">Or <a class="font-semibold text-brand-primary underline underline-offset-2 hover:no-underline" href="mailto:{{ fallback_email }}?subject={{ singular | prepend: '[' | append: '] New entry' | uri_escape }}">email it instead</a> and paste your answers into the message.</p>{% endif %}
-    <p class="mt-3 font-semibold">Or write it out by hand</p>
-    <p class="mt-1 text-brand-muted">Open a blank issue in the catalog repository, add the label <code>content:new-entry</code>, and paste this outline with your answers under each heading. The automation reads exactly this format.</p>
+    <p class="mt-3 font-semibold">{% if gh_repo != '' %}Or write it out by hand{% else %}What a submission looks like{% endif %}</p>
+    <p class="mt-1 text-brand-muted">{% if gh_repo != '' %}Open a blank issue in the catalog repository, add the label <code>content:new-entry</code>, and paste this outline with your answers under each heading. The automation reads exactly this format.{% else %}An entry arrives as a GitHub issue in this shape: one heading per question, the answer underneath. The automation reads exactly this format.{% endif %}</p>
     <textarea class="field-input mt-2 min-h-[10rem] font-mono text-xs" rows="12" readonly aria-label="Issue outline to copy">{% for ng in form_groups %}{% assign ng_fields = ff | fields_in_group: ng.key %}{% for nf in ng_fields %}{% unless nf.type == 'file' %}### {{ nf.label }}
 
 {% endunless %}{% endfor %}{% endfor %}</textarea>
@@ -159,12 +178,17 @@ scripts:
     and drop anything GitHub cannot prefill). `novalidate` is *not* set here —
     assets/js/submit.js sets it at boot, so the browser's own required-field
     messages are the fallback when the script never runs.
+
+    Without a repository there is no route to write down: the form is left with
+    no `action`, and `data-repo` stays empty so the scripts take the same
+    branch (assets/js/submit.js hands back the copy-out text instead of opening
+    an issue).
   {%- endcomment -%}
   <form class="min-w-0 space-y-10 lg:col-start-2 lg:row-start-1"
-        action="https://github.com/{{ cfg.github.repository }}/issues/new"
+        {% if gh_repo != '' %}action="https://github.com/{{ gh_repo }}/issues/new"
         method="get"
-        data-submit-form
-        data-repo="{{ cfg.github.repository }}"
+        {% endif %}data-submit-form
+        data-repo="{{ gh_repo }}"
         data-template="new-entry.yml"
         data-title-prefix="[{{ singular }}] "
         data-fallback-email="{{ fallback_email }}"
@@ -370,7 +394,10 @@ scripts:
       <p class="field-note" role="status" data-length-note hidden></p>
 
       <div class="flex flex-wrap items-center gap-3">
-        <button type="submit" class="btn-primary">Check your answers {% include icon.html name='arrow-right' size='sm' %}</button>
+        {%- comment -%}With no repository this button only leads to the review panel, which
+        is a scripting feature — so without scripts it leads nowhere and ships hidden, like
+        the copy and draft buttons below it.{%- endcomment -%}
+        <button type="submit" class="btn-primary"{% if gh_repo == '' %} data-js-only hidden{% endif %}>Check your answers {% include icon.html name='arrow-right' size='sm' %}</button>
         {%- comment -%}Only offered when there is somewhere for the email to go.{%- endcomment -%}
         {%- if fallback_email != '' %}
         <button type="button" class="btn-secondary" data-action="email" data-js-only hidden>Email it instead</button>
@@ -387,8 +414,8 @@ scripts:
       <p class="draft-status" role="status" aria-live="polite" data-draft-status></p>
 
       <div class="space-y-2" data-fallback hidden>
-        <label class="field-label" for="fallback-body">Copy this and paste it into a blank GitHub issue</label>
-        <p class="field-help">Open a blank issue, add the label <code>content:new-entry</code>, and paste the text below — the automation reads exactly this format.</p>
+        <label class="field-label" for="fallback-body">{% if gh_repo != '' %}Copy this and paste it into a blank GitHub issue{% else %}Your answers, in the shape a submission takes{% endif %}</label>
+        <p class="field-help">{% if gh_repo != '' %}Open a blank issue, add the label <code>content:new-entry</code>, and paste the text below — the automation reads exactly this format.{% else %}On a published catalog this is what the maintainers receive: one heading per question, your answer underneath.{% endif %}</p>
         <textarea class="field-input min-h-[10rem] font-mono text-xs" id="fallback-body" readonly rows="10" data-fallback-body></textarea>
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" class="btn-secondary btn-sm" data-action="copy-fallback">Copy to clipboard</button>
@@ -413,7 +440,11 @@ scripts:
   <template data-review-next>
     <p class="font-semibold text-brand-ink">What happens next</p>
     <ol class="mt-2 space-y-1.5 text-sm text-brand-muted">
+      {%- if gh_repo != '' %}
       <li>1. Sending opens a GitHub issue with your answers already filled in. Nothing is submitted until you press <em>Submit new issue</em> there.</li>
+      {%- else %}
+      <li>1. On a published catalog this is where your answers open a prefilled GitHub issue. This site has no repository behind it, so the button hands you the text instead.</li>
+      {%- endif %}
       <li>2. Automation turns the issue into a draft page and opens a pull request.</li>
       <li>3. {{ cfg.submit.turnaround | default: 'A maintainer reviews it — usually within a few days.' }}</li>
     </ol>

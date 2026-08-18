@@ -99,4 +99,48 @@ function qualityUrls(base) {
   };
 }
 
-module.exports = { entryPath, sampleEntryPaths, qualityUrls };
+/**
+ * The pages of a showcase build (`scripts/build_showcase.mjs`), which the
+ * single build the gate serves does not contain: the landing, and for every
+ * example in the build its home page and one entry page.
+ *
+ * Discovered from the built tree rather than written down, so which examples
+ * were built is quality.yml's decision alone and no preset id lives here. Each
+ * example's `entries.json` carries its own entry URLs, which is also how this
+ * stays right for a preset whose `entry.path` is not `catalog`.
+ *
+ * Empty unless the showcase was built — a fork's gate never has one, and
+ * neither does `npm run a11y` unless you point it at one:
+ *
+ *   QUALITY_SHOWCASE_DIR=/tmp/showcase \
+ *   QUALITY_SHOWCASE_BASE_URL=http://127.0.0.1:4174 npm run a11y
+ *
+ * @param {string} base the URL the showcase build is served at.
+ * @param {string} [dir] the built tree (defaults to `$QUALITY_SHOWCASE_DIR`).
+ * @returns {string[]}
+ */
+function showcaseUrls(base, dir = process.env.QUALITY_SHOWCASE_DIR || '') {
+  if (!base || !dir) return [];
+  const root = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
+  if (!fs.existsSync(path.join(root, 'index.html'))) return [];
+
+  const at = (p) => `${base.replace(/\/$/, '')}${p}`;
+  const urls = [at('/')];
+  const examples = path.join(root, 'examples');
+  if (!fs.existsSync(examples)) return urls;
+
+  for (const id of fs.readdirSync(examples).sort()) {
+    if (!fs.existsSync(path.join(examples, id, 'index.html'))) continue;
+    urls.push(at(`/examples/${id}/`));
+    try {
+      const manifest = JSON.parse(fs.readFileSync(path.join(examples, id, 'entries.json'), 'utf8'));
+      const first = (manifest.entries || [])[0];
+      if (first && first.url) urls.push(at(first.url));
+    } catch {
+      // An example with no catalog publishes no manifest; its home page is enough.
+    }
+  }
+  return urls;
+}
+
+module.exports = { entryPath, sampleEntryPaths, qualityUrls, showcaseUrls };

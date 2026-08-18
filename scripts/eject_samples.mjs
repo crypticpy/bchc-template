@@ -9,7 +9,9 @@
  * `cohorts/<year>/` pages, and the two feature data files are emptied back to
  * the header comment that explains what to put in them rather than deleted, so
  * a fork that later turns the module on still has the file and its
- * instructions.
+ * instructions. The showcase — the landing page and the sample content behind
+ * the live examples of each preset — goes too: it is the template introducing
+ * itself, and a fork's home page is its catalog.
  *
  * Run it as `npm run eject:samples`, or let `npm run setup` and the "Apply
  * setup" workflow call `ejectSamples()` for you.
@@ -44,6 +46,17 @@ export const EXAMPLE_MODULES = ['governance'];
  * ones. Deleted outright — the governance page hides the block until then.
  */
 export const SAMPLE_DATA_FILES = ['_data/metrics.json'];
+
+/**
+ * The showcase: `_showcase/<preset-id>/` is the sample content each live
+ * example is built from, `_data/showcase.yml` is the landing page's copy and
+ * `assets/images/showcase/` holds the screenshots it shows of each example
+ * (see docs/showcase-plan.md). All three exist to introduce the template, and
+ * `scripts/build_showcase.mjs` only ever runs while `demo` is true — so once a
+ * fork is running on its own content they are dead weight in the repository.
+ * Paths, not files: two of the three are directories.
+ */
+export const SHOWCASE_PATHS = ['_showcase', '_data/showcase.yml', 'assets/images/showcase'];
 
 /**
  * The responsive-image manifest `scripts/derive_images.mjs` keeps. Its records
@@ -160,7 +173,7 @@ export function manifestWithoutEntries(text, entryDirs) {
  *
  * @param {string} root repository root.
  * @param {{dryRun?: boolean}} [options] `dryRun` reports without writing.
- * @returns {{entries: string[], cohorts: string[], emptied: string[], removed: string[], pruned: string[], demo: boolean, modulesOff: string[]}}
+ * @returns {{entries: string[], cohorts: string[], emptied: string[], removed: string[], showcase: string[], pruned: string[], demo: boolean, modulesOff: string[]}}
  *   repo-relative paths, the data files whose sample records were dropped,
  *   whether the demo banner was turned off, and which example-data modules
  *   were switched off.
@@ -173,6 +186,7 @@ export function ejectSamples(root, options = {}) {
     cohorts: [],
     emptied: [],
     removed: [],
+    showcase: [],
     pruned: [],
     demo: false,
     modulesOff: [],
@@ -220,6 +234,13 @@ export function ejectSamples(root, options = {}) {
     if (!dryRun) fs.rmSync(file, { force: true });
   }
 
+  for (const name of SHOWCASE_PATHS) {
+    const target = path.join(root, name);
+    if (!fs.existsSync(target)) continue;
+    result.showcase.push(name);
+    if (!dryRun) fs.rmSync(target, { recursive: true, force: true });
+  }
+
   const siteFile = path.join(root, '_data', 'site.yml');
   if (fs.existsSync(siteFile)) {
     let site = fs.readFileSync(siteFile, 'utf8');
@@ -257,6 +278,10 @@ export function ejectSummary(result) {
   if (result.removed.length)
     lines.push(
       `Removed ${result.removed.join(' and ')} — sample figures; your monthly Catalog metrics run writes yours.`
+    );
+  if (result.showcase.length)
+    lines.push(
+      `Removed the showcase (${result.showcase.join(', ')}) — the template's own landing page and example sites; your home page is your catalog.`
     );
   if (result.pruned.length) lines.push(`Dropped the sample screenshots from ${result.pruned.join(' and ')}.`);
   if (result.demo) lines.push('Turned the demo banner off (`demo: false` in _data/site.yml).');

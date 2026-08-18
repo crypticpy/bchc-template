@@ -1,3 +1,13 @@
+# Builds the site and publishes it to GitHub Pages on every push to main.
+#
+# One `jekyll build`, with one exception: the template's own deployment is a
+# showcase — a landing page at the root and a complete live example of every
+# preset under /examples/<preset-id>/ (docs/showcase-plan.md). It is opt-in:
+# it runs only when the repository variable CATALOG_SHOWCASE is `true` AND
+# `_data/site.yml` still says `demo: true`. A fork never sets the variable, so
+# a fork never gets it — not even in the window between turning Pages on and
+# running `npm run eject:samples` (which writes `demo: false` and ends the
+# showcase on the template's own repository too).
 name: Build & Deploy
 
 on:
@@ -142,6 +152,7 @@ jobs:
         run: npm run build:css
 
       - name: Resolve site URL
+        id: site
         run: |
           set -euo pipefail
           repo_name="${GITHUB_REPOSITORY#*/}"
@@ -164,7 +175,26 @@ jobs:
           configured_url="$(ruby -ryaml -e 'puts YAML.load_file("_config.yml")["url"].to_s')"
           if [[ -n "$configured_url" ]]; then site_url="$configured_url"; fi
           printf 'url: "%s"\nbaseurl: "%s"\n' "$site_url" "$baseurl" > _config.ci.yml
+          {
+            echo "url=$site_url"
+            echo "baseurl=$baseurl"
+          } >> "$GITHUB_OUTPUT"
           echo "Building with url='${site_url}' baseurl='${baseurl}'"
+
+      # Demo content is what makes this deployment the showcase (see the header
+      # comment). `demo` is read from _data/site.yml the same way the url is
+      # read from _config.yml above, so nothing has to be kept in step here.
+      - name: Decide whether to build the showcase
+        id: showcase
+        env:
+          CATALOG_SHOWCASE: ${{ vars.CATALOG_SHOWCASE }}
+        run: |
+          set -euo pipefail
+          demo="$(ruby -ryaml -e 'puts YAML.load_file("_data/site.yml")["demo"] == true')"
+          build=false
+          if [[ "$demo" == "true" && "$CATALOG_SHOWCASE" == "true" ]]; then build=true; fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "Showcase: $build (demo=$demo, CATALOG_SHOWCASE='${CATALOG_SHOWCASE}')"
 
       - name: Smoke check configuration
         env:
@@ -172,9 +202,20 @@ jobs:
         run: bundle exec jekyll doctor --config _config.yml,_config.ci.yml
 
       - name: Build Jekyll site
+        if: steps.showcase.outputs.build != 'true'
         env:
           JEKYLL_ENV: production
         run: bundle exec jekyll build --destination _site --config _config.yml,_config.ci.yml
+
+      # The landing into _site and every example into _site/examples/<id>, each
+      # a full build of this repository with that preset overlaid.
+      - name: Build the showcase
+        if: steps.showcase.outputs.build == 'true'
+        env:
+          JEKYLL_ENV: production
+          SITE_URL: ${{ steps.site.outputs.url }}
+          SITE_BASEURL: ${{ steps.site.outputs.baseurl }}
+        run: node scripts/build_showcase.mjs --destination _site --url "$SITE_URL" --baseurl "$SITE_BASEURL"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

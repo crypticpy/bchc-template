@@ -9,7 +9,16 @@ Home page. Above the fold: what the collection is, a search box that submits int
 the catalog, and browse-by tiles built from the card-facing facet fields. Then
 featured/recent cards and an honest stat line — every number is counted from the
 entries, never invented. All labels come from _data/schema.yml.
+
+On a showcase landing build (scripts/build_showcase.mjs writes `showcase.role`
+into _config; see docs/showcase-plan.md) this page is the landing that
+introduces the template and its examples instead, and the catalog it would
+otherwise link to is not in that build at all. Every other build — a fork,
+`jekyll serve`, CI, and each of the examples themselves — takes the else branch.
 {%- endcomment -%}
+{%- if site.showcase.role == 'landing' -%}
+{% include showcase-landing.html %}
+{%- else -%}
 {%- assign cfg = site.data.site -%}
 {%- assign schema = site.data.schema -%}
 {%- assign plural = schema.entry.plural | default: 'Entries' -%}
@@ -267,3 +276,4 @@ the eye reads "here is how the collection is organised" before the first entry. 
   </section>
   {% endif %}
 </div>
+{%- endif -%}

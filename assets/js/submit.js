@@ -226,6 +226,18 @@
      * to still be here. The confirmation panel offers to delete it instead.
      */
     function send() {
+      // No repository, no issue to open — `https://github.com//issues/new` is a
+      // dead link, so the copy-out route is the whole of it. The markup already
+      // says so; this is the button honouring it.
+      if (!form.dataset.repo) {
+        ns.exitReview(form);
+        showFallback(
+          'This site has no catalog repository behind it, so there is no issue to open. Your answers are in the box below — copy them wherever they need to go.',
+          ''
+        );
+        return;
+      }
+
       const url = ns.issueUrl(form, fields, entryTitle());
       if (url.length > MAX_URL) {
         ns.exitReview(form);
@@ -274,7 +286,11 @@
       }
       ns.hideSummary(summary);
       say(status, '');
-      ns.renderReview(form, fields, { onSend: send, onBack: refresh });
+      ns.renderReview(form, fields, {
+        onSend: send,
+        onBack: refresh,
+        sendLabel: form.dataset.repo ? '' : 'Copy your answers',
+      });
     });
 
     /**
