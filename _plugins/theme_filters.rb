@@ -65,8 +65,52 @@ module CatalogTemplate
     def query_encode(value)
       ERB::Util.url_encode(value.to_s)
     end
+
+    # True when `path` is a file Jekyll is copying into the site (a screenshot,
+    # a deck, a generated thumbnail). Replaces `site.static_files | where:
+    # 'path', x | size > 0`, which allocates and scans the whole static-file
+    # array on every call — that pattern ran 1,872 times in a 260-entry build.
+    # The path set is built once per site and cached on the site object.
+    # @param path [String] site-relative path, with or without a leading "/"
+    # @return [Boolean]
+    # @example
+    #   {% assign found = entry.deck_pdf | static_file %}{% if found %}…{% endif %}
+    #   (no trailing "?" in the name: Liquid's lax variable parser matches a
+    #   filter name with /\w+/, so `static_file?` silently resolves to no filter
+    #   at all and passes the path straight through as a truthy string. Liquid's
+    #   `if` tag takes no filters either, hence the `assign` first.)
+    def static_file(path)
+      site = @context.registers[:site]
+      return false unless site
+
+      paths = site.instance_variable_get(:@_catalog_static_paths)
+      unless paths
+        paths = Set.new(site.static_files.map(&:relative_path))
+        site.instance_variable_set(:@_catalog_static_paths, paths)
+      end
+      value = path.to_s
+      return false if value.empty?
+
+      paths.include?(value.start_with?("/") ? value : "/#{value}")
+    end
+
+    # Every distinct value of one field across a set of entries, case-insensitively
+    # sorted. Replaces building the same list with `assign x = x | push: v` inside
+    # a loop, which copies the whole array on every iteration.
+    # @param entries [Array] entry pages (Liquid drops) or plain hashes
+    # @param key [String] schema field key
+    # @return [Array<String>] unique, non-blank values
+    # @example
+    #   {% assign options = entries | facet_options: field.key %}
+    def facet_options(entries, key)
+      key = key.to_s
+      Array(entries).flat_map { |entry| Array(entry[key]).flatten }
+                    .compact.map { |value| value.to_s.strip }.reject(&:empty?)
+                    .uniq.sort_by(&:downcase)
+    end
   end
 end
 
 require "erb"
+require "set"
 Liquid::Template.register_filter(CatalogTemplate::ThemeFilters)

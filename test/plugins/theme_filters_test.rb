@@ -91,4 +91,71 @@ class ThemeFiltersTest < Minitest::Test
   def test_query_encode_is_nil_safe
     assert_equal "", @filters.query_encode(nil)
   end
+
+  # -- facet_options -----------------------------------------------------------
+
+  def test_facet_options_collects_unique_values_case_insensitively_sorted
+    entries = [
+      { "area" => ["Outreach", "Translation"] },
+      { "area" => "Translation" },
+      { "area" => ["benefits"] }
+    ]
+    # Sorted on the downcased value, so "benefits" leads rather than trailing
+    # the capitalized ones as a plain `sort` would put it.
+    assert_equal %w[benefits Outreach Translation], @filters.facet_options(entries, "area")
+  end
+
+  def test_facet_options_drops_blanks_and_missing_values
+    entries = [{ "area" => ["A", "", nil, "  "] }, { "other" => "B" }, {}]
+    assert_equal ["A"], @filters.facet_options(entries, "area")
+  end
+
+  def test_facet_options_is_nil_safe
+    assert_equal [], @filters.facet_options(nil, "area")
+  end
+
+  # -- static_file -------------------------------------------------------------
+
+  # static_file reads the site off the Liquid context, so it needs a real one.
+  # @param paths [Array<String>] relative_path of each static file in the site
+  # @param value [String] the path to test
+  # @return [Object] the filter's return value
+  def static_file(paths, value)
+    site = Struct.new(:static_files).new(paths.map { |path| Struct.new(:relative_path).new(path) })
+    host = ThemeFiltersHost.new
+    host.instance_variable_set(:@context, Liquid::Context.new({}, {}, { site: site }))
+    host.static_file(value)
+  end
+
+  def test_static_file_finds_a_file_jekyll_is_copying
+    assert_equal true, static_file(["/catalog/a/deck.pdf"], "/catalog/a/deck.pdf")
+  end
+
+  def test_static_file_accepts_a_path_without_a_leading_slash
+    assert_equal true, static_file(["/catalog/a/deck.pdf"], "catalog/a/deck.pdf")
+  end
+
+  def test_static_file_is_false_for_a_missing_file_or_a_blank_path
+    assert_equal false, static_file(["/catalog/a/deck.pdf"], "/catalog/a/other.pdf")
+    assert_equal false, static_file(["/catalog/a/deck.pdf"], "")
+    assert_equal false, static_file(["/catalog/a/deck.pdf"], nil)
+  end
+
+  def test_static_file_scans_the_site_only_once
+    site = Struct.new(:static_files).new([Struct.new(:relative_path).new("/a.pdf")])
+    host = ThemeFiltersHost.new
+    host.instance_variable_set(:@context, Liquid::Context.new({}, {}, { site: site }))
+    host.static_file("/a.pdf")
+    # The cache, not the site, answers from here on — proven by emptying the site.
+    site.static_files = []
+
+    assert_equal true, host.static_file("/a.pdf")
+  end
+
+  def test_static_file_is_false_without_a_site_in_the_context
+    host = ThemeFiltersHost.new
+    host.instance_variable_set(:@context, Liquid::Context.new({}, {}, {}))
+
+    assert_equal false, host.static_file("/a.pdf")
+  end
 end

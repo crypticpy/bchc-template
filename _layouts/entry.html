@@ -141,16 +141,16 @@ facts, rail, body.
       {%- if page.featured -%}{% include badge.html label='Featured' tone='accent' size='md' icon='star' %}{%- endif -%}
     </div>
 
-    <h1 class="page-title max-w-prose">{{ page.title | escape }}</h1>
+    <h1 class="page-title measure-display">{{ page.title | escape }}</h1>
 
     {%- for ent_f in ent_line_fields -%}
       {%- assign ent_v = page[ent_f.key] -%}
       {%- if ent_v and ent_v != '' -%}
-        <p class="flex max-w-prose items-start gap-2 text-lg font-semibold leading-snug text-brand-ink">{% include icon.html name=ent_f.icon size='md' class='mt-0.5 text-brand-primary' %}<span><span class="sr-only">{{ ent_f.label | escape }}: </span>{{ ent_v | escape }}</span></p>
+        <p class="measure-display flex items-start gap-2 text-lg font-semibold leading-snug text-brand-ink">{% include icon.html name=ent_f.icon size='md' class='mt-0.5 text-brand-primary' %}<span><span class="sr-only">{{ ent_f.label | escape }}: </span>{{ ent_v | escape }}</span></p>
       {%- endif -%}
     {%- endfor -%}
 
-    {%- if page.summary -%}<p class="max-w-prose text-base leading-relaxed text-brand-muted">{{ page.summary | escape }}</p>{%- endif -%}
+    {%- if page.summary -%}<p class="measure-display text-base leading-relaxed text-brand-muted">{{ page.summary | escape }}</p>{%- endif -%}
 
     <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-brand-muted">
       {%- if page.published -%}<span class="inline-flex items-center gap-1.5">{% include icon.html name='calendar' size='sm' %}Published {{ page.published | date: '%B %-d, %Y' }}</span>{%- endif -%}
@@ -208,5 +208,4 @@ facts, rail, body.
   </div>
 </article>
 
-{%- assign ent_pool = site.pages | where: 'layout', 'entry' -%}
-{% include related-entries.html entry=page fields=ent_fields entries=ent_pool title='Related' limit=3 %}
+{% include related-entries.html entry=page title='Related' limit=3 %}
