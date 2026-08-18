@@ -61,7 +61,7 @@ Links
 
 Mechanics
 
-- [ ] The **Validate Content** check is green (`check_front_matter.rb` and `check_file_sizes.rb`).
+- [ ] The **Validate Content** check is green (`check_front_matter.rb`, `check_file_sizes.rb` and the image-derivatives check).
 - [ ] If a slide deck was promised, it has been uploaded into `catalog/<slug>/` as `deck.pdf`.
 - [ ] The maintainer checklist in the pull request body is complete. (Generated PRs carry their own checklist; `.github/PULL_REQUEST_TEMPLATE.md` is the one hand-opened PRs get.)
 

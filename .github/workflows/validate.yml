@@ -73,6 +73,12 @@ jobs:
       - name: Validate data files, front matter and file sizes
         run: npm run validate
 
+      # Screenshots and their AVIF/WebP siblings travel together (docs/images.md).
+      # Fails only when a source image has no up-to-date derivatives: run
+      # `npm run images` and commit the result.
+      - name: Image derivatives are in sync
+        run: node scripts/derive_images.mjs --check
+
       - name: Build CSS
         run: npm run build:css
 
