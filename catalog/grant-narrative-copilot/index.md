@@ -39,6 +39,13 @@ resources:
     url: "https://docs.example.gov/metronorth/grant-copilot-rollout.pdf"
   - label: "Vendor product page"
     url: "https://www.example.com/products/workplace-copilot"
+cost_band: "Under $25k"
+run_cost: "Under $10k/yr"
+procurement:
+  - "Sole source"
+approvals:
+  - "Not yet reviewed"
+equity_note: "Nothing resident-facing: it drafts our own narrative sections and a grant writer rewrites them. The honest risk is internal — a copilot trained on our past successful applications will keep proposing the programs we have always funded. We have not checked for that and would not know how yet."
 data_sensitivity:
   - "Internal, non-public data"
 data_sources:

@@ -5,6 +5,7 @@ title: "Plain-language rewrites for public notices"
 slug: plain-language-notices
 summary: "A prompt kit and review checklist staff use to rewrite public notices at a sixth-grade reading level without changing what the notice requires."
 published: 2026-07-08
+verified: 2026-08-10
 featured: true
 sample: true
 impact: "Median reading level of published notices dropped from grade 14 to grade 7"
@@ -39,6 +40,15 @@ resources:
 screenshots:
   - src: /catalog/plain-language-notices/screenshots/01.png
     alt: "Side-by-side view of an original boil water notice and its plain-language rewrite, with a pre-publication review checklist."
+cost_band: "No new spend"
+run_cost: "Under $10k/yr"
+procurement:
+  - "Existing enterprise licence"
+approvals:
+  - "Legal or contracts review"
+  - "Community or advisory review"
+  - "Equity impact assessment"
+equity_note: "The whole point is the residents the old notices lost: we measure reading level before and after, and the community review panel reads the rewrite before it ships. Translation is where it can quietly go wrong — a rewrite that gets simpler in English can get less precise in Spanish and Vietnamese, so both translations are reviewed by a human, never machine-translated from the rewrite."
 data_sensitivity:
   - "Public data only"
 data_sources:

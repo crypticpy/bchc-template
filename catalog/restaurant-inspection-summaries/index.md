@@ -35,6 +35,13 @@ resources:
 screenshots:
   - src: /catalog/restaurant-inspection-summaries/screenshots/01.png
     alt: "Review table pairing inspector code citations with drafted resident summaries, style rule checks and an approve or reject decision."
+cost_band: "No new spend"
+run_cost: "No ongoing cost"
+procurement:
+  - "No procurement needed"
+approvals:
+  - "Not yet reviewed"
+equity_note: "Still an idea, so nothing has been checked. If it ships, the obvious hazard is a summary that reads harsher for a small independent restaurant than for a chain with tidier paperwork describing the same violation, and the summary would be published next to the establishment's name. That comparison is the first thing we would test."
 data_sensitivity:
   - "Public data only"
 data_sources:
