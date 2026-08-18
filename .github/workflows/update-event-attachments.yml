@@ -59,7 +59,7 @@ jobs:
 
       - name: Comment with the available event IDs
         if: steps.extract.outputs.event_id == '' || steps.extract.outputs.event_id == 'help'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           LIST_YEAR: ${{ steps.list.outputs.year }}
           LIST_EVENTS: ${{ steps.list.outputs.events_md }}
@@ -89,7 +89,7 @@ jobs:
 
       - name: Report the failure on the issue
         if: steps.update.outcome == 'failure'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           STEP_ERROR: ${{ steps.update.outputs.error }}
         with:
@@ -111,7 +111,7 @@ jobs:
 
       - name: Create pull request
         if: steps.update.outcome == 'success' && steps.update.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           branch: ${{ steps.update.outputs.branch }}
           commit-message: "chore: update attachments for event ${{ steps.update.outputs.slug }}"
@@ -124,7 +124,7 @@ jobs:
 
       - name: Comment when nothing changed
         if: steps.update.outcome == 'success' && steps.update.outputs.changed != 'true'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.issues.createComment({
