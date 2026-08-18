@@ -232,7 +232,11 @@ class CatalogIndexGeneratorTest < Minitest::Test
 
   # -- the real catalog ----------------------------------------------------
 
-  def test_the_sample_catalog_ranks_the_obvious_neighbour_first
+  # A shape check only. Asserting a named winner here would couple CI to the
+  # current contents of catalog/ and turn red the day a contributor adds an
+  # entry (it did, on a real submission) — the ranking itself is covered by the
+  # fixture corpora above.
+  def test_the_sample_catalog_builds_and_relates_without_self_references
     schema = YAML.load_file(File.join(REPO, "_data", "schema.yml"))
     path = schema.dig("entry", "path") || "catalog"
     front_matter = Dir[File.join(REPO, path, "*", "index.md")].sort.map do |file|
@@ -243,8 +247,11 @@ class CatalogIndexGeneratorTest < Minitest::Test
     site = build_site(fields: schema["fields"], entries: front_matter)
     @generator.generate(site)
 
-    # Both are language-access work in the same area; before IDF weighting the
-    # top slot went to whichever entry happened to carry the most facet values.
-    assert_equal "plain-language-notices", related_slugs(site, "311-multilingual-intake").first
+    front_matter.each do |fm|
+      related = related_slugs(site, fm["slug"])
+      refute_empty related, "#{fm["slug"]} has no related entries"
+      refute_includes related, fm["slug"]
+      assert related.size <= front_matter.size - 1
+    end
   end
 end
