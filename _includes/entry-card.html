@@ -5,7 +5,11 @@ Usage: {% include entry-card.html entry=entry %}
 Params: entry (required); eager (optional; true = the media image loads eagerly —
         pass it for the first row of a grid so the LCP image is not lazy-loaded);
         fetchpriority (optional; true = fetchpriority="high" on the media image —
-        pass it for the ONE card that holds the page's LCP candidate).
+        pass it for the ONE card that holds the page's LCP candidate);
+        transition (optional; true = this card's image and title claim
+        `view-transition-name`s that _layouts/entry.html matches, so opening the
+        entry morphs them into the hero and the <h1> instead of cross-fading the
+        whole page — see the note above the `ec_vt_*` assigns for why it is opt-in).
 
 Everything on the card comes from `_data/schema.yml` presentation hints, resolved by
 _plugins/schema_filters.rb — no field key is named here. Slot caps are enforced by
@@ -53,6 +57,32 @@ re-deriving dates in JS, and shown as one quiet line in the foot. {%- endcomment
 {%- assign ec_verify_days = site.data.site.catalog.verify_after_days | default: 365 -%}
 {%- assign ec_check = ec_entry | verification: site.time, ec_verify_days -%}
 
+{%- assign ec_id = ec_entry.slug | default: ec_entry.title | slugify -%}
+
+{%- comment -%} Shared-element view transition, OPT-IN rather than automatic.
+
+A `view-transition-name` has to be unique among the elements a document actually
+renders, and a duplicate does not degrade — it aborts the whole transition, so one
+careless page would silently switch the effect off everywhere. Two pages here render
+the same entry twice: the home page (a featured entry is usually also a recent one)
+and the styleguide (the same entry as a card and as a row). Neither can be fixed from
+inside this template, and only the caller knows whether its list is one-per-entry, so
+the caller says so. `_layouts/catalog.html` does; anything rendering a second copy
+simply leaves the param off and gets today's plain cross-fade.
+
+`.hidden` (the class filters.js toggles) is `display: none`, so a filtered-out card
+has no box, is never captured, and cannot collide with anything — the names only have
+to be unique among the cards actually on screen.
+
+Slugify only emits `[a-z0-9-]`, and the prefix guarantees the result is a valid
+custom-ident even for an entry whose slug starts with a digit. {%- endcomment -%}
+{%- assign ec_vt_media = '' -%}
+{%- assign ec_vt_title = '' -%}
+{%- if include.transition -%}
+  {%- capture ec_vt_media -%} style="view-transition-name: card-{{ ec_id }}"{%- endcapture -%}
+  {%- capture ec_vt_title -%} style="view-transition-name: title-{{ ec_id }}"{%- endcapture -%}
+{%- endif -%}
+
 {%- comment -%} Badge slot: the first `card: badge` field's value. {%- endcomment -%}
 {%- assign ec_badge_value = '' -%}
 {%- if ec_badge_field -%}
@@ -62,7 +92,7 @@ re-deriving dates in JS, and shown as one quiet line in the foot. {%- endcomment
 
 <li class="entry-card card-hover{% unless ec_has_image %} entry-card--text{% endunless %}"
   data-entry
-  data-entry-id="{{ ec_entry.slug | default: ec_entry.title | slugify }}"
+  data-entry-id="{{ ec_id }}"
   data-entry-title="{{ ec_entry.title | escape }}"
   data-entry-date="{{ ec_entry.published | date: '%Y-%m-%d' }}"
   {% if ec_entry.updated %}data-entry-updated="{{ ec_entry.updated | date: '%Y-%m-%d' }}" {% endif %}
@@ -72,7 +102,7 @@ re-deriving dates in JS, and shown as one quiet line in the foot. {%- endcomment
   {%- for ec_f in ec_facets %} data-facet-{{ ec_f.key | replace: '_', '-' }}="{{ ec_entry[ec_f.key] | facet_values }}"{% endfor %}>
 
   {%- if ec_has_image -%}
-    <div class="entry-media">
+    <div class="entry-media"{{ ec_vt_media }}>
       {{ ec_thumb }}
       <div class="entry-badges">
         {%- if ec_entry.featured -%}{% include badge.html label='Featured' tone='accent' icon='star' %}{%- endif -%}
@@ -119,7 +149,7 @@ re-deriving dates in JS, and shown as one quiet line in the foot. {%- endcomment
       </p>
     {%- endif -%}
 
-    <h3 class="entry-title line-clamp-2"><a href="{{ ec_entry.url | relative_url }}">{{ ec_entry.title | escape }}</a></h3>
+    <h3 class="entry-title line-clamp-2"{{ ec_vt_title }}><a href="{{ ec_entry.url | relative_url }}">{{ ec_entry.title | escape }}</a></h3>
 
     {%- if ec_line_field -%}
       {%- assign ec_line_value = ec_entry[ec_line_field.key] -%}

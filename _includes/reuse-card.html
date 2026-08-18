@@ -107,7 +107,7 @@ I found your entry "{{ rc_entry.title }}" in the {{ rc_site_name }} and wanted t
           <li>
             <a class="rail-link" href="{{ rc_url | escape }}" target="_blank" rel="noopener noreferrer">
               {% include icon.html name='link' size='sm' class='mt-0.5 shrink-0 text-brand-primary' %}
-              <span class="min-w-0"><span class="block leading-snug">{{ rc_label | escape }}</span><span class="block truncate text-xs text-brand-muted">{{ rc_url | link_host | escape }}</span></span>
+              <span class="min-w-0"><span class="block leading-snug">{{ rc_label | escape }}</span><span class="link-host block truncate text-xs text-brand-muted">{{ rc_url | link_host | escape }}</span></span>
               <span class="sr-only"> (opens in a new tab)</span>
             </a>
           </li>

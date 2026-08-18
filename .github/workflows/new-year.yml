@@ -105,6 +105,7 @@ jobs:
             - [ ] Replace the placeholder intro on the cohort landing page
             - [ ] Replace the placeholder events with the real schedule
             - [ ] Merge to publish
+          labels: content:new-year
           delete-branch: true
 
       # A pull request opened with GITHUB_TOKEN does not trigger `pull_request`

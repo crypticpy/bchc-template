@@ -77,6 +77,14 @@
       word-break: break-all;
     }
 
+    /* On screen a resource link shows its host under the label, because "the URL,
+       but readable" is what tells you whether the link leaves the organization.
+       In print the rule above already spells the whole href out, so the host is
+       the same information twice — once truncated. Drop the shorter copy. */
+    .link-host {
+      display: none !important;
+    }
+
     /* Headings keep their first lines with the block they introduce. */
     h1,
     h2,

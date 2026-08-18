@@ -110,14 +110,35 @@ schema keeps the link. {%- endcomment -%}
 {%- endcapture -%}
 {%- assign ent_stale_notice = ent_stale_notice | strip -%}
 
+{%- comment -%}
+3c. Shared-element view transition. The catalog card the reader just clicked named
+its image `card-<slug>` and its title `title-<slug>` (_includes/entry-card.html,
+opt-in per caller); matching those two names here is what turns the page-wide
+cross-fade in assets/css/components/transitions.css into the image and the heading
+travelling to their new places. Only the FIRST media block claims the name — an
+entry with both screenshots and a deck renders two, and a duplicate name aborts the
+transition rather than degrading it. Same expression as the card's `data-entry-id`
+so the two can never drift.
+
+Nothing to do for reduced motion: transitions.css starts no transition at all under
+`prefers-reduced-motion: reduce`, which leaves these names inert.
+{%- endcomment -%}
+{%- assign ent_vt_id = page.slug | default: page.title | slugify -%}
+
 {%- comment -%} 4. Media: image galleries and downloadable files. {%- endcomment -%}
+{%- assign ent_media_seen = false -%}
 {%- capture ent_media -%}
   {%- for ent_f in ent_fields -%}
     {%- if ent_f.type != 'images' and ent_f.type != 'file' -%}{%- continue -%}{%- endif -%}
     {%- assign ent_shown = ent_shown | append: ent_f.key | append: '|' -%}
     {%- assign ent_v = page[ent_f.key] -%}
     {%- if ent_v == nil or ent_v == '' or ent_v == empty -%}{%- continue -%}{%- endif -%}
-    <div class="{% if ent_f.type == 'file' %}max-w-md{% endif %}">{% include gallery.html field=ent_f entry=page %}</div>
+    {%- assign ent_vt_media = '' -%}
+    {%- unless ent_media_seen -%}
+      {%- capture ent_vt_media -%} style="view-transition-name: card-{{ ent_vt_id }}"{%- endcapture -%}
+      {%- assign ent_media_seen = true -%}
+    {%- endunless -%}
+    <div class="{% if ent_f.type == 'file' %}max-w-md{% endif %}"{{ ent_vt_media }}>{% include gallery.html field=ent_f entry=page %}</div>
   {%- endfor -%}
 {%- endcapture -%}
 {%- assign ent_media = ent_media | strip -%}
@@ -187,7 +208,7 @@ facts, rail, body.
       {%- if page.featured -%}{% include badge.html label='Featured' tone='accent' size='md' icon='star' %}{%- endif -%}
     </div>
 
-    <h1 class="page-title measure-display">{{ page.title | escape }}</h1>
+    <h1 class="page-title measure-display" style="view-transition-name: title-{{ ent_vt_id }}">{{ page.title | escape }}</h1>
 
     {%- for ent_f in ent_line_fields -%}
       {%- assign ent_v = page[ent_f.key] -%}

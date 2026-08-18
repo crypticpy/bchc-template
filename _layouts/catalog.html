@@ -50,7 +50,11 @@ include_search: true
           {%- comment -%} Only card 1 can be the LCP element, and at 390px it is the only
           card above the fold at all: eager-loading the rest of the first row just puts
           them on the wire ahead of the image the paint is waiting for. {%- endcomment -%}
-          {% for entry in entries %}{% assign cat_lcp = false %}{% if forloop.first %}{% assign cat_lcp = true %}{% endif %}{% include entry-card.html entry=entry eager=cat_lcp fetchpriority=cat_lcp %}{% endfor %}
+          {%- comment -%} `transition=true`: this grid renders each entry exactly once, so
+          its cards can safely claim the `view-transition-name`s that _layouts/entry.html
+          matches — see the note in entry-card.html for why that is the caller's call.
+          {%- endcomment -%}
+          {% for entry in entries %}{% assign cat_lcp = false %}{% if forloop.first %}{% assign cat_lcp = true %}{% endif %}{% include entry-card.html entry=entry eager=cat_lcp fetchpriority=cat_lcp transition=true %}{% endfor %}
         </ul>
 
         {%- comment -%} Zero results has three different causes and three different

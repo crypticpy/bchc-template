@@ -37,16 +37,23 @@ class ModulePagesTest < Minitest::Test
 
   def test_module_paths_derives_catalog_from_schema_entry_path
     data = { "modules" => {}, "schema" => { "entry" => { "path" => "projects" } } }
-    assert_equal ["/projects/"], CatalogTemplate::ModulePages.module_paths(data)["catalog"]
+    assert_equal ["/projects/", "/compare/"], CatalogTemplate::ModulePages.module_paths(data)["catalog"]
   end
 
   def test_module_paths_defaults_catalog_to_slash_catalog_slash_when_schema_is_missing
-    assert_equal ["/catalog/"], CatalogTemplate::ModulePages.module_paths({})["catalog"]
+    assert_equal ["/catalog/", "/compare/"], CatalogTemplate::ModulePages.module_paths({})["catalog"]
   end
 
   def test_module_paths_does_not_let_modules_data_override_catalog
     data = { "modules" => { "catalog" => ["/should-be-ignored/"] }, "schema" => { "entry" => { "path" => "catalog" } } }
-    assert_equal ["/catalog/"], CatalogTemplate::ModulePages.module_paths(data)["catalog"]
+    assert_equal ["/catalog/", "/compare/"], CatalogTemplate::ModulePages.module_paths(data)["catalog"]
+  end
+
+  def test_module_paths_keeps_compare_with_the_catalog_whatever_the_entry_folder_is_called
+    # /compare/ is not under the entry folder, so it needs naming explicitly or a
+    # catalog-less site ships a page that can never fill.
+    data = { "modules" => {}, "schema" => { "entry" => { "path" => "projects" } } }
+    assert_includes CatalogTemplate::ModulePages.module_paths(data)["catalog"], "/compare/"
   end
 
   # -- disable_pages --------------------------------------------------------
@@ -91,6 +98,26 @@ class ModulePagesTest < Minitest::Test
     )
     CatalogTemplate::ModulePages.disable_pages(site)
     assert_equal ["/about/"], site.pages.map(&:url)
+  end
+
+  def test_disable_pages_drops_compare_with_the_catalog
+    site = build_site(
+      modules: { "catalog" => false },
+      schema: { "entry" => { "path" => "projects" } },
+      pages: [ModulesFakePage.new("/compare/"), ModulesFakePage.new("/about/")]
+    )
+    CatalogTemplate::ModulePages.disable_pages(site)
+    assert_equal ["/about/"], site.pages.map(&:url)
+  end
+
+  def test_disable_pages_keeps_compare_while_the_catalog_is_on
+    site = build_site(
+      modules: { "catalog" => true },
+      schema: { "entry" => { "path" => "projects" } },
+      pages: [ModulesFakePage.new("/compare/")]
+    )
+    CatalogTemplate::ModulePages.disable_pages(site)
+    assert_equal ["/compare/"], site.pages.map(&:url)
   end
 
   def test_disable_pages_is_a_noop_when_nothing_is_disabled
