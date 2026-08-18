@@ -36,4 +36,12 @@ class TextFiltersTest < Minitest::Test
     assert_equal "", @filters.with_article(nil)
     assert_equal "", @filters.with_article("  ")
   end
+
+  # The templates call it exactly like this (index.md, _layouts/catalog.html), so
+  # the registration and the filter chain are worth one end-to-end assertion.
+  def test_registered_filter_renders_in_a_liquid_template
+    template = Liquid::Template.parse("Submit {{ singular | downcase | with_article }}")
+    assert_equal "Submit a use case", template.render("singular" => "Use case")
+    assert_equal "Submit an entry", template.render("singular" => "Entry")
+  end
 end

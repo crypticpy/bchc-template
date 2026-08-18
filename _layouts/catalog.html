@@ -11,14 +11,20 @@ include_search: true
 {%- assign count = entries | size -%}
 {%- assign plural = schema.entry.plural | default: 'Entries' -%}
 {%- assign singular = schema.entry.singular | default: 'Entry' -%}
+{%- capture cat_default_summary -%}Browse every published {{ singular | downcase }}.{%- endcapture -%}
 
 <div class="pb-24 lg:pb-0">
   <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div class="max-w-prose">
+      {%- comment -%} No title in the page's front matter is the normal case: the
+      heading, the nav label and the entry-page breadcrumb then all read the same
+      `schema.entry.plural`, so renaming the noun renames every one of them. A page
+      may still override both. {%- endcomment -%}
+      {%- assign cat_summary = page.summary | default: cat_default_summary -%}
       <h1 class="page-title">{{ page.title | default: plural }}</h1>
-      {% if page.summary %}<p class="mt-1 text-sm leading-6 text-brand-muted">{{ page.summary }}</p>{% endif %}
+      {% if cat_summary %}<p class="mt-1 text-sm leading-6 text-brand-muted">{{ cat_summary }}</p>{% endif %}
     </div>
-    {% if cfg.modules.submit %}<a class="btn-secondary btn-sm" href="{{ '/submit/' | relative_url }}">{% include icon.html name='plus' size='sm' %} Add a {{ singular | downcase }}</a>{% endif %}
+    {% if cfg.modules.submit %}<a class="btn-secondary btn-sm" href="{{ '/submit/' | relative_url }}">{% include icon.html name='plus' size='sm' %} Add {{ singular | downcase | with_article }}</a>{% endif %}
   </div>
 
   {%- comment -%} No `items-start`: the rail column has to stretch to the row's
@@ -32,8 +38,10 @@ include_search: true
 
       <section aria-labelledby="results-heading">
         <ul role="list" class="entry-grid" data-entry-grid data-view="grid">
-          {%- comment -%} The first row is above the fold; its images must not be lazy (LCP). {%- endcomment -%}
-          {% for entry in entries %}{% assign cat_eager = false %}{% if forloop.index <= 3 %}{% assign cat_eager = true %}{% endif %}{% include entry-card.html entry=entry eager=cat_eager %}{% endfor %}
+          {%- comment -%} Only card 1 can be the LCP element, and at 390px it is the only
+          card above the fold at all: eager-loading the rest of the first row just puts
+          them on the wire ahead of the image the paint is waiting for. {%- endcomment -%}
+          {% for entry in entries %}{% assign cat_lcp = false %}{% if forloop.first %}{% assign cat_lcp = true %}{% endif %}{% include entry-card.html entry=entry eager=cat_lcp fetchpriority=cat_lcp %}{% endfor %}
         </ul>
 
         <div class="card hidden px-6 py-12 text-center" data-empty-state>
@@ -44,8 +52,15 @@ include_search: true
         </div>
 
         {% if count == 0 %}
-          {% assign body = 'No ' | append: plural | downcase | append: ' have been published yet.' %}
-          {% include empty-state.html icon='sparkles' title='Coming soon' body=body cta_url='/submit/' cta_label='Be the first to submit' %}
+          {%- comment -%} `capture`, not `'No ' | append: plural | downcase`: a filter
+          chain applies `downcase` to the whole concatenation, which lowercases the
+          sentence's first word too ("no use cases…"). The CTA is dropped rather than
+          the panel when submissions are off — _plugins/modules.rb drops /submit/ from
+          the build, so the button would 404. {%- endcomment -%}
+          {% capture cat_empty_body %}No {{ plural | downcase }} have been published yet.{% endcapture %}
+          {% assign cat_empty_cta = '' %}
+          {% if cfg.modules.submit %}{% assign cat_empty_cta = '/submit/' %}{% endif %}
+          {% include empty-state.html icon='sparkles' title='Coming soon' body=cat_empty_body cta_url=cat_empty_cta cta_label='Be the first to submit' %}
         {% endif %}
       </section>
     </div>
@@ -54,4 +69,7 @@ include_search: true
 
 {% include filter-sheet.html entries=entries %}
 
-{% if content != '' %}<div class="prose-body mt-12">{{ content }}</div>{% endif %}
+{%- comment -%} `strip`: a page whose body is only a Liquid comment still hands the
+layout a newline, which would otherwise open an empty, spaced block. {%- endcomment -%}
+{% assign cat_content = content | strip %}
+{% if cat_content != '' %}<div class="prose-body mt-12">{{ cat_content }}</div>{% endif %}

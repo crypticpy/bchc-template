@@ -26,6 +26,11 @@ entries, never invented. All labels come from _data/schema.yml.
   {%- assign featured = featured | concat: others -%}
 {%- endif -%}
 {%- assign featured = featured | slice: 0, featured_count -%}
+{%- comment -%} The carousel, when it renders, sits above the "Recently added" grid at
+every width, so its first card holds the page's one LCP candidate and the grid's does
+not. {%- endcomment -%}
+{%- assign home_has_carousel = false -%}
+{%- if cfg.modules.carousel and featured.size > 0 -%}{%- assign home_has_carousel = true -%}{%- endif -%}
 {%- assign facet_fields = schema.fields | facet_fields -%}
 
 {%- comment -%}
@@ -152,7 +157,7 @@ leads with; remaining facets fill in only if fewer than four qualify.
   </section>
   {% endif %}
 
-  {% if cfg.modules.carousel and featured.size > 0 %}
+  {% if home_has_carousel %}
   <section aria-labelledby="featured-heading" data-carousel>
     <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
       <h2 id="featured-heading" class="section-title">Featured {{ plural | downcase }}</h2>
@@ -167,7 +172,7 @@ leads with; remaining facets fill in only if fewer than four qualify.
       </div>
     </div>
     <ul role="list" class="no-scrollbar -mx-4 flex list-none snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0 [&>li]:w-[85%] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-[calc((100%-1.5rem)/2)] xl:[&>li]:w-[calc((100%-3rem)/3)]" data-carousel-track tabindex="0" aria-label="Featured {{ plural | downcase }}">
-      {% for e in featured %}{% assign home_eager = false %}{% if forloop.index <= 3 %}{% assign home_eager = true %}{% endif %}{% include entry-card.html entry=e eager=home_eager %}{% endfor %}
+      {% for e in featured %}{% assign home_lcp = false %}{% if forloop.first %}{% assign home_lcp = true %}{% endif %}{% include entry-card.html entry=e eager=home_lcp fetchpriority=home_lcp %}{% endfor %}
     </ul>
   </section>
   {% endif %}
@@ -177,7 +182,7 @@ leads with; remaining facets fill in only if fewer than four qualify.
   shows cards, so this section would say "new" a third time above the fold; it
   stays for narrow screens, where the hero list is hidden. {%- endcomment -%}
   {%- assign recent_hidden_lg = false -%}
-  {%- if hero_latest.size > 0 and cfg.modules.carousel and featured.size > 0 -%}{%- assign recent_hidden_lg = true -%}{%- endif -%}
+  {%- if hero_latest.size > 0 and home_has_carousel -%}{%- assign recent_hidden_lg = true -%}{%- endif -%}
   <section aria-labelledby="recent-heading"{% if recent_hidden_lg %} class="lg:hidden"{% endif %}>
     <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
       <h2 id="recent-heading" class="section-title">Recently added</h2>
@@ -185,9 +190,14 @@ leads with; remaining facets fill in only if fewer than four qualify.
     </div>
     {% assign recent_count = cfg.home.recent_count | default: 6 %}
     <ul role="list" class="entry-grid">
-      {% for e in entries limit: recent_count %}{% include entry-card.html entry=e %}{% endfor %}
+      {% for e in entries limit: recent_count %}{% assign home_r_lcp = false %}{% if forloop.first and home_has_carousel == false %}{% assign home_r_lcp = true %}{% endif %}{% include entry-card.html entry=e eager=home_r_lcp fetchpriority=home_r_lcp %}{% endfor %}
     </ul>
-    {% if total == 0 %}{% include empty-state.html icon='sparkles' title='Nothing published yet' body='Once the first entries are approved they will show up here.' cta_url='/submit/' cta_label='Submit the first one' %}{% endif %}
+    {%- comment -%} No CTA when submissions are off: _plugins/modules.rb drops /submit/
+    from the build, and an empty catalog makes "browse the catalog" a second dead end.
+    {%- endcomment -%}
+    {% assign home_empty_cta = '' %}
+    {% if cfg.modules.submit %}{% assign home_empty_cta = '/submit/' %}{% endif %}
+    {% if total == 0 %}{% include empty-state.html icon='sparkles' title='Nothing published yet' body='Once the first entries are approved they will show up here.' cta_url=home_empty_cta cta_label='Submit the first one' %}{% endif %}
   </section>
   {% endif %}
 
@@ -233,10 +243,10 @@ leads with; remaining facets fill in only if fewer than four qualify.
   {% if cfg.modules.submit %}
   <section class="card flex flex-col gap-4 p-8 md:flex-row md:items-center md:justify-between">
     <div class="max-w-prose">
-      <h2 class="font-heading text-2xl font-semibold text-brand-primary-dark">Have a {{ singular | downcase }} to share?</h2>
+      <h2 class="font-heading text-2xl font-semibold text-brand-primary-dark">Have {{ singular | downcase | with_article }} to share?</h2>
       <p class="mt-2 text-sm leading-6 text-brand-muted">Fill out a short form. Maintainers review every submission before it goes live.</p>
     </div>
-    <a class="btn-primary shrink-0" href="{{ '/submit/' | relative_url }}">Submit a {{ singular | downcase }} {% include icon.html name='arrow-right' size='sm' %}</a>
+    <a class="btn-primary shrink-0" href="{{ '/submit/' | relative_url }}">Submit {{ singular | downcase | with_article }} {% include icon.html name='arrow-right' size='sm' %}</a>
   </section>
   {% endif %}
 </div>
