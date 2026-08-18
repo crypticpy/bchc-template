@@ -24,7 +24,16 @@ include_search: true
       <h1 class="page-title">{{ page.title | default: plural }}</h1>
       {% if cat_summary %}<p class="mt-1 text-sm leading-6 text-brand-muted">{{ cat_summary }}</p>{% endif %}
     </div>
-    {% if cfg.modules.submit %}<a class="btn-secondary btn-sm" href="{{ '/submit/' | relative_url }}">{% include icon.html name='plus' size='sm' %} Add {{ singular | downcase | with_article }}</a>{% endif %}
+    <div class="flex flex-wrap items-center gap-3">
+      {%- comment -%} The route to the browse pages _plugins/facet_pages.rb generates.
+      Only rendered when they exist, so an empty catalog does not advertise them —
+      and because the rail's per-facet links are desktop-only, this is the one link
+      that reaches a phone. {%- endcomment -%}
+      {%- assign cat_entry_path = schema.entry.path | default: 'catalog' -%}
+      {%- assign cat_az_url = '/' | append: cat_entry_path | append: '/a-z/' -%}
+      {% if count > 0 %}<a class="btn-secondary btn-sm" href="{{ cat_az_url | relative_url }}">{% include icon.html name='list' size='sm' %} Browse A–Z</a>{% endif %}
+      {% if cfg.modules.submit %}<a class="btn-secondary btn-sm" href="{{ '/submit/' | relative_url }}">{% include icon.html name='plus' size='sm' %} Add {{ singular | downcase | with_article }}</a>{% endif %}
+    </div>
   </div>
 
   {%- comment -%} No `items-start`: the rail column has to stretch to the row's
@@ -44,9 +53,16 @@ include_search: true
           {% for entry in entries %}{% assign cat_lcp = false %}{% if forloop.first %}{% assign cat_lcp = true %}{% endif %}{% include entry-card.html entry=entry eager=cat_lcp fetchpriority=cat_lcp %}{% endfor %}
         </ul>
 
+        {%- comment -%} Zero results has three different causes and three different
+        answers, so the copy is written by assets/js/filters.js rather than fixed
+        here: a filter you can drop, a query you can respell, or both at once.
+        [data-empty-suggestions] is assets/js/search.js's — the tags whose
+        vocabulary the query nearly hit, which is the one recovery that finds
+        something the reader could not have found by retyping. {%- endcomment -%}
         <div class="card hidden px-6 py-12 text-center" data-empty-state>
           <p class="font-heading text-lg font-semibold text-brand-primary-dark" data-empty-cause>No {{ plural | downcase }} match the current filters.</p>
-          <p class="mt-1 text-sm text-brand-muted">Remove a filter to widen the search.</p>
+          <p class="mt-1 text-sm text-brand-muted" data-empty-hint>Remove a filter to widen the search.</p>
+          <div class="mt-4 flex flex-wrap items-center justify-center gap-2 empty:mt-0" data-empty-suggestions hidden></div>
           <div class="mt-4 flex flex-wrap justify-center gap-2" data-empty-filters></div>
           <div class="mt-4"><button type="button" class="btn-secondary btn-sm" data-filter-clear>Clear all filters</button></div>
         </div>

@@ -105,8 +105,35 @@ module CatalogTemplate
         end
       end
 
-      payload = { generated_at: Time.now.utc.iso8601, docs: docs }
+      payload = { generated_at: Time.now.utc.iso8601, synonyms: synonyms(site), docs: docs }
       site.static_files << SearchIndexFile.new(site, payload)
+    end
+
+    # `_data/search.yml`'s `synonyms`, normalised to lowercase and made
+    # bidirectional, so `assets/js/search.js` can expand a query without
+    # knowing which side of the pair the reader typed. A term never expands to
+    # itself, and empties are dropped so the JSON stays small.
+    #
+    # @param site [Jekyll::Site]
+    # @return [Hash{String => Array<String>}] term => the other terms to try
+    def synonyms(site)
+      raw = site.data.dig("search", "synonyms")
+      return {} unless raw.is_a?(Hash)
+
+      pairs = Hash.new { |h, k| h[k] = [] }
+      raw.each do |term, others|
+        head = term.to_s.downcase.strip
+        next if head.empty?
+
+        Array(others).flatten.compact.each do |other|
+          tail = other.to_s.downcase.strip
+          next if tail.empty? || tail == head
+
+          pairs[head] << tail
+          pairs[tail] << head
+        end
+      end
+      pairs.transform_values { |list| list.uniq.sort }
     end
 
     # The write-up (the schema's `markdown` body field) split into its `##`

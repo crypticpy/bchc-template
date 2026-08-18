@@ -14,12 +14,20 @@ Markup contract (assets/js/filters.js):
       <fieldset><legend>…</legend>
         <button class="filter-pill" data-filter-key="<key-with-hyphens>"
                 data-filter-mode="single|multi" data-filter-value="<slug>"
-                data-filter-label="<value>" aria-pressed="false">
+                data-filter-label="<value>" data-filter-group-label="<field label>"
+                data-filter-terms="<value>|<short>|<description>|<alias>|…"
+                aria-pressed="false">
           <span>short label</span><span class="filter-count" data-filter-count aria-hidden="true"></span><span class="sr-only" data-filter-count-sr></span>
         </button>
         … pills past the 8th carry data-overflow and hidden …
         <button data-show-all data-more="N">Show all N</button>
       <details class="facet-glossary">  ← only when an option has a description
+
+`data-filter-terms` is what makes the search box vocabulary-aware: assets/js/search.js
+matches a typed query against it and offers the FILTER, which is a better answer than
+a text hit because it is exhaustive. The strings are the option itself, its
+`option_meta.short` and `.description`, and any `aliases` for it in _data/search.yml —
+so the vocabulary has exactly one source of truth, the pill that already renders it.
 
 Local assigns are prefixed `fg_`.
 {%- endcomment -%}
@@ -57,6 +65,10 @@ Local assigns are prefixed `fg_`.
           {%- if fg_options.size > 0 -%}
             {%- assign fg_mode = 'multi' -%}
             {%- if fg_f.type == 'select' -%}{%- assign fg_mode = 'single' -%}{%- endif -%}
+            {%- comment -%} Search aliases for this field, and whether it has landing
+            pages to point at. Both are looked up once per field, not once per pill. {%- endcomment -%}
+            {%- assign fg_aliases = site.data.search.aliases[fg_f.key] -%}
+            {%- assign fg_landing = site.data.facet_index | where: 'key', fg_f.key | first -%}
             <fieldset class="min-w-0">
               <legend class="filter-legend">{{ fg_f.label }}{% if fg_mode == 'multi' %} <span class="normal-case tracking-normal">(any of)</span>{% endif %}</legend>
               <div class="filter-options">
@@ -66,11 +78,22 @@ Local assigns are prefixed `fg_`.
                   accessible description it is read after the name on every arrow-key pass,
                   so the pill's name stays the clean "Pilot, 12 matches" the count wiring
                   produces. The descriptions are in the disclosure below instead. {%- endcomment -%}
-                  <button type="button" class="filter-pill{% if forloop.index > 8 %} hidden{% endif %}" {% if forloop.index > 8 %}data-overflow {% endif %}data-filter-key="{{ fg_f.key | replace: '_', '-' }}" data-filter-mode="{{ fg_mode }}" data-filter-value="{{ fg_opt | slugify }}" data-filter-label="{{ fg_opt | escape }}" aria-pressed="false"><span>{{ fg_om.short }}</span><span class="filter-count" data-filter-count aria-hidden="true"></span><span class="sr-only" data-filter-count-sr></span></button>
+                  {%- capture fg_terms -%}{{ fg_opt }}|{{ fg_om.short }}|{{ fg_om.description }}{% assign fg_opt_aliases = fg_aliases[fg_opt] %}{% if fg_opt_aliases %}|{{ fg_opt_aliases | join: '|' }}{% endif %}{%- endcapture -%}
+                  <button type="button" class="filter-pill{% if forloop.index > 8 %} hidden{% endif %}" {% if forloop.index > 8 %}data-overflow {% endif %}data-filter-key="{{ fg_f.key | replace: '_', '-' }}" data-filter-mode="{{ fg_mode }}" data-filter-value="{{ fg_opt | slugify }}" data-filter-label="{{ fg_opt | escape }}" data-filter-group-label="{{ fg_f.label | escape }}" data-filter-terms="{{ fg_terms | escape }}" aria-pressed="false"><span>{{ fg_om.short }}</span><span class="filter-count" data-filter-count aria-hidden="true"></span><span class="sr-only" data-filter-count-sr></span></button>
                 {%- endfor -%}
               </div>
               {%- if fg_options.size > 8 -%}
                 <button type="button" class="filter-showall" data-show-all data-count="{{ fg_options.size }}">Show all {{ fg_options.size }}</button>
+                {%- comment -%} A name-shaped facet with dozens of one-count values is a
+                directory, not a pill cloud. The rail keeps the pills (they still filter in
+                place) and offers the readable list beside them — but only where "Show all"
+                already admits the group is long, so twelve facets do not each grow a link.
+                Rendered only when _plugins/facet_pages.rb actually built those pages. {%- endcomment -%}
+                {%- if fg_landing and fg_ctx == 'rail' -%}
+                  {%- assign fg_entry_path = fg_schema.entry.path | default: 'catalog' -%}
+                  {%- assign fg_az = '/' | append: fg_entry_path | append: '/a-z/#' | append: fg_landing.slug -%}
+                  <a class="filter-showall ml-3" href="{{ fg_az | relative_url }}">Browse all {{ fg_f.label | downcase | escape }} →</a>
+                {%- endif -%}
               {%- endif -%}
               {%- comment -%} The taxonomy explains itself once per facet, to everyone:
               collapsed so it never crowds the 272px rail, and outside .filter-options so

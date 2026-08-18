@@ -19,11 +19,15 @@
 //           [data-entry-count], [data-entry-count-label], [data-entry-total],
 //           [data-total-wrap], [data-filter-active-pills], [data-filter-clear],
 //           [data-sort], [data-view-toggle="grid|list"], [data-filter-status]
-//   Empty   [data-empty-state] > [data-empty-cause], [data-empty-filters]
+//   Empty   [data-empty-state] > [data-empty-cause], [data-empty-hint],
+//           [data-empty-filters]; [data-empty-suggestions] is search.js's
 //   Sheet   see ./filter-sheet.js
 //   Search  [data-filter="search"]; assets/js/search.js owns window.__searchMatches
 //           (Set of entry ids or null), window.__searchOrder (ids by relevance) and
-//           fires the "catalog:search" event when either changes.
+//           fires the "catalog:search" event when either changes. Going the other
+//           way, this file publishes window.__catalogFilters = {vocabulary, apply}
+//           so the search box can offer a facet instead of a text hit; the pills
+//           carry data-filter-group-label and data-filter-terms for it.
 //
 // URL: ?<key>=<slug>,<slug>&q=&sort=&view= — pushState on toggles (throttled, so
 // a burst of clicks is one history entry), debounced replaceState while typing,
@@ -58,6 +62,9 @@ import {
   const emptyState = document.querySelector('[data-empty-state]');
   const emptyCause = document.querySelector('[data-empty-cause]');
   const emptyFilters = document.querySelector('[data-empty-filters]');
+  const emptyHint = document.querySelector('[data-empty-hint]');
+  const emptyClear = emptyState && emptyState.querySelector('[data-filter-clear]');
+  const emptyClearLabel = emptyClear ? emptyClear.textContent : '';
   const heading = document.getElementById('results-heading');
 
   const plural = (cfg && cfg.dataset.entryPlural) || 'entries';
@@ -367,13 +374,7 @@ import {
     }
     emptyShown = showEmpty;
     grid.classList.toggle('hidden', showEmpty);
-    if (emptyCause) {
-      const names = active.map((a) => a.label);
-      if (q) names.push('“' + q + '”');
-      emptyCause.textContent = names.length
-        ? 'No ' + plural + ' match ' + names.join(' + ') + '.'
-        : 'No ' + plural + ' match the current filters.';
-    }
+    renderEmptyCause(active, q, total);
 
     appliedOrder = applyOrder(grid, cards, comparatorFor(sort, cards, window.__searchOrder), appliedOrder);
     markEntering(entering);
@@ -388,6 +389,40 @@ import {
     }
     grid.dataset.view = view;
     viewButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewToggle === view)));
+  }
+
+  /**
+   * Write the zero-result copy. Three causes, three answers: a filter can be
+   * dropped, a query can be respelled, and "both" has to say so — otherwise the
+   * reader retypes the word while the filter that actually excluded it stays on.
+   * The clear button renames itself to the thing it is about to do.
+   * @param {Array<{label: string}>} active from `activeList()`.
+   * @param {string} q the applied query, '' when there is none.
+   * @param {number} total cards on the page.
+   */
+  function renderEmptyCause(active, q, total) {
+    const names = active.map((a) => a.label);
+    const quoted = '“' + q + '”';
+    let cause;
+    let hint;
+    if (q && names.length) {
+      cause = 'No ' + plural + ' match ' + quoted + ' within ' + names.join(' + ') + '.';
+      hint = 'Remove a filter, or search for something broader.';
+    } else if (q) {
+      cause = 'No ' + plural + ' match ' + quoted + '.';
+      hint = 'Check the spelling, or try a broader word.';
+    } else if (names.length) {
+      cause = 'No ' + plural + ' match ' + names.join(' + ') + '.';
+      hint = 'Remove a filter to widen the search.';
+    } else {
+      cause = 'No ' + plural + ' match the current filters.';
+      hint = 'Remove a filter to widen the search.';
+    }
+    if (emptyCause) emptyCause.textContent = cause;
+    if (emptyHint) emptyHint.textContent = hint;
+    if (emptyClear) {
+      emptyClear.textContent = q && !names.length ? 'Show all ' + total + ' ' + plural : emptyClearLabel;
+    }
   }
 
   function update(push) {
@@ -510,6 +545,82 @@ import {
     if (searchInput) searchInput.dispatchEvent(new Event('input', { bubbles: true }));
     render();
   });
+
+  /* ------------------------------------------------------- search bridge */
+
+  // The vocabulary the search box offers, deduplicated: the rail and the mobile
+  // sheet render the same pill twice, and a suggestion list that says
+  // "Chat assistant" twice is a bug, not a feature.
+  const vocabPills = [];
+  const vocabSeen = new Set();
+  pills.forEach((p) => {
+    const id = p.dataset.filterKey + '\u0000' + p.dataset.filterValue;
+    if (vocabSeen.has(id)) return;
+    vocabSeen.add(id);
+    vocabPills.push(p);
+  });
+
+  // How many cards carry each value with nothing else applied. `count` above is
+  // the live number, which is 0 for everything the moment a query matches
+  // nothing — and a suggestion offered *because* the query found nothing has to
+  // be able to say how many it would find instead.
+  const vocabTotals = new Map();
+  const allCards = cards.map((_, i) => i);
+  vocabPills.forEach((p) => {
+    const key = p.dataset.filterKey;
+    const value = p.dataset.filterValue;
+    vocabTotals.set(key + '\u0000' + value, countValue(facets, allCards, key, value));
+  });
+
+  /**
+   * Everything assets/js/search.js needs to offer a FILTER instead of a text
+   * hit: the words a reader might type for each facet value (the pill's own
+   * label plus `option_meta` and `_data/search.yml` aliases, emitted as
+   * `data-filter-terms` by _includes/filter-groups.html) and its live count.
+   *
+   * Read fresh on every call rather than cached: the counts change with every
+   * render, and a suggestion that promises 12 results when 3 remain is worse
+   * than no suggestion.
+   * @returns {Array<{key: string, value: string, label: string, group: string,
+   *   terms: string[], count: number, total: number, active: boolean}>}
+   */
+  function vocabulary() {
+    return vocabPills.map((p) => {
+      const badge = p.querySelector('[data-filter-count]');
+      const label = p.dataset.filterLabel || p.dataset.filterValue;
+      const id = p.dataset.filterKey + '\u0000' + p.dataset.filterValue;
+      const terms = (p.dataset.filterTerms || '')
+        .split('|')
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
+      if (!terms.includes(label.toLowerCase())) terms.unshift(label.toLowerCase());
+      return {
+        key: p.dataset.filterKey,
+        value: p.dataset.filterValue,
+        label: label,
+        group: p.dataset.filterGroupLabel || '',
+        terms: Array.from(new Set(terms)),
+        count: badge ? Number(badge.textContent) || 0 : 0,
+        total: vocabTotals.get(id) || 0,
+        active: (state.get(p.dataset.filterKey) || new Set()).has(p.dataset.filterValue),
+      };
+    });
+  }
+
+  /**
+   * Turn one facet value ON (never off — a suggestion the visitor picks should
+   * apply, not toggle, whatever state the rail happens to be in).
+   * @param {string} key
+   * @param {string} value slug.
+   * @returns {boolean} true when this actually changed the state.
+   */
+  function applyFilter(key, value) {
+    if ((state.get(key) || new Set()).has(value)) return false;
+    setFilter(key, value);
+    return true;
+  }
+
+  window.__catalogFilters = { vocabulary: vocabulary, apply: applyFilter };
 
   /* ----------------------------------------------------------------- boot */
 

@@ -15,6 +15,7 @@ Markup contract (assets/js/filters.js + assets/js/search.js):
   [data-sort]                <select>; a "Relevance" option is injected while a query is present
   [data-view-toggle="grid|list"] aria-pressed buttons
   [data-filter-status]       role="status" live region (one announcement per change)
+  <search role="search">     the landmark wrapping the combobox
   [data-filter="search"]     role="combobox" input, [data-search-results] listbox
   [data-search-status]       visible message when the search index fails to load
   [data-search-live]         sr-only role="status": how many suggestions are open
@@ -47,12 +48,22 @@ Local assigns are prefixed `rh_`.
       <span data-entry-count>{{ rh_total }}</span> <span data-entry-count-label>{{ rh_plural }}</span><span data-total-wrap class="results-total" hidden> of <span data-entry-total>{{ rh_total }}</span></span>
     </h2>
 
-    <div class="results-header-controls relative min-w-[12rem] flex-1 sm:max-w-sm">
+    {%- comment -%} <search> is the landmark for this control, so a screen-reader
+    user can jump straight to it from the rotor instead of walking the header.
+    `role="search"` is its implicit role, repeated explicitly only because AT
+    that predates the element ignores an unknown tag. `type="search"` gets the
+    phone keyboard a search field should have and the platform clear button; its
+    input event is the same one assets/js/search.js already listens for.
+    basis-full below sm: the suggestion listbox is as wide as this box, and
+    sharing a 390px line with the count left it truncating every result title.
+    Not a <form>: there is nothing to submit — results update per keystroke, and
+    a form would offer Enter as a navigation that goes nowhere. {%- endcomment -%}
+    <search class="results-header-controls relative min-w-[12rem] flex-1 basis-full sm:basis-auto sm:max-w-sm" role="search" aria-label="Search {{ rh_plural }}">
       <label class="sr-only" for="catalog-search">Search {{ rh_plural }}</label>
       <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-brand-muted">{% include icon.html name='search' size='sm' %}</span>
-      <input id="catalog-search" class="search-box" type="text" role="combobox" aria-expanded="false" aria-controls="search-listbox" aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="Search {{ rh_plural }}…" data-filter="search" data-search-index="{{ '/search.json' | relative_url }}">
+      <input id="catalog-search" class="search-box" type="search" role="combobox" aria-expanded="false" aria-controls="search-listbox" aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="Search {{ rh_plural }}…" data-filter="search" data-search-index="{{ '/search.json' | relative_url }}">
       <ul id="search-listbox" class="search-listbox" role="listbox" aria-label="Search suggestions" data-search-results hidden></ul>
-    </div>
+    </search>
 
     <div class="results-header-controls ml-auto flex items-center gap-2">
       <label class="sr-only" for="catalog-sort">Sort {{ rh_plural }}</label>

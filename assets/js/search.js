@@ -10,11 +10,29 @@
 //   [data-search-more]         that button
 //   [data-match-slot]          optional, inside an entry card (_includes/entry-card.html):
 //                              filled with the section + snippet that matched
+//   [data-empty-suggestions]   optional, inside the zero-result panel (_layouts/catalog.html):
+//                              filled with "did you mean this tag" chips
 //
 // PUBLIC CONTRACT consumed by assets/js/filters.js:
 //   window.__searchMatches  Set of entry ids that match, or null for "no query"
 //   window.__searchOrder    entry ids in relevance order (drives the Relevance sort)
 //   "catalog:search"        document event, fired whenever either changes
+//
+// CONSUMED FROM assets/js/filters.js:
+//   window.__catalogFilters.vocabulary()  every facet value with the words a
+//                                         reader might type for it
+//   window.__catalogFilters.apply(k, v)   turn one of them on
+//
+// VOCABULARY-AWARE SEARCH. A catalog's taxonomy is its best answer and its
+// worst-kept secret: someone types "chatbot", the tag is called "Chat
+// assistant", and full-text search reports nothing. So before the lunr pass the
+// query is matched against the filter vocabulary — every option's label, its
+// `option_meta`, and the aliases in _data/search.yml — and any hit is offered
+// FIRST, as a filter rather than a document. It is the better answer twice
+// over: it is exhaustive where a text hit is a sample, and it teaches the word
+// the catalog actually uses. Separately, `synonyms` from _data/search.yml ride
+// along in /search.json and widen the lunr query itself, at a lower boost than
+// the literal term so a synonym can never outrank a real hit.
 //
 // Entry hits narrow the card grid; hits of other kinds (events, cohorts) and the
 // top entry hits are offered in the listbox. A failed index load shows a visible
@@ -56,8 +74,22 @@
     return;
   }
 
+  const emptySuggestions = document.querySelector('[data-empty-suggestions]');
+
+  // Most rows the listbox will give to filters rather than documents, and the
+  // most tags the zero-result panel will offer. Both are small on purpose: a
+  // suggestion list that needs scrolling is a second search problem.
+  const MAX_VOCAB_ROWS = 3;
+  const MAX_EMPTY_CHIPS = 4;
+  // Below this the query is a prefix of half the taxonomy and every suggestion
+  // is noise.
+  const MIN_VOCAB_QUERY = 2;
+
   let idx = null;
   let docs = [];
+  // term -> [term, …] from _data/search.yml, already bidirectional and
+  // lowercased by _plugins/search_index.rb.
+  let synonyms = {};
   let loading = null;
   let attempts = 0;
   let options = [];
@@ -118,6 +150,7 @@
       })
       .then((data) => {
         docs = (data && data.docs) || [];
+        synonyms = (data && data.synonyms) || {};
         docs.forEach(prepare);
         idx = lunr(function () {
           this.ref('i');
@@ -159,8 +192,10 @@
    */
   function query(q) {
     if (!idx) return [];
-    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    const lower = q.toLowerCase();
+    const terms = lower.split(/\s+/).filter(Boolean);
     if (!terms.length) return [];
+    const extra = expand(lower, terms);
     let hits;
     try {
       hits = idx.query((qb) => {
@@ -169,6 +204,9 @@
           qb.term(t, { wildcard: lunr.Query.wildcard.TRAILING, boost: 3 });
           if (t.length > 3) qb.term(t, { editDistance: 1 });
         });
+        // Boost 1 against the literal term's 10: a synonym broadens the recall
+        // without ever reordering the hits the reader's own words earned.
+        extra.forEach((t) => qb.term(t, { boost: 1 }));
       });
     } catch (e) {
       hits = [];
@@ -176,6 +214,89 @@
     return hits
       .map((h) => ({ doc: docs[Number(h.ref)], score: h.score, meta: h.matchData.metadata }))
       .filter((h) => h.doc);
+  }
+
+  /**
+   * The extra lunr terms a query earns from `_data/search.yml`. Both the whole
+   * query and each of its words are looked up, so "chat assistant" reaches
+   * "chatbot" and "chatbot" reaches "chat" and "assistant" — multi-word
+   * synonyms are split, because lunr has no phrase to match against.
+   * @param {string} lower the whole query, lowercased.
+   * @param {string[]} terms its words.
+   * @returns {string[]} extra single-word terms, none of them already typed.
+   */
+  function expand(lower, terms) {
+    const typed = new Set(terms);
+    const out = new Set();
+    const collect = (phrase) => {
+      (synonyms[phrase] || []).forEach((syn) =>
+        String(syn)
+          .split(/\s+/)
+          .filter(Boolean)
+          .forEach((word) => {
+            if (!typed.has(word)) out.add(word);
+          })
+      );
+    };
+    collect(lower);
+    terms.forEach(collect);
+    return Array.from(out);
+  }
+
+  /**
+   * Facet values whose vocabulary the query hits, best first.
+   *
+   * Ranked by how the match was earned rather than by score: an exact word beats
+   * a prefix beats a substring, and only then does the bigger tag win. `total`
+   * (the count with nothing else applied) is the tiebreaker, not `count` — the
+   * live count is zero for everything precisely when the query found nothing,
+   * which is when these suggestions matter most.
+   *
+   * @param {string} q raw search box value.
+   * @param {number} limit most rows to return.
+   * @returns {Array<object>} vocabulary entries from filters.js, ranked.
+   */
+  function matchVocabulary(q, limit) {
+    const api = window.__catalogFilters;
+    const needle = q.trim().toLowerCase();
+    if (!api || needle.length < MIN_VOCAB_QUERY) return [];
+    const ranked = [];
+    api.vocabulary().forEach((v) => {
+      if (v.active || !v.total) return;
+      let rank = -1;
+      v.terms.forEach((term) => {
+        let r = -1;
+        if (term === needle) r = 0;
+        else if (term.split(/\s+/).includes(needle)) r = 1;
+        else if (term.startsWith(needle)) r = 2;
+        else if (needle.length > 2 && term.indexOf(needle) > -1) r = 3;
+        if (r > -1 && (rank === -1 || r < rank)) rank = r;
+      });
+      if (rank > -1) ranked.push({ rank: rank, v: v });
+    });
+    return ranked
+      .sort((a, b) => a.rank - b.rank || b.v.total - a.v.total || a.v.label.localeCompare(b.v.label))
+      .slice(0, limit)
+      .map((r) => r.v);
+  }
+
+  /**
+   * Turn a suggested facet on and hand the page back to the reader: the query
+   * that produced the suggestion is cleared first, so the URL filters.js writes
+   * is right on the first pass and the tag is not ANDed with the text that
+   * failed to find it. Focus goes to the results heading — the listbox the
+   * reader was in is about to disappear.
+   * @param {{key: string, value: string}} v a vocabulary entry.
+   */
+  function applyVocabulary(v) {
+    const api = window.__catalogFilters;
+    if (!api) return;
+    close();
+    input.value = '';
+    api.apply(v.key, v.value);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const heading = document.getElementById('results-heading');
+    if (heading) heading.focus();
   }
 
   /**
@@ -330,27 +451,120 @@
   }
 
   function go(li) {
-    if (li && li.dataset.url) window.location.href = li.dataset.url;
+    if (!li) return;
+    if (li.dataset.facetKey) {
+      applyVocabulary({ key: li.dataset.facetKey, value: li.dataset.facetValue });
+      return;
+    }
+    if (li.dataset.url) window.location.href = li.dataset.url;
   }
 
   /**
-   * Populate the listbox: up to 5 non-entry hits (events, cohorts, …) first,
-   * then up to 5 entry hits. Closes the listbox instead when nothing matches.
-   * @param {object[]} results hits from `query()`.
+   * Build one `role="option"` row that applies a filter instead of navigating.
+   * Marked `.search-option-facet` so it does not read as one more document in a
+   * list of documents, and captioned with the field it belongs to — the row has
+   * to teach "Chat assistant is a Type of AI", not just offer it.
+   * @param {object} v a vocabulary entry from filters.js.
+   * @param {number} i index, for the option's id and hover-highlight wiring.
+   * @returns {HTMLLIElement}
    */
-  function renderList(results) {
+  function vocabRow(v, i) {
+    const li = document.createElement('li');
+    li.className = 'search-option search-option-facet';
+    li.id = 'search-option-' + i;
+    li.setAttribute('role', 'option');
+    li.setAttribute('aria-selected', 'false');
+    li.dataset.facetKey = v.key;
+    li.dataset.facetValue = v.value;
+
+    const text = document.createElement('span');
+    text.className = 'min-w-0';
+    const title = document.createElement('span');
+    title.className = 'block truncate font-semibold text-brand-primary-dark';
+    title.textContent = v.label;
+    const detail = document.createElement('span');
+    detail.className = 'block truncate text-xs text-brand-muted';
+    // Spelled out rather than "12": the row is read aloud in a list of
+    // documents, and "Filter by Types of AI" is what tells them apart.
+    detail.textContent =
+      'Filter by ' + (v.group || 'tag') + ' · ' + v.total + (v.total === 1 ? ' match' : ' matches');
+    text.appendChild(title);
+    text.appendChild(detail);
+    li.appendChild(text);
+
+    const chip = document.createElement('span');
+    chip.className = 'search-facet-chip shrink-0';
+    chip.textContent = 'Filter';
+    li.appendChild(chip);
+
+    li.addEventListener('mousedown', (e) => e.preventDefault());
+    li.addEventListener('click', () => go(li));
+    li.addEventListener('mouseenter', () => highlight(i));
+    return li;
+  }
+
+  /**
+   * Offer the tags a failed query nearly matched, in the zero-result panel.
+   * The listbox closes with the reader's focus; this is where the suggestion
+   * has to be waiting when they look at the page instead.
+   * @param {object[]} vocab ranked vocabulary entries (may be empty).
+   */
+  function renderSuggestions(vocab) {
+    if (!emptySuggestions) return;
+    emptySuggestions.textContent = '';
+    emptySuggestions.hidden = vocab.length === 0;
+    if (!vocab.length) return;
+    const lead = document.createElement('span');
+    lead.className = 'text-sm text-brand-muted';
+    lead.textContent = vocab.length === 1 ? 'Did you mean' : 'Did you mean one of';
+    emptySuggestions.appendChild(lead);
+    vocab.forEach((v) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'active-pill';
+      btn.setAttribute('aria-label', 'Filter by ' + (v.group || 'tag') + ': ' + v.label);
+      const name = document.createElement('span');
+      name.textContent = v.label;
+      btn.appendChild(name);
+      const n = document.createElement('span');
+      n.setAttribute('aria-hidden', 'true');
+      n.textContent = String(v.total);
+      btn.appendChild(n);
+      btn.addEventListener('click', () => applyVocabulary(v));
+      emptySuggestions.appendChild(btn);
+    });
+  }
+
+  /**
+   * Populate the listbox: matched filters first, then up to 5 non-entry hits
+   * (events, cohorts, …), then up to 5 entry hits. Closes the listbox instead
+   * when nothing matches at all.
+   *
+   * Filters lead because they answer the question the text hits only sample —
+   * and because a reader who wanted the taxonomy word has, by typing it,
+   * already told us so.
+   * @param {object[]} results hits from `query()`.
+   * @param {object[]} vocab ranked vocabulary entries from `matchVocabulary()`.
+   */
+  function renderList(results, vocab) {
     if (!listbox) return;
     listbox.textContent = '';
     options = [];
     const others = results.filter((h) => h.doc.kind !== 'entry').slice(0, 5);
     const entries = results.filter((h) => h.doc.kind === 'entry').slice(0, 5);
-    const shown = others.concat(entries);
-    if (!shown.length) {
+    const hits = others.concat(entries);
+    const count = vocab.length + hits.length;
+    if (!count) {
       close();
       return;
     }
-    shown.forEach((hit, i) => {
-      const li = optionRow(hit, i);
+    vocab.forEach((v, i) => {
+      const li = vocabRow(v, i);
+      options.push(li);
+      listbox.appendChild(li);
+    });
+    hits.forEach((hit, i) => {
+      const li = optionRow(hit, vocab.length + i);
       options.push(li);
       listbox.appendChild(li);
     });
@@ -358,9 +572,9 @@
     input.setAttribute('aria-expanded', 'true');
     if (liveEl) {
       liveEl.textContent =
-        shown.length === 1
+        count === 1
           ? '1 suggestion. Use the up and down arrow keys to review it.'
-          : shown.length + ' suggestions. Use the up and down arrow keys to review them.';
+          : count + ' suggestions. Use the up and down arrow keys to review them.';
     }
     highlight(-1);
   }
@@ -435,10 +649,16 @@
       lifted = null;
       if (floorEl) floorEl.hidden = true;
       annotateCards([]);
+      renderSuggestions([]);
       announce(null, []);
       close();
       return;
     }
+    // Vocabulary matching needs no index: it reads the pills that are already
+    // on the page, so the offer is there on the first keystroke even while
+    // /search.json is still in flight.
+    const vocab = matchVocabulary(q, MAX_VOCAB_ROWS);
+    renderSuggestions(matchVocabulary(q, MAX_EMPTY_CHIPS));
     load().then((ok) => {
       // A newer keystroke has already been answered. This is reachable: the
       // retry path in load() adds a microtask hop, so a query chained on the
@@ -446,7 +666,9 @@
       if (seq !== runSeq) return;
       if (!ok) {
         announce(null, []);
-        close();
+        // The filter suggestions still stand — they never needed the index.
+        if (showList && document.activeElement === input) renderList([], vocab);
+        else close();
         return;
       }
       const results = query(q);
@@ -456,7 +678,7 @@
       );
       // Focus may have left the box while the fetch/debounce was pending
       // (type, then Tab straight away); don't reopen the popup under it.
-      if (showList && document.activeElement === input) renderList(results);
+      if (showList && document.activeElement === input) renderList(results, vocab);
     });
   }
 
