@@ -26,6 +26,17 @@ export default [
     ],
     languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: { ...globals.node } },
   },
+  // test/a11y/** drives a browser from Node: the bodies of `page.evaluate()`
+  // callbacks are browser code living inside a Node module, so both sets of
+  // globals are legitimately in scope in one file.
+  {
+    files: ['test/a11y/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
   // quality/ is CommonJS (its own package.json): pa11y-ci and Lighthouse CI require() their configs.
   {
     files: ['quality/**/*.js'],

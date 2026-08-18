@@ -13,6 +13,7 @@
     "validate": "node scripts/validate.mjs",
     "test": "node --test",
     "test:build": "npm run build:css && RUN_BUILD_TESTS=1 node --test \"test/build/*.test.mjs\"",
+    "test:flows": "RUN_FLOW_TESTS=1 node --test \"test/a11y/*.test.mjs\"",
     "test:ruby": "bundle exec ruby -Itest -e \"Dir['test/**/*_test.rb'].each { |f| require File.expand_path(f) }\"",
     "a11y": "node quality/run.js pa11y-ci --config quality/pa11yci",
     "lighthouse": "node quality/run.js @lhci/cli autorun --config=quality/lighthouserc.js",
