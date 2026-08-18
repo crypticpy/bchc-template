@@ -75,12 +75,16 @@
   .filter-group-panel { @apply space-y-5 pb-4; }
   .filter-legend { @apply mb-2 block text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-muted; }
   .filter-options { @apply flex flex-wrap gap-1.5; }
-  .filter-pill { @apply inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-brand-line-strong bg-surface-card px-3.5 text-sm font-medium text-brand-ink transition-colors duration-120 ease-brand hover:border-brand-primary hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card lg:min-h-[32px] lg:text-xs; }
+  /* 13px at lg, not 12: the rail is the primary way to browse and its labels are
+     read, not glanced at. The pill still fits the 272px rail two to a row. */
+  .filter-pill { @apply inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-brand-line-strong bg-surface-card px-3.5 text-sm font-medium text-brand-ink transition-colors duration-120 ease-brand hover:border-brand-primary hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card lg:min-h-[32px] lg:text-[13px]; }
   .filter-pill.is-active, .filter-pill[aria-pressed="true"] { @apply border-brand-primary bg-brand-primary text-white hover:border-brand-primary hover:text-white; }
-  /* Zero-count options stay readable (muted = 5.93:1); alpha stacked with the
-     count's own opacity used to land at 2.10:1. They are reordered in the DOM,
-     not with `order`, so tab order still follows the visual order. */
-  .filter-pill[disabled], .filter-pill.is-empty { @apply border-brand-line-strong text-brand-muted hover:border-brand-line-strong hover:text-brand-muted; }
+  /* Zero-count options recede on three cues at once — muted ink, the faint
+     hairline instead of the strong one, and 70% opacity — because ink alone
+     read as "just another option". WCAG 1.4.3 exempts a disabled control, and
+     the pills are reordered in the DOM rather than with `order`, so tab order
+     still follows the visual order. */
+  .filter-pill[disabled], .filter-pill.is-empty { @apply border-brand-line text-brand-muted opacity-70 hover:border-brand-line hover:text-brand-muted; }
   .filter-pill > span:first-child { @apply max-w-[13rem] truncate; }
   .filter-count { @apply text-[11px] tabular-nums text-brand-muted; }
   .filter-pill.is-active .filter-count, .filter-pill[aria-pressed="true"] .filter-count { @apply text-white; }

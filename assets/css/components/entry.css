@@ -3,12 +3,23 @@
    Structure comes from hairlines and spacing only — no shadow below E1. */
 @layer components {
   /* ---- Fact strip ----------------------------------------------------- */
-  /* gap-px over a line-coloured ground draws the internal rules, so the grid
-     stays clean at any number of facts (unlike per-cell borders). */
-  .fact-strip { @apply grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-brand-line bg-brand-line sm:grid-cols-4; }
-  .fact { @apply flex min-w-0 flex-col gap-1 bg-surface-card p-4; }
+  /* Four across while the strip has the full measure; two across in the 1024-1279
+     band, where the rail takes 328px out of the row and four columns would wrap
+     every value onto a second line. */
+  .fact-strip { @apply grid grid-cols-2 overflow-hidden rounded-xl border border-brand-line bg-surface-card sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4; }
+  /* Every cell subgrids the same two rows (label, values) and carries the same
+     padding, so a label that wraps in one column cannot drop its own values out
+     of line with its neighbours'. Where subgrid is missing the declaration is
+     dropped and the cell falls back to a plain label-over-values stack.
+     The internal rules are each cell's own top and left border, pulled 1px
+     outward so they sit under the strip's outer border and neighbouring cells'
+     borders coincide: a short last row then ends in plain card surface instead
+     of the block of gap colour that a gap-over-line ground would paint. */
+  .fact { @apply row-span-2 grid min-w-0 grid-rows-subgrid gap-1 border-l border-t border-brand-line bg-surface-card p-4 -ml-px -mt-px; }
   .fact-label { @apply text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-brand-muted; }
-  .fact-value { @apply flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold leading-5 text-brand-ink; }
+  /* content-start: the cell stretches to the tallest fact in the row, so the
+     wrapped lines have to pack at the top instead of centring in the leftover. */
+  .fact-value { @apply flex flex-wrap content-start items-center gap-x-3 gap-y-1 text-sm font-semibold leading-5 text-brand-ink; }
   .fact-item { @apply inline-flex min-w-0 items-center gap-1.5; }
   .fact-item-warn { @apply fact-item text-brand-warn; }
 

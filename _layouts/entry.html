@@ -119,8 +119,17 @@ a group with no populated field never claims space in either place.
 {%- endfor -%}
 {%- assign ent_eyebrow = ent_meta_bits | split: ' · ' | join: ' · ' -%}
 
-<article>
-  <header class="space-y-5">
+{%- comment -%}
+The page is one grid at >= 1024px: column 1 holds the header, the fact strip /
+media and then the body; column 2 holds the rail, placed in row 1 so the reuse
+and contact cards sit beside the title instead of below the whole header block
+(design-brief.md → Entry page). Rows are placed explicitly and the vertical
+rhythm stays on margins (no row gap), so a missing fact strip or gallery leaves
+no empty band. Below 1024px the grid is off and the DOM order rules: header,
+facts, rail, body.
+{%- endcomment -%}
+<article class="lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-x-12">
+  <header class="space-y-5 lg:col-start-1 lg:row-start-1">
     {% include breadcrumbs.html items=ent_crumbs %}
 
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -165,36 +174,37 @@ a group with no populated field never claims space in either place.
     {%- endif -%}
   </header>
 
-  {%- if ent_facts != '' -%}<div class="mt-8">{{ ent_facts }}</div>{%- endif -%}
-  {%- if ent_media != '' -%}<div class="mt-8 space-y-6">{{ ent_media }}</div>{%- endif -%}
+  {%- if ent_facts != '' or ent_media != '' -%}
+  <div class="mt-8 space-y-8 lg:col-start-1 lg:row-start-2">
+    {{ ent_facts }}
+    {%- if ent_media != '' -%}<div class="space-y-6">{{ ent_media }}</div>{%- endif -%}
+  </div>
+  {%- endif -%}
 
-  {%- comment -%} The rail comes first in the DOM so a small screen reads the
-  key details (contents, reuse, contact) before the long body; `lg:order-*`
-  puts it back in the right-hand column at desktop widths, where the reading
-  order is rail then article. {%- endcomment -%}
-  <div class="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
-    <aside class="entry-rail space-y-6 lg:order-2 lg:sticky lg:top-24 lg:self-start" aria-label="About this {{ ent_singular | downcase | escape }}">
-      {%- comment -%} Shown at every width: on a phone the rail sits above the
-      body, so this is the in-page navigation for a long entry. {%- endcomment -%}
-      {% include toc.html content=content sections=ent_section_index %}
-      {{ ent_rail_cards }}
-      <section class="rail-card" aria-labelledby="rail-share-heading">
-        <h2 class="rail-title" id="rail-share-heading">Share &amp; provenance</h2>
-        <button type="button" class="btn-secondary btn-sm entry-no-print mt-3 w-full" data-copy-link hidden>{% include icon.html name='copy' size='sm' %}Copy link</button>
-        <p class="mt-2 text-xs text-brand-muted" data-copy-status role="status"></p>
-        {%- if ent_cfg.github.repository and ent_cfg.github.repository != '' -%}
-        <ul class="entry-no-print mt-3 space-y-2 text-sm" role="list">
-          <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/edit/{{ ent_cfg.github.branch | default: 'main' }}/{{ page.path | escape }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='edit' size='sm' %}Suggest an edit<span class="sr-only"> (opens in a new tab)</span></a></li>
-          <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/issues/new?title={{ 'Update: ' | append: page.title | query_encode }}&amp;body={{ 'Requested change for ' | append: page.url | append: ':%0A%0A' }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='flag' size='sm' %}Report an issue<span class="sr-only"> (opens in a new tab)</span></a></li>
-        </ul>
-        {%- endif -%}
-      </section>
-    </aside>
+  {%- comment -%} The rail precedes the body in the DOM so a small screen reads
+  the key details (contents, reuse, contact) before the long body; at >= 1024px
+  it is placed in column 2 from row 1, beside the header. {%- endcomment -%}
+  <aside class="entry-rail mt-10 space-y-6 lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:mt-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto lg:pb-2" aria-label="About this {{ ent_singular | downcase | escape }}">
+    {%- comment -%} Shown at every width: on a phone the rail sits above the
+    body, so this is the in-page navigation for a long entry. {%- endcomment -%}
+    {% include toc.html content=content sections=ent_section_index %}
+    {{ ent_rail_cards }}
+    <section class="rail-card" aria-labelledby="rail-share-heading">
+      <h2 class="rail-title" id="rail-share-heading">Share &amp; provenance</h2>
+      <button type="button" class="btn-secondary btn-sm entry-no-print mt-3 w-full" data-copy-link hidden>{% include icon.html name='copy' size='sm' %}Copy link</button>
+      <p class="mt-2 text-xs text-brand-muted" data-copy-status role="status"></p>
+      {%- if ent_cfg.github.repository and ent_cfg.github.repository != '' -%}
+      <ul class="entry-no-print mt-3 space-y-2 text-sm" role="list">
+        <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/edit/{{ ent_cfg.github.branch | default: 'main' }}/{{ page.path | escape }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='edit' size='sm' %}Suggest an edit<span class="sr-only"> (opens in a new tab)</span></a></li>
+        <li><a class="inline-flex items-center gap-1.5 text-brand-primary hover:underline" href="https://github.com/{{ ent_cfg.github.repository }}/issues/new?title={{ 'Update: ' | append: page.title | query_encode }}&amp;body={{ 'Requested change for ' | append: page.url | append: ':%0A%0A' }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='flag' size='sm' %}Report an issue<span class="sr-only"> (opens in a new tab)</span></a></li>
+      </ul>
+      {%- endif -%}
+    </section>
+  </aside>
 
-    <div class="min-w-0 space-y-10 lg:order-1">
-      <div class="prose-body">{{ content }}</div>
-      {{ ent_sections }}
-    </div>
+  <div class="mt-10 min-w-0 space-y-10 lg:col-start-1 lg:row-start-3">
+    <div class="prose-body">{{ content }}</div>
+    {{ ent_sections }}
   </div>
 </article>
 
