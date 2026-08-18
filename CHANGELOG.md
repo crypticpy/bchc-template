@@ -8,9 +8,129 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-08-17
+
+The first "contributor panel" release: twelve simulated world-class
+contributors (principal engineers, library maintainers, an interface designer,
+public-health officials, GitHub and Microsoft engineers) each proposed what
+they would improve; seven implementation units shipped the accepted set. The
+report is in the release notes.
+
+### Added
+
+- **Search reads the whole write-up.** Every entry is indexed per section, so a
+  suggestion names the section it matched in, shows the sentence around the
+  term and links straight to that heading. Weak matches (below 25 % of the top
+  score) sit behind "Show n more that mention …". `schema.search.body_chars`
+  caps how much of each section is indexed (0 or unset = unlimited).
+- An Atom feed of the newest 25 entries at `/<entry.path>/feed.xml`
+  (`/catalog/feed.xml` as shipped), one `<category>` per facet value,
+  advertised in `<head>` only when the catalog has entries.
+- Every cohort milestone gets its own page, generated from
+  `_data/cohorts/<year>.yml`. A hand-written file under
+  `cohorts/<year>/events/<id>/` still overrides it and inherits any field it
+  leaves blank.
+- **Submission form:** a "Check your answers" step that reads every answer back
+  by section with a Change button, then a confirmation panel that says nothing
+  is submitted until *Submit new issue* is pressed on GitHub; "Save and come
+  back later" with a draft bar that says when it was saved and how many
+  answers it holds; and the whole form works without JavaScript — a plain GET
+  to GitHub's issue form, real `required` attributes and a copy-paste outline.
+- `submit.turnaround` and `submit.review_note` are configurable in both wizards
+  and every preset ships a turnaround it can keep. The setup wizard's review
+  step lists the three things it cannot do for you.
+- **Bot pull requests get first-party checks.** Each issue-driven workflow
+  dispatches Validate and Quality against the branch it created (the default
+  token cannot trigger them), `thumbnails.yml` re-dispatches after its own
+  push, and an optional `CONTENT_BOT_TOKEN` makes the PRs trigger checks
+  natively. Run summaries list what was dispatched; the PR body carries an
+  entry preview; when the merged entry deploys, the closed issue is told
+  "Your entry is now live at …".
+- `.github/workflows/lint-workflows.yml` runs actionlint and zizmor on any pull
+  request touching `.github/**`. **Bootstrap labels** prints a preflight
+  summary (labels, Pages source, launch-guide link).
+- `npm run dev` — one command for the Tailwind watcher, `jekyll serve
+  --livereload` and regeneration of the schema-derived files.
+- `npm run test:build` — builds every preset and module combination and checks
+  the rendered HTML for hard-coded articles, downcased sentences, dead links
+  and leftover Liquid.
+- `npm run validate` fails a `_data/theme.yml` palette that does not meet
+  WCAG AA, naming the pair and the measured ratio; the schema validator warns
+  when a field `description` repeats its `prompt`.
+- The Quality workflow runs Lighthouse on mobile as well as desktop and writes
+  a table of the scores and the pa11y results to the run summary.
+- `theme.yml → type.measure` / `type.measure_display` set the reading and
+  display line lengths; body copy measures ~68 characters (was ~88).
+- Docs: `docs/launch.md` (fork-to-live tutorial), `docs/incidents.md`
+  (takedown runbook), `docs/index.md`, `docs/decisions.md` (the canonical
+  decision log), `docs/glossary.md`.
+- `with_article`, a Liquid filter that picks "a" or "an" for the schema's
+  entry noun. `static_file` and `facet_options` filters.
+
+### Changed
+
+- **Builds are much faster on large catalogs:** related entries are computed
+  once per build instead of per page (260 entries: 25.8 s → 3.8 s), and are
+  chosen by how distinctive a shared value is (IDF), scaled by the field's
+  `weight` — a lower weight counts for more, as it does everywhere else.
+- The search index is fetched only when someone searches, at low priority
+  with a timeout, instead of being preloaded on every page.
+- Multiselect questions reach the GitHub issue form as a multi-select
+  dropdown, so the answers survive the hand-off and can be marked required
+  there.
+- Submission-form errors are written from the schema and name the question
+  they belong to; the progress rail says how many problems each section has;
+  the setup wizard marks problems on the control and clears them on the next
+  keystroke.
+- Catalog cards line up: the meta line no longer wraps and every slot reserves
+  its height, so a row scans across instead of stair-stepping; padding and
+  title size follow the card's own width (container queries); results settle
+  instead of blinking — only cards that just entered the filtered set fade in.
+- Option descriptions moved out of hover tooltips into a "What do these
+  mean?" disclosure under each facet group and the fact strip.
+- Page titles scale fluidly instead of stepping at 640 px; headings and
+  paragraphs use `text-wrap: balance` / `pretty` where supported.
+- The catalog page heading, nav label, breadcrumb and `<title>` are all
+  derived from the schema's entry noun.
+- Only one image per page is eager-loaded with a high fetch priority.
+- `jekyll-feed` was removed; the feed moved from `/feed.xml` to
+  `/<entry.path>/feed.xml`.
+- The scaffolder shares one slug rule across JS and Ruby (NFKD; a title with
+  no Latin characters scaffolds `entry-<issue>` with a warning instead of
+  failing); Actions helpers are shared and generated files are written
+  atomically.
+
 ### Fixed
 
-- **Security:** the image fetcher's SSRF guard now judges IPv6 literals numerically. IPv4-mapped (`[::ffff:169.254.169.254]`), IPv4-compatible and NAT64 (`64:ff9b::/96`) literals are decoded and checked with the IPv4 rules, so a hex spelling produced by the URL parser (`[::ffff:a9fe:a9fe]`) can no longer reach loopback, link-local or private space; `fe80::/10`, `fc00::/7`, `ff00::/8` and `2001:db8::/32` are matched by mask rather than by text prefix.
+- Prose pages render in the site's own palette again: `prose-slate` was
+  overwriting every themed variable, leaving links at 1.70:1 with no
+  underline.
+- Selected, current and complete states stay visible under Windows High
+  Contrast Mode (new forced-colors layer); a tap no longer leaves a control
+  stuck in its hover state on touch devices; `hidden` can no longer be undone
+  by a display utility.
+- The on-dark thumbnail badge is opaque, fixing a contrast failure over pale
+  screenshots.
+- The home carousel's first card keeps its 16 px inset on phones (it was
+  smooth-scrolled flush at load, which also stopped Chrome reporting LCP).
+- The lightbox announces the image ("Image n of m. <alt>") and opens the
+  dialog before filling it; search suggestions navigate on click.
+- Copy that assumed the entry noun starts with a consonant ("Submit a
+  entry"), empty-state headings that lowercased their first word, and the
+  About page's "draft pull request" wording.
+- Links to the submission form are hidden when the submit module is off; the
+  footer honours the same `module:` gate as the header.
+- Image downloads are capped as they stream, not after the fact.
+- The schema validator rejected `tone: on-dark`, which the badge CSS styles
+  and the docs document.
+- Doubled spaces in the mobile filter sheet's "Show n use cases" button.
+- **Security:** the image fetcher's SSRF guard now judges IPv6 literals
+  numerically. IPv4-mapped (`[::ffff:169.254.169.254]`), IPv4-compatible and
+  NAT64 (`64:ff9b::/96`) literals are decoded and checked with the IPv4
+  rules, so a hex spelling produced by the URL parser (`[::ffff:a9fe:a9fe]`)
+  can no longer reach loopback, link-local or private space; `fe80::/10`,
+  `fc00::/7`, `ff00::/8` and `2001:db8::/32` are matched by mask rather than
+  by text prefix.
 
 ## [1.1.0] — 2026-08-17
 
@@ -171,7 +291,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/crypticpy/bchc-template/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/crypticpy/bchc-template/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/crypticpy/bchc-template/compare/38365a5...v1.0.0
 [0.1.0]: https://github.com/crypticpy/bchc-template/commits/38365a5
