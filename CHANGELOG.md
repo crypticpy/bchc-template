@@ -8,6 +8,8 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-08-18
+
 DMWG alignment, wave 4 — metrics and promotion, the last of the four waves in
 [docs/dmwg-alignment-plan.md](docs/dmwg-alignment-plan.md). The governance
 page can now show how the catalog is doing, counted from the repository's own
@@ -708,7 +710,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/crypticpy/bchc-template/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/crypticpy/bchc-template/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/crypticpy/bchc-template/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/crypticpy/bchc-template/compare/v1.2.0...v1.3.0
