@@ -19,6 +19,7 @@
     const image = dialog.querySelector('[data-gallery-image]');
     const caption = dialog.querySelector('[data-gallery-caption]');
     const counter = dialog.querySelector('[data-gallery-counter]');
+    const live = dialog.querySelector('[data-gallery-live]');
     const prev = dialog.querySelector('[data-gallery-prev]');
     const next = dialog.querySelector('[data-gallery-next]');
     const close = dialog.querySelector('[data-gallery-close]');
@@ -48,7 +49,13 @@
         caption.textContent = alt;
         caption.hidden = alt === '';
       }
-      if (counter) counter.textContent = 'Image ' + (index + 1) + ' of ' + triggers.length;
+      const position = 'Image ' + (index + 1) + ' of ' + triggers.length;
+      if (counter) counter.textContent = position;
+      // The counter itself cannot be the live region: it is the dialog's own
+      // caption furniture, so a screen reader reads it as part of the dialog on
+      // open and then again as an announcement. The sr-only region carries the
+      // alt text too, which the visible caption shows but never announces.
+      if (live) live.textContent = alt ? position + '. ' + alt : position;
     }
 
     /**
@@ -58,8 +65,11 @@
      */
     function open(i, trigger) {
       opener = trigger;
-      show(i);
+      // showModal() first: a live region inside a `display:none` dialog is not
+      // in the accessibility tree yet, so writing to it before the dialog opens
+      // announces nothing and the first image arrives silently.
       dialog.showModal();
+      show(i);
       (close || dialog).focus();
     }
 

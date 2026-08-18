@@ -56,25 +56,29 @@ Local assigns are prefixed `gal_` so nothing leaks into the caller's scope.
       <button type="button" class="lightbox-nav" data-gallery-prev aria-label="Previous image">{% include icon.html name='chevron-left' size='sm' %}</button>
       <div class="min-w-0 flex-1 text-center">
         <p class="truncate text-sm text-brand-ink" data-gallery-caption></p>
-        <p class="text-xs text-brand-muted" data-gallery-counter role="status"></p>
+        <p class="text-xs text-brand-muted" data-gallery-counter></p>
       </div>
       <button type="button" class="lightbox-nav" data-gallery-next aria-label="Next image">{% include icon.html name='chevron-right' size='sm' %}</button>
       <button type="button" class="lightbox-nav" data-gallery-close aria-label="Close image viewer">{% include icon.html name='close' size='sm' %}</button>
     </div>
+    {%- comment -%} The only live region in the dialog: assets/js/gallery.js writes
+    "Image n of m. <alt>" here on open and on every prev/next, so the alt text is
+    announced and not just shown. {%- endcomment -%}
+    <p class="sr-only" role="status" data-gallery-live></p>
   </dialog>
 </div>
   {%- endif -%}
 
 {%- elsif gal_f.type == 'file' -%}
   {%- assign gal_v = gal_entry[gal_f.key] -%}
-  {%- assign gal_found = site.static_files | where: 'path', gal_v | size -%}
-  {%- if gal_found > 0 -%}
+  {%- assign gal_found = gal_v | static_file -%}
+  {%- if gal_found -%}
     {%- assign gal_thumb_key = gal_f.key | append: '_thumbnail' -%}
     {%- assign gal_thumb = gal_entry[gal_thumb_key] -%}
     {%- if gal_thumb == nil or gal_thumb == '' -%}
       {%- assign gal_auto = gal_entry.dir | append: 'thumb.jpg' -%}
-      {%- assign gal_auto_found = site.static_files | where: 'path', gal_auto | size -%}
-      {%- if gal_auto_found > 0 -%}{%- assign gal_thumb = gal_auto -%}{%- endif -%}
+      {%- assign gal_auto_found = gal_auto | static_file -%}
+      {%- if gal_auto_found -%}{%- assign gal_thumb = gal_auto -%}{%- endif -%}
     {%- endif -%}
 <a class="group flex items-center gap-4 rounded-xl border border-brand-line bg-surface-card p-3 transition-colors duration-120 ease-brand hover:border-brand-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30" href="{{ gal_v | relative_url | escape }}" download>
   {%- if gal_thumb and gal_thumb != '' -%}
