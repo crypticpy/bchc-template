@@ -5,6 +5,7 @@ title: "Contract clause summaries for procurement review"
 slug: contract-clause-review
 summary: "Vendor tool that extracts clauses from scanned agreements, summarizes them in plain language, and flags gaps against our standard terms."
 published: 2026-06-02
+verified: 2026-07-02
 featured: false
 sample: true
 impact: "Cut first-pass contract review from five business days to one"
@@ -41,6 +42,15 @@ resources:
 screenshots:
   - src: /catalog/contract-clause-review/screenshots/01.png
     alt: "Clause summary table listing indemnification, data ownership and other clauses with plain-language summaries and comparison flags."
+cost_band: "$25k–$100k"
+run_cost: "Over $50k/yr"
+procurement:
+  - "Cooperative or piggyback contract"
+approvals:
+  - "Legal or contracts review"
+  - "Security review or authority to operate"
+  - "Records retention review"
+equity_note: "Internal to procurement, with no resident-facing output. The one thing we watch is whether the summaries flag unfamiliar contract language more often for small and minority-owned vendors, whose paperwork looks least like the big vendors the tool has seen most of. A flagged clause is only ever a prompt to read it, never a scoring input."
 data_sensitivity:
   - "Internal, non-public data"
 data_sources:

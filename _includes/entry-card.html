@@ -27,6 +27,7 @@ this template (design-brief.md → Catalog card):
 
 Data attributes consumed by assets/js/filters.js:
   data-entry, data-entry-id, data-entry-title, data-entry-date, data-entry-updated,
+  data-entry-verified, data-entry-stale (the latter only when the entry is stale),
   data-facet-<key-with-hyphens>="slug,slug" (every facet field),
   data-sort-<key-with-hyphens> (text/select meta fields, for the sort menu)
 
@@ -45,6 +46,13 @@ Local assigns are prefixed `ec_`.
 {%- assign ec_has_image = false -%}
 {%- if ec_thumb != '' -%}{%- assign ec_has_image = true -%}{%- endif -%}
 
+{%- comment -%} Staleness: the newest of `verified`/`updated`/`published` measured
+against the site's window (_plugins/schema_filters.rb -> verification). Emitted as a
+data attribute so assets/js/lib/entry-order.js can demote unconfirmed entries without
+re-deriving dates in JS, and shown as one quiet line in the foot. {%- endcomment -%}
+{%- assign ec_verify_days = site.data.site.catalog.verify_after_days | default: 365 -%}
+{%- assign ec_check = ec_entry | verification: site.time, ec_verify_days -%}
+
 {%- comment -%} Badge slot: the first `card: badge` field's value. {%- endcomment -%}
 {%- assign ec_badge_value = '' -%}
 {%- if ec_badge_field -%}
@@ -58,6 +66,8 @@ Local assigns are prefixed `ec_`.
   data-entry-title="{{ ec_entry.title | escape }}"
   data-entry-date="{{ ec_entry.published | date: '%Y-%m-%d' }}"
   {% if ec_entry.updated %}data-entry-updated="{{ ec_entry.updated | date: '%Y-%m-%d' }}" {% endif %}
+  {%- if ec_entry.verified %} data-entry-verified="{{ ec_entry.verified | date: '%Y-%m-%d' }}"{% endif %}
+  {%- if ec_check.stale %} data-entry-stale="{{ ec_check.days }}"{% endif %}
   {%- for ec_f in ec_metas %}{% if ec_f.type == 'text' or ec_f.type == 'select' %} data-sort-{{ ec_f.key | replace: '_', '-' }}="{{ ec_entry[ec_f.key] | escape }}"{% endif %}{% endfor %}
   {%- for ec_f in ec_facets %} data-facet-{{ ec_f.key | replace: '_', '-' }}="{{ ec_entry[ec_f.key] | facet_values }}"{% endfor %}>
 
@@ -146,7 +156,14 @@ Local assigns are prefixed `ec_`.
 
   {%- capture ec_signals -%}{% include signal-strip.html entry=ec_entry %}{%- endcapture -%}
   {%- assign ec_signals = ec_signals | strip -%}
-  {%- if ec_signals != '' -%}
-    <div class="entry-foot">{{ ec_signals }}</div>
+  {%- if ec_signals != '' or ec_check.stale -%}
+    <div class="entry-foot">
+      {{- ec_signals -}}
+      {%- comment -%} Below the signals, not above: the card still has to sell the entry,
+      and a date that qualifies its facts belongs after the facts it qualifies. {%- endcomment -%}
+      {%- if ec_check.stale -%}
+        <p class="entry-stale-note">{% include icon.html name='clock' size='xs' class='shrink-0' %}<span>Last confirmed {{ ec_check.date | date: '%b %Y' }}</span></p>
+      {%- endif -%}
+    </div>
   {%- endif -%}
 </li>

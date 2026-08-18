@@ -7,7 +7,9 @@ that has a value and has not already been shown elsewhere on the page:
   links fields  a compact icon + label + host list (this is where "Other
                 resources" belongs, not 3,000px down the body)
   email + text  a person card: name line, then a mailto link (detected by
-                `type: email`, never by key)
+                `type: email`, never by key) carrying a ready-written subject and
+                opening line, plus an optional "Ask in the open" link that starts
+                a GitHub Discussion instead (site.yml `contact.ask_in_open`)
   everything else  a label/value list
 
 Emits nothing when nothing is left, so the rail never shows a labelled void.
@@ -51,11 +53,40 @@ field of the same group that also has one. Both are then skipped by the list.
   {%- if rc_email_key != '' -%}
     {%- assign rc_email = rc_entry[rc_email_key] -%}
     {%- assign rc_email_f = rc_fields | where: 'key', rc_email_key | first -%}
+    {%- comment -%}
+    The contact is a colleague doing this as a favour, not a support desk. A bare
+    mailto: hands them a blank window and a subject line the sender has to invent,
+    which is how they end up answering "Hi — question" three times a week without
+    knowing which of their projects is being asked about. Pre-filling the subject
+    and the first line costs the reader nothing and tells the recipient, before
+    they open it, which entry this is and where the sender found it.
+
+    Percent-encoded through `query_encode` (ERB::Util.url_encode): an unescaped
+    "&" or "#" in a title truncates the body, and a raw space breaks the URL in
+    some clients. The literal newlines in the capture become %0A.
+    {%- endcomment -%}
+    {%- assign rc_site_name = site.data.site.name | default: site.title -%}
+    {%- capture rc_mail_subject -%}Question about: {{ rc_entry.title }}{%- endcapture -%}
+    {%- capture rc_mail_body -%}
+I found your entry "{{ rc_entry.title }}" in the {{ rc_site_name }} and wanted to ask about it:
+
+{{ rc_entry.url | absolute_url }}
+{%- endcapture -%}
     <div class="rail-person">
       {%- if rc_name_key != '' -%}
       <p class="text-sm font-semibold text-brand-ink">{{ rc_entry[rc_name_key] | escape }}</p>
       {%- endif -%}
-      <a class="rail-link" href="mailto:{{ rc_email | escape }}">{% include icon.html name='mail' size='sm' class='shrink-0 text-brand-primary' %}<span class="min-w-0 break-all">{{ rc_email | escape }}</span><span class="sr-only"> ({{ rc_email_f.label | escape }})</span></a>
+      <a class="rail-link" href="mailto:{{ rc_email | escape }}?subject={{ rc_mail_subject | query_encode }}&amp;body={{ rc_mail_body | query_encode }}">{% include icon.html name='mail' size='sm' class='shrink-0 text-brand-primary' %}<span class="min-w-0 break-all">{{ rc_email | escape }}</span><span class="sr-only"> ({{ rc_email_f.label | escape }})</span></a>
+      {%- comment -%}
+      A second door, off by default only in the sense that a site with no
+      repository or with Discussions disabled must not advertise it. The private
+      mail thread answers one person; the same question asked in the open answers
+      everyone who searches it later, which is the whole premise of the catalog.
+      {%- endcomment -%}
+      {%- assign rc_repo = site.data.site.github.repository -%}
+      {%- if site.data.site.contact.ask_in_open and rc_repo and rc_repo != '' -%}
+        <a class="rail-link" href="https://github.com/{{ rc_repo }}/discussions/new?category=q-a&amp;title={{ rc_mail_subject | query_encode }}" target="_blank" rel="noopener noreferrer">{% include icon.html name='chat' size='sm' class='shrink-0 text-brand-primary' %}<span class="min-w-0">Ask in the open<span class="block text-xs font-normal text-brand-muted">so the answer helps the next person</span></span><span class="sr-only"> (opens a discussion in a new tab)</span></a>
+      {%- endif -%}
     </div>
   {%- endif -%}
 

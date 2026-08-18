@@ -1,9 +1,10 @@
 {%- comment -%}
 "Is this reusable for us?" — the at-a-glance strip at the top of an entry page.
 
-Renders every field whose effective card slot is `icon` (the signal fields), plus
-any `card: meta` field that has not already been shown in the page header. Values
-carry their `option_meta` icon and `warn` tone.
+Renders every field whose effective card slot is `icon` (the signal fields), then
+every `card: fact` field (the ones that belong here and NOT on a catalog card),
+plus any `card: meta` field that has not already been shown in the page header.
+Values carry their `option_meta` icon and `warn` tone.
 Facts with no value are skipped; the whole strip disappears when nothing is left.
 
 Each fact shows at most `cap` values and trails a "+n" counter — the chip idiom
@@ -31,8 +32,9 @@ Local assigns are prefixed `fs_` so nothing leaks into the caller's scope.
 {%- assign fs_shown = include.shown | default: '' -%}
 {%- assign fs_cap = include.cap | default: 3 -%}
 {%- assign fs_icon_fields = fs_fields | card_fields: 'icon' -%}
+{%- assign fs_fact_fields = fs_fields | card_fields: 'fact' -%}
 {%- assign fs_meta_fields = fs_fields | card_fields: 'meta' -%}
-{%- assign fs_candidates = fs_icon_fields | concat: fs_meta_fields -%}
+{%- assign fs_candidates = fs_icon_fields | concat: fs_fact_fields | concat: fs_meta_fields -%}
 {%- assign fs_gloss = '' -%}
 
 {%- capture fs_items -%}

@@ -72,8 +72,12 @@ Local assigns are prefixed `fv_` so nothing leaks into the caller's scope.
       {%- for fv_i in fv_imgs -%}
         {%- assign fv_item = fv_i | image_item: fv_f.label -%}
         {%- if fv_item.src != '' -%}
-          {%- if fv_item.src contains '://' -%}{%- assign fv_src = fv_item.src -%}{%- else -%}{%- assign fv_src = fv_item.src | relative_url -%}{%- endif -%}
-          <li class="aspect-[4/3] overflow-hidden rounded-lg border border-brand-line"><img class="h-full w-full object-cover" src="{{ fv_src | escape }}" alt="{{ fv_item.alt | escape }}" loading="lazy" decoding="async"></li>
+          {%- comment -%} Measured, not guessed: the thumbnail is 168px from 1280px up (the
+          body column stops growing there), 104px at 1024, and 114px at 390. `sizes` rounds
+          those up rather than down — an over-estimate costs bytes, an under-estimate costs
+          a blurry image — and every case still lands on the 400w derivative at 2x.
+          picture.html falls back to this same <img> when no derivative exists. {%- endcomment -%}
+          <li class="aspect-[4/3] overflow-hidden rounded-lg border border-brand-line">{% include picture.html src=fv_item.src alt=fv_item.alt sizes="(min-width: 1280px) 168px, (min-width: 640px) 18vw, 30vw" class="h-full w-full object-cover" %}</li>
         {%- endif -%}
       {%- endfor -%}
     </ul>

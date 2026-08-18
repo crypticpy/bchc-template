@@ -78,6 +78,24 @@ submit:
   review_note: "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content."
   fallback_email: "info@bigcitieshealth.org"   # "Email it instead" button; leave blank (and clear organization.contact_email) to drop the button
 
+# Catalog behaviour (module: catalog)
+catalog:
+  # How long an entry may go unconfirmed before the page says so. An entry is
+  # "confirmed" on the newest of its `verified`, `updated` and `published` dates,
+  # so a brand new catalog shows no notices at all. A year is the default because
+  # it is long enough not to nag over a quiet quarter and short enough to catch a
+  # vendor change or a contact who has moved on. Raise it for a slow-moving
+  # catalog; the monthly verification sweep uses the same number.
+  verify_after_days: 365
+
+# How readers are invited to reach an entry's contact
+contact:
+  # Add an "Ask in the open" link beside the contact email that starts a GitHub
+  # Discussion instead of a private thread, so the answer is there for the next
+  # person who asks. Requires Discussions to be enabled on `github.repository`
+  # with a "Q&A" category — set this to false if it is not.
+  ask_in_open: true
+
 # Footer
 footer:
   about: "A collaborative catalog maintained by the coalition's AI community of practice. Content is contributed by member health departments and reviewed before publication."

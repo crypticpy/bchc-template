@@ -50,6 +50,10 @@ class CheckFrontMatterTest < Minitest::Test
       - key: resources
         label: Resources
         type: links
+      - key: deck_pdf
+        label: Slide deck
+        type: file
+        filename: deck.pdf
       - key: body
         label: Write-up
         type: markdown
@@ -118,6 +122,7 @@ class CheckFrontMatterTest < Minitest::Test
       summary: S
       published: January 2026
       updated: not-a-date
+      verified: last spring
       body: x
     FM
 
@@ -125,6 +130,57 @@ class CheckFrontMatterTest < Minitest::Test
     assert(failures.any? { |f| f.include?("`slug` is \"something-else\" but the folder is \"mismatch\"") }, failures.inspect)
     assert(failures.any? { |f| f.include?("`published`") && f.include?("YYYY-MM-DD") }, failures.inspect)
     assert(failures.any? { |f| f.include?("`updated`") && f.include?("YYYY-MM-DD") }, failures.inspect)
+    assert(failures.any? { |f| f.include?("`verified`") && f.include?("YYYY-MM-DD") }, failures.inspect)
+  end
+
+  # The scaffolder writes the attachment path from the issue before the file is
+  # committed, so a dangling `file` path is a review note, not a broken build.
+  def test_a_missing_file_attachment_warns_but_does_not_fail
+    write_entry("no-deck", <<~FM)
+      title: T
+      slug: no-deck
+      render_with_liquid: false
+      summary: S
+      published: "2026-01-05"
+      deck_pdf: "/catalog/no-deck/deck.pdf"
+    FM
+
+    failures, warnings = run_check
+    assert(failures.none? { |f| f.include?("deck_pdf") }, failures.inspect)
+    assert(warnings.any? { |w| w.include?("`deck_pdf`") && w.include?("not in the repository yet") }, warnings.inspect)
+  end
+
+  def test_a_present_file_attachment_is_silent
+    dir = write_entry("has-deck", <<~FM)
+      title: T
+      slug: has-deck
+      render_with_liquid: false
+      summary: S
+      published: "2026-01-05"
+      deck_pdf: "/catalog/has-deck/deck.pdf"
+    FM
+    File.write(File.join(dir, "deck.pdf"), "%PDF-1.4\n")
+
+    failures, warnings = run_check
+    assert(failures.none? { |f| f.include?("deck_pdf") }, failures.inspect)
+    assert(warnings.none? { |w| w.include?("deck_pdf") }, warnings.inspect)
+  end
+
+  # `verified` is optional and reserved: absent is fine, blank is fine, a real
+  # date is fine. Only a value that looks like a date and is not one fails —
+  # that is the case the entry page would silently read as "never verified".
+  def test_verified_is_optional_but_must_be_a_real_date
+    write_entry("verified-ok", <<~FM)
+      title: T
+      slug: verified-ok
+      summary: S
+      published: "2026-01-05"
+      verified: "2026-06-30"
+      stage: Pilot
+    FM
+
+    failures, = run_check
+    assert(failures.none? { |f| f.include?("`verified`") }, failures.inspect)
   end
 
   def test_required_fields_and_option_membership

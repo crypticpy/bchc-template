@@ -33,10 +33,10 @@ export const FIELD_TYPES = [
  * field may not redefine them. `title` and `summary` are also always present
  * but ARE authored, so they stay legal field keys.
  */
-export const RESERVED_KEYS = ['layout', 'slug', 'published', 'updated', 'featured', 'thumbnail'];
+export const RESERVED_KEYS = ['layout', 'slug', 'published', 'updated', 'verified', 'featured', 'thumbnail'];
 
 /** Legal `card` values beyond `true` / `false`. */
-export const CARD_SLOTS = ['badge', 'chip', 'meta', 'icon', 'line'];
+export const CARD_SLOTS = ['badge', 'chip', 'meta', 'icon', 'line', 'fact'];
 
 /** Where a group renders on the entry page: a sidebar card, or a body section. */
 export const GROUP_PLACEMENTS = ['main', 'rail'];
@@ -48,6 +48,7 @@ export const CARD_SLOT_TYPES = {
   icon: ['select', 'multiselect'],
   line: ['text', 'textarea'],
   meta: ['text', 'select', 'date'],
+  fact: ['select', 'multiselect', 'list', 'text', 'date'],
 };
 
 /** Types that can drive a filter in the catalog panel. */

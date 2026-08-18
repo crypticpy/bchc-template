@@ -25,14 +25,6 @@ body:
       placeholder: Automated 311 call triage with LLM classification
     validations:
       required: true
-  - type: input
-    id: organization
-    attributes:
-      label: Organization
-      description: "Which organization is sharing this? A health department, city, agency or member organization."
-      placeholder: Chicago Department of Public Health
-    validations:
-      required: true
   - type: dropdown
     id: solution_type
     attributes:
@@ -96,6 +88,14 @@ body:
       placeholder: Cut brief turnaround from 3 days to 1 hour
     validations:
       required: false
+  - type: input
+    id: organization
+    attributes:
+      label: Organization
+      description: "Which organization is sharing this? A health department, city, agency or member organization."
+      placeholder: Chicago Department of Public Health
+    validations:
+      required: true
   - type: markdown
     attributes:
       value: |-
@@ -244,10 +244,88 @@ body:
     id: deck_pdf
     attributes:
       label: Slide deck or one-pager (PDF)
-      description: "Slide deck or one-pager. After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically. Attach the file here and the automation commits it with the entry."
+      description: Slide deck or one-pager. Attach the slide deck here. A thumbnail is generated from its first page. Attach the file here and the automation commits it with the entry.
     validations:
       required: false
       accept: .pdf
+  - type: markdown
+    attributes:
+      value: |-
+        ### What it took
+
+        Money, contracting and approvals — the part a budget or governance conversation needs.
+  - type: dropdown
+    id: cost_band
+    attributes:
+      label: Cost to stand up
+      description: "Roughly what did it cost to get it running the first time? One-time cost: contracts, build, implementation. A band is fine — nobody expects an exact figure."
+      options:
+        - No new spend
+        - Under $25k
+        - $25k–$100k
+        - $100k–$500k
+        - Over $500k
+        - Not disclosed
+    validations:
+      required: false
+  - type: dropdown
+    id: run_cost
+    attributes:
+      label: Cost to keep running
+      description: "What does a normal year cost to run? Licences, hosting and usage charges only — staff time belongs in the write-up."
+      options:
+        - No ongoing cost
+        - Under $10k/yr
+        - $10k–$50k/yr
+        - Over $50k/yr
+        - Not disclosed
+    validations:
+      required: false
+  - type: dropdown
+    id: procurement
+    attributes:
+      label: How it was bought
+      description: How was this paid for or contracted? Select all that apply. This is the question peers ask most and the one that is hardest to find out.
+      multiple: true
+      options:
+        - No procurement needed
+        - Existing enterprise licence
+        - Cooperative or piggyback contract
+        - Competitive solicitation
+        - Sole source
+        - Grant funded
+        - Interagency agreement
+        - In-kind or academic partnership
+    validations:
+      required: false
+  - type: dropdown
+    id: approvals
+    attributes:
+      label: Reviews it went through
+      description: "Which internal reviews or approvals did it need? Select all that apply. Saying 'not yet reviewed' is more useful to a peer than leaving it blank."
+      multiple: true
+      options:
+        - Privacy review
+        - Security review or authority to operate
+        - Legal or contracts review
+        - Records retention review
+        - Labor or workforce consultation
+        - Community or advisory review
+        - Equity impact assessment
+        - Research ethics / IRB
+        - AI governance body
+        - None required
+        - Not yet reviewed
+    validations:
+      required: false
+  - type: textarea
+    id: equity_note
+    attributes:
+      label: Who it affects
+      description: "Who could this help or harm, and how did you check? Optional but strongly encouraged. Which populations the output reaches, what you checked for uneven performance, and what you would watch."
+      placeholder: "Reaches everyone who calls the hotline, including the ~18% who use it in Spanish. We compared triage accuracy across language groups monthly and would stop if the gap grew."
+    validations:
+      required: false
   - type: markdown
     attributes:
       value: |-
