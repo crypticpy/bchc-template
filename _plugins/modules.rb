@@ -14,6 +14,13 @@
 # Output: mutates `site.pages` in place (rejects the disabled ones).
 module CatalogTemplate
   module ModulePages
+    # Pages the catalog module owns beyond the entry folder itself. `/compare/`
+    # exists only to lay catalog entries side by side, so a site with the catalog
+    # switched off should not ship it, and it is a fixed path rather than a
+    # configurable one — hence here rather than in _data/modules.yml, which a
+    # fork edits.
+    CATALOG_EXTRA_PATHS = ["/compare/"].freeze
+
     # Path prefixes each module owns, keyed by module name. `catalog` is
     # derived from the schema's entry path rather than _data/modules.yml,
     # since it must track the configured entry folder.
@@ -22,7 +29,8 @@ module CatalogTemplate
     def self.module_paths(site_data)
       configured = site_data["modules"] || {}
       paths = configured.each_with_object({}) { |(name, prefixes), out| out[name.to_s] = Array(prefixes) }
-      paths["catalog"] = ["/#{(site_data.dig('schema', 'entry', 'path') || 'catalog')}/"]
+      entry_path = site_data.dig("schema", "entry", "path") || "catalog"
+      paths["catalog"] = ["/#{entry_path}/"] + CATALOG_EXTRA_PATHS
       paths
     end
 
