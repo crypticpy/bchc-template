@@ -98,7 +98,9 @@
     /* One fluid ramp instead of a step at 340px: the title grew by 2px in a single
        jump as a card crossed that width, which is visible when the rail closes and
        three columns become two. cqi is 1% of the CARD's inline size, so this is
-       16px in the narrowest card and 18px — the designed size — from ~300px up.
+       a hair under 18px in the narrowest three-up card (17.8px at 288px) and 18px —
+       the designed size — from 300px up; the 1rem floor only bites in a card
+       narrower than any layout produces.
        The leading is a ratio and the reserved slot is 2em of it, so both track the
        size instead of needing their own steps. */
     .entry-title {
