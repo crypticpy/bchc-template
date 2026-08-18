@@ -171,7 +171,7 @@ leads with; remaining facets fill in only if fewer than four qualify.
         </div>
       </div>
     </div>
-    <ul role="list" class="no-scrollbar -mx-4 flex list-none snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0 [&>li]:w-[85%] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-[calc((100%-1.5rem)/2)] xl:[&>li]:w-[calc((100%-3rem)/3)]" data-carousel-track tabindex="0" aria-label="Featured {{ plural | downcase }}">
+    <ul role="list" class="no-scrollbar -mx-4 flex list-none snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth scroll-pl-4 px-4 pb-4 sm:mx-0 sm:scroll-pl-0 sm:px-0 [&>li]:w-[85%] [&>li]:shrink-0 [&>li]:snap-start sm:[&>li]:w-[calc((100%-1.5rem)/2)] xl:[&>li]:w-[calc((100%-3rem)/3)]" data-carousel-track tabindex="0" aria-label="Featured {{ plural | downcase }}">
       {% for e in featured %}{% assign home_lcp = false %}{% if forloop.first %}{% assign home_lcp = true %}{% endif %}{% include entry-card.html entry=e eager=home_lcp fetchpriority=home_lcp %}{% endfor %}
     </ul>
   </section>
