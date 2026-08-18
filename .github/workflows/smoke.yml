@@ -1,5 +1,8 @@
 name: Weekly Smoke Build
 
+# Runs unattended once a week, so a dependency that drifts out from under the
+# template is caught here rather than by the next person to fork it.
+
 on:
   schedule:
     - cron: "0 12 * * 1"
