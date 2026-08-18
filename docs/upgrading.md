@@ -89,8 +89,10 @@ Push the branch, let the checks run, and merge. The deploy is the same one your 
   release added is available but unused. Read the release notes, then add it with the field editor
   at `/setup/`, the [Apply setup issue](launch.md#3-configure-the-site), or by hand — followed by
   `npm run generate`.
-- **New `_data/site.yml` keys.** Same story: a new module toggle or a new copy block defaults to
-  off/empty until you add the key. `docs/configuration.md` lists every key with its default.
+- **New `_data/site.yml` keys.** Same story: a new copy block is empty and a new module's header
+  and footer links stay hidden until you add the key — but the module's *pages* are only removed
+  from the build by an explicit `<module>: false`, so add that line for a module you are not ready
+  to show. `docs/configuration.md` lists every key with its default.
 - **Renamed template files.** If a release moves `_includes/foo.html` to `_includes/bar.html` and
   you referenced the old name in your own content, the merge succeeds and the build fails. That is
   what `bundle exec jekyll build` above is for.

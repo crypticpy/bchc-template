@@ -8,13 +8,33 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-08-18
+
 DMWG alignment, waves 1–3 — the content model, then the site, then the review
 workflow catch up with the Data Modernization Work Group's governance
 framework ([docs/dmwg-alignment-plan.md](docs/dmwg-alignment-plan.md)). Add,
 never delete: every existing field stays; nine join them, the rules the
 reviewers apply are published on the site rather than in a PDF, and the pull
 request a submission becomes now carries those rules, the answers that need a
-closer look, and the tier it is in.
+closer look, and the tier it is in. Wave 4 — the metrics page and the
+promotion helpers — is next.
+
+**Upgrading a fork.** A minor version, not a major one, because nothing here
+changes an entry a fork already has: `_data/schema.yml` is yours
+(`merge=ours`), so the nine fields, `escalate_on`, `entry.require_link` and
+the other pointers are available and unused until you add them — with the
+field editor at `/setup/`, the Apply setup issue, or by hand, then
+`npm run generate` ([docs/upgrading.md](docs/upgrading.md)). Every template
+piece that reads a new pointer behaves as before when it is absent: no
+`status_key` means no deprecation notice, no `escalate_on` means a quiet
+checklist, no `require_link` means the missing-link check only warns. Two
+things do arrive by merge. The `governance` module's page and example
+`_data/governance.yml`: your `_data/site.yml` has no `governance:` key yet, so
+no header or footer link appears, but `_plugins/modules.rb` only drops a
+module's pages when the key is explicitly `false` — add `governance: false`
+until you have rewritten the file, then flip it. And the `stamp` job in
+`pages.yml`, which needs the Actions app allowed to push to `main` or
+`CONTENT_BOT_TOKEN`; without either it reports and stands down.
 
 ### Added — wave 3, the review workflow
 
@@ -622,7 +642,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/crypticpy/bchc-template/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/crypticpy/bchc-template/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/crypticpy/bchc-template/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/crypticpy/bchc-template/compare/v1.1.0...v1.2.0
