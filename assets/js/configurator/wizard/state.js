@@ -13,7 +13,14 @@ import { presets } from '../presets.js';
 export const STORAGE_KEY = 'catalog-setup-wizard-v1';
 
 /** Step ids, in order. `STEP_META` in setup-page.js carries the prose. */
-export const STEPS = ['start', 'branding', 'modules', 'fields', 'review'];
+export const STEPS = ['start', 'basics', 'look', 'words', 'modules', 'fields', 'review'];
+
+/**
+ * Step ids as v1.2.0 numbered them, for a session saved before the Branding
+ * step was split. A stored *position* would resume on the wrong step now, so
+ * the id is what gets written; this only reads the older shape back.
+ */
+const LEGACY_STEPS = ['start', 'basics', 'modules', 'fields', 'review'];
 
 /**
  * Parse a Liquid-rendered `<script type="application/json" id="…">` block.
@@ -118,7 +125,7 @@ export function save() {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        step: state.step,
+        step: STEPS[state.step],
         startId: state.startId,
         answers: state.answers,
         fields: state.fields,
@@ -139,6 +146,18 @@ export function clearSaved() {
 }
 
 /**
+ * The index a stored `step` resumes on: an id from `STEPS`, or a position in
+ * the v1.2.0 step list. Anything else starts at the beginning.
+ * @param {unknown} stored the `step` value read back from localStorage.
+ * @returns {number} index into `STEPS`.
+ */
+function storedStepIndex(stored) {
+  const id = typeof stored === 'string' ? stored : LEGACY_STEPS[Number(stored)];
+  const index = STEPS.indexOf(id);
+  return index === -1 ? 0 : index;
+}
+
+/**
  * Load `state` from localStorage, falling back to the "current site" starting
  * point when nothing usable is stored.
  * @returns {boolean} true when a previous session was actually resumed.
@@ -154,7 +173,7 @@ export function restore() {
     loadStartingPoint('current');
     return false;
   }
-  state.step = Number.isInteger(stored.step) ? Math.min(Math.max(stored.step, 0), STEPS.length - 1) : 0;
+  state.step = storedStepIndex(stored.step);
   state.startId = stored.startId || 'current';
   state.answers = stored.answers;
   state.fields = stored.fields;

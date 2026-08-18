@@ -36,7 +36,7 @@ const dom = new JSDOM(
   `<!doctype html><html><body>
      <div id="resume-banner" hidden></div>
      <nav id="wizard-steps" aria-label="Setup steps"></nav>
-     <div id="wizard-errors" role="alert" aria-live="polite"></div>
+     <div id="wizard-errors"></div>
      <div id="wizard"></div>
      <script id="current-config" type="application/json">${JSON.stringify(shipped.site)}</script>
      <script id="current-theme" type="application/json">${JSON.stringify(shipped.theme)}</script>
@@ -120,25 +120,73 @@ test('setup/index.md still provides every id the wizard renders into', () => {
   assert.match(setupPage, /assets\/js\/configurator\/setup-page\.js/);
 });
 
-test('the wizard boots on step 1 with the five step pills', () => {
-  assert.equal($$('#wizard-steps button').length, 5);
+test('the wizard boots on step 1 with one pill per step, each naming its step id', () => {
+  assert.deepEqual(
+    $$('#wizard-steps button').map((button) => button.dataset.step),
+    ['start', 'basics', 'look', 'words', 'modules', 'fields', 'review']
+  );
+  assert.deepEqual(
+    $$('#wizard-steps button').map((button) => button.textContent),
+    ['1. Start', '2. Basics', '3. Look', '4. Words', '5. Modules', '6. Entry model', '7. Review']
+  );
   assert.equal($('#step-heading').textContent, 'Choose a starting point');
   assert.deepEqual(errors, []);
 });
 
-/* --- branding ------------------------------------------------------------- */
+/* --- basics / look / words (the split Branding step) ----------------------- */
+
+test('the three branding steps together ask every question the one step asked', () => {
+  const asked = new Set();
+  for (const step of [2, 3, 4]) {
+    goToStep(step);
+    for (const control of $$('#wizard [id^="field-"]')) asked.add(control.id.replace('field-', ''));
+  }
+  // The question set of v1.2.0's single "Branding & contact" step. Splitting a
+  // step must move questions, never drop them.
+  assert.deepEqual([...asked].sort(), [
+    'accent',
+    'bodyFont',
+    'branch',
+    'contactEmail',
+    'copyright',
+    'description',
+    'footerAbout',
+    'googleFontsUrl',
+    'headingFont',
+    'heroEyebrow',
+    'heroLead',
+    'heroTitle',
+    'lineStrong',
+    'logoImage',
+    'logoText',
+    'orgName',
+    'orgShort',
+    'orgUrl',
+    'primary',
+    'primaryDark',
+    'radius',
+    'repository',
+    'secondary',
+    'siteName',
+    'submitIntro',
+    'submitReviewNote',
+    'submitTurnaround',
+    'tagline',
+    'warn',
+  ]);
+});
 
 test('jumping ahead by step pill validates the steps it would skip', () => {
-  goToStep(2);
+  goToStep(3);
   type('#field-primary', 'nope');
-  goToStep(5);
-  assert.equal($('#step-heading').textContent, 'Branding & contact', 'the jump skipped an invalid step');
+  goToStep(7);
+  assert.equal($('#step-heading').textContent, 'Colors & type', 'the jump skipped an invalid step');
   assert.ok($('#wizard-error-summary'), 'no error summary for the skipped step');
   type('#field-primary', '#1D4E89');
 });
 
-test('the Branding step asks every colour question the CLI asks, and offers a custom font', () => {
-  goToStep(2);
+test('the Look step asks every colour question the CLI asks, and offers a custom font', () => {
+  goToStep(3);
   for (const key of ['primary', 'primaryDark', 'secondary', 'accent', 'lineStrong', 'warn']) {
     assert.ok($(`#field-${key}`), `no colour field for ${key}`);
   }
@@ -147,16 +195,16 @@ test('the Branding step asks every colour question the CLI asks, and offers a cu
 
   wizardState.state.answers.headingFont = 'Roboto';
   goToStep(1);
-  goToStep(2);
+  goToStep(3);
   const select = $('#field-headingFont');
   assert.equal(select.value, 'Roboto', 'a custom font left the select unselected');
   assert.ok([...select.options].some((o) => o.value === 'Roboto'));
   wizardState.state.answers.headingFont = 'Source Sans 3';
 });
 
-test('the Branding step renders and the live preview follows the primary colour', () => {
-  goToStep(2);
-  assert.equal($('#step-heading').textContent, 'Branding & contact');
+test('the Look step renders and the live preview follows the primary colour', () => {
+  goToStep(3);
+  assert.equal($('#step-heading').textContent, 'Colors & type');
   const preview = $('#wizard .theme-preview');
   assert.ok(preview, 'the theme preview is missing');
   assert.match(preview.getAttribute('style'), /--c-primary: 29 78 137/);
@@ -164,6 +212,17 @@ test('the Branding step renders and the live preview follows the primary colour'
   type('#field-primary', '#AA0011');
   assert.match($('#wizard .theme-preview').getAttribute('style'), /--c-primary: 170 0 17/);
   assert.deepEqual(errors, []);
+});
+
+test('the preview picks up copy answered on the other two steps', () => {
+  goToStep(4);
+  type('#field-heroTitle', 'What our county is building with AI');
+  goToStep(3);
+  assert.match(
+    $('#wizard .theme-preview').textContent,
+    /What our county is building with AI/,
+    'the preview did not pick up the headline written on the Words step'
+  );
 });
 
 test('an invalid colour blocks Continue and focuses the error summary, linked to the field', () => {
@@ -176,12 +235,14 @@ test('an invalid colour blocks Continue and focuses the error summary, linked to
   assert.ok(summary, 'no error summary was rendered');
   assert.equal(summary.getAttribute('tabindex'), '-1');
   assert.equal(document.activeElement, summary, 'focus did not move to the error summary');
-  assert.equal($('#wizard-errors').getAttribute('role'), 'alert');
+  // The panel takes focus; a live-region role on the container would make an
+  // assistive technology read the same problems a second time.
+  assert.equal($('#wizard-errors').getAttribute('role'), null);
 
   const link = summary.querySelector('a[href="#field-primary"]');
   assert.ok(link, 'the problem does not link to the field it belongs to');
   assert.match(link.textContent, /Main colour must be a 6-digit hex/);
-  assert.equal($('#step-heading').textContent, 'Branding & contact', 'the step advanced anyway');
+  assert.equal($('#step-heading').textContent, 'Colors & type', 'the step advanced anyway');
 
   // Fixing it clears the summary and lets the step advance.
   type('#field-primary', '#1D4E89');
@@ -189,15 +250,15 @@ test('an invalid colour blocks Continue and focuses the error summary, linked to
     .find((button) => button.textContent === 'Continue')
     .click();
   assert.equal($('#wizard-error-summary'), null);
-  assert.equal($('#step-heading').textContent, 'Modules');
+  assert.equal($('#step-heading').textContent, 'Home page & footer copy');
 });
 
-test('a problem is also marked on the control it belongs to, and clears on the next keystroke', async () => {
-  goToStep(2);
+test('a problem is marked on the control it belongs to before Continue returns', () => {
+  goToStep(3);
   type('#field-primary', 'not-a-colour');
   press('Continue');
-  // The marks are applied after the step re-renders, so they survive it.
-  await Promise.resolve();
+  // No waiting: the step is rendered first and the problems are announced
+  // onto the controls that render produced, in the same task.
 
   const control = $('#field-primary');
   assert.equal(control.getAttribute('aria-invalid'), 'true');
@@ -213,32 +274,55 @@ test('a problem is also marked on the control it belongs to, and clears on the n
   assert.equal($('#field-primary-error'), null);
 });
 
-test('the two URL answers on the Branding step are validated', async () => {
+test('the two URL answers are validated, each on the step that asks for it', () => {
   goToStep(2);
   type('#field-orgUrl', 'bigcities.org');
   press('Continue');
-  await Promise.resolve();
 
+  assert.equal($('#step-heading').textContent, 'Names & contact', 'the step advanced anyway');
   const summary = $('#wizard-error-summary');
   assert.ok(summary.querySelector('a[href="#field-orgUrl"]'), 'the problem does not link to the field');
   assert.match($('#field-orgUrl-error').textContent, /must start with https:\/\//);
 
   type('#field-orgUrl', 'https://bigcities.org');
+  press('Continue');
+  assert.equal($('#step-heading').textContent, 'Colors & type');
+
   type('#field-googleFontsUrl', 'javascript:alert(1)');
   press('Continue');
-  await Promise.resolve();
   assert.match($('#field-googleFontsUrl-error').textContent, /must start with https:\/\//);
 
   // Leave the step valid for the tests that follow.
   type('#field-googleFontsUrl', '');
   press('Continue');
   assert.equal($('#wizard-error-summary'), null);
+  assert.equal($('#step-heading').textContent, 'Home page & footer copy');
+});
+
+test('the saved session names the step it is on, and an older numbered one still resumes', () => {
+  goToStep(3);
+  assert.equal(JSON.parse(localStorage.getItem(wizardState.STORAGE_KEY)).step, 'look');
+
+  // v1.2.0 stored a position in a five-step list; 3 was the Entry model step.
+  const stored = JSON.parse(localStorage.getItem(wizardState.STORAGE_KEY));
+  localStorage.setItem(wizardState.STORAGE_KEY, JSON.stringify({ ...stored, step: 3 }));
+  assert.equal(wizardState.restore(), true);
+  assert.equal(wizardState.STEPS[wizardState.state.step], 'fields');
+
+  localStorage.setItem(wizardState.STORAGE_KEY, JSON.stringify({ ...stored, step: 'nonsense' }));
+  wizardState.restore();
+  assert.equal(wizardState.state.step, 0, 'an unknown step id must not leave the wizard nowhere');
+
+  // Put the live session back where the following tests expect it.
+  localStorage.setItem(wizardState.STORAGE_KEY, JSON.stringify(stored));
+  wizardState.restore();
+  goToStep(3);
 });
 
 /* --- entry model ---------------------------------------------------------- */
 
 test('every field row starts collapsed behind a real expand button', () => {
-  goToStep(4);
+  goToStep(6);
   assert.equal($('#step-heading').textContent, 'Entry model');
   const rows = fieldRows();
   assert.ok(rows.length > 5, 'expected the shipped schema to have several fields');
@@ -277,8 +361,8 @@ test('expanded rows survive a re-render of the step', () => {
   const key = 'title';
   rowFor(key).querySelector('button[aria-expanded]').getAttribute('aria-expanded') === 'true' ||
     rowFor(key).querySelector('button[aria-expanded]').click();
-  goToStep(3);
-  goToStep(4);
+  goToStep(5);
+  goToStep(6);
   const toggle = rowFor(key).querySelector('button[aria-expanded]');
   assert.equal(toggle.getAttribute('aria-expanded'), 'true');
   assert.equal(rowFor(key).querySelector('.schema-field-details').hidden, false);

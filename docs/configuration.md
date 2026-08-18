@@ -250,7 +250,8 @@ A no-terminal step-by-step wizard on the deployed site (`setup/index.md` + `asse
 - Loads the site's current configuration (embedded as JSON in the page) so you're editing forward from what's live, not starting over.
 - Offers the same four presets as the CLI: **AI use case catalog**, **Program / cohort portal**, **Resource library**, **Blank catalog**.
 - Lets you edit branding, colors/fonts, module toggles, and the schema's field list (including adding/renaming/removing fields) with validation.
-- Shows a **live preview** on the Branding step — a miniature of the real header, hero, entry card and controls, rendered from the production stylesheet under your palette, type and corner rounding — next to the palette swatches and WCAG contrast checks. It updates as you type.
+- Asks its branding questions over three short steps rather than one long one — **Basics** (site and organization names, contact, repository), **Colors & type** (palette, fonts, corner rounding) and **Home page & footer copy** — so no step is more than a screen or two.
+- Shows a **live preview** on the Colors & type step — a miniature of the real header, hero, entry card and controls, rendered from the production stylesheet under your palette, type and corner rounding — next to the palette swatches and WCAG contrast checks. It updates as you type.
 - Lists the entry model's fields as **collapsed rows** — one summary line each (label, key, type, and badges for required / filter / card / searchable / group) behind an expand button. Only the row you open shows its controls, so the step stays a screen or two rather than a mile of form. Open rows stay open as you edit, and a validation error re-opens the row it blames.
 - Keeps that step's actions (**Add a field**, **Back**, **Continue**) pinned to the bottom of the viewport, so you never have to scroll back up to move on.
 - Lets each field's **Show on card** toggle also pick the card slot (`badge`, `meta`, `line`, `chip`, `icon`) when the field's type fits one; leave it on **Automatic** to let the card choose from the type. See `card` in `docs/content-model.md`.
@@ -259,9 +260,9 @@ A no-terminal step-by-step wizard on the deployed site (`setup/index.md` + `asse
 - Saves your answers in the browser as you go (a resume banner appears if you return with unfinished progress).
 - Produces copy/download/"open in GitHub, pre-filled" links for each generated file — nothing is pushed automatically; you commit the files yourself via the GitHub UI or by pulling them locally.
 
-| Branding step | Entry model step |
+| Colors & type step | Entry model step |
 | --- | --- |
-| ![Branding step: live preview of the header, hero, an entry card and controls under a teal palette, with palette swatches and WCAG contrast readouts below.](images/setup-branding.png) | ![Entry model step: the schema's fields as collapsed rows with key, type and badge chips, and a sticky action bar with Back, Add a field, Start over and Continue.](images/setup-entry-model.png) |
+| ![Colors & type step: the seven step pills, the six palette fields with their swatches, and the live preview of the real header, hero and entry card under them.](images/setup-branding.png) | ![Entry model step: the schema's fields as collapsed rows with key, type and badge chips, and a sticky action bar with Back, Add a field, Start over and Continue.](images/setup-entry-model.png) |
 
 ### `npm run setup` — CLI wizard
 

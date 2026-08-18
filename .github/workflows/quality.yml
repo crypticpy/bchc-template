@@ -1,6 +1,7 @@
 # Accessibility + Lighthouse gate. Runs on every pull request and on pushes to main.
 # Builds the site with url set to the local server, serves _site, then:
 #   * pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in quality/pa11yci.js (entry URLs discovered from the built site) — FAILS the job on any issue
+#   * the assistive-technology flow tests (test/a11y/flows.test.mjs): keyboard-only walkthroughs across pages and states, which a per-page audit cannot see — FAILS the job
 #   * Lighthouse CI over quality/lighthouserc.js, once per form factor — accessibility >= 0.95 is an error, other categories warn
 #
 # The tools are not in package.json so `npm ci` in the other workflows stays
@@ -85,6 +86,17 @@ jobs:
           echo "CHROME_PATH=$CHROME" >> "$GITHUB_ENV"
           "$CHROME" --version
 
+      # The flow tests `import('puppeteer')` rather than shelling out, so this
+      # one tool has to be in node_modules. `--no-save` keeps it out of the
+      # lockfile the other six workflows install from; SKIP_DOWNLOAD keeps it
+      # from fetching a second Chrome when the runner already has one.
+      - name: Install puppeteer for the flow tests
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+        run: |
+          version="$(node -p "require('./quality/package.json').devDependencies.puppeteer")"
+          npm install --no-save --no-audit --no-fund "puppeteer@$version"
+
       - name: Prepare the report directory
         run: mkdir -p "$RUNNER_TEMP/quality/lighthouse"
 
@@ -95,6 +107,14 @@ jobs:
         id: pa11y
         continue-on-error: true
         run: npm run --silent a11y -- --json > "$RUNNER_TEMP/quality/pa11y.json"
+
+      # Keyboard-only walkthroughs across pages and states, which a per-page
+      # audit cannot see. Runs against the same served build; FLOW_BASE_URL
+      # defaults to QUALITY_BASE_URL.
+      - name: Assistive-technology flows
+        id: flows
+        continue-on-error: true
+        run: npm run test:flows
 
       - name: Lighthouse CI (desktop)
         id: lighthouse_desktop
@@ -121,11 +141,22 @@ jobs:
 
       - name: Summarise the results
         if: always()
+        env:
+          FLOWS: ${{ steps.flows.outcome }}
+          FLOWS_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           {
             node quality/summary.js \
               --pa11y "$RUNNER_TEMP/quality/pa11y.json" \
               --lighthouse "$RUNNER_TEMP/quality/lighthouse"
+            echo "## Assistive-technology flows"
+            echo ""
+            if [ "$FLOWS" = "success" ]; then
+              echo "Passed: every keyboard-only walkthrough in \`test/a11y/flows.test.mjs\`."
+            else
+              echo "Failed ($FLOWS): the assertion names the flow and the stop it was on — [see the step log]($FLOWS_URL)."
+            fi
+            echo ""
             echo "Full reports are attached to this run as the \`quality-reports\` artifact."
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -144,18 +175,20 @@ jobs:
         if: always()
         env:
           PA11Y: ${{ steps.pa11y.outcome }}
+          FLOWS: ${{ steps.flows.outcome }}
           DESKTOP: ${{ steps.lighthouse_desktop.outcome }}
           MOBILE: ${{ steps.lighthouse_mobile.outcome }}
         run: |
           failed=""
           [ "$PA11Y" = "success" ] || failed="$failed pa11y-ci"
+          [ "$FLOWS" = "success" ] || failed="$failed a11y-flows"
           [ "$DESKTOP" = "success" ] || failed="$failed lighthouse-desktop"
           [ "$MOBILE" = "success" ] || failed="$failed lighthouse-mobile"
           if [ -n "$failed" ]; then
             echo "Failed:$failed — see the job summary for the scores."
             exit 1
           fi
-          echo "pa11y-ci and both Lighthouse lanes passed."
+          echo "pa11y-ci, the flow tests and both Lighthouse lanes passed."
 
   status:
     # `gh workflow run quality.yml --ref <branch>` produces a run with no

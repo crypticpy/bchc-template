@@ -51,18 +51,20 @@ module.exports = {
     submit,
     `${BASE}/about/`,
     setup,
-    // Wizard steps that only exist after interaction: Branding (live preview) and Entry model (field builder).
+    // Wizard steps that only exist after interaction: Look (live preview) and
+    // Entry model (field builder). Selected by step id, not position — the
+    // wizard's step list grows.
     {
       url: setup,
       actions: [
-        'click element #wizard-steps button:nth-child(2)',
+        'click element #wizard-steps button[data-step="look"]',
         'wait for element .theme-preview to be visible',
       ],
     },
     {
       url: setup,
       actions: [
-        'click element #wizard-steps button:nth-child(4)',
+        'click element #wizard-steps button[data-step="fields"]',
         'wait for element .wizard-actions.is-sticky to be visible',
         // Open the first field row so the per-field controls are audited too.
         'click element #schema-field-title-toggle',

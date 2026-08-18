@@ -28,7 +28,13 @@ robots: noindex
 
   <nav id="wizard-steps" class="mb-6 flex flex-wrap gap-2" aria-label="Setup steps"></nav>
 
-  <div id="wizard-errors" class="mb-6" role="alert"></div>
+  {%- comment -%}
+    No `role="alert"`, for the same reason the submission form's error summary
+    has none: the panel the wizard renders in here takes focus the moment it
+    fills, so an assistive technology reads it as the new focus target.
+    Announcing it as a live region as well makes it arrive twice.
+  {%- endcomment -%}
+  <div id="wizard-errors" class="mb-6"></div>
 
   <div id="wizard">
     <noscript>

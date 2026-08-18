@@ -33,6 +33,7 @@ Run these before opening a pull request; `validate.yml` and `quality.yml` run th
 | `npm run validate` | Every `_data/*.yml` parses; every entry's front matter passes `scripts/check_front_matter.rb`; no oversize files. |
 | `npm run build:css && bundle exec jekyll build` | The site builds without Liquid errors. |
 | `npm run a11y` | pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in `quality/pa11yci.js` (sample entry URLs are discovered from the built site). Needs the built site served on port 4173: `python3 -m http.server 4173 --directory _site &`. |
+| `npm run test:flows` | The assistive-technology flow tests (`test/a11y/flows.test.mjs`): keyboard-only walkthroughs — home → catalog → filter → entry → Back, search → result, the submission form's errors, the setup wizard's first step change — asserting focus order, a visible focus ring, live-region announcements and no dead ends. Needs the same served build as `npm run a11y`, plus puppeteer (`npm install --no-save puppeteer@$(node -p "require('./quality/package.json').devDependencies.puppeteer")`). Point it elsewhere with `FLOW_BASE_URL`. |
 | `npm run lighthouse` | Lighthouse CI (`quality/lighthouserc.js`) against the same local server; accessibility ≥ 0.95 is required, other categories warn. |
 
 ## Ground rules
