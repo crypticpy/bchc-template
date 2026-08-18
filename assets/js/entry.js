@@ -1,8 +1,38 @@
-// Entry page enhancements: copy-link button and table-of-contents scroll-spy.
-// Both are optional — the page is complete and navigable without them.
+// Entry page enhancements: share and copy-link buttons, table-of-contents
+// scroll-spy. All optional — the page is complete and navigable without them.
 (function () {
+  setupShare();
   setupCopyLink();
   setupScrollSpy();
+
+  /**
+   * Wire the "Share" button, which hands the entry to the OS share sheet —
+   * Messages, Mail, the reader's notes app — instead of asking them to copy a
+   * URL and find somewhere to paste it. That is how a colleague actually passes
+   * an entry on from a phone.
+   *
+   * Hidden unless the browser can share this exact payload: `navigator.share`
+   * exists on desktop Firefox but rejects, and `canShare` is the only honest
+   * test. Where it is missing the button never appears and "Copy link" — which
+   * stays visible either way — is the whole affordance, as it is today.
+   */
+  function setupShare() {
+    const button = document.querySelector('[data-share-link]');
+    if (!button) return;
+    const url = button.dataset.shareLink || window.location.href;
+    const title = document.title;
+    const payload = { title, url };
+    if (!navigator.share || !navigator.canShare || !navigator.canShare(payload)) return;
+    button.hidden = false;
+    button.addEventListener('click', () => {
+      // A dismissed share sheet rejects with AbortError. That is the reader
+      // saying "no", not a failure, and it must not reach the console or the
+      // status line.
+      navigator.share(payload).catch((err) => {
+        if (err && err.name !== 'AbortError') button.hidden = true;
+      });
+    });
+  }
 
   /**
    * Wire the "Copy link" button. The button is hidden when the browser has no
