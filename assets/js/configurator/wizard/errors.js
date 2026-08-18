@@ -8,6 +8,7 @@
  * which control it belongs to links straight to it.
  */
 
+import { scrollBehavior } from '../../lib/motion.js';
 import { el } from '../dom.js';
 
 /**
@@ -32,8 +33,59 @@ function normalize(problem) {
 function jumpTo(id) {
   const node = document.getElementById(id);
   if (!node) return;
-  node.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  node.scrollIntoView({ block: 'center', behavior: scrollBehavior() });
   node.focus({ preventScroll: true });
+}
+
+/** The id of the inline message belonging to a control. */
+const errorId = (target) => `${target}-error`;
+
+/** Add an id to a space-separated attribute, keeping the existing ones. */
+function describedBy(control, id) {
+  const current = (control.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+  if (!current.includes(id)) current.push(id);
+  control.setAttribute('aria-describedby', current.join(' '));
+}
+
+/** Take one control out of its error state. */
+function unmark(control) {
+  control.removeAttribute('aria-invalid');
+  const id = errorId(control.id);
+  const message = document.getElementById(id);
+  if (message) message.remove();
+  const rest = (control.getAttribute('aria-describedby') || '')
+    .split(/\s+/)
+    .filter((token) => token && token !== id);
+  if (rest.length > 0) control.setAttribute('aria-describedby', rest.join(' '));
+  else control.removeAttribute('aria-describedby');
+}
+
+/**
+ * Put the problems back on the controls that caused them.
+ *
+ * The summary panel alone leaves the step looking untouched — a long step can
+ * be 6,000px tall, and by the time the reader has scrolled to a control there
+ * is nothing on screen saying it is the wrong one. Cleared on the control's
+ * next `input`, the same moment the reader has done something about it.
+ *
+ * @param {Problem[]} [problems] the same list handed to `announce()`.
+ */
+export function mark(problems) {
+  document.querySelectorAll('#wizard [aria-invalid="true"]').forEach(unmark);
+  for (const item of (problems || []).map(normalize)) {
+    if (!item.target || !item.message) continue;
+    const control = document.getElementById(item.target);
+    // Schema problems point at a row's disclosure button, not at a control:
+    // there is nothing to mark invalid and nowhere sensible to put the text.
+    if (!control || !('value' in control)) continue;
+    control.setAttribute('aria-invalid', 'true');
+    const id = errorId(item.target);
+    if (!document.getElementById(id)) {
+      control.after(el('p', { id, class: 'field-error', text: item.message }));
+      describedBy(control, id);
+      control.addEventListener('input', () => unmark(control), { once: true });
+    }
+  }
 }
 
 /**
@@ -82,4 +134,9 @@ export function announce(problems, { focus = true } = {}) {
 
   target.append(panel);
   if (focus) panel.focus();
+
+  // setup-page.js re-renders the step body after validation returns, which
+  // would throw away anything put on a control now. A microtask runs once that
+  // synchronous render has finished, so the marks land on the new controls.
+  queueMicrotask(() => mark(items));
 }

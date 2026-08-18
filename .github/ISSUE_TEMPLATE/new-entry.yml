@@ -21,31 +21,15 @@ body:
     id: title
     attributes:
       label: Title
-      description: "What is it called? Short, descriptive name of the solution or project."
+      description: What is it called? Specific enough that someone scanning a list of names knows what it is.
       placeholder: Automated 311 call triage with LLM classification
     validations:
       required: true
-  - type: textarea
-    id: summary
-    attributes:
-      label: One-sentence summary
-      description: "In one or two sentences, what does it do? One or two sentences shown on the catalog card. Plain language, no jargon."
-      placeholder: Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first.
-    validations:
-      required: true
-  - type: input
-    id: impact
-    attributes:
-      label: Result in one line
-      description: What is the single most concrete result so far? Optional. The single most concrete outcome so far — a number if you have one.
-      placeholder: Cut brief turnaround from 3 days to 1 hour
-    validations:
-      required: false
   - type: input
     id: organization
     attributes:
       label: Organization
-      description: "Which organization is sharing this? The organization sharing this entry — a health department, city, agency or member organization."
+      description: "Which organization is sharing this? A health department, city, agency or member organization."
       placeholder: Chicago Department of Public Health
     validations:
       required: true
@@ -62,30 +46,33 @@ body:
         - Playbook or write-up
     validations:
       required: true
-  - type: checkboxes
+  - type: dropdown
     id: area
     attributes:
       label: Area of work
-      description: "Which areas of work does it apply to? Program areas and business functions this applies to. Select all that fit — it doesn't have to be a health program. Required — choose at least one."
+      description: Which areas of work does it apply to? Select all that fit — these are business functions as much as health programs.
+      multiple: true
       options:
-        - label: "Epidemiology & surveillance"
-        - label: "Clinical & community services"
-        - label: Environmental health
-        - label: Emergency preparedness
-        - label: "Communications & outreach"
-        - label: "Data & informatics"
-        - label: "Policy & planning"
-        - label: "HR & workforce"
-        - label: "Finance, procurement & contracts"
-        - label: "IT & operations"
-        - label: "Legal & compliance"
-        - label: "Staff & partner coordination"
-        - label: "Leadership & administration"
+        - "Epidemiology & surveillance"
+        - "Clinical & community services"
+        - Environmental health
+        - Emergency preparedness
+        - "Communications & outreach"
+        - "Data & informatics"
+        - "Policy & planning"
+        - "HR & workforce"
+        - "Finance, procurement & contracts"
+        - "IT & operations"
+        - "Legal & compliance"
+        - "Staff & partner coordination"
+        - "Leadership & administration"
+    validations:
+      required: true
   - type: dropdown
     id: stage
     attributes:
       label: Stage
-      description: Where is it today? How far along it is — pick the stage that best matches real use.
+      description: "How far along is it? Pick the stage that matches real use, not the plan."
       options:
         - Idea / exploring
         - Pilot
@@ -93,6 +80,22 @@ body:
         - Paused or retired
     validations:
       required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: "In one or two sentences, what does it do? Shown on the catalog card. Plain language, no jargon."
+      placeholder: Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first.
+    validations:
+      required: true
+  - type: input
+    id: impact
+    attributes:
+      label: Result in one line
+      description: What is the single most concrete result so far? A number if you have one.
+      placeholder: Cut brief turnaround from 3 days to 1 hour
+    validations:
+      required: false
   - type: markdown
     attributes:
       value: |-
@@ -103,56 +106,62 @@ body:
     id: ai_role
     attributes:
       label: How AI is involved
-      description: "Is the AI in the product, or was AI used to build it? Is the AI in the product, or was it used to make the product?"
+      description: "Is the AI in the product, or was AI used to build it?"
       options:
         - AI is part of the solution
         - AI was used to build it
         - Both
     validations:
       required: true
-  - type: checkboxes
+  - type: dropdown
     id: ai_types
     attributes:
       label: Types of AI
       description: What kinds of AI does it use? Select all that apply.
+      multiple: true
       options:
-        - label: Generative text (LLM)
-        - label: Chat assistant
-        - label: "Document Q&A (RAG)"
-        - label: "Classification & NLP"
-        - label: "Prediction & forecasting"
-        - label: Computer vision
-        - label: "Speech & transcription"
-        - label: Translation
-        - label: "Agents & automation"
-        - label: Rules-based (no ML)
+        - Generative text (LLM)
+        - Chat assistant
+        - "Document Q&A (RAG)"
+        - "Classification & NLP"
+        - "Prediction & forecasting"
+        - Computer vision
+        - "Speech & transcription"
+        - Translation
+        - "Agents & automation"
+        - Rules-based (no ML)
+    validations:
+      required: false
   - type: textarea
     id: ai_tools
     attributes:
       label: "AI tools & models"
-      description: "Which AI tools, models or services does it use? Comma-separated. Name the models, platforms or libraries that matter. One per line, or separated by commas."
+      description: "Which AI tools, models or services does it use? Name the models, platforms or libraries that matter. One per line, or separated by commas."
       placeholder: "Azure OpenAI GPT-4o, LangChain, custom scikit-learn model"
     validations:
       required: false
-  - type: checkboxes
+  - type: dropdown
     id: platform
     attributes:
       label: Where it runs
       description: Where does it run? Select all that apply.
+      multiple: true
       options:
-        - label: AWS
-        - label: Microsoft Azure
-        - label: Google Cloud
-        - label: On-premises
-        - label: Vendor / SaaS hosted
-        - label: Enterprise AI workspace
-        - label: Low-code platform
-        - label: Desktop or local
+        - AWS
+        - Microsoft Azure
+        - Google Cloud
+        - On-premises
+        - Vendor / SaaS hosted
+        - Enterprise AI workspace
+        - Low-code platform
+        - Desktop or local
+    validations:
+      required: false
   - type: input
     id: vendor
     attributes:
       label: Vendor or partner
-      description: "Is a vendor or partner involved? If a vendor built or hosts the solution, name them here."
+      description: "If a vendor or partner built or hosts it, who? Leave it blank if your own team built it."
       placeholder: Acme Health AI
     validations:
       required: false
@@ -166,7 +175,7 @@ body:
     id: expertise
     attributes:
       label: Skills needed to set it up
-      description: Who would need to be involved to set this up? The least technical person who could get this running.
+      description: "Who is the least technical person who could get this running? Judge it by setting the thing up, not by using it afterwards."
       options:
         - Anyone on staff
         - Power user
@@ -175,25 +184,28 @@ body:
         - Contractor or vendor
     validations:
       required: true
-  - type: checkboxes
+  - type: dropdown
     id: readiness
     attributes:
       label: Readiness
-      description: "Before someone reuses this, what should they know? How much work is left between finding this and running it? Select all that apply."
+      description: What would another team need before they could use this? Select all that apply.
+      multiple: true
       options:
-        - label: Ready to deploy
-        - label: Guided setup
-        - label: Needs customization
-        - label: Needs a contractor
-        - label: Needs a paid license
-        - label: Needs a data agreement
-        - label: Human review built in
-        - label: Reference only
+        - Ready to deploy
+        - Guided setup
+        - Needs customization
+        - Needs a contractor
+        - Needs a paid license
+        - Needs a data agreement
+        - Human review built in
+        - Reference only
+    validations:
+      required: false
   - type: input
     id: repo_url
     attributes:
       label: Source code
-      description: "Where is the source code? GitHub, GitLab, Azure DevOps or any public repository."
+      description: "If the code is public, where? GitHub, GitLab, Azure DevOps or any public repository."
       placeholder: "https://github.com/your-org/your-project"
     validations:
       required: false
@@ -201,7 +213,7 @@ body:
     id: demo_url
     attributes:
       label: Live site or demo
-      description: Is there a live site or demo?
+      description: Link to a live site or demo.
       placeholder: "https://example.org/app"
     validations:
       required: false
@@ -209,7 +221,7 @@ body:
     id: docs_url
     attributes:
       label: Documentation or write-up
-      description: "Is there documentation or a write-up? Slides, a report, a blog post, or a vendor case study."
+      description: "Link to documentation, slides or a write-up. A report, a blog post or a vendor case study all count."
       placeholder: "https://example.org/docs"
     validations:
       required: false
@@ -217,7 +229,7 @@ body:
     id: resources
     attributes:
       label: Other resources
-      description: "Anything else worth linking? Anything else worth linking — shared drives, SharePoint, model cards, container images, vendor pages. One per line as “Label | URL”. One per line as `Label | URL`."
+      description: "Anything else worth linking? Shared drives, SharePoint, model cards, container images, vendor pages. One per line as `Label | URL`."
       placeholder: "Evaluation report | https://drive.google.com/…"
     validations:
       required: false
@@ -225,7 +237,7 @@ body:
     id: screenshots
     attributes:
       label: Screenshots
-      description: "Can you show it in use? Up to eight PNG, JPEG, GIF or WebP images of the tool in use (15 MB total). Make sure no personal or protected information is visible. Drag images into this box to upload them, or paste one image URL per line — optionally as `URL | alt text`."
+      description: "Screenshots of it in use. Up to eight PNG, JPEG, GIF or WebP images of the tool in use (15 MB total). Make sure no personal or protected information is visible. Drag images into this box to upload them, or paste one image URL per line — optionally as `URL | alt text`."
     validations:
       required: false
   - type: markdown
@@ -237,23 +249,26 @@ body:
         ### Data & access
 
         What data it touches and who sees the output.
-  - type: checkboxes
+  - type: dropdown
     id: data_sensitivity
     attributes:
       label: Data it touches
-      description: What kind of data does it touch? Select all that apply. This helps others judge governance and approval effort. Required — choose at least one.
+      description: What kind of data does it touch? Select all that apply. This helps others judge governance and approval effort.
+      multiple: true
       options:
-        - label: Public data only
-        - label: De-identified data
-        - label: "Internal, non-public data"
-        - label: Personal information (PII)
-        - label: Health information (PHI)
-        - label: Criminal justice data (CJIS)
+        - Public data only
+        - De-identified data
+        - "Internal, non-public data"
+        - Personal information (PII)
+        - Health information (PHI)
+        - Criminal justice data (CJIS)
+    validations:
+      required: true
   - type: textarea
     id: data_sources
     attributes:
       label: Data sources
-      description: "Which data sources does it use? Comma-separated. What data does the solution use? Describe — do not paste — sensitive data. One per line, or separated by commas."
+      description: "Which data sources does it use? Describe the sources — do not paste sensitive data. One per line, or separated by commas."
       placeholder: "Immunization registry, 311 call transcripts, ESSENCE"
     validations:
       required: false
@@ -261,7 +276,7 @@ body:
     id: audience
     attributes:
       label: Who sees the output
-      description: Who sees the output?
+      description: Who sees the output? Pick the widest group that sees anything it produces.
       options:
         - Public-facing
         - Internal staff
@@ -278,7 +293,7 @@ body:
     id: contact_name
     attributes:
       label: Contact name
-      description: Who can people contact? Person others can reach out to with questions.
+      description: Who can people contact? Someone happy to answer questions from another team.
       placeholder: Jordan Lee
     validations:
       required: true
@@ -300,7 +315,7 @@ body:
     id: body
     attributes:
       label: Full write-up
-      description: "Tell the full story. Markdown is supported. Suggested headings: Problem, Approach, What it took (data, staffing, cost), Results, Lessons learned, How to reuse."
+      description: "What's the story? Markdown is supported. Suggested headings: Problem, Approach, What it took (data, staffing, cost), Results, Lessons learned, How to reuse."
       value: |
         ## Problem
 

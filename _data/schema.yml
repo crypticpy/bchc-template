@@ -25,7 +25,10 @@
 #                   images into the GitHub issue; the scaffolder downloads them into the entry folder.
 #                 - links: labelled links — YAML list of {label, url}. Forms accept "Label | URL" per line.
 #   required    true|false (default false)
-#   description help text shown under the field in forms
+#   description help that the prompt does not already give: a constraint, an example, a boundary.
+#               Forms print it straight after the prompt, so it must not restate it.
+#   error       optional message shown when a required answer is missing; overrides the generated
+#               default ("Enter an answer for <prompt>"). Write it as verb + the thing.
 #   placeholder example text shown in forms
 #   options     list of allowed values (select / multiselect)
 #   option_meta optional per-option presentation: { "<option>": {short, icon, tone, description} }
@@ -94,29 +97,7 @@ fields:
     group: about
     weight: 1
     placeholder: "Automated 311 call triage with LLM classification"
-    description: "Short, descriptive name of the solution or project."
-
-  - key: summary
-    label: "One-sentence summary"
-    prompt: "In one or two sentences, what does it do?"
-    type: textarea
-    required: true
-    group: about
-    weight: 2
-    description: "One or two sentences shown on the catalog card. Plain language, no jargon."
-    placeholder: "Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first."
-
-  - key: impact
-    label: "Result in one line"
-    prompt: "What is the single most concrete result so far?"
-    type: text
-    group: about
-    weight: 3
-    card: line
-    icon: trending-up
-    search: true
-    placeholder: "Cut brief turnaround from 3 days to 1 hour"
-    description: "Optional. The single most concrete outcome so far — a number if you have one."
+    description: "Specific enough that someone scanning a list of names knows what it is."
 
   - key: organization
     label: "Organization"
@@ -124,13 +105,13 @@ fields:
     type: text
     required: true
     group: about
-    weight: 4
+    weight: 2
     facet: true
     card: meta
     search: true
     icon: building
     placeholder: "Chicago Department of Public Health"
-    description: "The organization sharing this entry — a health department, city, agency or member organization."
+    description: "A health department, city, agency or member organization."
 
   - key: solution_type
     label: "What is being shared"
@@ -138,7 +119,7 @@ fields:
     type: select
     required: true
     group: about
-    weight: 5
+    weight: 3
     facet: true
     card: badge
     icon: layers
@@ -172,7 +153,7 @@ fields:
     type: multiselect
     required: true
     group: about
-    weight: 6
+    weight: 4
     facet: true
     card: chip
     icon: tag
@@ -204,15 +185,15 @@ fields:
       "Legal & compliance": { short: "Legal" }
       "Staff & partner coordination": { short: "Coordination" }
       "Leadership & administration": { short: "Leadership" }
-    description: "Program areas and business functions this applies to. Select all that fit — it doesn't have to be a health program."
+    description: "Select all that fit — these are business functions as much as health programs."
 
   - key: stage
     label: "Stage"
-    prompt: "Where is it today?"
+    prompt: "How far along is it?"
     type: select
     required: true
     group: about
-    weight: 7
+    weight: 5
     facet: true
     card: meta
     icon: flag
@@ -226,7 +207,29 @@ fields:
       "Pilot": { description: "In limited use with real users while it is evaluated." }
       "In production": { short: "In production", tone: primary, description: "In regular, supported use." }
       "Paused or retired": { short: "Retired", description: "No longer active — shared for the lessons." }
-    description: "How far along it is — pick the stage that best matches real use."
+    description: "Pick the stage that matches real use, not the plan."
+
+  - key: summary
+    label: "Summary"
+    prompt: "In one or two sentences, what does it do?"
+    type: textarea
+    required: true
+    group: about
+    weight: 6
+    description: "Shown on the catalog card. Plain language, no jargon."
+    placeholder: "Classifies incoming public health hotline calls by urgency and topic so nurses see the highest-priority cases first."
+
+  - key: impact
+    label: "Result in one line"
+    prompt: "What is the single most concrete result so far?"
+    type: text
+    group: about
+    weight: 7
+    card: line
+    icon: trending-up
+    search: true
+    placeholder: "Cut brief turnaround from 3 days to 1 hour"
+    description: "A number if you have one."
 
   - key: ai_role
     label: "How AI is involved"
@@ -245,7 +248,6 @@ fields:
       "AI is part of the solution": { short: "In solution", description: "The running system uses AI (a model, an assistant, an automation)." }
       "AI was used to build it": { short: "Built with AI", description: "AI tools helped write the code, docs or analysis, but the product itself doesn't use AI." }
       "Both": { description: "AI is in the product and was used to build it." }
-    description: "Is the AI in the product, or was it used to make the product?"
 
   - key: ai_types
     label: "Types of AI"
@@ -289,7 +291,7 @@ fields:
     search: true
     icon: terminal
     placeholder: "Azure OpenAI GPT-4o, LangChain, custom scikit-learn model"
-    description: "Comma-separated. Name the models, platforms or libraries that matter."
+    description: "Name the models, platforms or libraries that matter."
 
   - key: platform
     label: "Where it runs"
@@ -320,17 +322,17 @@ fields:
 
   - key: vendor
     label: "Vendor or partner"
-    prompt: "Is a vendor or partner involved?"
+    prompt: "If a vendor or partner built or hosts it, who?"
     type: text
     group: build
     weight: 5
     search: true
     placeholder: "Acme Health AI"
-    description: "If a vendor built or hosts the solution, name them here."
+    description: "Leave it blank if your own team built it."
 
   - key: expertise
     label: "Skills needed to set it up"
-    prompt: "Who would need to be involved to set this up?"
+    prompt: "Who is the least technical person who could get this running?"
     type: select
     required: true
     group: reuse
@@ -350,11 +352,11 @@ fields:
       "Analyst or data scientist": { short: "Analyst", icon: chart-bar, description: "Someone who works in Python, R or SQL." }
       "Developer": { icon: code, description: "A software developer to deploy or adapt it." }
       "Contractor or vendor": { short: "Contractor", icon: wrench, description: "Outside help is required to stand this up." }
-    description: "The least technical person who could get this running."
+    description: "Judge it by setting the thing up, not by using it afterwards."
 
   - key: readiness
     label: "Readiness"
-    prompt: "Before someone reuses this, what should they know?"
+    prompt: "What would another team need before they could use this?"
     type: multiselect
     group: reuse
     weight: 2
@@ -379,11 +381,11 @@ fields:
       "Needs a data agreement": { short: "Data agreement", icon: document, description: "A data-sharing or BAA-type agreement is required." }
       "Human review built in": { short: "Human review", icon: eye, description: "A person checks the AI's output before it is used." }
       "Reference only": { short: "Reference", icon: book-open, description: "Documentation and lessons — not something to deploy." }
-    description: "How much work is left between finding this and running it? Select all that apply."
+    description: "Select all that apply."
 
   - key: repo_url
     label: "Source code"
-    prompt: "Where is the source code?"
+    prompt: "If the code is public, where?"
     type: url
     group: reuse
     weight: 3
@@ -393,7 +395,7 @@ fields:
 
   - key: demo_url
     label: "Live site or demo"
-    prompt: "Is there a live site or demo?"
+    prompt: "Link to a live site or demo"
     type: url
     group: reuse
     weight: 4
@@ -402,13 +404,13 @@ fields:
 
   - key: docs_url
     label: "Documentation or write-up"
-    prompt: "Is there documentation or a write-up?"
+    prompt: "Link to documentation, slides or a write-up"
     type: url
     group: reuse
     weight: 5
     icon: document
     placeholder: "https://example.org/docs"
-    description: "Slides, a report, a blog post, or a vendor case study."
+    description: "A report, a blog post or a vendor case study all count."
 
   - key: resources
     label: "Other resources"
@@ -418,11 +420,11 @@ fields:
     weight: 6
     icon: link
     placeholder: "Evaluation report | https://drive.google.com/…"
-    description: "Anything else worth linking — shared drives, SharePoint, model cards, container images, vendor pages. One per line as “Label | URL”."
+    description: "Shared drives, SharePoint, model cards, container images, vendor pages."
 
   - key: screenshots
     label: "Screenshots"
-    prompt: "Can you show it in use?"
+    prompt: "Screenshots of it in use"
     type: images
     group: reuse
     weight: 7
@@ -431,14 +433,14 @@ fields:
 
   - key: deck_pdf
     label: "Slide deck or one-pager (PDF)"
-    prompt: "Do you have a slide deck or one-pager?"
+    prompt: "Slide deck or one-pager"
     type: file
     filename: "deck.pdf"
     thumbnail: true
     group: reuse
     weight: 8
     icon: presentation
-    description: "Optional. After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically."
+    description: "After the pull request is created, upload deck.pdf into the entry folder and a thumbnail is generated automatically."
 
   - key: data_sensitivity
     label: "Data it touches"
@@ -475,7 +477,7 @@ fields:
     search: true
     icon: database
     placeholder: "Immunization registry, 311 call transcripts, ESSENCE"
-    description: "Comma-separated. What data does the solution use? Describe — do not paste — sensitive data."
+    description: "Describe the sources — do not paste sensitive data."
 
   - key: audience
     label: "Who sees the output"
@@ -495,6 +497,7 @@ fields:
       "Public-facing": { short: "Public", icon: globe, description: "Residents or the general public interact with it." }
       "Internal staff": { short: "Internal", icon: lock, description: "Used only inside the organization." }
       "Partner organizations": { short: "Partners", icon: users, description: "Shared with specific partner organizations." }
+    description: "Pick the widest group that sees anything it produces."
 
   - key: contact_name
     label: "Contact name"
@@ -504,7 +507,7 @@ fields:
     group: contact
     weight: 1
     placeholder: "Jordan Lee"
-    description: "Person others can reach out to with questions."
+    description: "Someone happy to answer questions from another team."
 
   - key: contact_email
     label: "Contact email"
@@ -517,7 +520,7 @@ fields:
 
   - key: body
     label: "Full write-up"
-    prompt: "Tell the full story"
+    prompt: "What's the story?"
     type: markdown
     required: true
     group: story

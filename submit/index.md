@@ -10,6 +10,7 @@ scripts:
   - "/assets/js/submit/preview.js"
   - "/assets/js/submit/draft.js"
   - "/assets/js/submit/handoff.js"
+  - "/assets/js/submit/review.js"
   - "/assets/js/submit.js"
 ---
 {%- comment -%}
@@ -24,12 +25,18 @@ scripts:
       data-type               schema type
       data-required           "true" when an answer is needed
       data-label              schema label (issue-form heading + error summary)
+      data-question           the visible question, for error messages
+      data-error              schema `error:` override, "" when unset
       data-slot               card slot: badge | chip | meta | icon | line
       data-weight             schema weight, for card slot truncation order
       data-prefill            "false" when GitHub cannot prefill this control
     [data-preview-panel]      the card preview; hidden until the JS opens it, so
                               it never appears as a dead panel without scripts
     [data-section=<key>]      one form step
+    [data-review]             empty container the "check your answers" step and
+                              the confirmation panel are rendered into
+    [data-review-next]        <template> holding the full "what happens next"
+    [data-form-chrome]        parts of the form hidden while the review shows
     [data-option-view=k__i]   <template> for option i of field k on the card
     [data-line-view=<key>]    <template> for a `card: line` field
       data-role               "title" / "summary" — the two reserved keys every
@@ -47,17 +54,43 @@ scripts:
 {%- assign chip_field = chip_fields | first -%}
 {%- assign line_fields = ff | card_fields: 'line' -%}
 {%- assign icon_fields = ff | card_fields: 'icon' -%}
+{%- assign fallback_email = cfg.submit.fallback_email | default: cfg.organization.contact_email | default: '' -%}
 
 <section class="max-w-prose">
   <span class="eyebrow">Contribute</span>
-  <h1 class="page-title mt-2">Submit a {{ singular | downcase }}</h1>
+  <h1 class="page-title mt-2">Submit {{ singular | downcase | with_article }}</h1>
   <p class="mt-4 text-lg text-brand-muted">{{ cfg.submit.intro | default: 'Tell us about your work. Maintainers review every submission before it is published.' }}</p>
-  <p class="mt-3 text-sm text-brand-muted">Nothing is sent from this page. When you're done, it opens a GitHub issue with your answers filled in, and you press <em>Submit new issue</em> there. You'll need a free GitHub account — or use <em>Email it instead</em>.</p>
+  <p class="mt-3 text-sm text-brand-muted">Nothing is sent from this page. Your answers stay in this browser until you press a button.{% if fallback_email != '' %} You'll need a free GitHub account — or use <em>Email it instead</em>.{% else %} You'll need a free GitHub account.{% endif %}</p>
+  <ol class="mt-4 space-y-1 text-sm text-brand-muted" data-form-chrome>
+    <li><strong class="text-brand-ink">1.</strong> Answer the questions below.</li>
+    <li><strong class="text-brand-ink">2.</strong> Check your answers, then send them to GitHub.</li>
+    <li><strong class="text-brand-ink">3.</strong> Press <em>Submit new issue</em> on GitHub — that is what actually submits it.</li>
+  </ol>
 </section>
+
+{%- comment -%}
+  Without scripts there is no validation, no preview and no repeatable link
+  rows, but the form itself still works: it is a plain GET to GitHub's issue
+  form, and the field names are the issue-form input ids. The skeleton below is
+  the same `### Label` shape assets/js/submit/handoff.js builds, for anyone who
+  would rather paste than fill in.
+{%- endcomment -%}
+<noscript>
+  <div class="mt-8 rounded-lg border border-brand-line bg-surface-base p-4 text-sm text-brand-ink">
+    <p class="font-semibold">JavaScript is off, so this page cannot check your answers, preview your card or save a draft.</p>
+    <p class="mt-2 text-brand-muted">The form still works. Fill it in and press <em>Check your answers</em>: without scripts that goes straight to the GitHub issue form with your answers carried across, where you can read them over before pressing <em>Submit new issue</em>. Questions that ask for several links can only be answered on GitHub.</p>{% if fallback_email != '' %}
+    <p class="mt-2 text-brand-muted">Or <a class="font-semibold text-brand-primary underline underline-offset-2 hover:no-underline" href="mailto:{{ fallback_email }}?subject={{ singular | prepend: '[' | append: '] New entry' | uri_escape }}">email it instead</a> and paste your answers into the message.</p>{% endif %}
+    <p class="mt-3 font-semibold">Or write it out by hand</p>
+    <p class="mt-1 text-brand-muted">Open a blank issue in the catalog repository, add the label <code>content:new-entry</code>, and paste this outline with your answers under each heading. The automation reads exactly this format.</p>
+    <textarea class="field-input mt-2 min-h-[10rem] font-mono text-xs" rows="12" readonly aria-label="Issue outline to copy">{% for ng in form_groups %}{% assign ng_fields = ff | fields_in_group: ng.key %}{% for nf in ng_fields %}{% unless nf.type == 'file' %}### {{ nf.label }}
+
+{% endunless %}{% endfor %}{% endfor %}</textarea>
+  </div>
+</noscript>
 
 <div class="mt-10 grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)_19rem]">
 
-  <nav class="hidden lg:col-start-1 lg:row-start-1 lg:block" aria-label="Form sections">
+  <nav class="hidden lg:col-start-1 lg:row-start-1 lg:block" aria-label="Form sections" data-form-chrome>
     <div class="progress-rail lg:sticky lg:top-24">
       <p class="progress-count" data-progress-count>0 of {{ form_groups.size }} sections complete</p>
       <ul class="mt-3 space-y-0.5">
@@ -66,6 +99,8 @@ scripts:
           <a class="progress-link" href="#section-{{ g.key }}" data-progress-link="{{ g.key }}" data-done="false">
             <span class="progress-dot" aria-hidden="true"></span>
             <span>{{ g.title }}<span class="sr-only" data-progress-state> — not started</span></span>
+            {%- comment -%}Filled in by assets/js/submit.js when a submit attempt finds problems in this section.{%- endcomment -%}
+            <span class="ml-auto shrink-0 text-xs font-semibold text-brand-accent" data-progress-errors hidden></span>
           </a>
         </li>
         {%- endfor %}
@@ -105,56 +140,80 @@ scripts:
         </div>
       </article>
 
-      <div class="mt-4 space-y-2 border-t border-brand-line pt-4 text-xs text-brand-muted">
-        <p class="font-semibold text-brand-ink">What happens next</p>
-        <ol class="space-y-1.5">
-          <li>1. Your answers open a pre-filled GitHub issue. Review it and press <em>Submit new issue</em>.</li>
-          <li>2. Automation drafts the page and opens a pull request.</li>
-          <li>3. {{ cfg.submit.turnaround | default: 'A maintainer reviews it — usually within a few days.' }}</li>
-        </ol>
-        {%- if cfg.submit.review_note -%}
-        <p class="mt-3 flex items-start gap-1.5 rounded-md bg-brand-accent/10 p-2 text-brand-ink">
-          {% include icon.html name='warning' size='sm' class='mt-0.5 shrink-0' %}<span>{{ cfg.submit.review_note }}</span>
-        </p>
-        {%- endif -%}
-      </div>
+      {%- if cfg.submit.review_note -%}
+      <p class="mt-4 flex items-start gap-1.5 border-t border-brand-line pt-4 text-xs text-brand-ink">
+        {% include icon.html name='warning' size='sm' class='mt-0.5 shrink-0' %}<span>{{ cfg.submit.review_note }}</span>
+      </p>
+      {%- endif -%}
     </details>
   </div>
 
+  {%- comment -%}
+    `action`/`method` are the no-JS route: GitHub's issue form reads the query
+    string, and every control's `name` is the schema key, which is also the
+    issue-form input id. With scripts on, the submit handler calls
+    preventDefault() and builds the same URL itself (so it can validate first
+    and drop anything GitHub cannot prefill). `novalidate` is *not* set here —
+    assets/js/submit.js sets it at boot, so the browser's own required-field
+    messages are the fallback when the script never runs.
+  {%- endcomment -%}
   <form class="min-w-0 space-y-10 lg:col-start-2 lg:row-start-1"
+        action="https://github.com/{{ cfg.github.repository }}/issues/new"
+        method="get"
         data-submit-form
         data-repo="{{ cfg.github.repository }}"
         data-template="new-entry.yml"
         data-title-prefix="[{{ singular }}] "
-        data-fallback-email="{{ cfg.submit.fallback_email | default: cfg.organization.contact_email }}"
+        data-fallback-email="{{ fallback_email }}"
         data-singular="{{ singular }}"
         data-entry-path="{{ schema.entry.path | default: 'catalog' }}"
         data-draft-key="{{ cfg.name | default: 'catalog' | slugify }}"
-        data-section-count="{{ form_groups.size }}"
-        novalidate>
+        data-section-count="{{ form_groups.size }}">
 
-    <div class="draft-bar" data-draft-restore hidden>
-      <p><strong>You have an unfinished draft</strong> saved on this device.</p>
+    <input type="hidden" name="template" value="new-entry.yml">
+
+    <div class="draft-bar" data-draft-restore hidden data-form-chrome>
+      <div>
+        <p><strong>You have an unfinished draft</strong> <span data-draft-saved>saved on this device</span>.</p>
+        <p class="text-xs text-brand-muted" data-draft-count></p>
+      </div>
       <div class="flex gap-2">
         <button type="button" class="btn-secondary btn-sm" data-draft-action="restore">Restore it</button>
-        <button type="button" class="btn-ghost btn-sm" data-draft-action="discard">Start fresh</button>
+        <button type="button" class="btn-ghost btn-sm" data-draft-action="discard">Delete it and start fresh</button>
       </div>
     </div>
+
+    {%- comment -%}
+      Shown instead of the draft bar when the browser refuses localStorage.
+      Private browsing is the common cause; a full quota is the other.
+    {%- endcomment -%}
+    <p class="draft-bar" data-draft-unavailable hidden>This browser will not save a draft — you may be in a private window. Copy your answers somewhere safe before you leave this page.</p>
 
     {%- comment -%}
       Small screens have no sticky rail, so this is the only place the
       submitter can see where they are in a long form. It rides just under the
       site header (h-16), below it in the stacking order.
     {%- endcomment -%}
-    <div class="sticky top-16 z-20 -mx-4 border-b border-brand-line bg-surface-base/95 px-4 py-2 shadow-e2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+    <div class="sticky top-16 z-20 -mx-4 border-b border-brand-line bg-surface-base/95 px-4 py-2 shadow-e2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden" data-form-chrome>
       <p class="truncate font-heading text-sm font-semibold text-brand-primary-dark" data-progress-section>{{ form_groups.first.title }}</p>
       <p class="progress-count" data-progress-line>0 of {{ form_groups.size }} sections complete</p>
     </div>
 
-    <div class="error-summary" role="alert" tabindex="-1" data-error-summary hidden>
+    {%- comment -%}
+      No `role="alert"`: the panel takes focus the moment it fills, so an
+      assistive technology reads it as the new focus target. Announcing it as a
+      live region as well makes it arrive twice.
+    {%- endcomment -%}
+    <div class="error-summary" tabindex="-1" data-error-summary hidden>
       <p class="error-summary-title">{% include icon.html name='warning' size='sm' %}<span data-error-summary-title>There is a problem</span></p>
       <ul class="mt-2 space-y-1 pl-6" data-error-summary-list></ul>
     </div>
+
+    {%- comment -%}
+      "Check your answers" and, after the hand-off, the confirmation panel are
+      rendered here by assets/js/submit/review.js. Empty and hidden until then.
+    {%- endcomment -%}
+    <div data-review hidden></div>
 
     {%- for g in form_groups %}
     {%- assign group_fields = ff | fields_in_group: g.key %}
@@ -169,19 +228,26 @@ scripts:
         {%- assign slot = f | card_slot -%}
         {%- assign describedby = fid | append: '-help ' | append: fid | append: '-error' -%}
         {%- assign question = f.prompt | default: f.label -%}
-        {%- if f.type == 'multiselect' -%}{%- assign prefillable = 'false' -%}{%- else -%}{%- assign prefillable = 'true' -%}{%- endif -%}
+        {%- comment -%}
+          Every control the generator emits is an input, a textarea or a
+          dropdown — GitHub prefills all three from the query string. Nothing is
+          unprefillable today, but the plumbing that says so is kept: change one
+          field back to `checkboxes` and the form starts warning about it again.
+        {%- endcomment -%}
+        {%- assign prefillable = 'true' -%}
         <div class="field" id="{{ fid }}-field" data-field="{{ f.key }}" data-type="{{ f.type }}" data-required="{{ f.required | default: false }}"
-             data-label="{{ f.label | escape }}" data-slot="{{ slot }}" data-weight="{{ f.weight | default: 5 }}"
+             data-label="{{ f.label | escape }}" data-question="{{ question | escape }}" data-error="{{ f.error | escape }}"
+             data-slot="{{ slot }}" data-weight="{{ f.weight | default: 5 }}"
              data-prefill="{{ prefillable }}" data-role="{% if f.key == 'title' %}title{% elsif f.key == 'summary' %}summary{% endif %}">
 
           {%- case f.type -%}
           {%- when 'select' or 'multiselect' -%}
             <fieldset>
-              <legend class="field-label" id="{{ fid }}-legend">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</legend>
-              <p class="field-help mt-1" id="{{ fid }}-help">{{ f.description }}{% if f.label != question %} <span>Shown as “{{ f.label }}”.</span>{% endif %}</p>
+              <legend class="field-label" id="{{ fid }}-legend">{{ question }}{% unless f.required %}<span class="font-normal text-brand-muted"> (optional)</span>{% endunless %}</legend>
+              <p class="field-help mt-1" id="{{ fid }}-help">{{ f.description }}</p>
               {%- if f.type == 'select' and f.options.size > 6 -%}
                 {%- comment -%} A legend does not name a <select>; point the control at it explicitly. {%- endcomment -%}
-                <select class="field-input mt-2" id="{{ fid }}" name="{{ f.key }}" aria-labelledby="{{ fid }}-legend" aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}>
+                <select class="field-input mt-2" id="{{ fid }}" name="{{ f.key }}" aria-labelledby="{{ fid }}-legend" aria-describedby="{{ describedby }}" {% if f.required %}required{% endif %}>
                   <option value="">Choose one…</option>
                   {%- for o in f.options -%}{%- assign om = f | option_meta: o -%}
                   <option value="{{ o | escape }}" data-option-index="{{ forloop.index0 }}" data-short="{{ om.short | escape }}">{{ o }}</option>
@@ -195,23 +261,28 @@ scripts:
                            type="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}"
                            id="{{ fid }}-{{ forloop.index0 }}" name="{{ f.key }}" value="{{ o | escape }}"
                            data-option-index="{{ forloop.index0 }}" data-short="{{ om.short | escape }}"
-                           {% if f.required %}aria-required="true"{% endif %} aria-describedby="{{ describedby }}">
+                           {% comment %}HTML has no way to say "tick at least one", so a required multiselect keeps aria-required and is checked by script only.{% endcomment %}
+                           {% if f.required %}{% if f.type == 'select' %}required{% else %}aria-required="true"{% endif %}{% endif %} aria-describedby="{{ describedby }}">
                     <span><span class="font-medium">{{ o }}</span>{% if om.description != '' %}<span class="field-option-desc">{{ om.description }}</span>{% endif %}</span>
                   </label>
                   {%- endfor -%}
-                  {%- unless f.required -%}
+                  {%- comment -%}
+                    Radio buttons cannot be un-picked, so an optional group of
+                    them needs an explicit way out. Tick boxes already have one.
+                  {%- endcomment -%}
+                  {%- if f.type == 'select' and f.required != true -%}
                   <label class="field-option">
-                    <input class="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}" type="{% if f.type == 'select' %}radio{% else %}checkbox{% endif %}" name="{{ f.key }}" value="" data-clear>
+                    <input class="radio" type="radio" name="{{ f.key }}" value="" data-clear>
                     <span><span class="font-medium">Skip this one</span></span>
                   </label>
-                  {%- endunless -%}
+                  {%- endif -%}
                 </div>
               {%- endif -%}
             </fieldset>
 
           {%- when 'links' -%}
             <fieldset>
-              <legend class="field-label">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</legend>
+              <legend class="field-label">{{ question }}{% unless f.required %}<span class="font-normal text-brand-muted"> (optional)</span>{% endunless %}</legend>
               <p class="field-help mt-1" id="{{ fid }}-help">{{ f.description }}</p>
               <div class="mt-2 space-y-2" data-links-rows></div>
               <template data-links-template>
@@ -229,32 +300,32 @@ scripts:
             </fieldset>
 
           {%- when 'images' -%}
-            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <label class="field-label" for="{{ fid }}">{{ question }}{% unless f.required %}<span class="font-normal text-brand-muted"> (optional)</span>{% endunless %}</label>
             <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
             <p class="field-note" id="{{ fid }}-note">You can drag image files straight into the GitHub issue on the next screen. If your images are already online, paste their addresses here instead — one per line, optionally followed by <code>| alt text</code>. PNG, JPEG, GIF and WebP images are copied into the repository; anything else is left as a link for a maintainer.</p>
             <textarea class="field-input min-h-[6rem]" id="{{ fid }}" name="{{ f.key }}" rows="3"
-                      aria-describedby="{{ describedby }} {{ fid }}-note" {% if f.required %}aria-required="true"{% endif %}
+                      aria-describedby="{{ describedby }} {{ fid }}-note" {% if f.required %}required{% endif %}
                       placeholder="https://example.org/screenshot.png | The daily brief queue"></textarea>
             <ul class="image-previews" data-image-previews hidden></ul>
 
           {%- when 'markdown' -%}
-            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <label class="field-label" for="{{ fid }}">{{ question }}{% unless f.required %}<span class="font-normal text-brand-muted"> (optional)</span>{% endunless %}</label>
             <p class="field-help" id="{{ fid }}-help">{{ f.description }}{% unless f.description contains 'arkdown' %} Markdown is supported — use <code>##</code> for headings.{% endunless %}</p>
             <textarea class="field-input min-h-[18rem] font-mono text-sm" id="{{ fid }}" name="{{ f.key }}" rows="16"
-                      aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}>{{ f.placeholder }}</textarea>
+                      aria-describedby="{{ describedby }}" {% if f.required %}required{% endif %}>{{ f.placeholder }}</textarea>
 
           {%- when 'textarea' -%}
-            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <label class="field-label" for="{{ fid }}">{{ question }}{% unless f.required %}<span class="font-normal text-brand-muted"> (optional)</span>{% endunless %}</label>
             <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
             <textarea class="field-input min-h-[6rem]" id="{{ fid }}" name="{{ f.key }}" rows="3"
-                      aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}
+                      aria-describedby="{{ describedby }}" {% if f.required %}required{% endif %}
                       placeholder="{{ f.placeholder | escape }}"></textarea>
 
           {%- when 'list' -%}
-            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <label class="field-label" for="{{ fid }}">{{ question }}{% unless f.required %}<span class="font-normal text-brand-muted"> (optional)</span>{% endunless %}</label>
             <p class="field-help" id="{{ fid }}-help">{{ f.description }} One per line, or separated by commas.</p>
             <textarea class="field-input min-h-[5rem]" id="{{ fid }}" name="{{ f.key }}" rows="3"
-                      aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}
+                      aria-describedby="{{ describedby }}" {% if f.required %}required{% endif %}
                       placeholder="{{ f.placeholder | escape }}"></textarea>
 
           {%- when 'file' -%}
@@ -275,10 +346,10 @@ scripts:
             {%- if f.type == 'email' -%}{%- assign input_type = 'email' -%}{%- endif -%}
             {%- if f.type == 'date' -%}{%- assign input_type = 'date' -%}{%- endif -%}
             {%- if f.type == 'number' -%}{%- assign input_type = 'number' -%}{%- endif -%}
-            <label class="field-label" for="{{ fid }}">{{ question }}{% if f.required %}<span class="field-required">Required</span>{% endif %}</label>
+            <label class="field-label" for="{{ fid }}">{{ question }}{% unless f.required %}<span class="font-normal text-brand-muted"> (optional)</span>{% endunless %}</label>
             <p class="field-help" id="{{ fid }}-help">{{ f.description }}</p>
             <input class="field-input" type="{{ input_type }}" id="{{ fid }}" name="{{ f.key }}"
-                   aria-describedby="{{ describedby }}" {% if f.required %}aria-required="true"{% endif %}
+                   aria-describedby="{{ describedby }}" {% if f.required %}required{% endif %}
                    {% if input_type == 'email' %}autocomplete="email"{% endif %}
                    placeholder="{{ f.placeholder | escape }}">
           {%- endcase -%}
@@ -290,24 +361,27 @@ scripts:
     </section>
     {%- endfor %}
 
-    <div class="space-y-4 border-t border-brand-line pt-6">
+    <div class="space-y-4 border-t border-brand-line pt-6" data-form-chrome>
       <div class="rounded-lg border border-brand-line bg-surface-base p-4 text-sm text-brand-muted" role="status" data-submit-status hidden></div>
 
       <p class="field-note" role="status" data-length-note hidden></p>
 
       <div class="flex flex-wrap items-center gap-3">
-        <button type="submit" class="btn-primary">Review and send on GitHub {% include icon.html name='arrow-right' size='sm' %}</button>
-        <button type="button" class="btn-secondary" data-action="email">Email it instead</button>
+        <button type="submit" class="btn-primary">Check your answers {% include icon.html name='arrow-right' size='sm' %}</button>
+        {%- comment -%}Only offered when there is somewhere for the email to go.{%- endcomment -%}
+        {%- if fallback_email != '' %}
+        <button type="button" class="btn-secondary" data-action="email" data-js-only hidden>Email it instead</button>
+        {%- endif %}
       </div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2" data-js-only hidden>
         <button type="button" class="btn-ghost btn-sm" data-action="copy-markdown">Copy as Markdown</button>
         <button type="button" class="btn-ghost btn-sm" data-action="copy-yaml">Copy as YAML front matter</button>
       </div>
+      <div class="flex flex-wrap items-center gap-2" data-js-only hidden>
+        <button type="button" class="btn-ghost btn-sm" data-draft-action="save">Save and come back later</button>
+        <button type="button" class="btn-ghost btn-sm" data-draft-action="clear">Delete the saved draft</button>
+      </div>
       <p class="draft-status" role="status" aria-live="polite" data-draft-status></p>
-      <p class="text-xs text-brand-muted">
-        Your answers stay in this browser until you press one of these buttons.
-        <button type="button" class="underline underline-offset-2 hover:no-underline" data-draft-action="clear">Clear the saved draft</button>
-      </p>
 
       <div class="space-y-2" data-fallback hidden>
         <label class="field-label" for="fallback-body">Copy this and paste it into a blank GitHub issue</label>
@@ -329,6 +403,24 @@ scripts:
   textContent instead of building HTML from strings.
 {%- endcomment -%}
 <div hidden data-preview-templates>
+  {%- comment -%}
+    The long "what happens next", shown in the review panel. It lives in Liquid
+    so _data/site.yml keeps owning the words.
+  {%- endcomment -%}
+  <template data-review-next>
+    <p class="font-semibold text-brand-ink">What happens next</p>
+    <ol class="mt-2 space-y-1.5 text-sm text-brand-muted">
+      <li>1. Sending opens a GitHub issue with your answers already filled in. Nothing is submitted until you press <em>Submit new issue</em> there.</li>
+      <li>2. Automation turns the issue into a draft page and opens a pull request.</li>
+      <li>3. {{ cfg.submit.turnaround | default: 'A maintainer reviews it — usually within a few days.' }}</li>
+    </ol>
+    {%- if cfg.submit.review_note %}
+    <p class="mt-3 flex items-start gap-1.5 rounded-md bg-brand-accent/10 p-2 text-sm text-brand-ink">
+      {% include icon.html name='warning' size='sm' class='mt-0.5 shrink-0' %}<span>{{ cfg.submit.review_note }}</span>
+    </p>
+    {%- endif %}
+  </template>
+
   {%- if badge_field -%}
   {%- for o in badge_field.options -%}{%- assign om = badge_field | option_meta: o -%}
   <template data-option-view="{{ badge_field.key }}__{{ forloop.index0 }}"><span class="badge-{{ om.tone }}">{% if om.icon != '' %}{% include icon.html name=om.icon size='xs' %}{% endif %}<span>{{ om.short }}</span></span></template>

@@ -3,6 +3,7 @@
  * carries both the row renderer and the new-field form.
  */
 
+import { scrollBehavior } from '../../lib/motion.js';
 import { snakeKey, FIELD_TYPES, RESERVED_KEYS } from '../core.js';
 import { el } from '../dom.js';
 import { announce } from '../wizard/errors.js';
@@ -158,7 +159,7 @@ export function renderAddField(rerender) {
   return {
     card,
     focus: () => {
-      card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      card.scrollIntoView({ block: 'center', behavior: scrollBehavior() });
       labelInput.focus({ preventScroll: true });
     },
   };

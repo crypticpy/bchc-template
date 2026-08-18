@@ -5,6 +5,11 @@
 //                              aria-expanded / aria-controls / aria-activedescendant
 //   [data-search-results]      role="listbox" <ul>, `hidden` when closed
 //   [data-search-status]       visible status line for a failed index load
+//   [data-search-live]         sr-only role="status": how many suggestions are open
+//   [data-search-floor]        wrapper for the "show the weaker matches" button
+//   [data-search-more]         that button
+//   [data-match-slot]          optional, inside an entry card (_includes/entry-card.html):
+//                              filled with the section + snippet that matched
 //
 // PUBLIC CONTRACT consumed by assets/js/filters.js:
 //   window.__searchMatches  Set of entry ids that match, or null for "no query"
@@ -14,12 +19,34 @@
 // Entry hits narrow the card grid; hits of other kinds (events, cohorts) and the
 // top entry hits are offered in the listbox. A failed index load shows a visible
 // message and retries once — the rejected promise is never memoized.
+//
+// Because the whole write-up is indexed, OR-recall over full bodies is noisy: a
+// common word matches half the catalog on a passing mention. The score
+// distribution is not ambiguous, though (for "notice": 6.64, then 0.52 0.39 0.38),
+// so the grid keeps only hits scoring at least RELEVANCE_FLOOR of the top hit and
+// offers the rest behind one button. That is strictly better than tightening the
+// fuzzy radius: typo tolerance here is good (`dashbord` finds the dashboard) and
+// the noise is genuine body matches, not typos.
 (function () {
   const input = document.querySelector('[data-filter="search"]');
   if (!input) return;
   const listbox = document.querySelector('[data-search-results]');
   const statusEl = document.querySelector('[data-search-status]');
+  const liveEl = document.querySelector('[data-search-live]');
+  const floorEl = document.querySelector('[data-search-floor]');
+  const moreBtn = document.querySelector('[data-search-more]');
   const indexUrl = input.dataset.searchIndex || '/search.json';
+
+  // Share of the top hit's score a result must reach to make the grid.
+  const RELEVANCE_FLOOR = 0.25;
+  // Context kept around a matched term. Deliberately lopsided: a suggestion row
+  // clamps to two lines, so a centred match is the half that gets cut off — and
+  // the whole point of the snippet is that you can see what matched.
+  const SNIPPET_LEAD = 12;
+  const SNIPPET_TRAIL = 150;
+  // A hung connection (captive portal, a proxy that accepts and never answers)
+  // must fail loudly rather than leave `loading` pending for ever.
+  const FETCH_TIMEOUT = 8000;
 
   if (typeof lunr === 'undefined') {
     if (statusEl) {
@@ -35,6 +62,10 @@
   let attempts = 0;
   let options = [];
   let activeIndex = -1;
+  // Bumped on every keystroke so a slow answer can never overwrite a newer one.
+  let runSeq = 0;
+  // The query whose relevance floor the reader has lifted, if any.
+  let lifted = null;
 
   // Unhide before writing: a live region that is still `display:none` when its
   // text changes is not announced by every screen reader.
@@ -42,6 +73,28 @@
     if (!statusEl) return;
     statusEl.classList.toggle('hidden', !message);
     statusEl.textContent = message || '';
+  }
+
+  /**
+   * Flatten a doc's sections into the single string lunr indexes as `body`,
+   * remembering where each section starts so a match position can be traced
+   * back to the heading it fell under.
+   * @param {object} doc a search.json doc, annotated in place.
+   */
+  function prepare(doc) {
+    const parts = [];
+    const spans = [];
+    let at = 0;
+    (doc.sections || []).forEach((section) => {
+      const text = section.t || '';
+      if (!text) return;
+      if (parts.length) at += 1; // the space join() will insert
+      spans.push({ start: at, end: at + text.length, h: section.h, a: section.a });
+      parts.push(text);
+      at += text.length;
+    });
+    doc.body = parts.join(' ');
+    doc.spans = spans;
   }
 
   /**
@@ -54,21 +107,34 @@
     if (idx) return Promise.resolve(true);
     if (loading) return loading;
     attempts += 1;
-    loading = fetch(indexUrl)
+    const init = { priority: 'low' };
+    if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) {
+      init.signal = AbortSignal.timeout(FETCH_TIMEOUT);
+    }
+    loading = fetch(indexUrl, init)
       .then((r) => {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
       .then((data) => {
         docs = (data && data.docs) || [];
+        docs.forEach(prepare);
         idx = lunr(function () {
           this.ref('i');
           this.field('title', { boost: 10 });
           this.field('summary', { boost: 4 });
-          this.field('text');
-          this.metadataWhitelist = [];
+          this.field('facets', { boost: 3 });
+          this.field('body');
+          // Positions are what let a result explain itself (see snippetFor).
+          this.metadataWhitelist = ['position'];
           docs.forEach((d, i) =>
-            this.add({ i: String(i), title: d.title, summary: d.summary, text: d.text })
+            this.add({
+              i: String(i),
+              title: d.title,
+              summary: d.summary,
+              facets: d.facets,
+              body: d.body,
+            })
           );
         });
         setStatus('');
@@ -89,7 +155,7 @@
    * Run a lunr query, boosting exact term matches over trailing-wildcard and
    * fuzzy (edit-distance 1, for terms > 3 chars) matches.
    * @param {string} q raw search box value.
-   * @returns {object[]} matching docs from the loaded index, in ranked order.
+   * @returns {{doc: object, score: number, meta: object}[]} ranked hits.
    */
   function query(q) {
     if (!idx) return [];
@@ -107,7 +173,9 @@
     } catch (e) {
       hits = [];
     }
-    return hits.map((h) => docs[Number(h.ref)]).filter(Boolean);
+    return hits
+      .map((h) => ({ doc: docs[Number(h.ref)], score: h.score, meta: h.matchData.metadata }))
+      .filter((h) => h.doc);
   }
 
   /**
@@ -121,6 +189,63 @@
     document.dispatchEvent(new CustomEvent('catalog:search'));
   }
 
+  /* ------------------------------------------------------------- snippets */
+
+  /**
+   * The best body match for a hit: where in the write-up it landed, which
+   * section that is, and enough surrounding words to read.
+   * @param {{doc: object, meta: object}} hit
+   * @returns {{before: string, match: string, after: string, section: object|null}|null}
+   */
+  function snippetFor(hit) {
+    const text = hit.doc.body || '';
+    if (!text) return null;
+    let best = null;
+    Object.keys(hit.meta || {}).forEach((term) => {
+      const positions = (hit.meta[term].body || {}).position;
+      if (!positions || !positions.length) return;
+      const [start, length] = positions[0];
+      if (!best || start < best[0]) best = [start, length];
+    });
+    if (!best) return null;
+
+    const [start, length] = best;
+    let from = Math.max(0, start - SNIPPET_LEAD);
+    let to = Math.min(text.length, start + length + SNIPPET_TRAIL);
+    // Snap to word boundaries so a snippet never opens mid-word.
+    if (from > 0) {
+      const space = text.indexOf(' ', from);
+      if (space > -1 && space < start) from = space + 1;
+    }
+    if (to < text.length) {
+      const space = text.lastIndexOf(' ', to);
+      if (space > start + length) to = space;
+    }
+    const span = (hit.doc.spans || []).find((s) => start >= s.start && start < s.end);
+    return {
+      before: (from > 0 ? '…' : '') + text.slice(from, start),
+      match: text.slice(start, start + length),
+      after: text.slice(start + length, to) + (to < text.length ? '…' : ''),
+      section: span || null,
+    };
+  }
+
+  /**
+   * Render a snippet as DOM. Built node by node rather than with innerHTML:
+   * the docs are author-controlled but the matched string comes from the query.
+   * @param {object} snip a snippetFor() result.
+   * @returns {DocumentFragment}
+   */
+  function snippetNode(snip) {
+    const frag = document.createDocumentFragment();
+    frag.appendChild(document.createTextNode(snip.before));
+    const mark = document.createElement('mark');
+    mark.textContent = snip.match;
+    frag.appendChild(mark);
+    frag.appendChild(document.createTextNode(snip.after));
+    return frag;
+  }
+
   /* ------------------------------------------------------------- listbox */
 
   function close() {
@@ -128,6 +253,7 @@
     listbox.hidden = true;
     input.setAttribute('aria-expanded', 'false');
     input.removeAttribute('aria-activedescendant');
+    if (liveEl) liveEl.textContent = '';
     activeIndex = -1;
   }
 
@@ -152,40 +278,53 @@
   }
 
   /**
-   * Build one `role="option"` row for the results listbox.
-   * @param {object} doc a search.json doc.
+   * Build one `role="option"` row for the results listbox. A body hit shows the
+   * section it matched and deep-links to it, so the reader lands on the
+   * paragraph rather than the top of a long page.
+   * @param {{doc: object}} hit a ranked hit.
    * @param {number} i index, used for the option's id and hover-highlight wiring.
    * @returns {HTMLLIElement}
    */
-  function optionRow(doc, i) {
+  function optionRow(hit, i) {
+    const doc = hit.doc;
+    const snip = snippetFor(hit);
     const li = document.createElement('li');
     li.className = 'search-option';
     li.id = 'search-option-' + i;
     li.setAttribute('role', 'option');
     li.setAttribute('aria-selected', 'false');
-    li.dataset.url = doc.url;
+    li.dataset.url = snip && snip.section && snip.section.a ? doc.url + '#' + snip.section.a : doc.url;
 
     const text = document.createElement('span');
     text.className = 'min-w-0';
     const title = document.createElement('span');
     title.className = 'block truncate font-semibold text-brand-primary-dark';
     title.textContent = doc.title || '';
-    const summary = document.createElement('span');
-    summary.className = 'block truncate text-xs text-brand-muted';
-    summary.textContent = doc.summary || '';
+    const detail = document.createElement('span');
+    // `line-clamp-2`, not `truncate`: a one-line row hides the match itself on a
+    // narrow screen, which is the one thing the snippet exists to show. No
+    // `block` alongside it — that would win the display race and unclamp it.
+    detail.className = 'line-clamp-2 text-xs text-brand-muted';
+    if (snip) detail.appendChild(snippetNode(snip));
+    else detail.textContent = doc.summary || '';
     text.appendChild(title);
-    text.appendChild(summary);
-
-    const kind = document.createElement('span');
-    kind.className = 'chip-neutral shrink-0';
-    kind.textContent = doc.kind || '';
-
+    text.appendChild(detail);
     li.appendChild(text);
-    li.appendChild(kind);
-    li.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      go(li);
-    });
+
+    // The old "entry" chip said nothing — every row is an entry. The section
+    // name says where in the write-up the answer is.
+    const label = snip && snip.section && snip.section.h;
+    if (label) {
+      const chip = document.createElement('span');
+      chip.className = 'chip-neutral shrink-0';
+      chip.textContent = label;
+      li.appendChild(chip);
+    }
+
+    // mousedown only preventDefaults, to keep focus in the combobox; the
+    // navigation hangs off click, which is what VoiceOver and touch dispatch.
+    li.addEventListener('mousedown', (e) => e.preventDefault());
+    li.addEventListener('click', () => go(li));
     li.addEventListener('mouseenter', () => highlight(i));
     return li;
   }
@@ -197,33 +336,92 @@
   /**
    * Populate the listbox: up to 5 non-entry hits (events, cohorts, …) first,
    * then up to 5 entry hits. Closes the listbox instead when nothing matches.
-   * @param {object[]} results docs from `query()`.
+   * @param {object[]} results hits from `query()`.
    */
   function renderList(results) {
     if (!listbox) return;
     listbox.textContent = '';
     options = [];
-    const others = results.filter((d) => d.kind !== 'entry').slice(0, 5);
-    const entries = results.filter((d) => d.kind === 'entry').slice(0, 5);
+    const others = results.filter((h) => h.doc.kind !== 'entry').slice(0, 5);
+    const entries = results.filter((h) => h.doc.kind === 'entry').slice(0, 5);
     const shown = others.concat(entries);
     if (!shown.length) {
       close();
       return;
     }
-    shown.forEach((doc, i) => {
-      const li = optionRow(doc, i);
+    shown.forEach((hit, i) => {
+      const li = optionRow(hit, i);
       options.push(li);
       listbox.appendChild(li);
     });
     listbox.hidden = false;
     input.setAttribute('aria-expanded', 'true');
+    if (liveEl) {
+      liveEl.textContent =
+        shown.length === 1
+          ? '1 suggestion. Use the up and down arrow keys to review it.'
+          : shown.length + ' suggestions. Use the up and down arrow keys to review them.';
+    }
     highlight(-1);
+  }
+
+  /* --------------------------------------------------------------- grid */
+
+  /**
+   * Fill each visible card's `[data-match-slot]` with the section and snippet
+   * that put it there. No-ops when the card markup has no slot.
+   * @param {object[]} hits entry hits currently in the grid.
+   */
+  function annotateCards(hits) {
+    const slots = document.querySelectorAll('[data-match-slot]');
+    if (!slots.length) return;
+    const byId = new Map(hits.map((h) => [h.doc.id, h]));
+    slots.forEach((slot) => {
+      const card = slot.closest('[data-entry-id]');
+      const hit = card && byId.get(card.dataset.entryId);
+      const snip = hit && snippetFor(hit);
+      slot.textContent = '';
+      if (!snip) {
+        slot.hidden = true;
+        return;
+      }
+      if (snip.section && snip.section.h) {
+        const name = document.createElement('span');
+        name.className = 'font-semibold';
+        name.textContent = snip.section.h + ' — ';
+        slot.appendChild(name);
+      }
+      slot.appendChild(snippetNode(snip));
+      slot.hidden = false;
+    });
+  }
+
+  /**
+   * Publish the entry hits that clear the relevance floor, and offer the rest.
+   * @param {object[]} entries entry hits in ranked order.
+   * @param {string} q the query they answer.
+   */
+  function publish(entries, q) {
+    const top = entries.length ? entries[0].score : 0;
+    const all = lifted === q;
+    const strong = all ? entries : entries.filter((h) => h.score >= top * RELEVANCE_FLOOR);
+    const weak = entries.length - strong.length;
+    const ids = strong.map((h) => h.doc.id);
+    announce(new Set(ids), ids);
+    annotateCards(strong);
+
+    if (!floorEl || !moreBtn) return;
+    floorEl.hidden = weak === 0;
+    moreBtn.textContent =
+      weak === 1
+        ? 'Show 1 more that mentions “' + q + '”'
+        : 'Show ' + weak + ' more that mention “' + q + '”';
+    moreBtn.dataset.searchMore = q;
   }
 
   /* -------------------------------------------------------------- events */
 
   let timer = null;
-  /** Debounced input handler: load the index if needed, then query, announce and render. */
   /**
    * Query for the current input value and publish the matches to filters.js.
    * @param {boolean} [showList=true] also open the suggestion listbox — false
@@ -232,20 +430,30 @@
    */
   function run(showList = true) {
     const q = input.value.trim();
+    const seq = ++runSeq;
     if (!q) {
+      lifted = null;
+      if (floorEl) floorEl.hidden = true;
+      annotateCards([]);
       announce(null, []);
       close();
       return;
     }
     load().then((ok) => {
+      // A newer keystroke has already been answered. This is reachable: the
+      // retry path in load() adds a microtask hop, so a query chained on the
+      // failed attempt can resolve after one chained on the successful retry.
+      if (seq !== runSeq) return;
       if (!ok) {
         announce(null, []);
         close();
         return;
       }
       const results = query(q);
-      const entryIds = results.filter((d) => d.kind === 'entry').map((d) => d.id);
-      announce(new Set(entryIds), entryIds);
+      publish(
+        results.filter((h) => h.doc.kind === 'entry'),
+        q
+      );
       // Focus may have left the box while the fetch/debounce was pending
       // (type, then Tab straight away); don't reopen the popup under it.
       if (showList && document.activeElement === input) renderList(results);
@@ -253,10 +461,20 @@
   }
 
   input.addEventListener('input', () => {
+    lifted = null;
     clearTimeout(timer);
     timer = setTimeout(run, 120);
   });
   input.addEventListener('focus', () => load());
+
+  if (moreBtn) {
+    // Lifting the floor re-renders the current answer; it never re-queries and
+    // never touches the URL, so Back still goes back to the previous page.
+    moreBtn.addEventListener('click', () => {
+      lifted = input.value.trim();
+      run(false);
+    });
+  }
 
   input.addEventListener('keydown', (e) => {
     const open = listbox && !listbox.hidden;
@@ -315,4 +533,18 @@
   // dispatches its `input` event to nobody. Replay the query here instead —
   // this is the only place that knows the index exists.
   if (input.value.trim()) run(document.activeElement === input);
+
+  // Backstop for the intent-based load above: warm the index when the browser
+  // is otherwise idle, so the first keystroke rarely waits on the network.
+  // Skipped on a metered or slow connection, where the index is a real cost.
+  const conn = navigator.connection || {};
+  if (!conn.saveData && !/2g/.test(conn.effectiveType || '')) {
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
+    idle(
+      () => {
+        if (!idx && !loading) load();
+      },
+      { timeout: 4000 }
+    );
+  }
 })();

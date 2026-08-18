@@ -16,6 +16,11 @@ Markup contract (assets/js/filters.js + assets/js/search.js):
   [data-view-toggle="grid|list"] aria-pressed buttons
   [data-filter-status]       role="status" live region (one announcement per change)
   [data-filter="search"]     role="combobox" input, [data-search-results] listbox
+  [data-search-status]       visible message when the search index fails to load
+  [data-search-live]         sr-only role="status": how many suggestions are open
+  [data-search-floor]/[data-search-more]
+                             the "show the weaker matches" button, hidden until a
+                             query has hits below the relevance floor
   .results-header-controls   the JS-only controls (search, sort, view switch); hidden
                              by CSS when <html> has no `js` class (see head.html)
 
@@ -69,6 +74,18 @@ Local assigns are prefixed `rh_`.
     <button type="button" class="filter-showall mt-0 hidden" data-filter-clear>Clear all</button>
   </div>
 
+  {%- comment -%} Searching the full write-up means common words match half the
+  catalog on a passing mention; the grid keeps the strong hits and offers the
+  rest here (assets/js/search.js). Purely client-side — no re-query, no URL
+  change, so Back still leaves the page. {%- endcomment -%}
+  <div class="mt-2" data-search-floor hidden>
+    {%- comment -%} Default label so the button has an accessible name in the
+    served HTML (htmlcs H91 checks it whether or not the wrapper is hidden);
+    search.js replaces it with the count and the query. {%- endcomment -%}
+    <button type="button" class="filter-showall mt-0" data-search-more>Show weaker matches</button>
+  </div>
+
   <p class="sr-only" role="status" data-filter-status></p>
+  <p class="sr-only" role="status" data-search-live></p>
   <p class="mt-2 hidden text-xs text-brand-warn" role="status" data-search-status></p>
 </div>

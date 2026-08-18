@@ -14,6 +14,10 @@
   // 'instant' (not 'auto') so the jump is immediate even where the element's
   // own scroll-behavior is smooth — assets/css/components/base.css also drops
   // `scroll-smooth` on the track under prefers-reduced-motion.
+  // The same decision lives in assets/js/lib/motion.js (`scrollBehavior`) for
+  // the configurator and in `SubmitForm.scrollBehavior` for /submit/; this file
+  // is emitted as a classic `<script defer>` and cannot import the module, so
+  // it repeats the two lines. Keep the three in step.
   const reduced = () =>
     Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const behavior = () => (reduced() ? 'instant' : 'smooth');

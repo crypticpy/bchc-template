@@ -97,6 +97,20 @@ test('answersFromConfig round-trips through applyAnswers', () => {
   assert.deepEqual(rebuilt.theme, base.theme);
 });
 
+test('the submission page copy is answerable in the wizard', () => {
+  const answers = answersFromConfig(defaultConfig());
+  assert.equal(typeof answers.submitTurnaround, 'string');
+  assert.ok(answers.submitTurnaround.trim() !== '', 'the shipped config promises a turnaround');
+  assert.equal(typeof answers.submitReviewNote, 'string');
+
+  const config = applyAnswers(defaultConfig(), {
+    submitTurnaround: 'A coach reviews it within a week.',
+    submitReviewNote: 'Do not send us patient data.',
+  });
+  assert.equal(config.site.submit.turnaround, 'A coach reviews it within a week.');
+  assert.equal(config.site.submit.review_note, 'Do not send us patient data.');
+});
+
 test('new fields and groups replace the base schema wholesale', () => {
   const config = applyAnswers(defaultConfig(), {
     groups: [{ key: 'only', title: 'Only' }],

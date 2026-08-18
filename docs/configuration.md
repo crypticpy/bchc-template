@@ -77,9 +77,18 @@ The home page also shows a headline stat block (module: `stats`), an entries-by-
 ```yaml
 submit:
   intro: "…"               # shown above the form
-  review_note: "…"          # shown as step 3 of "what happens next"
-  fallback_email: "…"       # used for the "Email it instead" button; blank hides the button
+  turnaround: "…"           # the last step of "what happens next": what happens after a maintainer picks it up
+  review_note: "…"          # safety callout beside the form, and the first block of the GitHub issue form
+  fallback_email: "…"       # the "Email it instead" button
 ```
+
+`turnaround` is a promise printed on the submission page and repeated in the
+"check your answers" panel, so make it one you can keep — "usually within two
+weeks" beats "within 48 hours" you will miss.
+
+The "Email it instead" button only renders when there is an address to send to:
+`submit.fallback_email`, or `organization.contact_email` when that is blank.
+Clear both to drop the button and send everyone through GitHub.
 
 ### Footer
 
@@ -88,8 +97,16 @@ footer:
   about: "…"
   links:
     - { label: "…", url: "…" }
+    - { label: "…", url: "/submit/", module: submit }   # hidden when that module is off
   copyright: "…"
 ```
+
+A footer link may carry `module:`, the same way an item in `_data/navigation.yml`
+does: the link is only rendered when that module is enabled under
+`site.modules`. Use it for every link that points at a page a module owns
+(`/submit/`, `/events/`, `/cohorts/`, `/resources/`) so turning the module off
+does not leave a link to a page that is no longer built. Links without
+`module:` — an organization homepage, a maintainer guide — always render.
 
 ### Analytics
 
@@ -217,3 +234,15 @@ npm run setup -- --help
 Same four presets (`ai-use-cases`, `cohort-portal`, `resource-library`, `blank`). Detects `owner/repo` from your git remote as the default for the repository question. Writes files directly to disk after you confirm a diff summary. Preserves any hand-added lines in `_config.yml` outside the title/description fields it owns.
 
 After hand-editing any `_data/*.yml` file directly (without going through either wizard), run `npm run generate`. It regenerates `.github/ISSUE_TEMPLATE/new-entry.yml` and `assets/js/configurator/defaults.generated.js`, and resyncs `_config.yml`'s title and description. It is idempotent, and `npm run generate -- --check` is the CI gate that fails when a generated file is out of date — so regenerate and commit in the same change.
+
+## Quality checks
+
+`npm run a11y` (pa11y-ci) and `npm run lighthouse` (Lighthouse CI) run against a
+local build; the same two lanes run in `.github/workflows/quality.yml`.
+
+`quality/lighthouserc.js` sets `upload: { target: 'temporary-public-storage' }`,
+which publishes each Lighthouse report to a public, unlisted URL on Google's
+storage so the run can link to it. That happens for both lanes, on every run.
+If this catalog is a private deployment — an internal fork, a staging site
+carrying real content — change that target (`filesystem` writes the reports
+into the workspace instead) before the first CI run.

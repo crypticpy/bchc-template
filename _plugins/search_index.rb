@@ -5,9 +5,27 @@ require "fileutils"
 require "time"
 
 # Generates /search.json for the client-side Lunr search. Which fields are
-# indexed comes from _data/schema.yml (fields with `search: true`), plus
-# title and summary which are always included. Events and cohort pages are
-# indexed too so site search finds them.
+# indexed comes from _data/schema.yml (fields with `search: true` or
+# `facet: true`); title and summary are always separate indexed fields. Events
+# and cohort pages are indexed too so site search finds them.
+#
+# Each entry doc is {id, title, summary, facets, sections, url, kind}:
+#
+#   facets    the schema field values as one string, indexed as its own lunr
+#             field so a facet hit can be boosted differently from prose.
+#   sections  the write-up split on its `##` headings — [{h: "How to reuse",
+#             a: "how-to-reuse", t: "…"}] — so a body hit can name the section
+#             it came from and deep-link to it. `a` is the anchor kramdown
+#             generates for that heading, which is also what _includes/toc.html
+#             links to.
+#
+# Title and summary are deliberately NOT copied into the body text: they are
+# already indexed fields, and duplicating them scored every title term three
+# times and made the boosts impossible to reason about. The whole write-up is
+# indexed by default — the sections that used to fall off the end of a 2,000
+# character cap were "Lessons learned" and "How to reuse", which is the content
+# a reuse catalog exists to surface. `schema.search.body_chars` caps it again
+# for very large catalogs (0 = unlimited).
 #
 # SearchIndexGenerator runs as a Jekyll::Generator (`generate` hook, priority
 # :low so it runs after other generators/pages have populated `site.pages`,
@@ -48,20 +66,19 @@ module CatalogTemplate
       schema = site.data["schema"] || {}
       fields = Array(schema["fields"])
       searchable = fields.select { |f| f["search"] || f["facet"] }.map { |f| f["key"] }
-      searchable = (%w[title summary] + searchable).uniq
+      cap = schema.dig("search", "body_chars").to_i
 
       baseurl = site.config["baseurl"].to_s.chomp("/")
       docs = []
       site.pages.each do |page|
         case page.data["layout"]
         when "entry"
-          text = searchable.map { |k| Array(page.data[k]).flatten.compact.join(" ") }.join(" ")
-          text = [text, body_text(page)].reject(&:empty?).join(" ")
           docs << {
             id: page.data["slug"] || Jekyll::Utils.slugify(page.data["title"].to_s),
             title: page.data["title"],
             summary: page.data["summary"],
-            text: text,
+            facets: searchable.map { |k| Array(page.data[k]).flatten.compact.join(" ") }.reject(&:empty?).join(" "),
+            sections: body_sections(page, cap),
             url: baseurl + page.url,
             kind: "entry"
           }
@@ -70,7 +87,8 @@ module CatalogTemplate
             id: "event:#{page.data['cohort']}:#{page.data['event_id']}",
             title: page.data["title"],
             summary: page.data["summary"],
-            text: [page.data["event_location"], page.data["cohort"]].compact.join(" "),
+            facets: [page.data["event_location"], page.data["cohort"]].compact.join(" "),
+            sections: [],
             url: baseurl + page.url,
             kind: "event"
           }
@@ -79,7 +97,8 @@ module CatalogTemplate
             id: "cohort:#{page.data['year']}",
             title: page.data["title"],
             summary: page.data["intro"],
-            text: page.data["year"].to_s,
+            facets: page.data["year"].to_s,
+            sections: [],
             url: baseurl + page.url,
             kind: "cohort"
           }
@@ -90,28 +109,69 @@ module CatalogTemplate
       site.static_files << SearchIndexFile.new(site, payload)
     end
 
-    # Maximum characters of an entry's prose kept in the index, per entry.
-    BODY_CHARS = 2_000
-
-    # The write-up (the schema's `markdown` body field) is where the detail lives,
-    # so it belongs in the index — but only as plain words. Liquid tags, HTML and
-    # Markdown punctuation are dropped and the result is capped at BODY_CHARS so
-    # search.json stays small enough to fetch on a phone.
+    # The write-up (the schema's `markdown` body field) split into its `##`
+    # sections, so a body hit can say which section it came from and link to it.
+    # Text before the first heading becomes a section with no heading.
     #
     # @param page [Jekyll::Page] an entry page, read before Liquid rendering
-    # @return [String] normalized prose, at most BODY_CHARS characters
-    def body_text(page)
+    # @param cap [Integer] maximum total characters of prose, 0 for unlimited
+    # @return [Array<Hash>] [{h: heading, a: anchor, t: text}, …]
+    def body_sections(page, cap)
       raw = page.content.to_s
-      return "" if raw.empty?
+      return [] if raw.strip.empty?
 
-      raw = raw.gsub(/\{%.*?%\}/m, " ")       # Liquid tags
-               .gsub(/\{\{.*?\}\}/m, " ")     # Liquid output
-               .gsub(/```.*?```/m, " ")       # fenced code
-               .gsub(/<[^>]+>/, " ")          # inline HTML
-               .gsub(/[#*_`>\[\]()|!]+/, " ") # Markdown punctuation
-               .gsub(/\s+/, " ")
-               .strip
-      raw.length > BODY_CHARS ? raw[0, BODY_CHARS] : raw
+      # Fenced code goes first: a `##` inside a fence is a comment, not a heading.
+      raw = raw.gsub(/```.*?```/m, " ")
+      # String#split with a capture group yields [preamble, heading, text, …].
+      parts = raw.split(/^\#\#[ \t]+(.+?)[ \t]*$/)
+      preamble = parts.shift
+
+      chunks = [[nil, preamble]] + parts.each_slice(2).map { |heading, text| [heading, text.to_s] }
+      used = 0
+      anchors = Hash.new(-1)
+      sections = []
+      chunks.each do |heading, text|
+        body = normalize(text)
+        next if body.empty? && heading.nil?
+
+        if cap.positive?
+          break if used >= cap
+
+          body = body[0, cap - used].to_s
+          used += body.length
+        end
+        title = heading && normalize(heading)
+        sections << { h: title, a: title && anchor(title, anchors), t: body }
+      end
+      sections
+    end
+
+    # Plain words: Liquid tags, HTML and Markdown punctuation dropped.
+    # @param text [String, nil]
+    # @return [String]
+    def normalize(text)
+      text.to_s
+          .gsub(/\{%.*?%\}/m, " ")       # Liquid tags
+          .gsub(/\{\{.*?\}\}/m, " ")     # Liquid output
+          .gsub(/<[^>]+>/, " ")          # inline HTML
+          .gsub(/[#*_`>\[\]()|!]+/, " ") # Markdown punctuation
+          .gsub(/\s+/, " ")
+          .strip
+    end
+
+    # The `id` kramdown puts on a heading, so the anchor a search hit links to
+    # is the one _includes/toc.html already links to. This mirrors
+    # Kramdown::Converter::Base#basic_generate_id plus its duplicate suffixes;
+    # the ids are read out of the rendered HTML there and cannot be reused here,
+    # because the index is built before pages are rendered.
+    # @param heading [String] heading text
+    # @param seen [Hash] per-page counter of ids already handed out
+    # @return [String]
+    def anchor(heading, seen)
+      id = heading.sub(/\A[^a-zA-Z]+/, "").gsub(/[^a-zA-Z0-9 -]/, "").tr(" ", "-").downcase
+      id = "section" if id.empty?
+      seen[id] += 1
+      seen[id].zero? ? id : "#{id}-#{seen[id]}"
     end
   end
 end

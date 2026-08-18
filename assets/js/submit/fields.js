@@ -12,19 +12,31 @@
  *   [data-clear]        the "Skip this one" radio/checkbox of an optional choice
  *
  * Exposes: window.SubmitForm.readFields, .readValue, .isAnswered, .serialize,
- *          .parseImageLines, .setValue
+ *          .parseImageLines, .setValue, .scrollBehavior
  */
 (function (ns) {
   'use strict';
 
-  /** Types whose value is an array of strings. */
-  const LIST_TYPES = new Set(['multiselect', 'list']);
+  /**
+   * The `behavior` to pass to a scroll call, honouring the reader's motion
+   * setting. The same two lines as `scrollBehavior()` in assets/js/lib/motion.js
+   * — these scripts are emitted as classic `<script defer>` tags by
+   * _layouts/default.html and cannot import a module. Keep the two in step.
+   * @returns {ScrollBehavior}
+   */
+  ns.scrollBehavior = function scrollBehavior() {
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return reduced ? 'auto' : 'smooth';
+  };
 
   /**
    * @typedef {object} Field
    * @property {string} key schema key (also the issue-form input id)
    * @property {string} type schema type
    * @property {string} label schema label (the issue-form heading)
+   * @property {string} question the visible question, used in error messages
+   * @property {string} error schema `error:` override, '' when unset
+   * @property {string} placeholder the control's placeholder, quoted in format errors
    * @property {boolean} required
    * @property {string} slot card slot: badge | chip | meta | icon | line | ''
    * @property {number} weight schema weight
@@ -46,6 +58,8 @@
         key: wrap.dataset.field,
         type: wrap.dataset.type || 'text',
         label: wrap.dataset.label || wrap.dataset.field,
+        question: wrap.dataset.question || wrap.dataset.label || wrap.dataset.field,
+        error: wrap.dataset.error || '',
         required: wrap.dataset.required === 'true',
         slot: wrap.dataset.slot || '',
         weight: Number(wrap.dataset.weight || 5),
@@ -54,6 +68,7 @@
         control: wrap.querySelector('input:not([data-clear]), select, textarea'),
         section: section ? section.dataset.section : '',
       };
+      field.placeholder = field.control ? field.control.getAttribute('placeholder') || '' : '';
       field.initial = ns.serialize(field);
       return field;
     });
@@ -191,8 +206,10 @@
 
   /**
    * Render a value the way the GitHub issue form expects to receive it:
-   * one option per line for lists, `Label | URL` for links, `URL | alt` for
-   * images, "Yes"/"No" for booleans.
+   * one option per line for lists, comma-separated for a multi-select dropdown
+   * (what GitHub itself renders, and what scripts/lib/issue_body.mjs matches
+   * back longest-option-first so labels containing commas survive),
+   * `Label | URL` for links, `URL | alt` for images, "Yes"/"No" for booleans.
    * @param {Field} field
    * @returns {string} '' when the field is unanswered
    */
@@ -205,7 +222,8 @@
       return value.map((item) => (item.alt ? item.url + ' | ' + item.alt : item.url)).join('\n');
     }
     if (field.type === 'boolean') return value === 'true' ? 'Yes' : '';
-    if (LIST_TYPES.has(field.type)) return value.join('\n');
+    if (field.type === 'multiselect') return value.join(', ');
+    if (field.type === 'list') return value.join('\n');
     return String(value);
   };
 })((window.SubmitForm = window.SubmitForm || {}));

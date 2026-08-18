@@ -3,7 +3,7 @@
 # is enabled in _data/site.yml.
 - label: Home
   url: /
-- label: Catalog
+- label: Use cases
   url: /catalog/
   module: catalog
 - label: Events

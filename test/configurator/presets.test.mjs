@@ -6,7 +6,7 @@ import { presets } from '../../assets/js/configurator/presets.js';
 import { checkSchema } from '../../assets/js/configurator/schema-validate.js';
 import { renderFiles } from '../../assets/js/configurator/render-files.js';
 import { applyAnswers, answersFromConfig } from '../../assets/js/configurator/answers.js';
-import { contrastRatio, meetsAA } from '../../assets/js/configurator/color.js';
+import { checkThemeContrast } from '../../assets/js/configurator/color.js';
 
 const EXPECTED_FILES = [
   '_data/site.yml',
@@ -38,6 +38,14 @@ for (const preset of presets) {
     const result = checkSchema(reparsed);
     assert.equal(result.ok, true, result.errors.map((e) => `${e.path}: ${e.message}`).join('\n'));
     assert.deepEqual(reparsed, preset.config.schema, 'nothing is lost in the round trip');
+  });
+
+  test(`${preset.id}: the submission page promises a turnaround`, () => {
+    // The last step of "what happens next" is a promise the maintainers keep,
+    // so every preset has to name one rather than fall back to a vague default.
+    const turnaround = preset.config.site.submit?.turnaround;
+    assert.equal(typeof turnaround, 'string');
+    assert.ok(turnaround.trim() !== '', `${preset.id} says nothing about turnaround`);
   });
 
   test(`${preset.id}: the schema uses the v2 vocabulary`, () => {
@@ -75,26 +83,17 @@ for (const preset of presets) {
   });
 
   test(`${preset.id}: the palette meets WCAG AA`, () => {
-    const c = preset.config.theme.colors;
-    const pairs = [
-      ['body text on the page', c.ink, c.surface],
-      ['body text on a card', c.ink, c.card],
-      ['secondary text on a card', c.muted, c.card],
-      ['a link on a card', c.primary, c.card],
-      ['label on a primary button', c.on_dark, c.primary],
-      ['text on the dark banner', c.on_dark, c.primary_dark],
-      ['a caution indicator on a card', c.warn, c.card],
-      ['the supporting colour on a card', c.secondary, c.card],
-    ];
-    for (const [what, fg, bg] of pairs) {
-      const ratio = contrastRatio(fg, bg);
+    // The pair list lives in color.js, where the wizard's own contrast panel
+    // reads it: a preset is held to exactly what the wizard would flag.
+    for (const pair of checkThemeContrast(preset.config.theme.colors)) {
+      if (pair.level !== 'error') continue;
       assert.ok(
-        ratio !== null && ratio >= 4.5,
-        `${what}: ${fg} on ${bg} is ${ratio === null ? 'unparseable' : `${ratio.toFixed(2)}:1`}, needs 4.5:1`
+        pair.ok,
+        `${pair.what}: ${pair.fg} on ${pair.bg} is ${
+          pair.ratio === null ? 'unparseable' : `${pair.ratio.toFixed(2)}:1`
+        }, needs ${pair.min}:1`
       );
     }
-    // Control outlines are non-text contrast: 3:1 is the bar.
-    assert.ok(meetsAA(c.line_strong, c.card, 3), `control outlines: ${c.line_strong} on ${c.card} needs 3:1`);
   });
 
   test(`${preset.id}: answersFromConfig seeds every colour question`, () => {

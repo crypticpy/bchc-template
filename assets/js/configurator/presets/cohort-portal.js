@@ -58,6 +58,7 @@ export const cohortPortal = {
     submit: {
       intro:
         'Share your team project with the program. Submissions open a GitHub issue for the coaches to review; nothing is published until it is approved.',
+      turnaround: 'A coach reviews it, usually within a week.',
       review_note:
         'Please do not include confidential or personally identifiable data. Link to dashboards and documents rather than pasting sensitive content.',
       fallback_email: 'data-program@example.org',
@@ -67,8 +68,8 @@ export const cohortPortal = {
         'A gallery of team projects from our data learning cohorts. Content is contributed by participants and reviewed by program coaches before publication.',
       links: [
         { label: 'Program home', url: 'https://example.org' },
-        { label: 'Submit a project', url: '/submit/' },
-        { label: 'Cohorts', url: '/cohorts/' },
+        { label: 'Submit a project', url: '/submit/', module: 'submit' },
+        { label: 'Cohorts', url: '/cohorts/', module: 'cohorts' },
       ],
       copyright: 'Your Organization',
     },

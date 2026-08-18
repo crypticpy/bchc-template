@@ -71,6 +71,63 @@ function downloadButton(relative, text) {
   return button;
 }
 
+/** The three set-up jobs this wizard cannot do, in the order they matter. */
+const MANUAL_STEPS = [
+  [
+    'Delete the sample entries',
+    'This wizard writes configuration, never content. The example entries under `catalog/` ship with the template and stay on your site until you delete those folders.',
+  ],
+  [
+    'Run the "Bootstrap labels" workflow once',
+    'The Actions tab → Bootstrap labels → Run workflow. It creates the labels the submission workflows watch for; until it has run, a new submission issue does nothing.',
+  ],
+  [
+    'Let Actions open pull requests',
+    'Settings → Actions → General → Workflow permissions: tick "Allow GitHub Actions to create and approve pull requests". Without it, a submission issue fails instead of opening a PR.',
+  ],
+];
+
+/**
+ * The card listing what still has to be done by hand after the files land.
+ * @param {string} repository `owner/repo`, or empty.
+ * @param {string} branch the branch the site builds from.
+ * @returns {HTMLElement}
+ */
+function manualStepsCard(repository, branch) {
+  const launchGuide = repository
+    ? `https://github.com/${repository}/blob/${branch}/docs/launch.md`
+    : 'https://github.com/crypticpy/bchc-template/blob/main/docs/launch.md';
+  return el('section', { class: 'card' }, [
+    el('div', { class: 'card-header' }, [
+      el('p', { class: 'card-title', text: 'Three things this wizard cannot do for you' }),
+      el('p', {
+        class: 'section-lead mt-1',
+        text: 'Pasting the files above configures the site. These three jobs are done in GitHub itself, and the site is not really live until they are.',
+      }),
+    ]),
+    el(
+      'ol',
+      { class: 'list-decimal space-y-3 px-10 py-5 text-sm text-brand-ink' },
+      MANUAL_STEPS.map(([title, detail]) =>
+        el('li', {}, [
+          el('span', { class: 'font-semibold', text: title }),
+          el('span', { class: 'block text-brand-muted', text: detail }),
+        ])
+      )
+    ),
+    el('p', { class: 'border-t border-brand-line px-6 py-4 text-sm' }, [
+      el('a', {
+        class: 'font-medium underline decoration-brand-accent underline-offset-2',
+        href: launchGuide,
+        target: '_blank',
+        rel: 'noopener',
+        text: 'The launch checklist walks through all three',
+      }),
+      el('span', { class: 'text-brand-muted', text: ' — docs/launch.md in your repository.' }),
+    ]),
+  ]);
+}
+
 /**
  * @returns {{body: HTMLElement}} step 5 body — publish instructions plus every
  *   rendered file with copy/download/"Open on GitHub" actions. Re-validates the
@@ -149,6 +206,7 @@ export function renderReview() {
         ]),
       ]);
     }),
+    manualStepsCard(repository, branch),
   ]);
   return { body };
 }

@@ -1,6 +1,7 @@
 /**
  * Submit form — entry point. Wires the pieces in assets/js/submit/*.js:
- * fields (registry) → validate → repeatable → preview → draft → handoff.
+ * fields (registry) → validate → repeatable → preview → draft → handoff →
+ * review.
  *
  * Loaded last by the `scripts:` list in submit/index.md front matter, so every
  * window.SubmitForm helper it calls is already defined.
@@ -20,22 +21,6 @@
 
   /** Warn the submitter once the prefilled URL is this close to the ceiling. */
   const URL_WARN_AT = Math.round(MAX_URL * 0.85);
-
-  /**
-   * Copy text to the clipboard, falling back to a selection when the
-   * async API is unavailable (http:// origins, older Safari).
-   * @param {string} text
-   * @returns {Promise<boolean>} whether the copy succeeded
-   */
-  function copy(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text).then(
-        () => true,
-        () => false
-      );
-    }
-    return Promise.resolve(false);
-  }
 
   /**
    * Show a message in the status region under the buttons.
@@ -75,7 +60,7 @@
    * @param {HTMLElement} root
    * @param {HTMLFormElement} form
    * @param {object[]} fields
-   * @returns {() => void}
+   * @returns {{update: () => void, errors: (problems: object[]) => void}}
    */
   function initProgress(root, form, fields) {
     const links = Array.from(root.querySelectorAll('[data-progress-link]'));
@@ -105,18 +90,39 @@
       sections.forEach((section) => observer.observe(section));
     }
 
-    return function update() {
-      let done = 0;
+    /**
+     * Put the number of problems found in each section on its rail link. The
+     * rail is the only map of a form this long; after a failed submit it should
+     * say where the work is, not just how much of it is done.
+     * @param {Array<{field: object, message: string}>} problems
+     */
+    function paintErrors(problems) {
       links.forEach((link) => {
-        const progress = sectionState(fields, link.dataset.progressLink);
-        if (progress === 'complete') done += 1;
-        link.dataset.done = progress === 'complete' ? 'true' : progress === 'partial' ? 'partial' : 'false';
-        const state = link.querySelector('[data-progress-state]');
-        if (state) state.textContent = PROGRESS_LABELS[progress];
+        const badge = link.querySelector('[data-progress-errors]');
+        if (!badge) return;
+        const found = problems.filter(
+          (problem) => problem.field.section === link.dataset.progressLink
+        ).length;
+        badge.textContent = found > 0 ? found + ' to fix' : '';
+        badge.hidden = found === 0;
       });
-      const message = done + ' of ' + total + ' sections complete';
-      if (count) count.textContent = message;
-      if (lineText) lineText.textContent = message;
+    }
+
+    return {
+      update: function update() {
+        let done = 0;
+        links.forEach((link) => {
+          const progress = sectionState(fields, link.dataset.progressLink);
+          if (progress === 'complete') done += 1;
+          link.dataset.done = progress === 'complete' ? 'true' : progress === 'partial' ? 'partial' : 'false';
+          const state = link.querySelector('[data-progress-state]');
+          if (state) state.textContent = PROGRESS_LABELS[progress];
+        });
+        const message = done + ' of ' + total + ' sections complete';
+        if (count) count.textContent = message;
+        if (lineText) lineText.textContent = message;
+      },
+      errors: paintErrors,
     };
   }
 
@@ -136,8 +142,14 @@
     const fallbackLink = form.querySelector('[data-fallback-link]');
     const lengthNote = form.querySelector('[data-length-note]');
 
+    // The browser's own required-field messages are the no-JS fallback, so
+    // `novalidate` is set here rather than in the markup: with scripts running,
+    // this page's messages are the better ones.
+    form.setAttribute('novalidate', 'novalidate');
+
     const paintPreview = ns.initPreview(root.documentElement || root, fields);
-    const paintProgress = initProgress(root.documentElement || root, form, fields);
+    const progress = initProgress(root.documentElement || root, form, fields);
+    const paintProgress = progress.update;
     const titleField = fields.find((field) => field.wrap.dataset.role === 'title');
 
     /** @returns {string} the entry title, for issue titles and filenames */
@@ -205,18 +217,18 @@
       true
     );
 
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const problems = ns.validateAll(fields);
-      if (problems.length > 0) {
-        ns.renderSummary(summary, problems);
-        say(status, '');
-        return;
-      }
-      ns.hideSummary(summary);
-
+    /**
+     * Hand the answers to GitHub, from the review panel.
+     *
+     * The draft is deliberately *not* cleared here. Opening a tab is not
+     * submitting: the issue is still a draft until "Submit new issue" is
+     * pressed on GitHub, and a submitter who loses that tab needs their answers
+     * to still be here. The confirmation panel offers to delete it instead.
+     */
+    function send() {
       const url = ns.issueUrl(form, fields, entryTitle());
       if (url.length > MAX_URL) {
+        ns.exitReview(form);
         showFallback(
           'Your answers are too long to carry in a link. Copy the text below into a blank issue instead — the box is right under these buttons.',
           ''
@@ -224,32 +236,45 @@
         return;
       }
 
-      const missed = ns.unprefillable(fields).map((field) => field.label);
-      const note =
-        missed.length > 0
-          ? ' GitHub cannot prefill tick boxes, so re-answer ' + missed.join(', ') + ' on that page.'
-          : '';
-
-      // Only drop the draft once the new tab actually exists. A blocked popup
-      // used to clear it anyway, so the answers were gone and nothing had
-      // opened; now the copy-paste route appears and the draft stays put.
       // Not `window.open(url, '_blank', 'noopener')`: with `noopener` in the
       // features string the call returns null even when the tab opened, which
       // made every successful submit look blocked. Sever the opener afterwards.
       const opened = window.open(url, '_blank');
       if (opened) opened.opener = null;
       if (!opened) {
+        ns.exitReview(form);
         showFallback(
           'Your browser blocked the new tab. Use the link below to open the prefilled issue, or copy the text and paste it into a blank issue.',
           url
         );
         return;
       }
-      say(
-        status,
-        'Opening GitHub with your answers filled in. Check them over and press “Submit new issue”.' + note
-      );
-      draft.clear();
+      say(status, '');
+      ns.renderConfirmation(form, fields, {
+        url: url,
+        email: form.dataset.fallbackEmail || '',
+        subject: (form.dataset.titlePrefix || '') + (entryTitle() || 'New entry'),
+        onDelete: function () {
+          draft.clear();
+          ns.exitReview(form);
+          say(status, 'Saved draft deleted. Thanks for sending it in.');
+          refresh();
+        },
+      });
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const problems = ns.validateAll(fields);
+      progress.errors(problems);
+      if (problems.length > 0) {
+        ns.renderSummary(summary, problems);
+        say(status, '');
+        return;
+      }
+      ns.hideSummary(summary);
+      say(status, '');
+      ns.renderReview(form, fields, { onSend: send, onBack: refresh });
     });
 
     /**
@@ -299,12 +324,18 @@
         say(status, 'There is nothing to copy yet.');
         return;
       }
-      copy(text).then((ok) => {
+      ns.copyText(text).then((ok) => {
         say(
           status,
           ok ? 'Copied to your clipboard.' : 'Copying failed — select the text and copy it by hand.'
         );
       });
+    });
+
+    // Copying, emailing and saving a draft all need scripting, so the markup
+    // ships them hidden rather than leaving dead buttons on a page without JS.
+    root.querySelectorAll('[data-js-only]').forEach((node) => {
+      node.hidden = false;
     });
 
     // The preview is a scripting feature: reveal it only now, and start it

@@ -37,6 +37,7 @@ export const blank = {
     submit: {
       intro:
         'Submit an entry for the catalog. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved.',
+      turnaround: 'A maintainer reviews it, usually within two weeks.',
       review_note: 'Please do not include confidential or non-public information in your submission.',
       fallback_email: 'you@example.org',
     },
@@ -45,7 +46,7 @@ export const blank = {
         'Replace this with a sentence or two about who maintains this catalog and how entries are reviewed.',
       links: [
         { label: 'Organization home', url: 'https://example.org' },
-        { label: 'Submit an entry', url: '/submit/' },
+        { label: 'Submit an entry', url: '/submit/', module: 'submit' },
       ],
       copyright: 'Your Organization',
     },

@@ -15,6 +15,25 @@ import { enabledFields, schemaFields, state, STEPS } from './state.js';
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REPOSITORY = /^[\w.-]+\/[\w.-]+$/;
 
+/** Answers that end up in an `href`, and the label to name them by. */
+const URL_ANSWERS = [
+  ['orgUrl', 'The organization website'],
+  ['googleFontsUrl', 'The Google Fonts URL'],
+];
+
+/**
+ * A link the browser will follow. `new URL()` accepts `mailto:` and `data:`
+ * too, so the scheme is checked as well.
+ */
+function isHttpUrl(value) {
+  try {
+    const { protocol } = new URL(String(value));
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 /** @returns {import('./errors.js').Problem[]} */
 function brandingProblems() {
   const problems = [];
@@ -34,6 +53,14 @@ function brandingProblems() {
       message: 'GitHub repository must be in the form owner/repo.',
       target: answerFieldId('repository'),
     });
+  }
+  for (const [key, label] of URL_ANSWERS) {
+    if (answers[key] && !isHttpUrl(answers[key])) {
+      problems.push({
+        message: `${label} must start with https:// — it is used as a link.`,
+        target: answerFieldId(key),
+      });
+    }
   }
   for (const { key, label } of COLOR_QUESTIONS) {
     if (!isHexColor(answers[key])) {

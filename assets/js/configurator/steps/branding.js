@@ -201,6 +201,14 @@ export function renderBranding() {
       copyField('heroTitle', 'Headline'),
       copyField('heroLead', 'Lead paragraph', { textarea: true }),
       copyField('submitIntro', 'Submission page intro', { textarea: true }),
+      copyField('submitTurnaround', 'What happens after someone submits', {
+        help: 'The last step of "what happens next" on the submission page. Promise a turnaround you can keep.',
+        placeholder: 'A maintainer reviews it, usually within two weeks.',
+      }),
+      copyField('submitReviewNote', 'Submission safety note', {
+        textarea: true,
+        help: 'The warning beside the submission form and at the top of the GitHub issue form — say what your organization must not receive.',
+      }),
       copyField('footerAbout', 'Footer about', { textarea: true }),
       copyField('copyright', 'Copyright holder'),
     ]),

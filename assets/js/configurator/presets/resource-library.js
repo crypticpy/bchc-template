@@ -57,6 +57,7 @@ export const resourceLibrary = {
     submit: {
       intro:
         'Suggest a resource for the library. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved.',
+      turnaround: 'A librarian reviews it, usually within two weeks.',
       review_note:
         'Link to publicly accessible resources. Do not paste licensed material, credentials or non-public documents.',
       fallback_email: 'library@example.org',
@@ -66,7 +67,7 @@ export const resourceLibrary = {
         'A curated library maintained by our community. Items are suggested by practitioners and reviewed before publication.',
       links: [
         { label: 'Organization home', url: 'https://example.org' },
-        { label: 'Suggest a resource', url: '/submit/' },
+        { label: 'Suggest a resource', url: '/submit/', module: 'submit' },
       ],
       copyright: 'Your Organization',
     },

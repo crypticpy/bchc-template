@@ -192,6 +192,49 @@ test('an invalid colour blocks Continue and focuses the error summary, linked to
   assert.equal($('#step-heading').textContent, 'Modules');
 });
 
+test('a problem is also marked on the control it belongs to, and clears on the next keystroke', async () => {
+  goToStep(2);
+  type('#field-primary', 'not-a-colour');
+  press('Continue');
+  // The marks are applied after the step re-renders, so they survive it.
+  await Promise.resolve();
+
+  const control = $('#field-primary');
+  assert.equal(control.getAttribute('aria-invalid'), 'true');
+  const message = $('#field-primary-error');
+  assert.ok(message, 'no inline message beside the control');
+  assert.equal(message.previousElementSibling, control, 'the message is not beside its control');
+  assert.match(message.textContent, /Main colour must be a 6-digit hex/);
+  assert.match(control.getAttribute('aria-describedby') || '', /\bfield-primary-error\b/);
+
+  // Touching the control is the moment the reader has done something about it.
+  type('#field-primary', '#1D4E89');
+  assert.equal($('#field-primary').getAttribute('aria-invalid'), null);
+  assert.equal($('#field-primary-error'), null);
+});
+
+test('the two URL answers on the Branding step are validated', async () => {
+  goToStep(2);
+  type('#field-orgUrl', 'bigcities.org');
+  press('Continue');
+  await Promise.resolve();
+
+  const summary = $('#wizard-error-summary');
+  assert.ok(summary.querySelector('a[href="#field-orgUrl"]'), 'the problem does not link to the field');
+  assert.match($('#field-orgUrl-error').textContent, /must start with https:\/\//);
+
+  type('#field-orgUrl', 'https://bigcities.org');
+  type('#field-googleFontsUrl', 'javascript:alert(1)');
+  press('Continue');
+  await Promise.resolve();
+  assert.match($('#field-googleFontsUrl-error').textContent, /must start with https:\/\//);
+
+  // Leave the step valid for the tests that follow.
+  type('#field-googleFontsUrl', '');
+  press('Continue');
+  assert.equal($('#wizard-error-summary'), null);
+});
+
 /* --- entry model ---------------------------------------------------------- */
 
 test('every field row starts collapsed behind a real expand button', () => {

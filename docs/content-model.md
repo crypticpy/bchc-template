@@ -76,16 +76,17 @@ Each item under `fields` is a hash:
 |---|---|
 | `key` | Front-matter key. `snake_case`, unique, required. |
 | `label` | Short human label used on cards, filters and the entry page. Required, unique. Keep it short — it has to fit a filter header. |
-| `prompt` | Optional question-style label for the submission forms ("What kind of data does it touch?"). Falls back to `label`. The web form shows the prompt as the question; the issue template keeps `label` as the heading (the scaffolder finds answers by it) and puts the prompt into the help text. |
+| `prompt` | The question form of the label — what you would ask out loud ("What kind of data does it touch?"). Optional; falls back to `label`. The web form shows the prompt as the visible question; the issue template keeps `label` as the heading (the scaffolder finds answers by it) and puts the prompt at the front of the help text. |
 | `type` | See [field types](#field-types). |
 | `required` | `true`/`false` (default `false`). Enforced in both forms and by `check_front_matter.rb`. |
-| `description` | Help text shown under the field in forms. |
+| `description` | Help the prompt does not already give: a constraint, an example, a boundary, a consequence. **Both forms print it immediately after the prompt, so it must not restate it** — write it as a continuation, not a second attempt at the question. `npm run validate` warns when four or more consecutive words of the prompt reappear here. |
+| `error` | Optional message shown when a required answer is missing, overriding the generated default. Write it as verb + the thing ("Select at least one area of work"), not "this field is required". |
 | `placeholder` | Example text shown in forms. |
 | `options` | Allowed values — `select` and `multiselect` only. A plain list of strings. |
 | `option_meta` | Per-option presentation. See [option metadata](#option-metadata). |
 | `facet` | `true` → the field appears in the filter panel. `select` becomes a single-choice filter; everything else is any-of. Facet fields are always in the search index. |
 | `card` | Whether and how the field shows on a catalog card. See [card slots](#card-slots). |
-| `weight` | `1`–`9`, default `5`. Ordering within a card slot, the entry fact strip, a filter group and a sidebar section — and the truncation order when a slot is full (lower weight survives). |
+| `weight` | `1`–`9`, default `5`. One number, four jobs: the order the question is asked in inside its form section, the order within a card slot, the entry fact strip, a filter group and a sidebar section — and the truncation order when a slot is full (lower weight survives). Reordering questions therefore also reorders the card, so check the [card slots](#card-slots) before you renumber. |
 | `icon` | Icon name from `_includes/icon.html`. Used for the filter group header, the fact strip, `card: line`, and as the fallback for `card: icon`. |
 | `group` | A key from the top-level `groups` list. Drives filter grouping and the sections of the submit form. Fields with no group fall into "More". |
 | `search` | `true` → the value is included in `/search.json`. `title` and `summary` and every facet field are indexed regardless. |
@@ -103,7 +104,7 @@ Each item under `fields` is a hash:
 | `url` | string | Must start with `http://` or `https://`. Rendered as a link with a host label. |
 | `email` | string | Must contain `@`. Rendered as a `mailto:` link. |
 | `select` | string | One value from `options`. |
-| `multiselect` | list of strings | Any number of values from `options`. |
+| `multiselect` | list of strings | Any number of values from `options`. Rendered as a multi-select dropdown on GitHub, so the answers survive the hand-off from `/submit/` and `required` is enforceable; GitHub's dropdown carries only the option labels, so the per-option `option_meta.description` shows on this site's own form and catalog but not there. |
 | `list` | list of strings | Free-form: one per line in the issue form, comma-separated in the web form. |
 | `date` | `YYYY-MM-DD` | Rendered as "March 9, 2026". |
 | `number` | number | No range validation. |
@@ -128,6 +129,7 @@ screenshots:
 - **Where the files live**: inside the entry's own folder, conventionally `catalog/<slug>/screenshots/`. The scaffolder writes them as `01.png`, `02.jpg`, … in the order the submitter attached them.
 - **What `src` looks like**: a site-absolute path starting with `/` (this is what the automation writes, and what the templates resolve through `relative_url`, so it survives a project-page `baseurl`). A path relative to the entry folder (`screenshots/01.png`) also validates, and an `http(s)` URL is accepted but warned about — a remote image breaks when someone else's host changes.
 - **What renders**: the entry page shows a thumbnail grid that opens a keyboard-navigable lightbox, captioned from `alt`. The first image is also the card image when the entry has no explicit `thumbnail`. An entry with no images gets a text-first card, not a placeholder graphic.
+- **How the card crops it**: `thumbnail_focus` on the entry is a CSS `object-position` (default `center top`); the default shows the top of the image, which is where a deck or a dashboard puts its title.
 - **Alt text**: describe what the picture shows, in one sentence under about 125 characters. "Screenshot of the tool" is not alt text. Do not repeat the entry title.
 - **Validation**: every item needs a non-blank `src`; a local `src` must exist on disk inside the entry folder; missing `alt` is a warning, not a failure.
 
@@ -165,7 +167,7 @@ data_sensitivity:
 | `short` | Up to 14 characters. Replaces the full value on badges, chips, filters and the fact strip. The full value stays available as a tooltip and to screen readers. |
 | `icon` | Icon name from `_includes/icon.html`. Defaults to the field's `icon`. |
 | `tone` | `neutral` (default) \| `primary` \| `secondary` \| `accent` \| `warn`. **`warn` means caution** — sensitive data, a licence cost, something a reader must not miss. Do not use it for emphasis; if everything is a warning, nothing is. |
-| `description` | One line defining the option. Shown under the option in the submission forms and as a tooltip. This is where plain language belongs. |
+| `description` | One line defining the option. Shown under the option in the submission forms, and on the catalog as a "What do these mean?" disclosure under each facet group and under the fact strip. This is where plain language belongs. |
 
 Every option is usable without metadata — an option with no entry renders as its own text, with the field's icon and a neutral tone.
 

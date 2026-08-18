@@ -110,6 +110,8 @@ export function answersFromConfig(config) {
     heroTitle: site.hero?.title ?? '',
     heroLead: site.hero?.lead ?? '',
     submitIntro: site.submit?.intro ?? '',
+    submitTurnaround: site.submit?.turnaround ?? '',
+    submitReviewNote: site.submit?.review_note ?? '',
     submitFallbackEmail: site.submit?.fallback_email ?? '',
     footerAbout: site.footer?.about ?? '',
     copyright: site.footer?.copyright ?? '',
@@ -167,6 +169,8 @@ export function applyAnswers(baseConfig, answers = {}) {
 
   site.submit = site.submit || {};
   site.submit.intro = pick(answers, 'submitIntro', site.submit.intro);
+  site.submit.turnaround = pick(answers, 'submitTurnaround', site.submit.turnaround);
+  site.submit.review_note = pick(answers, 'submitReviewNote', site.submit.review_note);
   site.submit.fallback_email = pick(answers, 'submitFallbackEmail', site.submit.fallback_email);
 
   site.footer = site.footer || {};

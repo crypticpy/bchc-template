@@ -62,7 +62,8 @@ test('types map to the right GitHub controls', () => {
   assert.equal(byId.get('title').type, 'input');
   assert.equal(byId.get('summary').type, 'textarea');
   assert.equal(byId.get('solution_type').type, 'dropdown', 'select -> dropdown');
-  assert.equal(byId.get('area').type, 'checkboxes', 'multiselect -> checkboxes');
+  assert.equal(byId.get('area').type, 'dropdown', 'multiselect -> multi dropdown');
+  assert.equal(byId.get('area').attributes.multiple, true, 'multiselect dropdowns are multiple');
   assert.equal(byId.get('ai_tools').type, 'textarea', 'list -> textarea');
   assert.equal(byId.get('screenshots').type, 'textarea', 'images -> textarea');
   assert.equal(byId.get('resources').type, 'textarea', 'links -> textarea');
@@ -70,26 +71,40 @@ test('types map to the right GitHub controls', () => {
   assert.equal(byId.get('contact_email').type, 'input');
 });
 
-test('select options are copied verbatim; checkboxes become label objects', () => {
+test('options are copied verbatim for both kinds of dropdown', () => {
   const doc = generate();
   const byId = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
   const select = shipped.schema.fields.find((f) => f.key === 'solution_type');
   assert.deepEqual(byId.get('solution_type').attributes.options, select.options);
 
+  // Plain strings, not `{label}` objects: that shape belongs to `checkboxes`,
+  // which this generator no longer emits.
   const multi = shipped.schema.fields.find((f) => f.key === 'area');
-  assert.deepEqual(
-    byId.get('area').attributes.options,
-    multi.options.map((option) => ({ label: option }))
-  );
+  assert.deepEqual(byId.get('area').attributes.options, multi.options);
 });
 
-test('required is set from the schema, except on checkboxes where GitHub forbids it', () => {
+test('an option label containing a comma survives verbatim', () => {
+  const doc = generate();
+  const byId = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
+  const withComma = byId.get('area').attributes.options.filter((option) => option.includes(','));
+  assert.ok(withComma.length > 0, 'the shipped schema has an option with a comma in it');
+  withComma.forEach((option) => {
+    assert.ok(
+      shipped.schema.fields.find((f) => f.key === 'area').options.includes(option),
+      'the comma is not split or escaped'
+    );
+  });
+});
+
+test('required is set from the schema on every control, multi-selects included', () => {
   const doc = generate();
   const byId = new Map(doc.body.filter((item) => item.id).map((item) => [item.id, item]));
   assert.equal(byId.get('title').validations.required, true);
   assert.equal(byId.get('impact').validations.required, false);
-  assert.equal(byId.get('area').validations, undefined, 'checkboxes carry no validations block');
-  assert.match(byId.get('area').attributes.description, /Required — choose at least one/);
+  // A multi-select dropdown can be required; the `checkboxes` control it
+  // replaced could not, and used to fake it with a line of description text.
+  assert.equal(byId.get('area').validations.required, true);
+  assert.doesNotMatch(byId.get('area').attributes.description, /Required — choose at least one/);
 });
 
 test('prompt comes before description in the help text', () => {

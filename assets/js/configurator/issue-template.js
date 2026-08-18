@@ -97,13 +97,7 @@ function controlFor(field) {
     };
   }
 
-  const description = joinSentences([
-    field.prompt,
-    field.description,
-    TYPE_GUIDANCE[type],
-    // Per-option `required` is not expressible on GitHub checkboxes.
-    required && type === 'multiselect' ? 'Required — choose at least one' : '',
-  ]);
+  const description = joinSentences([field.prompt, field.description, TYPE_GUIDANCE[type]]);
   if (description) attributes.description = description;
 
   const item = { type: 'input', id: key, attributes };
@@ -118,11 +112,15 @@ function controlFor(field) {
     if (placeholder.includes('\n')) attributes.value = placeholder;
     else if (placeholder.trim()) attributes.placeholder = placeholder;
   } else if (type === 'multiselect') {
-    item.type = 'checkboxes';
+    // A multi-select dropdown, not `checkboxes`: GitHub can prefill a dropdown
+    // from the query string and enforce `validations.required` on it, and can
+    // do neither for checkboxes. The cost is that `option_meta.description`
+    // has nowhere to live in the raw GitHub form — the web form still shows it.
+    item.type = 'dropdown';
+    attributes.multiple = true;
     attributes.options = (Array.isArray(field.options) ? field.options : [])
       .map((option) => String(option))
-      .filter((option) => option.trim() !== '')
-      .map((option) => ({ label: option }));
+      .filter((option) => option.trim() !== '');
   } else if (type === 'select') {
     item.type = 'dropdown';
     attributes.options = (Array.isArray(field.options) ? field.options : [])
@@ -135,8 +133,10 @@ function controlFor(field) {
     attributes.placeholder = placeholder;
   }
 
-  // `checkboxes` has no `validations` block on GitHub; the note above covers it.
-  if (item.type !== 'checkboxes') item.validations = { required };
+  // Every control this generator emits (input, textarea, dropdown) accepts
+  // `validations`. GitHub only enforces it on public repositories, so the web
+  // form's own validation stays the first line of defence.
+  item.validations = { required };
   return item;
 }
 

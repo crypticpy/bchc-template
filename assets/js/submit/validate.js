@@ -2,9 +2,13 @@
  * Submit form — per-field validation and the error summary.
  *
  * Validation is format-only on blur and complete on submit; the submit button
- * is never disabled (design brief, "Submit"). Errors are announced three ways:
- * `aria-invalid` on the control, an inline `.field-error` referenced by
- * `aria-describedby`, and a `role="alert"` summary linking to each field.
+ * is never disabled (design brief, "Submit"). Errors are announced two ways:
+ * `aria-invalid` on the control that is wrong, and an inline `.field-error`
+ * referenced by `aria-describedby`, plus a summary panel that takes focus.
+ *
+ * Every message names the question the submitter read and the thing to do about
+ * it. The words come from the schema — `data-question` on the wrapper, or the
+ * field's own `error:` override — so no field key ever appears in this file.
  *
  * DOM contract: [data-error-summary] / [data-error-summary-list] /
  * [data-error-summary-title], and `#<control id>-error` beside every control.
@@ -32,6 +36,36 @@
   }
 
   /**
+   * The question, as the submitter read it, in quotation marks.
+   * @param {object} field
+   * @returns {string}
+   */
+  function named(field) {
+    return '“' + (field.question || field.label || '') + '”';
+  }
+
+  /** " like https://example.org/app", when the schema gave the control one. */
+  function like(field) {
+    return field.placeholder ? ', like ' + field.placeholder : '';
+  }
+
+  /**
+   * The message for an unanswered required field: the schema's own `error:`
+   * when it has one, otherwise a verb-plus-the-thing default for the control
+   * the submitter is looking at.
+   * @param {object} field
+   * @returns {string}
+   */
+  function missingMessage(field) {
+    if (field.error) return field.error;
+    if (field.type === 'multiselect') return 'Select at least one option for ' + named(field);
+    if (field.type === 'select') return 'Select an option for ' + named(field);
+    if (field.type === 'links') return 'Add at least one link for ' + named(field);
+    if (field.type === 'images') return 'Add at least one image for ' + named(field);
+    return 'Enter an answer for ' + named(field);
+  }
+
+  /**
    * Problem with a field's current value.
    * @param {object} field a descriptor from readFields
    * @returns {string} the message to show, or '' when the field is fine
@@ -41,38 +75,46 @@
     const empty = Array.isArray(value) ? value.length === 0 : String(value).trim() === '';
 
     // An untouched skeleton (a pre-filled `markdown` outline) is not an answer.
-    if (field.required && !ns.isAnswered(field)) {
-      if (field.type === 'multiselect') return 'Choose at least one option for “' + field.label + '”.';
-      if (field.type === 'select') return 'Choose an option for “' + field.label + '”.';
-      return 'We need an answer for “' + field.label + '”.';
-    }
+    if (field.required && !ns.isAnswered(field)) return missingMessage(field);
     if (empty) return '';
 
     if (field.type === 'url' || field.type === 'image') {
       if (!isUrl(String(value)))
-        return 'That does not look like a web address. It should start with https://';
+        return 'Enter a web address starting with https:// for ' + named(field) + like(field);
     }
     if (field.type === 'email' && !EMAIL.test(String(value))) {
-      return 'That does not look like an email address.';
+      return 'Enter an email address for ' + named(field) + like(field);
     }
     if (field.type === 'date' && !/^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
-      return 'Use a date in YYYY-MM-DD form.';
+      return 'Enter a date as YYYY-MM-DD for ' + named(field);
     }
     if (field.type === 'number' && !Number.isFinite(Number(value))) {
-      return 'That needs to be a number.';
+      return 'Enter a number for ' + named(field);
     }
     if (field.type === 'links') {
       const bad = value.find((link) => !isUrl(link.url));
-      if (bad) return 'Every link needs a web address starting with https://';
+      if (bad) return 'Give every link in ' + named(field) + ' a web address starting with https://';
       const unlabelled = value.find((link) => !link.label);
-      if (unlabelled) return 'Give each link a short label so readers know where it goes.';
+      if (unlabelled)
+        return 'Give every link in ' + named(field) + ' a short label, so readers know where it goes';
     }
     if (field.type === 'images') {
       const bad = value.find((item) => !isUrl(item.url));
-      if (bad) return 'Each line needs an image address starting with https://';
+      if (bad) return 'Give every line in ' + named(field) + ' an image address starting with https://';
     }
     return '';
   };
+
+  /**
+   * `aria-invalid` belongs on the control that is wrong, not on every control
+   * in the field: marking all ten tick boxes of a group invalid tells a screen
+   * reader user that each one of them is individually at fault.
+   * @param {object} field
+   * @returns {HTMLElement|null}
+   */
+  function invalidTarget(field) {
+    return field.control || field.wrap.querySelector('input, select, textarea');
+  }
 
   /**
    * Show an inline error under a field.
@@ -84,9 +126,8 @@
     const text = box ? box.querySelector('[data-error-text]') : null;
     if (text) text.textContent = message;
     if (box) box.hidden = false;
-    field.wrap.querySelectorAll('input, select, textarea').forEach((control) => {
-      control.setAttribute('aria-invalid', 'true');
-    });
+    const control = invalidTarget(field);
+    if (control) control.setAttribute('aria-invalid', 'true');
   };
 
   /**
@@ -96,7 +137,7 @@
   ns.clearError = function clearError(field) {
     const box = field.wrap.querySelector('.field-error');
     if (box) box.hidden = true;
-    field.wrap.querySelectorAll('input, select, textarea').forEach((control) => {
+    field.wrap.querySelectorAll('[aria-invalid]').forEach((control) => {
       control.removeAttribute('aria-invalid');
     });
   };
@@ -170,7 +211,7 @@
     const control = field.control || field.wrap.querySelector('input, select, textarea, button');
     if (!control) return;
     if (typeof control.scrollIntoView === 'function') {
-      control.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      control.scrollIntoView({ block: 'center', behavior: ns.scrollBehavior() });
     }
     control.focus();
   };
