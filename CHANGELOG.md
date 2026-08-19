@@ -6,7 +6,48 @@ All notable changes to this template are recorded here. The format follows
 (`_data/schema.yml`) that existing entries or presets would have to follow is a
 major version, and each entry says so when it happens.
 
-## [Unreleased]
+## [1.8.0] — 2026-08-19
+
+The template is a template again. Its working tree used to *be* one
+organization's live catalog, so a copy made from it started life wearing that
+organization's name, tagline, logo mark, footer and governance text — and the
+first job of anyone forking it was to find and undo all of that. The named
+catalog now has its own repository and this one ships a generic identity.
+
+### Changed
+
+- **The shipped configuration is organization-agnostic.** `_data/site.yml`,
+  `_data/governance.yml`, `_data/showcase.yml`, `_config.yml` and the LICENSE
+  no longer name a real organization. The site ships as "AI Use Case Catalog"
+  by an invented "Civic AI Community of Practice", which is what choosing the
+  `ai-use-cases` preset in the setup wizard describes: a public-sector
+  community of practice sharing what it has built. The governance page keeps
+  its structure and reads as a worked example rather than one body's adopted
+  policy.
+- **The `ai-use-cases` showcase example** (`/examples/ai-use-cases/`) carries
+  that generic identity and a refreshed set of sample entries, so the flagship
+  example demonstrates the preset rather than a particular deployment.
+  The ten new entries are org-agnostic public-sector use cases (permit
+  intake triage, council meeting summaries, records-request redaction, …),
+  written to the same standard as before; docs worked examples and test
+  fixtures were re-pointed at them so nothing in the repository quotes the
+  old deployment's data.
+
+### Removed
+
+- **The named deployment moved out.** The health-coalition catalog this
+  template was first built for now lives at
+  [crypticpy/bchc-ai-use-case-catalog](https://github.com/crypticpy/bchc-ai-use-case-catalog),
+  where its content, branding and adopted governance text belong. This
+  repository stays the generic template; the repository slug `bchc-template`
+  is unchanged so existing forks, remotes and links keep working.
+- **`docs/dmwg-alignment-plan.md` and `docs/BCHC_DMWG_AI_Resource_info.md`**,
+  the source framework and the field-by-field plan behind v1.5.0 and v1.6.0.
+  They describe one work group's adopted framework, so they moved to that
+  repository with it. What they produced — the schema fields, the governance
+  module, the review workflow — is unchanged and documented in
+  [docs/content-model.md](docs/content-model.md) and
+  [docs/configuration.md](docs/configuration.md).
 
 ## [1.7.0] — 2026-08-18
 
@@ -140,7 +181,7 @@ everything the walkthrough found wrong is fixed below.
 ## [1.6.0] — 2026-08-18
 
 DMWG alignment, wave 4 — metrics and promotion, the last of the four waves in
-[docs/dmwg-alignment-plan.md](docs/dmwg-alignment-plan.md). The governance
+`docs/dmwg-alignment-plan.md`. The governance
 page can now show how the catalog is doing, counted from the repository's own
 issues and pull requests; an entry can say which entry it was adapted from,
 and the source says how many adopted it; and the feed — shipped in 1.2.0 —
@@ -209,7 +250,7 @@ organizations figure.
 
 DMWG alignment, waves 1–3 — the content model, then the site, then the review
 workflow catch up with the Data Modernization Work Group's governance
-framework ([docs/dmwg-alignment-plan.md](docs/dmwg-alignment-plan.md)). Add,
+framework (`docs/dmwg-alignment-plan.md`). Add,
 never delete: every existing field stays; nine join them, the rules the
 reviewers apply are published on the site rather than in a PDF, and the pull
 request a submission becomes now carries those rules, the answers that need a
@@ -839,7 +880,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/crypticpy/bchc-template/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/crypticpy/bchc-template/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/crypticpy/bchc-template/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/crypticpy/bchc-template/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/crypticpy/bchc-template/compare/v1.5.0...v1.6.0
