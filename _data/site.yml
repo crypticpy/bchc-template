@@ -11,7 +11,7 @@ description: "A shared catalog of AI use cases, tools, and lessons learned from 
 organization:
   name: "Civic AI Community of Practice"
   short_name: "Civic AI CoP"
-  url: "https://github.com/crypticpy/bchc-template"
+  url: "https://github.com/crypticpy/phct"
   contact_email: "catalog@example.org"
 
 # Logo shown in the header/footer. Provide an image path (SVG/PNG under assets/images)
@@ -23,7 +23,7 @@ logo:
 # GitHub repository that hosts this site, as "owner/repo".
 # Used to build the "Submit" form links, "Edit this page" links, and issue URLs.
 github:
-  repository: "crypticpy/bchc-template"
+  repository: "crypticpy/phct"
   branch: "main"
 
 # Demo mode. `true` puts a banner on every page saying the content is the
@@ -33,7 +33,7 @@ github:
 # through the launch guide — the banner offers it as "what a fresh copy looks
 # like on day one". Only used while `demo` is true; leave blank to omit the link.
 demo: true
-demo_starter_url: "https://crypticpy.github.io/bchc-catalog-starter/"
+demo_starter_url: ""
 
 # Modules: turn site sections on or off. Navigation, home page blocks and
 # workflows adapt automatically.
@@ -103,12 +103,12 @@ footer:
   about: "A collaborative catalog maintained by a public-sector AI community of practice. Content is contributed by member teams and reviewed before publication."
   links:
     - label: "About the template"
-      url: "https://github.com/crypticpy/bchc-template"
+      url: "https://github.com/crypticpy/phct"
     - label: "Submit an entry"
       url: "/submit/"
       module: submit
     - label: "Maintainer guide"
-      url: "https://github.com/crypticpy/bchc-template/blob/main/docs/admin-guide.md"
+      url: "https://github.com/crypticpy/phct/blob/main/docs/admin-guide.md"
   copyright: "Civic AI Community of Practice"
   # One-sentence accessibility statement for the footer. When the governance
   # module is on it links to the full statement at /governance/#accessibility.

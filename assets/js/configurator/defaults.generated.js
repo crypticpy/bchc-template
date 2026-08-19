@@ -16,7 +16,7 @@ export const SITE = {
   "organization": {
     "name": "Civic AI Community of Practice",
     "short_name": "Civic AI CoP",
-    "url": "https://github.com/crypticpy/bchc-template",
+    "url": "https://github.com/crypticpy/phct",
     "contact_email": "catalog@example.org"
   },
   "logo": {
@@ -24,11 +24,11 @@ export const SITE = {
     "text": "CAI"
   },
   "github": {
-    "repository": "crypticpy/bchc-template",
+    "repository": "crypticpy/phct",
     "branch": "main"
   },
   "demo": true,
-  "demo_starter_url": "https://crypticpy.github.io/bchc-catalog-starter/",
+  "demo_starter_url": "",
   "modules": {
     "catalog": true,
     "submit": true,
@@ -90,7 +90,7 @@ export const SITE = {
     "links": [
       {
         "label": "About the template",
-        "url": "https://github.com/crypticpy/bchc-template"
+        "url": "https://github.com/crypticpy/phct"
       },
       {
         "label": "Submit an entry",
@@ -99,7 +99,7 @@ export const SITE = {
       },
       {
         "label": "Maintainer guide",
-        "url": "https://github.com/crypticpy/bchc-template/blob/main/docs/admin-guide.md"
+        "url": "https://github.com/crypticpy/phct/blob/main/docs/admin-guide.md"
       }
     ],
     "copyright": "Civic AI Community of Practice",

@@ -11,9 +11,9 @@ also a program/cohort portal, a resource library, or the smallest useful catalog
 WordPress themes are sold is the model to borrow: a landing page that says what the thing is
 and can do, and a live, complete demo of each configuration one click away.
 
-The day-one starter (`crypticpy/bchc-catalog-starter`) keeps its job — "here is your catalog
-after the launch guide" — and stays a separate repository, because its point is that it *is*
-a real copy.
+(The day-one starter that existed when this was written, `crypticpy/bchc-catalog-starter`, was
+archived in 1.8.1 — the blank example made it redundant. `starter_url` stays as a feature and
+ships blank.)
 
 ## What it looks like when done
 
@@ -58,7 +58,7 @@ never builds it, not even before `npm run eject:samples` (and the Apply setup wo
 4. **Root is the landing.** The demo's AI use case catalog moves to `/examples/ai-use-cases/`.
    Old links to the root land on the landing with that example one click away.
 5. **The flagship example keeps the live loop; the others do not open issues.** On
-   `/examples/ai-use-cases/` the submit form still opens issues on `crypticpy/bchc-template`
+   `/examples/ai-use-cases/` the submit form still opens issues on `crypticpy/phct`
    (schema matches). The other three examples run with `github.repository` blank so a
    submission cannot open an issue whose fields the template repository's workflow would
    misread; the page still renders and says it is an example.
@@ -74,11 +74,11 @@ never builds it, not even before `npm run eject:samples` (and the Apply setup wo
 showcase:
   role: landing | example
   example: cohort-portal            # examples only: this build's preset id
-  root: "/bchc-template"            # baseurl of the landing build ('' at a domain root)
+  root: "/phct"            # baseurl of the landing build ('' at a domain root)
   examples:                         # every example, in landing order
     - id: ai-use-cases
       name: "AI use case catalog"
-      path: "/bchc-template/examples/ai-use-cases"
+      path: "/phct/examples/ai-use-cases"
     - …
 ```
 

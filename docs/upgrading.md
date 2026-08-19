@@ -28,7 +28,7 @@ and upgrades from here the same way any other fork does.
 ## One-time setup
 
 ```sh
-git remote add template https://github.com/crypticpy/bchc-template.git
+git remote add template https://github.com/crypticpy/phct.git
 git config merge.ours.driver true
 ```
 

@@ -1,19 +1,17 @@
-# Civic Catalog Template
+# Pub Health Catalog Template (PHCT)
 
 A configurable, GitHub-Pages-hosted catalog and resource site, managed entirely through GitHub. There is no server, no database and no CMS login — Jekyll builds the site on GitHub Actions and deploys it to Pages, and every content change flows through a GitHub issue and a pull request.
 
 This repository is shipped configured as an **AI Use Case Catalog**, where public-sector teams share AI use cases — source repos, cloud deployments, vendor solutions, write-ups. The identity it ships with is a generic one; nothing here is tied to a particular organization. The same template can be re-pointed at other uses without touching layout code: a project/asset portal, a cohort or training-program portal where teams publish outputs, an event calendar, or a curated resource library. See [`docs/configuration.md`](docs/configuration.md) for how to retarget it.
 
-**Live demo:** [crypticpy.github.io/bchc-template](https://crypticpy.github.io/bchc-template/) — a landing page introducing the template, with four complete sites built from this same repository behind it. Each is a real build with its own fields, filters, colours and sample content, search and submission form included:
+**Live demo:** [crypticpy.github.io/phct](https://crypticpy.github.io/phct/) — a landing page introducing the template, with four complete sites built from this same repository behind it. Each is a real build with its own fields, filters, colours and sample content, search and submission form included:
 
-- [AI use case catalog](https://crypticpy.github.io/bchc-template/examples/ai-use-cases/) — the configuration this repository ships with.
-- [Cohort portal](https://crypticpy.github.io/bchc-template/examples/cohort-portal/) — a training program's teams, cohort by cohort, with the events and cohorts modules on.
-- [Resource library](https://crypticpy.github.io/bchc-template/examples/resource-library/) — shorter entries and more of them: guides, toolkits and datasets.
-- [Blank catalog](https://crypticpy.github.io/bchc-template/examples/blank/) — the smallest useful starting point, ready to be renamed.
+- [AI use case catalog](https://crypticpy.github.io/phct/examples/ai-use-cases/) — the configuration this repository ships with.
+- [Cohort portal](https://crypticpy.github.io/phct/examples/cohort-portal/) — a training program's teams, cohort by cohort, with the events and cohorts modules on.
+- [Resource library](https://crypticpy.github.io/phct/examples/resource-library/) — shorter entries and more of them: guides, toolkits and datasets.
+- [Blank catalog](https://crypticpy.github.io/phct/examples/blank/) — the smallest useful starting point, ready to be renamed.
 
 **Where the coalition catalog lives:** the health-coalition catalog this template grew out of is now its own repository, [crypticpy/bchc-ai-use-case-catalog](https://github.com/crypticpy/bchc-ai-use-case-catalog). This repository stays the generic template.
-
-**See what a fresh copy looks like on day one:** [crypticpy.github.io/bchc-catalog-starter](https://crypticpy.github.io/bchc-catalog-starter/) — a copy made from this template by following [`docs/launch.md`](docs/launch.md), configured through the setup wizard, samples removed, one entry published.
 
 <p align="center">
   <img src="docs/images/home.png" alt="Home page: dark hero with search, calls to action, an honest stat line and the newest entries listed alongside; a browse-by grid of the schema's facets underneath." width="720">
@@ -92,7 +90,7 @@ Full reference for every setting: [`docs/configuration.md`](docs/configuration.m
 A fork is a copy, not a subscription: template releases do not reach you on their own. `.gitattributes` marks everything a fork owns — `_config.yml`, `_data/*.yml`, your content, your images, your README — as `merge=ours`, so a template merge updates the code and leaves your site alone.
 
 ```bash
-git remote add template https://github.com/crypticpy/bchc-template.git
+git remote add template https://github.com/crypticpy/phct.git
 git config merge.ours.driver true    # required — without it .gitattributes is inert
 git fetch template --tags
 npm run upgrade:check                # read-only: what the next release would change, in two lists

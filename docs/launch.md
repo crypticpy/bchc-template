@@ -1,9 +1,9 @@
 # Launch your catalog
 
 Start to finish: a copy of this template on GitHub, configured, emptied of the sample
-content, and carrying one entry you published yourself. What you end up with looks like
-<https://crypticpy.github.io/bchc-catalog-starter/> — a copy made by following exactly this guide,
-with one entry that describes the template.
+content, and carrying one entry you published yourself. What you end up with is the
+[blank example](https://crypticpy.github.io/phct/examples/blank/) with your own name on it
+and one real entry.
 
 - **Time:** about 40 minutes, most of it waiting for builds.
 - **You need:** a GitHub account, and permission to create a repository in your organization.

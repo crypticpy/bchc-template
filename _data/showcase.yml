@@ -15,7 +15,7 @@
 # See docs/showcase-plan.md.
 # ---------------------------------------------------------------------------
 
-title: "The civic catalog template"
+title: "Pub Health Catalog Template"
 eyebrow: "Open source · built for public-sector teams"
 tagline: "One repository, no server, four ways to run it."
 lead: "A catalog site that lives on GitHub Pages and is managed entirely through GitHub: someone fills in a form, a maintainer merges a pull request, the site rebuilds. The four examples below are this same repository with different settings — open any of them and click around."
@@ -25,7 +25,7 @@ hero_ctas:
     url: "#examples"
     style: primary
   - label: "Read the launch guide"
-    url: "https://github.com/crypticpy/bchc-template/blob/main/docs/launch.md"
+    url: "https://github.com/crypticpy/phct/blob/main/docs/launch.md"
   - label: "Configure your own"
     url: "/setup/"
 
@@ -90,13 +90,13 @@ features:
     body: "One file defines every question an entry answers, and how each answer is shown — as a card badge, a filter, a sidebar fact. The forms, the issue template, the search index and the validator all follow it."
     link:
       label: "The content model"
-      url: "https://github.com/crypticpy/bchc-template/blob/main/docs/content-model.md"
+      url: "https://github.com/crypticpy/phct/blob/main/docs/content-model.md"
   - title: "GitHub is the CMS"
     icon: edit
     body: "There is no admin login and no database. Contributors submit through a web form, maintainers review in a pull request, and the page history is the audit trail."
     link:
       label: "The maintainer guide"
-      url: "https://github.com/crypticpy/bchc-template/blob/main/docs/admin-guide.md"
+      url: "https://github.com/crypticpy/phct/blob/main/docs/admin-guide.md"
   - title: "Nothing publishes without review"
     icon: shield-check
     body: "Every submission arrives as a draft with your review checklist attached. Answers you flag as sensitive — protected health information, a public-facing audience — raise the review to a second pair of eyes automatically."
@@ -120,7 +120,7 @@ features:
     body: "GitHub Pages serves plain files, so there is no server to pay for, secure or migrate. Template improvements reach your copy when you choose to merge them, and your content and settings are never overwritten."
     link:
       label: "How upgrades work"
-      url: "https://github.com/crypticpy/bchc-template/blob/main/docs/upgrading.md"
+      url: "https://github.com/crypticpy/phct/blob/main/docs/upgrading.md"
 
 how_it_works:
   - title: "Someone fills in a form"
@@ -138,7 +138,7 @@ start_here:
   - title: "Follow the launch guide"
     icon: book-open
     body: "The full tutorial: create the repository, turn on the three settings GitHub needs, configure the site, clear the samples and publish a first entry end to end."
-    url: "https://github.com/crypticpy/bchc-template/blob/main/docs/launch.md"
+    url: "https://github.com/crypticpy/phct/blob/main/docs/launch.md"
   - title: "Configure it in your browser"
     icon: wand
     body: "The setup wizard, no terminal required. Start from one of the four presets, change the names, colours and fields, and it writes the configuration files for you."
@@ -146,8 +146,8 @@ start_here:
   - title: "Read the documentation"
     icon: list
     body: "Every guide and who it is for — maintainers reviewing submissions, contributors submitting them, and whoever is retargeting the template at a different subject."
-    url: "https://github.com/crypticpy/bchc-template/blob/main/docs/index.md"
+    url: "https://github.com/crypticpy/phct/blob/main/docs/index.md"
 
 # The day-one copy of the template. Fills the empty `url` in `start_here` above;
 # leave blank to drop that item.
-starter_url: "https://crypticpy.github.io/bchc-catalog-starter/"
+starter_url: ""
