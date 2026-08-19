@@ -50,6 +50,28 @@ let emptyCatalog = false;
 const CATALOG_SKIP =
   'the catalog is empty (search.json lists no entries), so there is nothing to filter or open';
 
+/**
+ * Resolve once the search listbox has rendered the same options for 400 ms
+ * straight (or after 5 s regardless), so a keyboard action is not aimed at rows
+ * that a pending re-render is about to replace.
+ */
+async function settledListbox(page) {
+  const signature = () =>
+    page.evaluate(() =>
+      Array.from(
+        document.querySelectorAll('#search-listbox [role="option"]'),
+        (o) => o.id + '|' + o.textContent
+      ).join('\n')
+    );
+  let before = await signature();
+  for (let i = 0; i < 12; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const now = await signature();
+    if (now === before) return;
+    before = now;
+  }
+}
+
 describe('assistive-technology flows', { skip: SKIP, concurrency: false }, () => {
   /** @type {import('puppeteer').Browser} */
   let browser;
@@ -220,6 +242,11 @@ describe('assistive-technology flows', { skip: SKIP, concurrency: false }, () =>
         document.querySelector('#catalog-search')?.getAttribute('aria-expanded') === 'true' &&
         document.querySelectorAll('#search-listbox [role="option"]').length > 0
     );
+    // `aria-expanded` can flip back to true while the previous query's options
+    // are still in the DOM; if the listbox re-renders after ArrowDown, the
+    // highlight is lost and Enter submits the form instead. Wait for the option
+    // list to hold still before touching it.
+    await settledListbox(page);
     // The listbox mixes facet options (which apply a filter and stay on the
     // catalog) with document options (which navigate). Which comes first depends
     // on the sample content, so arrow down to the first document option rather
