@@ -1,6 +1,6 @@
 {
-  "name": "civic-catalog-template",
-  "version": "1.8.0",
+  "name": "phct",
+  "version": "1.8.1",
   "private": true,
   "engines": {
     "node": ">=22"
