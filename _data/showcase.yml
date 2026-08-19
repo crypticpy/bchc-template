@@ -16,7 +16,7 @@
 # ---------------------------------------------------------------------------
 
 title: "The civic catalog template"
-eyebrow: "Big Cities Health Coalition · open source"
+eyebrow: "Open source · built for public-sector teams"
 tagline: "One repository, no server, four ways to run it."
 lead: "A catalog site that lives on GitHub Pages and is managed entirely through GitHub: someone fills in a form, a maintainer merges a pull request, the site rebuilds. The four examples below are this same repository with different settings — open any of them and click around."
 
@@ -52,10 +52,10 @@ sections:
 # them.
 examples:
   - id: ai-use-cases
-    headline: "A coalition-wide catalog of AI projects"
-    blurb: "The configuration this template ships with. Health departments publish what they have built, with enough detail — the data it touches, the skills it took, the licence, the running cost — for another team to judge whether it could reuse it. Filter the catalog, shortlist three entries and compare them side by side."
+    headline: "A shared catalog of AI projects"
+    blurb: "The configuration this template ships with. Public-sector teams publish what they have built, with enough detail — the data it touches, the skills it took, the licence, the running cost — for another team to judge whether it could reuse it. Filter the catalog, shortlist three entries and compare them side by side."
     screenshot: "/assets/images/showcase/ai-use-cases-home.png"
-    alt: "The AI use case catalog example: a deep navy hero headed \"What health departments are building with AI\", with a search box, a count of ten use cases, and the three newest ones listed in a panel beside it."
+    alt: "The AI use case catalog example: a deep navy hero headed \"What public-sector teams are building with AI\", with a search box, a count of ten use cases, and the three newest ones listed in a panel beside it."
   - id: cohort-portal
     headline: "A training program's portal, cohort by cohort"
     blurb: "Teams publish the projects they built during a fellowship or academy, tagged by cohort year, area of work and track. The cohorts and events modules add program-year pages with timelines, session materials and a shared calendar around the gallery."

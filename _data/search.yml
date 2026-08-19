@@ -28,13 +28,11 @@
 # ---------------------------------------------------------------------------
 synonyms:
   chatbot: ["chat assistant", "conversational"]
-  opioid: ["overdose", "naloxone"]
   geocode: ["address matching"]
   llm: ["large language model", "generative text"]
   rag: ["retrieval augmented generation", "document q&a"]
   phi: ["health information", "hipaa"]
   pii: ["personal information", "identifiers"]
-  syndromic: ["surveillance", "essence"]
   translation: ["multilingual", "language access"]
   procurement: ["contract", "purchasing", "rfp"]
 

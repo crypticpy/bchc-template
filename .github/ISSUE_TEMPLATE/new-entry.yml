@@ -3,7 +3,7 @@
 # Regenerate with `npm run generate` after changing _data/schema.yml.
 
 name: Submit a use case (creates PR)
-description: "Share an AI use case, tool or project with the coalition. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved."
+description: "Share an AI use case, tool or project with the community. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved."
 title: "[Use case] "
 labels:
   - "content:new-entry"
@@ -48,7 +48,7 @@ body:
     id: use_case_category
     attributes:
       label: Use case category
-      description: Which of the four coalition categories fits best? The HHS-adapted categories the DMWG inventory uses. Area of work (below) is the finer cut.
+      description: "Which of the four categories fits best? Broad, HHS-adapted use-case categories. Area of work (below) is the finer cut."
       options:
         - "Administrative & task automation"
         - "Communications, media & writing"
@@ -110,7 +110,7 @@ body:
     id: organization
     attributes:
       label: Organization
-      description: "Which organization is sharing this? A health department, city, agency or member organization."
+      description: "Which organization is sharing this? The city, county, agency or health department that built or runs it."
       placeholder: Chicago Department of Public Health
     validations:
       required: true
@@ -276,7 +276,7 @@ body:
     id: license
     attributes:
       label: License
-      description: "Under what license is it shared? The coalition default is a permissive open license (MIT, Apache 2.0, CC BY). Submitting does not transfer ownership — your organization keeps authorship."
+      description: "Under what license is it shared? The community default is a permissive open license (MIT, Apache 2.0, CC BY). Submitting does not transfer ownership — your organization keeps authorship."
       options:
         - MIT
         - Apache 2.0
@@ -292,7 +292,7 @@ body:
     attributes:
       label: Access terms
       description: "If it is not open source, how can a peer jurisdiction get access? Government-to-government only, agreement required, contact us — whatever applies. Leave blank for open-licensed resources."
-      placeholder: Available to other health departments under a data-sharing agreement — email the contact below.
+      placeholder: Available to other public-sector teams under a data-sharing agreement — email the contact below.
     validations:
       required: false
   - type: dropdown
@@ -319,7 +319,7 @@ body:
     attributes:
       label: Adapted from
       description: "Did you adapt this from another entry in this catalog? Name the source by its slug — the last part of its URL. The entry you name will say it was adopted by yours. One per line, or separated by commas."
-      placeholder: overdose-spike-brief
+      placeholder: service-request-routing
     validations:
       required: false
   - type: markdown
@@ -410,7 +410,7 @@ body:
     id: no_pii_attestation
     attributes:
       label: No PII/PHI in the shared material
-      description: "Do you confirm that no personal or protected health information appears in the resource, its documentation, example data or screenshots? The coalition's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
+      description: "Do you confirm that no personal or protected health information appears in the resource, its documentation, example data or screenshots? The community's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
       options:
         - "Yes"
         - "No"

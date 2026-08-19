@@ -154,7 +154,7 @@ fields:
     search: true
     icon: building
     placeholder: "Chicago Department of Public Health"
-    description: "A health department, city, agency or member organization."
+    description: "The city, county, agency or health department that built or runs it."
 
   - key: solution_type
     label: "What is being shared"
@@ -219,7 +219,7 @@ fields:
 
   - key: use_case_category
     label: "Use case category"
-    prompt: "Which of the four coalition categories fits best?"
+    prompt: "Which of the four categories fits best?"
     type: select
     required: true
     group: about
@@ -237,7 +237,7 @@ fields:
       "Communications, media & writing": { short: "Communications", description: "Drafting, translating, summarising and publishing." }
       "Coding & brainstorming": { short: "Coding", description: "Writing or reviewing code, analysis, and idea generation." }
       "Operations & logistics": { short: "Operations", description: "Planning, dispatch, inventory, inspections and field work." }
-    description: "The HHS-adapted categories the DMWG inventory uses. Area of work (below) is the finer cut."
+    description: "Broad, HHS-adapted use-case categories. Area of work (below) is the finer cut."
 
   - key: area
     label: "Area of work"
@@ -325,7 +325,7 @@ fields:
 
   - key: review_status
     label: "Review status"
-    prompt: "Where is this entry in the coalition's review?"
+    prompt: "Where is this entry in the community's review?"
     type: select
     form: false                 # set by the review committee in the pull request, never by the submitter
     group: about
@@ -591,7 +591,7 @@ fields:
       "Other open license": { short: "Other open", description: "Name it in the access terms below." }
       "Not open source — available on request": { short: "On request", description: "Peer jurisdictions can ask; say how in the access terms below." }
       "Not open source — description only": { short: "Write-up only", description: "The write-up is what is shared, not the artifact itself." }
-    description: "The coalition default is a permissive open license (MIT, Apache 2.0, CC BY). Submitting does not transfer ownership — your organization keeps authorship."
+    description: "The community default is a permissive open license (MIT, Apache 2.0, CC BY). Submitting does not transfer ownership — your organization keeps authorship."
 
   - key: access_terms
     label: "Access terms"
@@ -599,7 +599,7 @@ fields:
     type: textarea
     group: sharing
     weight: 2
-    placeholder: "Available to other health departments under a data-sharing agreement — email the contact below."
+    placeholder: "Available to other public-sector teams under a data-sharing agreement — email the contact below."
     description: "Government-to-government only, agreement required, contact us — whatever applies. Leave blank for open-licensed resources."
 
   - key: portability
@@ -639,7 +639,7 @@ fields:
     weight: 5
     links_entries: true
     search: false
-    placeholder: "overdose-spike-brief"
+    placeholder: "service-request-routing"
     description: "Name the source by its slug — the last part of its URL. The entry you name will say it was adopted by yours."
 
   - key: cost_band
@@ -761,7 +761,7 @@ fields:
     weight: 1
     icon: shield-check
     escalate_on: [false]
-    description: "The coalition's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
+    description: "The community's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
 
   - key: data_sensitivity
     label: "Data it touches"

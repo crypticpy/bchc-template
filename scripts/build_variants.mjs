@@ -7,7 +7,7 @@
  *   node scripts/build_variants.mjs --keep          leave the scratch trees for inspection
  *
  * Why: `validate.yml` and `quality.yml` build exactly one configuration — the
- * shipped BCHC one, with `events`, `cohorts` and `resources` off. So three of
+ * shipped `ai-use-cases` one, with `events`, `cohorts` and `resources` off. So three of
  * the four presets have never been through Liquid at all, and six layouts and
  * includes are never rendered by anything in CI. Every schema-driven string
  * ("Submit {{ singular | with_article }}") is unverified outside the one noun

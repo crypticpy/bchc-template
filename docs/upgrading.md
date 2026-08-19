@@ -21,6 +21,10 @@ That split lives in [`.gitattributes`](../.gitattributes), which marks every fil
 **Generated** rows `merge=ours`. Git then keeps your version of those files during a merge, without a
 conflict, while merging the template's changes into everything else.
 
+Looking for the health-coalition catalog this template was first built for? It moved to its own
+repository, [crypticpy/bchc-ai-use-case-catalog](https://github.com/crypticpy/bchc-ai-use-case-catalog),
+and upgrades from here the same way any other fork does.
+
 ## One-time setup
 
 ```sh

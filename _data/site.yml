@@ -5,20 +5,20 @@
 # ---------------------------------------------------------------------------
 
 name: "AI Use Case Catalog"
-tagline: "Shared AI solutions from big-city health departments"
-description: "A shared catalog of AI use cases, tools, and lessons learned from Big Cities Health Coalition member health departments."
+tagline: "Shared AI use cases from public-sector teams"
+description: "A shared catalog of AI use cases, tools, and lessons learned from public-sector teams, so others can reuse what works."
 
 organization:
-  name: "Big Cities Health Coalition"
-  short_name: "BCHC"
-  url: "https://www.bigcitieshealth.org"
-  contact_email: "info@bigcitieshealth.org"
+  name: "Civic AI Community of Practice"
+  short_name: "Civic AI CoP"
+  url: "https://github.com/crypticpy/bchc-template"
+  contact_email: "catalog@example.org"
 
 # Logo shown in the header/footer. Provide an image path (SVG/PNG under assets/images)
 # or leave `image` blank to show a text mark built from `text`.
 logo:
   image: ""
-  text: "BCHC"
+  text: "CAI"
 
 # GitHub repository that hosts this site, as "owner/repo".
 # Used to build the "Submit" form links, "Edit this page" links, and issue URLs.
@@ -49,9 +49,9 @@ modules:
 
 # Home page copy
 hero:
-  eyebrow: "Big Cities Health Coalition · AI Community of Practice"
-  title: "What health departments are building with AI"
-  lead: "Browse real solutions from member cities — source code, cloud deployments, vendor implementations and write-ups — and share your own so others can learn, reuse and adapt."
+  eyebrow: "Civic AI Community of Practice · Shared catalog"
+  title: "What public-sector teams are building with AI"
+  lead: "Browse real solutions from teams across the community — source code, cloud deployments, vendor implementations and write-ups — and share your own so others can learn, reuse and adapt."
   primary_cta:
     label: "Browse the catalog"
     url: "/catalog/"
@@ -75,10 +75,10 @@ home:
 
 # Submission form settings (module: submit)
 submit:
-  intro: "Share an AI use case, tool or project with the coalition. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved."
+  intro: "Share an AI use case, tool or project with the community. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved."
   turnaround: "Intake checks it within about five business days and the Governance Committee reviews it within about ten more; you keep ownership of anything you share."   # the last step of "what happens next" — make it a promise you can keep
   review_note: "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content."
-  fallback_email: "info@bigcitieshealth.org"   # "Email it instead" button; leave blank (and clear organization.contact_email) to drop the button
+  fallback_email: "catalog@example.org"   # "Email it instead" button; leave blank (and clear organization.contact_email) to drop the button
 
 # Catalog behaviour (module: catalog)
 catalog:
@@ -100,16 +100,16 @@ contact:
 
 # Footer
 footer:
-  about: "A collaborative catalog maintained by the coalition's AI community of practice. Content is contributed by member health departments and reviewed before publication."
+  about: "A collaborative catalog maintained by a public-sector AI community of practice. Content is contributed by member teams and reviewed before publication."
   links:
-    - label: "Big Cities Health Coalition"
-      url: "https://www.bigcitieshealth.org"
+    - label: "About the template"
+      url: "https://github.com/crypticpy/bchc-template"
     - label: "Submit an entry"
       url: "/submit/"
       module: submit
     - label: "Maintainer guide"
       url: "https://github.com/crypticpy/bchc-template/blob/main/docs/admin-guide.md"
-  copyright: "Big Cities Health Coalition"
+  copyright: "Civic AI Community of Practice"
   # One-sentence accessibility statement for the footer. When the governance
   # module is on it links to the full statement at /governance/#accessibility.
   # Leave blank to omit the line.

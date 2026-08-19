@@ -4,7 +4,7 @@
 
 ## Why
 
-The template's own deployment has been one thing: the BCHC AI use case catalog, filled with
+The template's own deployment has been one thing: the AI use case catalog it ships with, filled with
 sample entries and a yellow "Demo content" strip. That shows one configuration well and the
 other three not at all — a reader has to take the README's word that the same repository is
 also a program/cohort portal, a resource library, or the smallest useful catalog. The way
@@ -20,7 +20,7 @@ a real copy.
 ```
 <pages root>/                       the landing: what the template is, the four examples, features, start here
 <pages root>/setup/                 the wizard, so "Configure your own" works from the landing
-<pages root>/examples/ai-use-cases/       full live site — the shipped BCHC catalog (today's demo)
+<pages root>/examples/ai-use-cases/       full live site — the shipped AI use case catalog (today's demo)
 <pages root>/examples/cohort-portal/      full live site — a program's cohort portal
 <pages root>/examples/resource-library/   full live site — a curated resource library
 <pages root>/examples/blank/              full live site — the smallest useful catalog

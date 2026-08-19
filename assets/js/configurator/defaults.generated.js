@@ -11,17 +11,17 @@
 /** Parsed _data/site.yml. */
 export const SITE = {
   "name": "AI Use Case Catalog",
-  "tagline": "Shared AI solutions from big-city health departments",
-  "description": "A shared catalog of AI use cases, tools, and lessons learned from Big Cities Health Coalition member health departments.",
+  "tagline": "Shared AI use cases from public-sector teams",
+  "description": "A shared catalog of AI use cases, tools, and lessons learned from public-sector teams, so others can reuse what works.",
   "organization": {
-    "name": "Big Cities Health Coalition",
-    "short_name": "BCHC",
-    "url": "https://www.bigcitieshealth.org",
-    "contact_email": "info@bigcitieshealth.org"
+    "name": "Civic AI Community of Practice",
+    "short_name": "Civic AI CoP",
+    "url": "https://github.com/crypticpy/bchc-template",
+    "contact_email": "catalog@example.org"
   },
   "logo": {
     "image": "",
-    "text": "BCHC"
+    "text": "CAI"
   },
   "github": {
     "repository": "crypticpy/bchc-template",
@@ -40,9 +40,9 @@ export const SITE = {
     "governance": true
   },
   "hero": {
-    "eyebrow": "Big Cities Health Coalition · AI Community of Practice",
-    "title": "What health departments are building with AI",
-    "lead": "Browse real solutions from member cities — source code, cloud deployments, vendor implementations and write-ups — and share your own so others can learn, reuse and adapt.",
+    "eyebrow": "Civic AI Community of Practice · Shared catalog",
+    "title": "What public-sector teams are building with AI",
+    "lead": "Browse real solutions from teams across the community — source code, cloud deployments, vendor implementations and write-ups — and share your own so others can learn, reuse and adapt.",
     "primary_cta": {
       "label": "Browse the catalog",
       "url": "/catalog/",
@@ -74,10 +74,10 @@ export const SITE = {
     ]
   },
   "submit": {
-    "intro": "Share an AI use case, tool or project with the coalition. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved.",
+    "intro": "Share an AI use case, tool or project with the community. Submissions open a GitHub issue for the maintainers to review; nothing is published until it is approved.",
     "turnaround": "Intake checks it within about five business days and the Governance Committee reviews it within about ten more; you keep ownership of anything you share.",
     "review_note": "Please do not include protected health information, credentials or non-public data. Link out to repositories and documents rather than pasting sensitive content.",
-    "fallback_email": "info@bigcitieshealth.org"
+    "fallback_email": "catalog@example.org"
   },
   "catalog": {
     "verify_after_days": 365
@@ -86,11 +86,11 @@ export const SITE = {
     "ask_in_open": true
   },
   "footer": {
-    "about": "A collaborative catalog maintained by the coalition's AI community of practice. Content is contributed by member health departments and reviewed before publication.",
+    "about": "A collaborative catalog maintained by a public-sector AI community of practice. Content is contributed by member teams and reviewed before publication.",
     "links": [
       {
-        "label": "Big Cities Health Coalition",
-        "url": "https://www.bigcitieshealth.org"
+        "label": "About the template",
+        "url": "https://github.com/crypticpy/bchc-template"
       },
       {
         "label": "Submit an entry",
@@ -102,7 +102,7 @@ export const SITE = {
         "url": "https://github.com/crypticpy/bchc-template/blob/main/docs/admin-guide.md"
       }
     ],
-    "copyright": "Big Cities Health Coalition",
+    "copyright": "Civic AI Community of Practice",
     "accessibility": "This site is built to WCAG 2.1 AA and tested on every build; if something does not work for you, tell us and it will be treated as a defect."
   },
   "analytics": {
@@ -231,7 +231,7 @@ export const SCHEMA = {
       "search": true,
       "icon": "building",
       "placeholder": "Chicago Department of Public Health",
-      "description": "A health department, city, agency or member organization."
+      "description": "The city, county, agency or health department that built or runs it."
     },
     {
       "key": "solution_type",
@@ -311,7 +311,7 @@ export const SCHEMA = {
     {
       "key": "use_case_category",
       "label": "Use case category",
-      "prompt": "Which of the four coalition categories fits best?",
+      "prompt": "Which of the four categories fits best?",
       "type": "select",
       "required": true,
       "group": "about",
@@ -343,7 +343,7 @@ export const SCHEMA = {
           "description": "Planning, dispatch, inventory, inspections and field work."
         }
       },
-      "description": "The HHS-adapted categories the DMWG inventory uses. Area of work (below) is the finer cut."
+      "description": "Broad, HHS-adapted use-case categories. Area of work (below) is the finer cut."
     },
     {
       "key": "area",
@@ -478,7 +478,7 @@ export const SCHEMA = {
     {
       "key": "review_status",
       "label": "Review status",
-      "prompt": "Where is this entry in the coalition's review?",
+      "prompt": "Where is this entry in the community's review?",
       "type": "select",
       "form": false,
       "group": "about",
@@ -908,7 +908,7 @@ export const SCHEMA = {
           "description": "The write-up is what is shared, not the artifact itself."
         }
       },
-      "description": "The coalition default is a permissive open license (MIT, Apache 2.0, CC BY). Submitting does not transfer ownership — your organization keeps authorship."
+      "description": "The community default is a permissive open license (MIT, Apache 2.0, CC BY). Submitting does not transfer ownership — your organization keeps authorship."
     },
     {
       "key": "access_terms",
@@ -917,7 +917,7 @@ export const SCHEMA = {
       "type": "textarea",
       "group": "sharing",
       "weight": 2,
-      "placeholder": "Available to other health departments under a data-sharing agreement — email the contact below.",
+      "placeholder": "Available to other public-sector teams under a data-sharing agreement — email the contact below.",
       "description": "Government-to-government only, agreement required, contact us — whatever applies. Leave blank for open-licensed resources."
     },
     {
@@ -972,7 +972,7 @@ export const SCHEMA = {
       "weight": 5,
       "links_entries": true,
       "search": false,
-      "placeholder": "overdose-spike-brief",
+      "placeholder": "service-request-routing",
       "description": "Name the source by its slug — the last part of its URL. The entry you name will say it was adopted by yours."
     },
     {
@@ -1166,7 +1166,7 @@ export const SCHEMA = {
       "escalate_on": [
         false
       ],
-      "description": "The coalition's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
+      "description": "The community's baseline for anything published here. Reviewers spot-check; if the answer is no, redact before submitting."
     },
     {
       "key": "data_sensitivity",
@@ -1378,12 +1378,12 @@ export const NAVIGATION = [
 ];
 
 /** Verbatim _config.yml; the wizard patches title/description/url/baseurl into it. */
-export const JEKYLL_CONFIG = "# Jekyll configuration.\n# Most site-specific settings live in _data/site.yml (branding, modules, labels),\n# _data/theme.yml (colors, fonts) and _data/schema.yml (the entry content model).\n# Keep this file to build mechanics. `title`/`description` here are fallbacks for\n# SEO tags; the setup wizard keeps them in sync with _data/site.yml.\n\ntitle: \"AI Use Case Catalog\"\ndescription: \"A shared catalog of AI use cases, tools, and lessons learned from Big Cities Health Coalition member health departments.\"\nurl: \"\"\nbaseurl: \"\"\ntheme: null\ntimezone: \"America/Chicago\"\nmarkdown: kramdown\npermalink: pretty\nfuture: false\n\nexclude:\n  - node_modules\n  - vendor\n  - README.md\n  - ARCHITECTURE.md\n  - CONTRIBUTING.md\n  - CODE_OF_CONDUCT.md\n  - CHANGELOG.md\n  - SECURITY.md\n  - CLAUDE.md\n  - AGENTS.md\n  - LICENSE\n  - package-lock.json\n  - package.json\n  - tailwind.config.js\n  - postcss.config.js\n  - eslint.config.js\n  - quality\n  - assets/css/tailwind.css\n  - scripts\n  - test\n  - docs\n  - Gemfile\n  - Gemfile.lock\n  - .ruby-version\n\n# If you change entry.path in _data/schema.yml, change the first scope's path\n# here to match — this is what gives every entry the `entry` layout.\ndefaults:\n  - scope:\n      path: \"catalog\"\n    values:\n      layout: entry\n  - scope:\n      path: \"cohorts\"\n    values:\n      layout: cohort\n\nplugins:\n  - jekyll-seo-tag\n  - jekyll-sitemap\n  - jekyll-include-cache\n\nsass:\n  style: compressed\n";
+export const JEKYLL_CONFIG = "# Jekyll configuration.\n# Most site-specific settings live in _data/site.yml (branding, modules, labels),\n# _data/theme.yml (colors, fonts) and _data/schema.yml (the entry content model).\n# Keep this file to build mechanics. `title`/`description` here are fallbacks for\n# SEO tags; the setup wizard keeps them in sync with _data/site.yml.\n\ntitle: \"AI Use Case Catalog\"\ndescription: \"A shared catalog of AI use cases, tools, and lessons learned from public-sector teams, so others can reuse what works.\"\nurl: \"\"\nbaseurl: \"\"\ntheme: null\ntimezone: \"America/Chicago\"\nmarkdown: kramdown\npermalink: pretty\nfuture: false\n\nexclude:\n  - node_modules\n  - vendor\n  - README.md\n  - ARCHITECTURE.md\n  - CONTRIBUTING.md\n  - CODE_OF_CONDUCT.md\n  - CHANGELOG.md\n  - SECURITY.md\n  - CLAUDE.md\n  - AGENTS.md\n  - LICENSE\n  - package-lock.json\n  - package.json\n  - tailwind.config.js\n  - postcss.config.js\n  - eslint.config.js\n  - quality\n  - assets/css/tailwind.css\n  - scripts\n  - test\n  - docs\n  - Gemfile\n  - Gemfile.lock\n  - .ruby-version\n\n# If you change entry.path in _data/schema.yml, change the first scope's path\n# here to match — this is what gives every entry the `entry` layout.\ndefaults:\n  - scope:\n      path: \"catalog\"\n    values:\n      layout: entry\n  - scope:\n      path: \"cohorts\"\n    values:\n      layout: cohort\n\nplugins:\n  - jekyll-seo-tag\n  - jekyll-sitemap\n  - jekyll-include-cache\n\nsass:\n  style: compressed\n";
 
 /** The build-mechanics values _config.yml ships with. */
 export const JEKYLL_DEFAULTS = {
   "title": "AI Use Case Catalog",
-  "description": "A shared catalog of AI use cases, tools, and lessons learned from Big Cities Health Coalition member health departments.",
+  "description": "A shared catalog of AI use cases, tools, and lessons learned from public-sector teams, so others can reuse what works.",
   "url": "",
   "baseurl": "",
   "timezone": "America/Chicago"

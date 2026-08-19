@@ -129,7 +129,7 @@ wrote), each `_data/cohorts/<year>.yml` together with its `cohorts/<year>/` page
 comments intact, so you still have somewhere to put your own. The sample screenshots' records
 leave `_data/derivatives.json` with them (the responsive-image manifest `derive_images --check`
 verifies on every pull request). `_data/governance.yml` is different:
-it is the coalition's actual review process and policies as a worked example, not rows to empty,
+it is a worked example of a review process and its policies, not rows to empty,
 so the ejector sets `governance: false` in `_data/site.yml` and leaves the file for you to rewrite
 (the checklist in step 8 has a line for it). `_data/metrics.json` — the sample submission and
 review figures shown on the governance page — is deleted; your monthly **Catalog metrics** run

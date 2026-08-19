@@ -75,7 +75,7 @@ Each toggle does three things:
 2. Shows or hides the module's block on the home page (`index.md` checks `cfg.modules.<name>`).
 3. **Removes the module's pages from the build entirely.** `_plugins/modules.rb` runs on `post_read` and drops any page whose URL starts with the module's path prefix when that module is off — those pages are not built, not in the sitemap, and not in `search.json`. Prefixes come from `_data/modules.yml` (`/cohorts/`, `/events/`, `/governance/`, `/resources/`, `/submit/`); `catalog`'s prefix is derived from the schema's `entry.path` instead, since it has to track the configured entry folder. Turning the module back on brings its pages back on the next build without further changes.
 
-The shipped BCHC configuration has `catalog`, `submit`, `carousel`, `stats` and `governance` on, and `events`, `cohorts` and `resources` off. Sample data for the three off-by-default modules still ships in `_data/`, so turning one on gives you something to look at immediately.
+The shipped `ai-use-cases` configuration has `catalog`, `submit`, `carousel`, `stats` and `governance` on, and `events`, `cohorts` and `resources` off. Sample data for the three off-by-default modules still ships in `_data/`, so turning one on gives you something to look at immediately.
 
 ### Home page copy
 
@@ -274,7 +274,7 @@ outro: "…"                      # closing paragraph beside the contact button
 
 `body` fields are Markdown. Policy `id`s become section anchors, so keep them stable once published — the footer links to `#accessibility` when a policy with that id exists, and outside pages may link to any of them; do not reuse the page's own section ids (`review`, `criteria`, `roles`, `questions`). The closing block renders a mail button from `organization.contact_email` and links to the repository's `docs/contributor-guide.md` and `CODE_OF_CONDUCT.md`, built from `github.repository`/`github.branch`, so a fork's links point at the fork.
 
-It ships with the Big Cities Health Coalition text as a worked example. Unlike `events.yml` and `resources.yml`, it is not sample rows that can be emptied — an empty file would render a page of bare headings — and it names one coalition's committees and timelines, so `npm run eject:samples` (and the wizard's *Remove the demo content* step) switch the module off (`governance: false` in `_data/site.yml`) rather than touching the file. Rewrite it in your own words, then turn the module back on.
+It ships with an invented public-sector community of practice's text as a worked example. Unlike `events.yml` and `resources.yml`, it is not sample rows that can be emptied — an empty file would render a page of bare headings — and it names one community's committees and timelines, so `npm run eject:samples` (and the wizard's *Remove the demo content* step) switch the module off (`governance: false` in `_data/site.yml`) rather than touching the file. Rewrite it in your own words, then turn the module back on.
 
 ### Optional keys the metrics block reads
 

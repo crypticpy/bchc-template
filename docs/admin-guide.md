@@ -141,7 +141,7 @@ That is the whole protocol. `verified` is a reserved key like `updated`: optiona
 
 ## The monthly catalog metrics
 
-The governance page can carry a short "How the catalog is doing" block — submissions opened, entries published, distinct contributing organizations and review turnaround, by quarter — so the coalition can see at a glance whether the catalog is being used and how quickly review moves. The figures come from this repository's own issues and pull requests; nothing is installed on the site and no analytics vendor is involved.
+The governance page can carry a short "How the catalog is doing" block — submissions opened, entries published, distinct contributing organizations and review turnaround, by quarter — so maintainers can see at a glance whether the catalog is being used and how quickly review moves. The figures come from this repository's own issues and pull requests; nothing is installed on the site and no analytics vendor is involved.
 
 **The workflow.** `.github/workflows/metrics.yml` runs at 07:30 UTC on the 2nd of each month (and on demand from the Actions tab). It runs `scripts/metrics.mjs`, which reads the repository through two REST calls and counts, over the last four calendar quarters:
 

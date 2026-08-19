@@ -5,7 +5,7 @@
 # SEO tags; the setup wizard keeps them in sync with _data/site.yml.
 
 title: "AI Use Case Catalog"
-description: "A shared catalog of AI use cases, tools, and lessons learned from Big Cities Health Coalition member health departments."
+description: "A shared catalog of AI use cases, tools, and lessons learned from public-sector teams, so others can reuse what works."
 url: ""
 baseurl: ""
 theme: null
