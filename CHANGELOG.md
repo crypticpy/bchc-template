@@ -6,6 +6,15 @@ All notable changes to this template are recorded here. The format follows
 (`_data/schema.yml`) that existing entries or presets would have to follow is a
 major version, and each entry says so when it happens.
 
+## [Unreleased]
+
+### Added
+
+- **[docs/ecosystem.md](docs/ecosystem.md)** — the map of the repository family:
+  what `phct` and `bchc-ai-use-case-catalog` each are, the archived starter, the
+  repository variables that make each deployment behave differently, and what to
+  update when a repository moves.
+
 ## [1.8.1] — 2026-08-19
 
 ### Changed
