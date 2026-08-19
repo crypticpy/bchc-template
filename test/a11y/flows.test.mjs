@@ -220,14 +220,36 @@ describe('assistive-technology flows', { skip: SKIP, concurrency: false }, () =>
         document.querySelector('#catalog-search')?.getAttribute('aria-expanded') === 'true' &&
         document.querySelectorAll('#search-listbox [role="option"]').length > 0
     );
-    await page.keyboard.press('ArrowDown');
-    const active = await page.evaluate(() => {
-      const input = document.querySelector('#catalog-search');
-      const id = input.getAttribute('aria-activedescendant');
-      const option = id ? document.getElementById(id) : null;
-      return { id, selected: option?.getAttribute('aria-selected'), text: option?.textContent?.trim() };
-    });
-    assert.ok(active.id, 'ArrowDown highlighted nothing the input points at');
+    // The listbox mixes facet options (which apply a filter and stay on the
+    // catalog) with document options (which navigate). Which comes first depends
+    // on the sample content, so arrow down to the first document option rather
+    // than assuming the first row is one.
+    const readActive = () =>
+      page.evaluate(() => {
+        const input = document.querySelector('#catalog-search');
+        const id = input.getAttribute('aria-activedescendant');
+        const option = id ? document.getElementById(id) : null;
+        return {
+          id,
+          selected: option?.getAttribute('aria-selected'),
+          text: option?.textContent?.trim(),
+          isDocument: Boolean(option?.dataset.url),
+        };
+      });
+    const optionCount = await page.evaluate(
+      () => document.querySelectorAll('#search-listbox [role="option"]').length
+    );
+    let active = null;
+    for (let i = 0; i < optionCount; i++) {
+      await page.keyboard.press('ArrowDown');
+      active = await readActive();
+      if (active.isDocument) break;
+    }
+    assert.ok(active?.id, 'ArrowDown highlighted nothing the input points at');
+    assert.ok(
+      active.isDocument,
+      `no document option among ${optionCount} results — the last highlighted was "${active.text}"`
+    );
     assert.equal(active.selected, 'true', 'the highlighted option is not aria-selected');
     assert.equal(
       await page.evaluate(() => document.activeElement.id),
