@@ -63,8 +63,10 @@ update:
 1. Create a fine-grained personal access token owned by the deployment's machine or release
    account, scoped to this repository only.
 2. Grant **Contents: Read and write**, **Pull requests: Read and write**, and **Workflows: Read and
-   write**. GitHub documents the distinct workflow-file permission in its
-   [Git access guidance](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/choosing-permissions-for-a-github-app#choosing-permissions-for-git-access).
+   write**. GitHub lists workflow-file access as the separate
+   [Workflows repository permission](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-workflows),
+   and its token guide explains how to
+   [create and limit a fine-grained token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 3. Add the value at **Settings → Secrets and variables → Actions → New repository secret** with the
    exact name `PHCT_UPDATE_TOKEN`.
 4. Give the token a short expiry, record its owner and rotation date outside the public repository,
