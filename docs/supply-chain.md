@@ -10,7 +10,9 @@ Controls:
 - `npm run security:audit` runs npm and Bundler audits against current advisory databases, blocks
   unregistered high/critical findings, and applies only exact active P2 exceptions;
 - `quality/allowed-licenses.json` is fail-closed: a new or missing npm/gem license blocks review;
-- `npm run sbom` creates a deterministic CycloneDX 1.5 inventory from both lockfiles; and
+- `npm run sbom` creates a deterministic CycloneDX 1.5 inventory from both lockfiles, consolidates
+  repeated npm package/version entries while retaining their lockfile paths, assigns distinct
+  package URLs to Ruby platform artifacts, and fails if any BOM reference is duplicated; and
 - all GitHub Actions are full-SHA pinned and Dependabot proposes their updates.
 
 GPL/LGPL dependencies presently approved are build/development tools, not code copied into the

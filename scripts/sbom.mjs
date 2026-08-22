@@ -24,21 +24,32 @@ function npmPurl(name, version) {
 }
 
 export function npmComponents(lock) {
-  return Object.entries(lock?.packages ?? {})
-    .filter(([location, metadata]) => location && metadata.version)
-    .map(([location, metadata]) => {
-      const name = npmName(location, metadata);
-      const purl = npmPurl(name, metadata.version);
-      return {
+  const packages = new Map();
+  for (const [location, metadata] of Object.entries(lock?.packages ?? {})) {
+    if (!location || !metadata.version) continue;
+    const name = npmName(location, metadata);
+    const purl = npmPurl(name, metadata.version);
+    const entry = packages.get(purl) ?? {
+      component: {
         type: 'library',
         name,
         version: metadata.version,
         'bom-ref': purl,
         purl,
-        licenses: metadata.license ? [{ expression: metadata.license }] : undefined,
-        properties: [{ name: 'phct:lockfile-path', value: location }],
-      };
-    });
+      },
+      licenses: new Set(),
+      locations: new Set(),
+    };
+    if (metadata.license) entry.licenses.add(metadata.license);
+    entry.locations.add(location);
+    packages.set(purl, entry);
+  }
+
+  return [...packages.values()].map(({ component, licenses, locations }) => ({
+    ...component,
+    licenses: licenses.size > 0 ? [...licenses].sort().map((expression) => ({ expression })) : undefined,
+    properties: [...locations].sort().map((location) => ({ name: 'phct:lockfile-path', value: location })),
+  }));
 }
 
 export function gemComponents(lockText) {
@@ -53,13 +64,19 @@ export function gemComponents(lockText) {
     const match = inSpecs ? line.match(/^ {4}([\w.-]+) \(([^)]+)\)$/) : null;
     if (!match) continue;
     const [, name, versionWithPlatform] = match;
-    const version = versionWithPlatform.split('-')[0];
+    const separator = versionWithPlatform.indexOf('-');
+    const version = separator === -1 ? versionWithPlatform : versionWithPlatform.slice(0, separator);
+    const platform = separator === -1 ? null : versionWithPlatform.slice(separator + 1);
+    const purl = `pkg:gem/${encodeURIComponent(name)}@${version}${
+      platform ? `?platform=${encodeURIComponent(platform)}` : ''
+    }`;
     components.push({
       type: 'library',
       name,
       version,
-      'bom-ref': `pkg:gem/${encodeURIComponent(name)}@${version}`,
-      purl: `pkg:gem/${encodeURIComponent(name)}@${version}`,
+      'bom-ref': purl,
+      purl,
+      properties: platform ? [{ name: 'phct:gem-platform', value: platform }] : undefined,
     });
   }
   return components;
@@ -70,6 +87,10 @@ export function buildSbom(packageJson, packageLock, gemLock) {
   const components = [...npmComponents(packageLock), ...gemComponents(gemLock)].sort((a, b) =>
     a['bom-ref'].localeCompare(b['bom-ref'])
   );
+  const references = [rootRef, ...components.map((component) => component['bom-ref'])];
+  if (new Set(references).size !== references.length) {
+    throw new Error('CycloneDX bom-ref values must be unique');
+  }
   return {
     bomFormat: 'CycloneDX',
     specVersion: '1.5',
