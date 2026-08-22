@@ -86,7 +86,10 @@ test('catalog JavaScript resolves below a downstream Pages base URL and fails wh
   fs.mkdirSync(path.join(siteDir, 'catalog'));
   fs.mkdirSync(path.join(siteDir, 'assets'));
   const catalog = path.join(siteDir, 'catalog', 'index.html');
-  fs.writeFileSync(catalog, '<script src="/bchc/assets/catalog.js"></script>');
+  fs.writeFileSync(
+    catalog,
+    '<script src="/bchc/assets/catalog.js"></script><script src="https://plausible.io/js/script.js"></script>'
+  );
   fs.writeFileSync(path.join(siteDir, 'assets', 'catalog.js'), 'console.log("catalog");');
 
   assert.ok(javascriptBytes(siteDir, catalog, '/bchc') > 0);

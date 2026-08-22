@@ -104,8 +104,9 @@ export function javascriptBytes(siteDir, catalogFile, baseurl = '') {
   const document = new JSDOM(fs.readFileSync(catalogFile, 'utf8')).window.document;
   const mount = `/${String(baseurl).replace(/^\/+|\/+$/g, '')}`.replace(/^\/$/, '');
   const paths = [...document.querySelectorAll('script[src]')]
-    .map((script) => new URL(script.getAttribute('src'), 'https://fixture.test/').pathname)
-    .filter((src) => !src.startsWith('//'))
+    .map((script) => new URL(script.getAttribute('src'), 'https://fixture.test/'))
+    .filter((src) => src.origin === 'https://fixture.test')
+    .map((src) => src.pathname)
     .map((src) => (mount && src.startsWith(`${mount}/`) ? src.slice(mount.length) : src))
     .map((src) => src.replace(/^\//, ''));
   const measured = new Set();

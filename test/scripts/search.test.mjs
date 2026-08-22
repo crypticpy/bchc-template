@@ -326,6 +326,15 @@ test('prefix and fuzzy matching remain available when an exact query has no hits
   assert.ok(page.window.__searchMatches.has('notice-translation'));
 });
 
+test("one exact word does not suppress another word's prefix or fuzzy recall", async () => {
+  const page = await boot();
+  await page.type('review notic');
+  assert.ok(page.rows().some((row) => row.dataset.url.includes('/permit-tracker/')));
+
+  await page.type('review grnt');
+  assert.ok(page.rows().some((row) => row.dataset.url.includes('/grant-finder/')));
+});
+
 test('a common literal query keeps title relevance without expensive fuzzy expansion', async () => {
   const index = {
     synonyms: {},

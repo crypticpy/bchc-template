@@ -214,9 +214,8 @@
   }
 
   /**
-   * Run an exact Lunr query first. Prefix/fuzzy expansion is a fallback for a
-   * query with no literal or synonym hits; expanding a common exact term makes
-   * Lunr score a much larger term set without improving the answer.
+   * Keep prefix/typo recall for every word in a multi-term query; otherwise an
+   * exact hit for one word can hide another word's approximate matches.
    * @param {string} q raw search box value.
    * @returns {{doc: object, score: number, meta: object}[]} ranked hits.
    */
@@ -244,7 +243,7 @@
     let hits;
     try {
       hits = search(false);
-      if (!hits.length) hits = search(true);
+      if (!hits.length || terms.length > 1) hits = search(true);
     } catch (e) {
       hits = [];
     }
