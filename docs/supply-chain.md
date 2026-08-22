@@ -7,7 +7,8 @@ The `Supply chain` workflow runs on every pull request and `main`, weekly, and o
 Controls:
 
 - `npm ci` and `bundle install` resolve only the committed lockfiles, including Ruby gem checksums;
-- `npm audit --audit-level=high` and `bundle audit check --update` use current advisory databases;
+- `npm run security:audit` runs npm and Bundler audits against current advisory databases, blocks
+  unregistered high/critical findings, and applies only exact active P2 exceptions;
 - `quality/allowed-licenses.json` is fail-closed: a new or missing npm/gem license blocks review;
 - `npm run sbom` creates a deterministic CycloneDX 1.5 inventory from both lockfiles; and
 - all GitHub Actions are full-SHA pinned and Dependabot proposes their updates.
@@ -20,11 +21,13 @@ those packages are distributed requires a fresh license review.
 ## Exceptions
 
 The default is zero. If a vulnerability cannot be patched immediately, add a narrowly identified
-record to `quality/security-exceptions.yml` with the advisory ID, package, severity, accountable
-GitHub owner/team, concrete reason and mitigation, and an ISO expiry date. The register validator
-fails when a field is absent or the date expires. A P0/P1 release blocker still cannot be waived;
-the record exists for time-bounded P2 decisions only, and the pull request must link the tracking
-issue and release approval.
+record to `quality/security-exceptions.yml` with the ecosystem (`npm` or `rubygems`), advisory ID,
+exact package, `high` severity, `P2` priority, accountable GitHub owner/team, concrete reason and
+mitigation, and an ISO expiry date. The register validator fails when a field is absent, the date
+expires, or the record is duplicated. The audit matches all four identity fields and also fails
+when a registered exception no longer matches a current finding, so stale waivers cannot remain
+latent. Critical, unidentified, P0, and P1 findings cannot be waived. The pull request must link
+the tracking issue and release approval.
 
 ## Release evidence
 

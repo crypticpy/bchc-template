@@ -47,11 +47,8 @@ jobs:
       - name: Validate the security exception register
         run: node scripts/check_security_exceptions.mjs
 
-      - name: Audit npm dependencies
-        run: npm audit --audit-level=high
-
-      - name: Audit Ruby dependencies
-        run: bundle exec bundler-audit check --update
+      - name: Audit npm and Ruby dependencies against approved exceptions
+        run: npm run security:audit
 
       - name: Review dependency licenses
         run: npm run licenses:check
