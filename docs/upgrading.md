@@ -18,9 +18,9 @@ One repository, two kinds of file:
 | **Generated** | `.github/ISSUE_TEMPLATE/new-entry.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `assets/js/configurator/defaults.generated.js` | Keep yours, then `npm run generate` — they are built from *your* `_data/`. |
 
 That split lives in [`.gitattributes`](../.gitattributes), which marks every file in the **Yours** and
-**Generated** rows `merge=ours`. The protected updater reads those ordered rules directly: it takes
-changed template-owned paths byte-for-byte from the target release and does not write a
-deployment-owned path. Checksums prove the protected set is identical afterward.
+**Generated** rows `merge=ours`. The protected updater reads those ordered rules directly: it
+reconciles the complete template-owned tree byte-for-byte to the target release and does not write
+a deployment-owned path. Checksums prove the protected set is identical afterward.
 
 The machine-readable source is [`.phct/ownership.yml`](../.phct/ownership.yml). `npm run
 ownership:check` fails if that manifest, `.gitattributes`, the generator output list, or the PHCT
@@ -53,9 +53,9 @@ example `v1.9.0-rc.1`), and wait for it to open a pull request. The workflow:
 
 1. fetches the current and target immutable tags and records both full commit SHAs;
 2. snapshots every deployment-owned file;
-3. applies the exact parent diff between those releases, taking template-owned files from the
-   target while leaving deployment-owned paths untouched even though GitHub template repositories
-   do not share commit ancestry with PHCT;
+3. uses those exact refs to reconcile the complete template-owned tree to the target, including
+   files unchanged between releases, while leaving deployment-owned paths untouched even though
+   GitHub template repositories do not share commit ancestry with PHCT;
 4. proves protected files are byte-identical before and after the update;
 5. installs the candidate dependencies and regenerates only derived outputs;
 6. records the tag and commit in `.phct-version.json`;

@@ -123,9 +123,10 @@ merge driver already makes `git merge upstream/main` safe for the files that mat
 The release updater supersedes the ancestry-dependent part of the earlier merge-driver decision.
 A repository created with **Use this template** has a new root commit, so
 `--allow-unrelated-histories` permits a merge but still treats every common file as an add/add and
-cannot identify the consumed PHCT release as the merge base. The updater now diffs the locked and
-target immutable PHCT refs directly, takes every changed template-owned path byte-for-byte from the
-target, and leaves deployment-owned paths untouched before verifying their checksums. The ordered
+cannot identify the consumed PHCT release as the merge base. The updater now verifies the locked
+and target immutable PHCT refs directly, reconciles every template-owned path byte-for-byte to the
+complete target tree (including files unchanged between releases), and leaves deployment-owned
+paths untouched before verifying their checksums. The ordered
 `.gitattributes` rules remain the ownership source and a manual-merge defense, but the supported
 automation does not depend on local merge-driver configuration or shared history.
 

@@ -277,9 +277,9 @@ The BCHC updater consumes the exact release-candidate tag and opens
 2. Fetch the exact PHCT tag and verify its commit.
 3. Read the ordered ownership rules and snapshot every protected deployment path.
 4. Preview the incoming change classification.
-5. Apply the exact parent diff from the locked tag to the target tag, taking template-owned paths
-   from the target and leaving deployment-owned paths untouched without assuming shared Git
-   ancestry.
+5. Use the locked and target tags to reconcile the complete template-owned tree to the target,
+   including files unchanged between releases, while leaving deployment-owned paths untouched
+   without assuming shared Git ancestry.
 6. Regenerate downstream outputs.
 7. Compare checksums for every protected deployment-owned path.
 8. Fail on an unexplained protected-path change.
