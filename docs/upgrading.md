@@ -109,18 +109,25 @@ add/add conflicts. Any local edit to a template-owned path changed by the releas
 the target version by design; re-apply an intentional customization afterward and document it in
 the pull request.
 
-Before generating or committing anything, prove the update kept deployment content intact. Then install
-the release's dependencies, regenerate downstream outputs, update the lock, and run the same gates
-CI runs:
+Before running target-version scripts, generating, or committing anything, install and select the
+candidate runtimes and package managers. The recommended commands below use Mise; an equivalent
+version manager is acceptable only if it selects the exact versions in `mise.toml`,
+`.node-version`, `.ruby-version`, and `.bundler-version`. Then install dependencies, prove the
+update kept deployment content intact, regenerate downstream outputs, update the lock, and run the
+same gates CI runs:
 
 ```sh
-npm run ownership:verify -- /tmp/deployment-protected.json
-npm ci
-bundle install
-npm run generate
-npm run version:record -- --release v1.9.0 --commit <full-tag-commit-sha>
-npm run ownership:verify -- /tmp/deployment-protected.json
-npm run verify
+mise trust mise.toml # after inspecting the target release's pinned definitions
+mise install
+mise exec -- gem install bundler -v "$(cat .bundler-version)"
+mise exec -- node scripts/install_exact_npm.mjs
+mise exec -- npm ci
+mise exec -- bundle install
+mise exec -- npm run ownership:verify -- /tmp/deployment-protected.json
+mise exec -- npm run generate
+mise exec -- npm run version:record -- --release v1.9.0 --commit <full-tag-commit-sha>
+mise exec -- npm run ownership:verify -- /tmp/deployment-protected.json
+mise exec -- npm run verify
 ```
 
 Push the branch, let the checks run, and merge. The deploy is the same one your content uses.
