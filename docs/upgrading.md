@@ -28,6 +28,13 @@ version lock drift apart. In particular, `_data/governance.yml`, `_data/search.y
 `_data/derivatives.json` are deployment-owned; `_data/modules.yml`, `_data/showcase.yml`,
 `_showcase/`, and showcase images are PHCT-owned.
 
+Before writing any file, the updater compares the current and target release's ordered ownership
+rules. If they differ, the update fails closed. Apply `.gitattributes` and
+`.phct/ownership.yml` as a separate reviewed migration first, deciding explicitly how every path
+that changes owner should be handled, and then rerun the update. This prevents a newly protected
+path from being overwritten and a path reclaimed by PHCT from silently retaining stale deployment
+content.
+
 ## Optional expert merge setup
 
 ```sh
