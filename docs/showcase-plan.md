@@ -32,10 +32,11 @@ schema — search, feeds, facets, the submit page, the wizard, everything. On ea
 "Demo content" strip becomes the **example switcher**: which example this is, the other three,
 "How this one is configured", "See day one" (the starter) and "Configure your own".
 
-None of it reaches a fork: the showcase is opt-in — it builds only when the repository variable
-`CATALOG_SHOWCASE` is `true` *and* `_data/site.yml` has `demo: true` — so a copy of the template
-never builds it, not even before `npm run eject:samples` (and the Apply setup workflow) flip
-`demo` to `false` and delete the showcase content. A fork's home page stays its catalog.
+None of it reaches a normal fork: the canonical `crypticpy/phct` repository builds the showcase
+while `_data/site.yml` has `demo: true`; another repository must opt in with the
+`CATALOG_SHOWCASE` variable as well. A copy of the template never builds it by default, not even
+before `npm run eject:samples` (and the Apply setup workflow) flip `demo` to `false` and delete the
+showcase content. A fork's home page stays its catalog.
 
 ## Design decisions
 
@@ -124,11 +125,11 @@ guide, wizard, docs), `starter_url`.
   the landing into `DIR` and each example into `DIR/examples/<id>`; runs
   `scripts/check_front_matter.rb` in every example's scratch tree; exits non-zero on any
   failure. `npm run build:showcase`.
-- `.github/workflows/pages.yml`: when repository variable `CATALOG_SHOWCASE` is `'true'` and
-  `_data/site.yml` has `demo: true`, run the showcase builder instead of the single
-  `jekyll build`; otherwise unchanged. Header comment explains it. (Review finding: the
-  original `!= 'false'` gate would have deployed the template's landing onto a fork's Pages
-  site between turning Pages on and ejecting the samples; opt-in closes that.)
+- `.github/workflows/pages.yml`: in `crypticpy/phct`, or in another repository whose
+  `CATALOG_SHOWCASE` variable is `'true'`, run the showcase builder when `_data/site.yml` has
+  `demo: true`; otherwise use the single `jekyll build`. The explicit repository/variable gate
+  prevents the template landing from appearing on an ordinary fork between enabling Pages and
+  ejecting the samples.
 - `scripts/eject_samples.mjs`: also removes `_showcase/` and `_data/showcase.yml`.
 - Tests: `test/build/showcase.test.mjs` (landing + every example: pages exist, switcher
   markup, "How this one is configured" facts match `presets.js`, no issue-opening submit on

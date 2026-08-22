@@ -1,0 +1,12 @@
+# PHCT currently has one named code owner. A second BCHC-designated owner must
+# be added before repository transfer; MAINTAINERS.md keeps that as a release
+# blocker rather than inventing an account that does not exist.
+* @crypticpy
+
+# High-trust release, automation, dependency, and security surfaces.
+/.github/ @crypticpy
+/scripts/ @crypticpy
+/quality/ @crypticpy
+/SECURITY.md @crypticpy
+/Gemfile* @crypticpy
+/package*.json @crypticpy
