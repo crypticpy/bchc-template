@@ -36,9 +36,10 @@ major version, and each entry says so when it happens.
 - Validation no longer reports success after silently skipping Ruby checks, and template-only
   showcase builds no longer fail downstream verification when no showcase is deployed.
 - The downstream updater now fetches both the locked and target PHCT tags, proves the locked tag
-  still resolves to its recorded full commit, reselects the candidate's Node and Ruby after merge,
-  branches from the default branch, uses `--force-with-lease`, and dispatches every release
-  workflow when GitHub suppresses pull-request events from its built-in token.
+  still resolves to its recorded full commit, applies their exact ownership-aware diff without
+  assuming shared Git ancestry, reselects the candidate's Node and Ruby afterward, branches from
+  the default branch, uses `--force-with-lease`, and dispatches every release workflow when GitHub
+  suppresses pull-request events from its built-in token.
 
 ## [1.8.1] — 2026-08-19
 

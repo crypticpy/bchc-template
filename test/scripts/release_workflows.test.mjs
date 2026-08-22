@@ -24,10 +24,12 @@ test('the PHCT updater bootstraps a missing lock and refuses an inconsistent exi
   assert.match(source, /first lock-aware update/);
   assert.match(source, /FROM_REF: \$\{\{ steps\.release\.outputs\.from_ref \}\}/);
   assert.match(source, /--from "\$FROM_REF" --to "\$TAG_REF"/);
-  const merge = source.indexOf('Merge the immutable PHCT candidate');
-  const candidateRuby = source.indexOf('Setup candidate Ruby from the merged .ruby-version');
-  const candidateNode = source.indexOf('Setup candidate Node from the merged .node-version');
-  assert.ok(merge >= 0 && candidateRuby > merge && candidateNode > candidateRuby);
+  const apply = source.indexOf('Apply the immutable PHCT candidate');
+  const candidateRuby = source.indexOf('Setup candidate Ruby from the applied .ruby-version');
+  const candidateNode = source.indexOf('Setup candidate Node from the applied .node-version');
+  assert.match(source, /apply_phct_update\.mjs --from "\$FROM_REF" --to "\$TAG_REF"/);
+  assert.doesNotMatch(source, /allow-unrelated-histories/);
+  assert.ok(apply >= 0 && candidateRuby > apply && candidateNode > candidateRuby);
 });
 
 test('the PHCT updater preserves review evidence and never blindly overwrites a branch', () => {

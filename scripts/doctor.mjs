@@ -87,16 +87,14 @@ function main() {
   );
 
   if (fs.existsSync(path.join(ROOT, '.phct-version.json'))) {
-    const driver = run('git', ['config', '--get', 'merge.ours.driver']);
+    const applier = fs.existsSync(path.join(ROOT, 'scripts/apply_phct_update.mjs'));
     report(
-      driver.ok && driver.output === 'true' ? 'PASS' : 'FAIL',
-      'Template merge driver',
-      driver.ok
-        ? `found ${JSON.stringify(driver.output)}; expected "true"`
-        : 'run git config merge.ours.driver true'
+      applier ? 'PASS' : 'FAIL',
+      'Protected update engine',
+      applier ? 'immutable parent diffs preserve deployment-owned paths' : 'update PHCT bootstrap tooling'
     );
   } else {
-    report('PASS', 'Template merge driver', 'not required in the PHCT parent');
+    report('PASS', 'Protected update engine', 'not required in the PHCT parent');
   }
 
   const chrome = [
