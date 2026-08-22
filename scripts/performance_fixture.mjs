@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 import { JSDOM } from 'jsdom';
 
-import { copyTree, removeEntries, run } from './lib/build-tree.mjs';
+import { copyTree, readYaml, removeEntries, run } from './lib/build-tree.mjs';
 import { seedFixtureEntries } from './seed_fixture_entries.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -53,15 +53,22 @@ function gzipBytes(file) {
   return fs.existsSync(file) ? zlib.gzipSync(fs.readFileSync(file), { level: 9 }).byteLength : 0;
 }
 
-function pageMetrics(siteDir, relative) {
+export function pageMetrics(siteDir, relative) {
   const file = path.join(siteDir, relative);
-  if (!fs.existsSync(file)) return { raw_bytes: 0, gzip_bytes: 0, dom_nodes: 0 };
+  if (!fs.existsSync(file)) {
+    throw new Error(`required performance page was not built: ${relative.split(path.sep).join('/')}`);
+  }
   const content = fs.readFileSync(file);
   return {
     raw_bytes: content.byteLength,
     gzip_bytes: zlib.gzipSync(content, { level: 9 }).byteLength,
     dom_nodes: new JSDOM(content.toString('utf8')).window.document.querySelectorAll('*').length,
   };
+}
+
+export function configuredEntryPath(root) {
+  const schema = readYaml(path.join(root, '_data', 'schema.yml'));
+  return String(schema.entry?.path || 'catalog').replace(/^\/+|\/+$/g, '') || 'catalog';
 }
 
 function javascriptBytes(siteDir, catalogFile) {
@@ -111,12 +118,14 @@ function buildFixture(count, scratchRoot, budgets) {
   const buildMs = Math.round(performance.now() - started);
   if (!built.ok) throw new Error(`Jekyll build failed for ${count} entries:\n${built.output}`);
 
-  const catalogFile = path.join(siteDir, 'catalog', 'index.html');
+  const entryPath = configuredEntryPath(fixtureRoot);
+  const catalogRelative = path.join(entryPath, 'index.html');
+  const catalogFile = path.join(siteDir, catalogRelative);
   const metrics = {
     entries: count,
     build_ms: buildMs,
     artifact: treeStats(siteDir),
-    catalog: pageMetrics(siteDir, path.join('catalog', 'index.html')),
+    catalog: pageMetrics(siteDir, catalogRelative),
     css_gzip_bytes: gzipBytes(path.join(siteDir, 'assets', 'css', 'site.css')),
     javascript_gzip_bytes: javascriptBytes(siteDir, catalogFile),
     search_json_gzip_bytes: gzipBytes(path.join(siteDir, 'search.json')),

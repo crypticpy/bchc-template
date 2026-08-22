@@ -38,6 +38,7 @@ function targetFile(siteRoot, pathname, baseurl) {
 
 export function checkSite(siteRoot, { baseurl = '' } = {}) {
   const findings = [];
+  let entriesDocument = null;
   const htmlFiles = filesUnder(siteRoot).filter((file) => file.endsWith('.html'));
   const ids = new Map();
   const domFor = (file) => new JSDOM(fs.readFileSync(file, 'utf8')).window.document;
@@ -115,7 +116,8 @@ export function checkSite(siteRoot, { baseurl = '' } = {}) {
     if (!fs.existsSync(file)) findings.push(`missing required built data file /${json}`);
     else {
       try {
-        JSON.parse(fs.readFileSync(file, 'utf8'));
+        const document = JSON.parse(fs.readFileSync(file, 'utf8'));
+        if (json === 'entries.json') entriesDocument = document;
       } catch (error) {
         findings.push(`/${json} is invalid JSON: ${error.message}`);
       }
@@ -136,7 +138,13 @@ export function checkSite(siteRoot, { baseurl = '' } = {}) {
     }
   }
 
-  if (!fs.existsSync(path.join(siteRoot, 'catalog', 'feed.xml'))) findings.push('missing /catalog/feed.xml');
+  if (entriesDocument && !Array.isArray(entriesDocument.entries)) {
+    findings.push('/entries.json has no `entries` array');
+  } else if (entriesDocument?.entries.length > 0) {
+    const entryPath = String(entriesDocument.entry?.path || 'catalog').replace(/^\/+|\/+$/g, '') || 'catalog';
+    const feedPath = path.posix.join(entryPath, 'feed.xml');
+    if (!fs.existsSync(path.join(siteRoot, ...feedPath.split('/')))) findings.push(`missing /${feedPath}`);
+  }
   return findings.sort();
 }
 

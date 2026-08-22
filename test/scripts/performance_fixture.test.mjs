@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
-import { budgetFindings } from '../../scripts/performance_fixture.mjs';
+import { budgetFindings, configuredEntryPath, pageMetrics } from '../../scripts/performance_fixture.mjs';
 
 const config = { supported_entries: 100, budgets: { build_ms: 1000, css_gzip_bytes: 100 } };
 const metrics = {
@@ -23,4 +26,21 @@ test('budgets report the measured value and maximum', () => {
 
 test('a probe above supported scale records evidence without failing release budgets', () => {
   assert.deepEqual(budgetFindings({ ...metrics, entries: 500, build_ms: 999999 }, config), []);
+});
+
+test('the performance probe derives a customized entry path from the fixture schema', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'phct-performance-path-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(root, '_data'));
+  fs.writeFileSync(path.join(root, '_data', 'schema.yml'), 'entry:\n  path: /projects/\n');
+  assert.equal(configuredEntryPath(root), 'projects');
+});
+
+test('missing catalog output cannot silently produce zero-valued metrics', (t) => {
+  const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'phct-performance-site-'));
+  t.after(() => fs.rmSync(siteDir, { recursive: true, force: true }));
+  assert.throws(
+    () => pageMetrics(siteDir, path.join('projects', 'index.html')),
+    /required performance page was not built: projects\/index\.html/
+  );
 });
