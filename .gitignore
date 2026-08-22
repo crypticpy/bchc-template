@@ -13,3 +13,4 @@ _config.quality.yml
 .lighthouseci/
 /performance-report.json
 /sbom.cdx.json
+/coverage/

@@ -41,12 +41,19 @@ Run these before opening a pull request; `validate.yml` and `quality.yml` run th
 | `npm run lint` | ESLint over the JS in `assets/js/`, `scripts/` and `test/`. |
 | `npm run format:check` | Prettier, checked but not applied — run `npm run format` locally to fix. Scope is JavaScript only: `.prettierignore` leaves Markdown, YAML, HTML/Liquid, generated files and the component CSS (one selector per line, see `docs/design-system.md`) alone. |
 | `npm test` | Node unit tests (`test/**/*.test.mjs`) — configurator, issue parsing, images, YAML, submit form (jsdom). |
+| `npm run coverage` | Uses the pinned runtimes' built-in coverage over the complete Node and Ruby suites, plus focused security-parser and parent-updater Node suites. It enforces reviewed regression floors and writes raw TAP plus JSON under `coverage/`; percentages are evidence, not a substitute for behavioral, fuzz, browser, accessibility, or human review. |
 | `npm run test:ruby` | Minitest for the Ruby plugins and validators (`test/plugins/**/*_test.rb`, `test/scripts/**/*_test.rb`). |
 | `npm run validate` | Every `_data/*.yml` parses; every entry's front matter passes `scripts/check_front_matter.rb`; no oversize files. |
 | `npm run build:css && bundle exec jekyll build` | The site builds without Liquid errors. |
 | `npm run a11y` | pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in `quality/pa11yci.js` (sample entry URLs are discovered from the built site). Needs the built site served on port 4173: `node scripts/serve_built_site.mjs --directory _site &`. |
 | `npm run test:flows` | The assistive-technology flow tests (`test/a11y/flows.test.mjs`): keyboard-only walkthroughs — home → catalog → filter → entry → Back, search → result, the submission form's errors, the setup wizard's first step change — asserting focus order, a visible focus ring, live-region announcements and no dead ends. Needs the same served build as `npm run a11y`, plus puppeteer (`npm install --no-save puppeteer@$(node -p "require('./quality/package.json').devDependencies.puppeteer")`). Point it elsewhere with `FLOW_BASE_URL`. |
 | `npm run lighthouse` | Lighthouse CI (`quality/lighthouserc.js`) against the same local server; every performance, accessibility, best-practice, SEO, layout-shift, and timing budget blocks release. Set `LHCI_LOCAL_OUTPUT=/tmp/phct-lighthouse` to keep local reports off temporary public storage. |
+
+The coverage regression floors are line / branch / function percentages: complete loaded Node
+production code 82 / 72 / 75; focused security parsers 88 / 78 / 90; parent updater and release-lock
+logic 70 / 75 / 85. Loaded Ruby production code is held to 90 / 82 / 75 for lines / branches /
+methods. A new Ruby source that is neither represented in-process nor explicitly inventoried as a
+subprocess-only CLI fails the gate. Change a floor only with an explained, reviewed tradeoff.
 
 ## Ground rules
 

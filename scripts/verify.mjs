@@ -14,6 +14,7 @@ const gates = [
   ['Lint', 'npm', ['run', 'lint']],
   ['Formatting', 'npm', ['run', 'format:check']],
   ['Node tests', 'npm', ['test']],
+  ['Code coverage evidence', 'npm', ['run', 'coverage']],
   ['Ruby tests', 'npm', ['run', 'test:ruby']],
   ['Data and front matter', 'npm', ['run', 'validate']],
   ['Dependency licenses', 'npm', ['run', 'licenses:check']],

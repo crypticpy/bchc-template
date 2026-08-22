@@ -32,6 +32,7 @@ that updater succeeds.
 | Reproducible toolchain | Pass | Node 22.22.2, npm 10.9.4, Ruby 3.3.11, and Bundler 4.0.11 are exact-pinned and checked by `npm run doctor`. |
 | Live pull-request CI | Pass at implementation heads | PHCT's exact-head aggregate run at `d1ba9ad` passed Validate, Quality, Performance and scale, Supply chain, and both CodeQL languages; Lint also passed on the pull request. All checks triggered by BCHC head `047bee6` are green, and the preceding implementation head passed its browser-quality workflow. Both PRs remain open for human approval. |
 | PHCT release verification | Pass | `npm run verify` completed at `d1ba9ad`: 575 Node tests, 200 Ruby tests with 503 assertions, 98 build-matrix tests, generated-file checks, preset/module/showcase builds, CSS, Jekyll, license, security-exception, SBOM, image, and internal-link gates. |
+| Code coverage | Pass locally; CI artifact pending current head | Pinned runtime coverage passed reviewed regression floors: complete loaded Node production code 85.33% lines / 76.02% branches / 79.25% functions; focused security parsers 90.54% / 80.55% / 93.59%; updater and release-lock logic 72.79% / 77.39% / 87.76%; loaded Ruby production code 93.29% lines / 85.13% branches / 77.69% methods. Six Ruby CLI sources exercised by subprocess or integration gates are explicitly inventoried, and any new unrepresented Ruby source fails the gate. Validate retains the JSON and raw TAP evidence even when a floor fails. |
 | Exact BCHC update rehearsal | Pass | An unrelated-history clone at BCHC `047bee6` reconciled 397 template-owned paths to PHCT `d1ba9ad`, preserved 179 deployment-owned paths, kept all 115 protected files byte-identical, and passed 575 Node tests, 200 Ruby tests with 503 assertions, 98 build tests, production Jekyll, and built-site links. |
 | Dependency vulnerabilities | Pass | The exact-head Supply chain job passed parsed npm and Bundler audits with zero active exceptions; critical or unidentified findings cannot be waived, and stale/expired/unused exceptions fail closed. |
 | Software bill of materials | Pass | The current lockfiles produce 326 CycloneDX components and 327 globally unique references including the application. Repeated npm package/version rows retain every lock path, Ruby platforms have qualified PURLs, and duplicate references fail generation. |
@@ -72,6 +73,9 @@ artifacts.
 - Added deterministic supply-chain, license, security-exception, SBOM, performance, and
   internal-link gates; audits now match exact advisory identities, and SBOM references are unique
   across duplicate npm paths and Ruby platform variants.
+- Added pinned-runtime Node and Ruby coverage evidence with conservative full-suite floors,
+  explicit security-parser and updater expectations, an inventory check for subprocess-only Ruby
+  sources, and always-uploaded CI diagnostics.
 - Added a path-confined gzip release server so browser tests measure production-style transfer
   behavior instead of an uncompressed local artifact.
 - Turned Lighthouse performance, accessibility, best-practice, SEO, FCP, LCP, TBT, and CLS

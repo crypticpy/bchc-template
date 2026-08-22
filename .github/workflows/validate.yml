@@ -134,6 +134,46 @@ jobs:
       - name: Build every variant and check the rendered copy
         run: npm run test:build
 
+  coverage:
+    name: Coverage evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          bundler-cache: true
+
+      - name: Select exact npm
+        run: node scripts/install_exact_npm.mjs
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Enforce reviewed coverage floors
+        run: npm run coverage
+
+      - name: Upload coverage evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-${{ github.sha }}
+          path: coverage/
+          if-no-files-found: warn
+          retention-days: 30
+
   performance:
     name: Performance and scale
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -166,7 +206,7 @@ jobs:
     # instead. `statuses: write` is scoped to this job and nothing else.
     name: Report the dispatched run on its commit
     if: ${{ always() && github.event_name == 'workflow_dispatch' }}
-    needs: [checks, build-matrix, performance, supply-chain, codeql]
+    needs: [checks, build-matrix, coverage, performance, supply-chain, codeql]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

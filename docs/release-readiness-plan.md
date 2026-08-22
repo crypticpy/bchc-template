@@ -467,6 +467,7 @@ node scripts/generate.mjs --check
 npm run lint
 npm run format:check
 npm test
+npm run coverage
 npm run test:ruby
 npm run validate
 node scripts/derive_images.mjs --check

@@ -57,7 +57,21 @@ test('a built-in-token update dispatches stable entrypoints that fan out to ever
     assert.match(validate, new RegExp(`uses: \\.\\/.github/workflows/${name.replace('.', '\\.')}`, 'u'));
     assert.match(workflow(name), /workflow_call:/u, `${name} cannot be called by validate.yml`);
   }
-  assert.match(validate, /needs: \[checks, build-matrix, performance, supply-chain, codeql\]/u);
+  assert.match(validate, /needs: \[checks, build-matrix, coverage, performance, supply-chain, codeql\]/u);
+});
+
+test('validation enforces coverage floors and always retains the evidence', () => {
+  const source = workflow('validate.yml');
+  const start = source.indexOf('\n  coverage:');
+  const end = source.indexOf('\n  performance:', start);
+  assert.ok(start >= 0 && end > start, 'validate.yml has no bounded coverage job');
+  const coverage = source.slice(start, end);
+  assert.match(coverage, /name: Coverage evidence/u);
+  assert.match(coverage, /name: Setup Ruby\n\s+uses: ruby\/setup-ruby@/u);
+  assert.match(coverage, /run: npm run coverage/u);
+  assert.match(coverage, /name: Upload coverage evidence\n\s+if: \$\{\{ always\(\) \}\}/u);
+  assert.match(coverage, /path: coverage\//u);
+  assert.match(coverage, /if-no-files-found: warn/u);
 });
 test('release performance always exercises the complete deterministic matrix', () => {
   const source = workflow('performance.yml');

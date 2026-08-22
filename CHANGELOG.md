@@ -22,6 +22,9 @@ major version, and each entry says so when it happens.
 - **Measured scale and browser gates.** A deterministic 0–1,000-entry fixture, enforced 100-entry
   release budgets, link/anchor/artifact validation, filesystem-only local Lighthouse reports, and
   a gzip static server that matches production delivery more closely.
+- **Coverage evidence.** Pinned-runtime line, branch, and function/method reports for the complete
+  Node and Ruby suites and explicit security-parser/updater groups, with reviewed regression floors
+  and always-retained CI artifacts.
 - **Open-source operations.** CODEOWNERS, maintainership and support policies, structured bug,
   accessibility, and feature forms, plus release/update/rollback/backup/succession runbooks.
 - **[docs/ecosystem.md](docs/ecosystem.md)** — the map of the repository family:

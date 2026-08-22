@@ -229,6 +229,10 @@ All four cohort/event workflows follow the same pattern as new-entry: issue → 
 **Build failing (`Build & Deploy` workflow red on `main`)**
 - Check the Actions log for the failing step. Common culprits: invalid YAML in `_data/*.yml` (run `npm run validate` locally first), a schema change that broke `npm run generate`, or `bundle exec jekyll doctor` flagging a broken permalink/URL.
 - `npm run validate` mirrors the CI content gate locally (YAML parse of every `_data/*.yml`, plus the two Ruby checks) — run it before pushing schema or data changes.
+- If **Coverage evidence** is red, download its artifact and inspect `summary.json` plus the
+  matching TAP file. Run `npm run coverage` with the exact toolchain; add tests for the changed
+  behavior or have a maintainer explicitly review a justified floor change. Never lower a floor
+  merely to make the workflow green.
 
 **Pull request not created after an issue was opened**
 - Confirm the issue actually carries the expected label (`content:new-entry`, etc.) — GitHub only applies labels from an issue form if they already exist in the repo (see setup checklist above).
