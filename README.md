@@ -105,6 +105,7 @@ The exact supported versions live in `.ruby-version`, `.node-version`, `Gemfile.
 version managers can read `.ruby-version`, `.node-version`, or `.nvmrc`.
 
 ```bash
+mise trust mise.toml # after inspecting the pinned runtime definitions
 mise install          # optional; use any manager that installs the pinned versions
 gem install bundler -v "$(cat .bundler-version)"
 bundle install
@@ -115,6 +116,9 @@ npm run dev       # http://127.0.0.1:4000/ with live reload — Tailwind watcher
                   # regenerating the schema-derived files whenever _data/schema.yml or _data/site.yml changes
 npm run build     # generate schema-derived files, build CSS, build the Jekyll site into _site/
 ```
+
+Mise requires the per-clone trust step before reading `mise.toml`. If project-configuration trust
+is not permitted in your environment, use another manager with the checked-in version files.
 
 `npm run dev -- --port 4001 --host 0.0.0.0` changes where it listens; output is prefixed `[css]`, `[jekyll]` and `[gen]`, and Ctrl-C stops everything. `npm run serve` and `npm run watch:css` still exist if you want the pieces separately.
 

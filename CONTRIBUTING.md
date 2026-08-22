@@ -13,6 +13,7 @@ Runtime and package-manager versions are exact, not ranges. They live in `.ruby-
 installer definition. Chrome/Chromium is needed only for the browser quality lanes.
 
 ```sh
+mise trust mise.toml # after inspecting the pinned runtime definitions
 mise install          # optional; equivalent version managers are fine
 gem install bundler -v "$(cat .bundler-version)"
 bundle install
@@ -20,6 +21,10 @@ npm ci
 npm run doctor        # fix every FAIL before relying on a local result
 npm run serve          # builds CSS, then `jekyll serve --livereload` on http://127.0.0.1:4000
 ```
+
+Mise requires this per-clone trust step before it will read the repository configuration. If your
+organization does not allow trusted project configuration, use other version managers with
+`.ruby-version`, `.node-version`, and `.nvmrc` instead.
 
 `npm run watch:css` in a second terminal rebuilds Tailwind as you edit `assets/css/components/*.css`.
 
