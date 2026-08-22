@@ -43,6 +43,26 @@ test('the PHCT updater preserves review evidence and never blindly overwrites a 
   assert.match(source, /gh pr create --base "\$BASE_BRANCH"/);
 });
 
+test('workflow-file updates require a dedicated workflow-capable credential before expensive gates', () => {
+  const source = workflow('update-phct.yml');
+  const apply = source.indexOf('Apply the immutable PHCT candidate');
+  const preflight = source.indexOf('Require a workflow-capable token when workflows change');
+  const candidateRuby = source.indexOf('Setup candidate Ruby from the applied .ruby-version');
+
+  assert.match(source, /token: \$\{\{ secrets\.PHCT_UPDATE_TOKEN \|\| secrets\.GITHUB_TOKEN \}\}/u);
+  assert.match(
+    source,
+    /workflow_changes=.*git status --porcelain --untracked-files=all -- \.github\/workflows/u
+  );
+  assert.match(source, /UPDATE_TOKEN_CONFIGURED: \$\{\{ secrets\.PHCT_UPDATE_TOKEN != '' \}\}/u);
+  assert.match(source, /\[ "\$UPDATE_TOKEN_CONFIGURED" = "true" \]/u);
+  assert.match(source, /PHCT_UPDATE_TOKEN required/u);
+  assert.match(source, /GitHub's built-in Actions token cannot push/u);
+  assert.match(source, /GH_TOKEN: \$\{\{ secrets\.PHCT_UPDATE_TOKEN \|\| secrets\.GITHUB_TOKEN \}\}/u);
+  assert.doesNotMatch(source, /secrets\.CONTENT_BOT_TOKEN/u);
+  assert.ok(apply >= 0 && preflight > apply && candidateRuby > preflight);
+});
+
 test('a built-in-token update dispatches stable entrypoints that fan out to every release gate', () => {
   const updater = workflow('update-phct.yml');
   assert.match(updater, /for workflow in validate\.yml quality\.yml/u);

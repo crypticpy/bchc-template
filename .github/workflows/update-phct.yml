@@ -40,7 +40,10 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           # The final step intentionally pushes a machine-owned update branch.
           # zizmor: ignore[artipacked]
-          token: ${{ secrets.CONTENT_BOT_TOKEN || secrets.GITHUB_TOKEN }}
+          # PHCT releases normally update workflow files. GitHub's built-in
+          # token cannot push those paths, so use the dedicated, narrowly
+          # scoped update credential when an administrator configured it.
+          token: ${{ secrets.PHCT_UPDATE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Setup Node from .node-version
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -127,6 +130,30 @@ jobs:
       - name: Prove deployment files survived the update byte-for-byte
         run: npm run ownership:verify -- "$RUNNER_TEMP/deployment-protected-before.json"
 
+      - name: Require a workflow-capable token when workflows change
+        env:
+          UPDATE_TOKEN_CONFIGURED: ${{ secrets.PHCT_UPDATE_TOKEN != '' }}
+        run: |
+          set -euo pipefail
+          workflow_changes="$(git status --porcelain --untracked-files=all -- .github/workflows)"
+          if [ -z "$workflow_changes" ]; then
+            echo "This release does not change downstream workflow files." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$UPDATE_TOKEN_CONFIGURED" = "true" ]; then
+            echo "PHCT_UPDATE_TOKEN is configured for the workflow-file update." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "::error title=PHCT_UPDATE_TOKEN required::This release changes .github/workflows, which GitHub's built-in Actions token cannot push. Configure the dedicated repository secret before rerunning the update."
+          {
+            echo "## PHCT update credential required"
+            echo
+            echo "This release changes \`.github/workflows\`. GitHub's built-in Actions token cannot push that path, so no branch or pull request was created."
+            echo
+            echo "Configure the repository-scoped \`PHCT_UPDATE_TOKEN\` described in https://github.com/crypticpy/phct/blob/main/docs/upgrading.md#workflow-token-required-for-workflow-updates and rerun this exact release."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 2
+
       # The parent release may change either runtime pin. Node at the start of
       # the job belongs to the currently consumed downstream version and only
       # runs the bootstrap checks; select both candidate versions after reconciling the parent tree.
@@ -193,7 +220,7 @@ jobs:
 
       - name: Open or update the human-reviewed pull request
         env:
-          GH_TOKEN: ${{ secrets.CONTENT_BOT_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PHCT_UPDATE_TOKEN || secrets.GITHUB_TOKEN }}
           BRANCH: ${{ steps.release.outputs.branch }}
           RELEASE: ${{ steps.release.outputs.release }}
           COMMIT: ${{ steps.release.outputs.commit }}
@@ -239,12 +266,12 @@ jobs:
       - name: Dispatch checks when the built-in token opened the pull request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BOT_TOKEN: ${{ secrets.CONTENT_BOT_TOKEN }}
+          UPDATE_TOKEN: ${{ secrets.PHCT_UPDATE_TOKEN }}
           BRANCH: ${{ steps.release.outputs.branch }}
         run: |
           set -euo pipefail
-          if [ -n "$BOT_TOKEN" ]; then
-            echo "CONTENT_BOT_TOKEN triggered pull-request checks normally." >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$UPDATE_TOKEN" ]; then
+            echo "PHCT_UPDATE_TOKEN triggered pull-request checks normally." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           # These two entrypoints exist in every supported downstream release.
