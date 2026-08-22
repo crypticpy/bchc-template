@@ -28,6 +28,9 @@ jobs:
         with:
           node-version-file: ".node-version"
 
+      - name: Select exact npm
+        run: node scripts/install_exact_npm.mjs
+
       - name: Install npm dependencies
         run: npm ci
 

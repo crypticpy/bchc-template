@@ -68,3 +68,16 @@ test('machine-maintained branches use lease-protected force pushes', () => {
     assert.match(source, /git push --force-with-lease origin/);
   }
 });
+
+test('every npm dependency install selects the exact package manager after setup-node', () => {
+  const directory = path.join(ROOT, '.github', 'workflows');
+  for (const name of fs.readdirSync(directory).filter((file) => file.endsWith('.yml'))) {
+    const source = workflow(name);
+    for (const match of source.matchAll(/^\s+(?:run:\s*)?npm ci\b/gmu)) {
+      const cursor = match.index;
+      const setup = source.lastIndexOf('actions/setup-node@', cursor);
+      const exact = source.lastIndexOf('node scripts/install_exact_npm.mjs', cursor);
+      assert.ok(setup >= 0 && exact > setup, `${name} runs npm ci without selecting exact npm`);
+    }
+  }
+});
