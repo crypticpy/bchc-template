@@ -56,17 +56,17 @@ Budgets live in [`quality/performance-budgets.json`](../quality/performance-budg
   baseline replaced the initial 150 ms proposal after the representative workload was introduced.
 
 The exact-head Linux CI baseline on 2026-08-22 passed every supported-scale budget. It measured
-100 entries at 9.7 seconds, 523 files/19.6 MiB, 59.6 KiB catalog HTML gzip, 8,894 DOM nodes, 24.3
-KiB CSS gzip, 39.9 KiB JavaScript gzip, 147.4 KiB fonts, 1.26 MiB images, 16.6 KiB search gzip, and
-20.1 KiB comparison data gzip. Chrome 151 under the low-end-mobile profile measured 844.4 ms cold
-search initialization, 169.6 ms warm-search p95, 26.1 ms filter p95 across rare/mid/common visible
-facets, 56.0 ms sort p95, and 1.9 ms comparison p95. The exact-toolchain macOS confirmation measured
-93.3 ms search p95 and 15.9 ms filter p95. The runs used Node 22.22.2, npm 10.9.4, Ruby 3.3.11, and
-Bundler 4.0.11.
+100 entries at 14.1 seconds, 523 files/19.9 MiB, 59.7 KiB catalog HTML gzip, 8,894 DOM nodes, 24.3
+KiB CSS gzip, 39.9 KiB JavaScript gzip, 147.4 KiB fonts, 1.26 MiB images, 16.5 KiB search gzip, and
+20.1 KiB comparison data gzip. Chrome 151 under the low-end-mobile profile measured 832.6 ms cold
+search initialization, 166.7 ms warm-search p95, 45.3 ms filter p95 across rare/mid/common visible
+facets, 70.1 ms sort p95, and 2.1 ms comparison p95. The exact-toolchain macOS confirmation measured
+86.2 ms search p95 and 14.8 ms filter p95; the BCHC project-path rehearsal measured 86.7/14.2 ms.
+The runs used Node 22.22.2, npm 10.9.4, Ruby 3.3.11, and Bundler 4.0.11.
 
-The representative 500-entry target built successfully in 44.6 seconds with an 82.2 KiB search
-payload, but its catalog page reached 151.1 KiB gzip and 36,860 DOM nodes. The 1,000-entry stress
-case built in 111.6 seconds and produced a 102.4 MiB artifact plus a 257.9 KiB/71,819-node catalog
+The representative 500-entry target built successfully in 66.3 seconds with an 82.0 KiB search
+payload, but its catalog page reached 151.5 KiB gzip and 36,860 DOM nodes. The 1,000-entry stress
+case built in 174.9 seconds and produced a 103.5 MiB artifact plus a 258.6 KiB/71,819-node catalog
 page. Those 1,000-entry values exceed the budgets enforced at the supported ceiling, as expected
 for an unsupported stress case. PHCT must add a
 progressively enhanced pagination or incremental-card

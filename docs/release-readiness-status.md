@@ -3,9 +3,11 @@
 - Evidence date: 2026-08-22
 - PHCT starting baseline: `c9fcb223826f2fc8c945d894420c16a2b8ff5da0`
 - PHCT candidate: `v1.9.0-rc.1` in [PR #14](https://github.com/crypticpy/phct/pull/14);
-  implementation head `1e91db62a9cb1f30569c0da2ac952a4aa4c7f3b0` passed the exact-head
-  [aggregate release run](https://github.com/crypticpy/phct/actions/runs/32567522824), while
-  current-head automated re-review, human approval, and the immutable tag remain pending
+  implementation head `987e0affcc0f1ccaa852f137a122944fd5178802` passed the exact-head
+  [aggregate release run](https://github.com/crypticpy/phct/actions/runs/32573851452),
+  [performance run](https://github.com/crypticpy/phct/actions/runs/32573851373), and
+  [browser-quality run](https://github.com/crypticpy/phct/actions/runs/32573851376); human approval
+  and the immutable tag remain pending
 - BCHC baseline: `7ea8659ffeb4de7c1f8f53eb93e4d74a15d4fc31`; the protected updater
   bootstrap is in [PR #2](https://github.com/crypticpy/bchc-ai-use-case-catalog/pull/2), whose
   preparation head is `cea6cae9f21d2da8e541250d03b0bb477ed1fe68`; all checks triggered
@@ -30,10 +32,10 @@ that updater succeeds.
 | Area | Result | Evidence |
 |---|---|---|
 | Reproducible toolchain | Pass | Node 22.22.2, npm 10.9.4, Ruby 3.3.11, and Bundler 4.0.11 are exact-pinned and checked by `npm run doctor`. |
-| Live pull-request CI | Pass at implementation heads | PHCT's exact-head [aggregate run](https://github.com/crypticpy/phct/actions/runs/32567522824) at `1e91db6` passed Validate, coverage, Performance and scale, Supply chain, and both CodeQL languages; the matching pull-request runs also passed workflow lint and the complete Quality browser lane. All checks triggered by BCHC head `cea6cae` are green. Both PRs remain open for human approval. |
-| PHCT release verification | Pass | `npm run verify` completed at `1e91db6`: 576 Node tests across 579 TAP items including 3 suites, 203 Ruby tests with 509 assertions, 98 build-matrix tests, coverage, generated-file checks, preset/module/showcase builds, CSS, Jekyll, license, security-exception, SBOM, image, and internal-link gates. |
-| Code coverage | Pass locally and in exact-head CI | Pinned runtime coverage passed reviewed regression floors: complete loaded Node production code 85.33% lines / 76.02% branches / 79.25% functions; focused security parsers 90.54% / 80.55% / 93.59%; updater and release-lock logic 72.79% / 77.39% / 87.76%; loaded Ruby production code 93.29% lines / 85.13% branches / 77.69% methods. Six Ruby CLI sources exercised by subprocess or integration gates are explicitly inventoried, and any new unrepresented Ruby source fails the gate. Validate retains JSON and raw TAP artifacts even when a floor fails. |
-| Exact BCHC update rehearsal | Pass | An unrelated-history clone at BCHC `cea6cae` reconciled 401 template-owned paths to PHCT `1e91db6`, preserved 180 deployment-owned paths, kept all 116 protected files byte-identical, and passed the same 576 Node tests / 579 TAP items, 203 Ruby tests with 509 assertions, coverage floors, 98 build tests, production Jekyll, and built-site links. The protected BCHC status ledger retained SHA-256 `974b5004990c14da22af5a9b763fb8a941369e945206885a891bdb282d710d97`. |
+| Live pull-request CI | Pass at implementation heads | PHCT exact-head runs at `987e0af` passed Validate, 597 Node tests/3 suites, coverage, the complete representative scale and Chrome interaction matrix, Supply chain, both CodeQL languages, workflow lint, pa11y, assistive flows, and desktop/mobile Lighthouse. All checks triggered by BCHC head `cea6cae` are green. Both PRs remain open for human approval. |
+| PHCT release verification | Pass | `npm run verify` completed at `987e0af`: 597 Node tests across 600 TAP items including 3 suites, 203 Ruby tests with 509 assertions, 98 build-matrix tests, coverage, generated-file checks, preset/module/showcase builds, CSS, Jekyll, license, security-exception, SBOM, image, and internal-link gates. |
+| Code coverage | Pass locally and in exact-head CI | Pinned runtime coverage passed reviewed regression floors: complete loaded Node production code 84.88% lines / 75.90% branches / 80.04% functions; focused security parsers 90.54% / 80.55% / 93.59%; updater and release-lock logic 72.79% / 77.39% / 87.76%; loaded Ruby production code 93.29% lines / 85.13% branches / 77.69% methods. Six Ruby CLI sources exercised by subprocess or integration gates are explicitly inventoried, and any new unrepresented Ruby source fails the gate. Validate retains JSON and raw TAP artifacts even when a floor fails. |
+| Exact BCHC update rehearsal | Pass | An unrelated-history clone at BCHC `cea6cae` reconciled 405 template-owned paths to PHCT `987e0af`, preserved 180 deployment-owned paths, kept all 116 protected files byte-identical, and passed the same 597 Node tests / 600 TAP items, 203 Ruby tests with 509 assertions, coverage floors, 98 build tests, production Jekyll, and built-site links. The protected BCHC snapshot retained SHA-256 `63ba86ba3b4495f486c1d8e440f129ea20403e2a6672585e1b1579cdcbb08232`. Its real `/bchc-ai-use-case-catalog` project path passed the browser performance gate with zero findings. |
 | Dependency vulnerabilities | Pass | The exact-head Supply chain job passed parsed npm and Bundler audits with zero active exceptions; critical or unidentified findings cannot be waived, and stale/expired/unused exceptions fail closed. |
 | Software bill of materials | Pass | The current lockfiles produce 326 CycloneDX components and 327 globally unique references including the application. Repeated npm package/version rows retain every lock path, Ruby platforms have qualified PURLs, and duplicate references fail generation. |
 | Secret scanning | Pass | Gitleaks v8.30.1 found no leaks in either working tree or the complete history of either repository. |
@@ -41,10 +43,10 @@ that updater succeeds.
 | Accessibility automation | Pass | Pa11y reported zero errors on 22 PHCT URLs and 18 BCHC URLs; all four keyboard-flow scenarios passed in each repository. |
 | Desktop Lighthouse | Pass | Four URLs and two runs per URL in each repository. Every category score was 100. PHCT maxima: FCP 323 ms, LCP 548 ms, TBT 0 ms, CLS 0.00186. BCHC maxima: FCP 324 ms, LCP 551 ms, TBT 0 ms, CLS 0.01155. |
 | Mobile Lighthouse | Pass | PHCT and BCHC scored 97–99 performance and 100 accessibility, best practices, and SEO. Maximum observed FCP was 1,280 ms, LCP 2,632 ms, TBT 0 ms, and CLS 0.008. |
-| Scale matrix | Pass at supported ceiling | Deterministic 0, 1, 10, 100, 500, and 1,000-entry builds completed. All enforced release budgets passed through the supported 100-entry ceiling. |
-| Supported 100-entry target | Pass | 5,278 ms build, 474 files, 21,182,458 output bytes, 61,292-byte gzip catalog, 9,081 DOM nodes, 24,895-byte gzip CSS, and 30,289-byte gzip catalog JavaScript. |
-| Higher-scale characterization | Informational finding | At 500 entries the catalog was 175,098 bytes gzip with 37,800 DOM nodes; at 1,000 entries it was 319,579 bytes gzip with 73,700 DOM nodes. Pagination or incremental rendering is required before claiming support above 100 entries. |
-| Protected downstream content | Pass in exact-head rehearsal | The machine-readable ownership manifest, ordered merge rules, protected-file checksums, generated-file regeneration, and immutable parent lock protected all 116 BCHC files in the `cea6cae` → `1e91db6` rehearsal. A real tagged-update pull request remains required. |
+| Scale and interaction matrix | Pass at supported ceiling | The exact-head Linux run completed deterministic 0, 1, 10, 100, 500, and 1,000-entry builds plus real Chrome at 390×844/4× CPU. All enforced release budgets passed through the supported 100-entry ceiling; the retained report records zero release findings. |
+| Supported 100-entry target | Pass | Linux CI measured a 14,079 ms build under `/phct-performance`, 523 files/20,861,459 bytes, 61,182-byte gzip catalog, 8,894 DOM nodes, 24,914-byte gzip CSS, 40,891-byte gzip catalog JavaScript, 16,913-byte gzip search data, and 20,622-byte comparison data. Chrome measured 166.7 ms warm-search p95 and 45.3 ms filter p95 against reviewed 250/100 ms limits; BCHC's real project path measured 86.7/14.2 ms locally. |
+| Higher-scale characterization | Informational finding | At 500 entries the Linux run built in 66.3 seconds with an 83,990-byte search payload, while the catalog reached 155,156 bytes gzip and 36,860 DOM nodes. At 1,000 entries it built in 174.9 seconds and produced a 108,558,694-byte artifact plus a 264,761-byte/71,819-node catalog. Pagination or incremental rendering is required before claiming support above 100 entries. |
+| Protected downstream content | Pass in exact-head rehearsal | The machine-readable ownership manifest, ordered merge rules, protected-file checksums, generated-file regeneration, and immutable parent lock protected all 116 BCHC files in the `cea6cae` → `987e0af` rehearsal. A real tagged-update pull request remains required. |
 
 Local Lighthouse and scale reports were written under `/tmp` and are intentionally ephemeral.
 The release candidate's GitHub Actions runs must retain their reports and SBOM as reviewable CI
@@ -78,6 +80,16 @@ artifacts.
   sources, and always-uploaded CI diagnostics.
 - Added a path-confined gzip release server so browser tests measure production-style transfer
   behavior instead of an uncompressed local artifact.
+- Replaced placeholder scale data with schema-driven long-form entries, common/rare facets,
+  deprecated rows, relationships, and deterministic 320×180 images; the scale report now counts
+  transitive JavaScript, fonts, images, and target-scale search payloads without local-evidence
+  contamination.
+- Added a real-Chrome supported-scale gate for filter/search p95 under a 390×844 viewport and 4×
+  CPU slowdown, including a synthetic Pages project path, downstream base URLs, and retained raw
+  samples. The first Linux run exposed a 515.1 ms common-query path; exact-literal scoring,
+  no-hit-only prefix/fuzzy expansion, deferred bounded card annotation, and a 50 ms debounce
+  reduced the final exact-head Linux p95 to 166.7 ms while preserving typo, prefix, relevance, and
+  snippet regression coverage.
 - Turned Lighthouse performance, accessibility, best-practice, SEO, FCP, LCP, TBT, and CLS
   expectations into blocking budgets.
 - Fixed an empty-slug Jekyll warning and parent/downstream test assumptions around optional
@@ -95,8 +107,8 @@ No unresolved automated P0 or P1 code defect is known at this checkpoint.
 
 | ID | Required evidence | Owner | Status |
 |---|---|---|---|
-| RR-H01 | Review these changes and obtain green required CI plus independent human approval in PHCT and BCHC. | PHCT maintainer | In progress — PRs #14 and #2 are open, triggered CI is green, automated findings have fixes and inline evidence, and fresh current-head automated review plus human approval are pending. |
-| RR-H02 | Tag an immutable PHCT release candidate, run the actual BCHC update workflow, review the checksum report and generated changes, then prove revert/rollback of the update pull request. | PHCT maintainer | In progress — the `cea6cae` → `1e91db6` exact commit-to-commit rehearsal passed with all 116 protected files unchanged; creating the immutable tag, running the real workflow, and proving rollback remain open. |
+| RR-H01 | Review these changes and obtain green required CI plus independent human approval in PHCT and BCHC. | PHCT maintainer | In progress — PRs #14 and #2 are open and exact-head triggered CI is green; independent human approvals remain pending. |
+| RR-H02 | Tag an immutable PHCT release candidate, run the actual BCHC update workflow, review the checksum report and generated changes, then prove revert/rollback of the update pull request. | PHCT maintainer | In progress — the `cea6cae` → `987e0af` exact commit-to-commit rehearsal passed with all 116 protected files unchanged; creating the immutable tag, running the real workflow, and proving rollback remain open. |
 | RR-H03 | Complete a real issue → pull request → media processing → review → merge → Pages deploy → notification rehearsal in both repositories. Use non-sensitive test content and remove it afterward. | Repository admins | Open |
 | RR-H04 | Name a BCHC product owner and backup technical maintainer; grant least-privilege access; update `CODEOWNERS`, `MAINTAINERS.md`, and the private contact system. | BCHC sponsor | Open |
 | RR-H05 | Correct and verify branch rules, required checks/approval, Pages environment protection, Actions permissions, secrets/variables, domain/DNS, security settings, labels, and notifications against `docs/bchc/operations-inventory.yml`. | Repository admins | Open — read-only API audit completed; the hardening findings below remain. |
