@@ -8,12 +8,16 @@ have just created a repository from the template and want it launched, that is
 
 ## Local setup
 
-Requirements: Ruby 3.3 (with Bundler), Node 22+, and — only for the audit scripts — a Chrome that
-`pa11y`/Lighthouse can launch (they download one on first run).
+Runtime and package-manager versions are exact, not ranges. They live in `.ruby-version`,
+`.node-version`, `.bundler-version`, `Gemfile.lock`, and `package.json`; `mise.toml` is the combined
+installer definition. Chrome/Chromium is needed only for the browser quality lanes.
 
 ```sh
+mise install          # optional; equivalent version managers are fine
+gem install bundler -v "$(cat .bundler-version)"
 bundle install
 npm ci
+npm run doctor        # fix every FAIL before relying on a local result
 npm run serve          # builds CSS, then `jekyll serve --livereload` on http://127.0.0.1:4000
 ```
 
@@ -22,9 +26,12 @@ npm run serve          # builds CSS, then `jekyll serve --livereload` on http://
 ## The gates (what CI runs)
 
 Run these before opening a pull request; `validate.yml` and `quality.yml` run the same commands.
+`npm run verify` is the single non-browser gate and stops at the first failing section.
 
 | Command | Checks |
 |---|---|
+| `npm run doctor` | Exact Node/npm/Ruby/Bundler versions, installed dependencies, generated parity, the ownership contract, downstream merge-driver setup, and browser availability. |
+| `npm run verify` | All non-browser rows below, every preset/module build, image parity, Jekyll doctor, and the production build. |
 | `node scripts/generate.mjs --check` | The issue template, `_config.yml` title/description and `defaults.generated.js` match `_data/schema.yml` / `_data/site.yml`. If it fails: `npm run generate` and commit. |
 | `npm run lint` | ESLint over the JS in `assets/js/`, `scripts/` and `test/`. |
 | `npm run format:check` | Prettier, checked but not applied — run `npm run format` locally to fix. Scope is JavaScript only: `.prettierignore` leaves Markdown, YAML, HTML/Liquid, generated files and the component CSS (one selector per line, see `docs/design-system.md`) alone. |
@@ -32,9 +39,9 @@ Run these before opening a pull request; `validate.yml` and `quality.yml` run th
 | `npm run test:ruby` | Minitest for the Ruby plugins and validators (`test/plugins/**/*_test.rb`, `test/scripts/**/*_test.rb`). |
 | `npm run validate` | Every `_data/*.yml` parses; every entry's front matter passes `scripts/check_front_matter.rb`; no oversize files. |
 | `npm run build:css && bundle exec jekyll build` | The site builds without Liquid errors. |
-| `npm run a11y` | pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in `quality/pa11yci.js` (sample entry URLs are discovered from the built site). Needs the built site served on port 4173: `python3 -m http.server 4173 --directory _site &`. |
+| `npm run a11y` | pa11y-ci (axe + HTML_CodeSniffer, WCAG 2 AA) over the pages in `quality/pa11yci.js` (sample entry URLs are discovered from the built site). Needs the built site served on port 4173: `node scripts/serve_built_site.mjs --directory _site &`. |
 | `npm run test:flows` | The assistive-technology flow tests (`test/a11y/flows.test.mjs`): keyboard-only walkthroughs — home → catalog → filter → entry → Back, search → result, the submission form's errors, the setup wizard's first step change — asserting focus order, a visible focus ring, live-region announcements and no dead ends. Needs the same served build as `npm run a11y`, plus puppeteer (`npm install --no-save puppeteer@$(node -p "require('./quality/package.json').devDependencies.puppeteer")`). Point it elsewhere with `FLOW_BASE_URL`. |
-| `npm run lighthouse` | Lighthouse CI (`quality/lighthouserc.js`) against the same local server; accessibility ≥ 0.95 is required, other categories warn. |
+| `npm run lighthouse` | Lighthouse CI (`quality/lighthouserc.js`) against the same local server; every performance, accessibility, best-practice, SEO, layout-shift, and timing budget blocks release. Set `LHCI_LOCAL_OUTPUT=/tmp/phct-lighthouse` to keep local reports off temporary public storage. |
 
 ## Ground rules
 

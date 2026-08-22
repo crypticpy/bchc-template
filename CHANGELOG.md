@@ -8,12 +8,37 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+## [1.9.0-rc.1] — 2026-08-22
+
 ### Added
 
+- **Release-readiness and downstream safety system.** Exact Node, npm, Ruby, and Bundler pins;
+  `npm run doctor` and one fail-closed `npm run verify` command; a machine-readable ownership
+  manifest; protected-file checksums; immutable downstream version locks; and a manual,
+  human-approved PHCT update workflow.
+- **Security and supply-chain gates.** CodeQL for JavaScript and Ruby, weekly npm/Ruby advisory
+  audits, fail-closed dependency-license review, expiring exception records, and deterministic
+  CycloneDX release SBOMs.
+- **Measured scale and browser gates.** A deterministic 0–1,000-entry fixture, enforced 100-entry
+  release budgets, link/anchor/artifact validation, filesystem-only local Lighthouse reports, and
+  a gzip static server that matches production delivery more closely.
+- **Open-source operations.** CODEOWNERS, maintainership and support policies, structured bug,
+  accessibility, and feature forms, plus release/update/rollback/backup/succession runbooks.
 - **[docs/ecosystem.md](docs/ecosystem.md)** — the map of the repository family:
   what `phct` and `bchc-ai-use-case-catalog` each are, the archived starter, the
   repository variables that make each deployment behave differently, and what to
   update when a repository moves.
+
+### Fixed
+
+- Protected deployment governance, search vocabulary, derivative metadata, and nested showcase
+  exceptions now match the documented update boundary and are tested before every parent update.
+- Validation no longer reports success after silently skipping Ruby checks, and template-only
+  showcase builds no longer fail downstream verification when no showcase is deployed.
+- The downstream updater now fetches both the locked and target PHCT tags, proves the locked tag
+  still resolves to its recorded full commit, reselects the candidate's Node and Ruby after merge,
+  branches from the default branch, uses `--force-with-lease`, and dispatches every release
+  workflow when GitHub suppresses pull-request events from its built-in token.
 
 ## [1.8.1] — 2026-08-19
 
@@ -906,7 +931,8 @@ fixed in this release, and the remaining P3s are listed in `docs/roadmap.md`.
   in-browser and CLI configurators, GitHub-issue submission flow, events /
   cohorts / resources modules, Lunr search, thumbnails workflow.
 
-[Unreleased]: https://github.com/crypticpy/phct/compare/v1.8.1...HEAD
+[Unreleased]: https://github.com/crypticpy/phct/compare/v1.9.0-rc.1...HEAD
+[1.9.0-rc.1]: https://github.com/crypticpy/phct/compare/v1.8.1...v1.9.0-rc.1
 [1.8.1]: https://github.com/crypticpy/phct/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/crypticpy/phct/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/crypticpy/phct/compare/v1.6.1...v1.7.0

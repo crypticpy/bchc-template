@@ -381,12 +381,13 @@ The example matching the site's own name — the configuration this repository s
 others are built with `github.repository` blank, so their submission forms explain that there is
 nowhere to send answers rather than linking at a repository that is not theirs.
 
-**This is the template's deployment, not yours.** The showcase is opt-in: `.github/workflows/pages.yml`
-builds it only when the repository variable `CATALOG_SHOWCASE` is `true` (Settings → Secrets and
-variables → Actions → Variables) *and* `demo` is still `true` in `_data/site.yml`. A copy of the
-template never has the variable, so it deploys the single ordinary build from its first push — even
-before the samples are ejected. Set the variable to `true` on your own copy only if you want your
-own showcase, and delete it to stop.
+**This is the template's deployment, not yours.** `.github/workflows/pages.yml` always builds the
+showcase in the canonical `crypticpy/phct` repository while `demo` is still `true` in
+`_data/site.yml`. Another repository must explicitly opt in with the `CATALOG_SHOWCASE` repository
+variable (Settings → Secrets and variables → Actions → Variables). A normal copy never has that
+variable, so it deploys the single ordinary build from its first push — even before the samples are
+ejected. Set the variable to `true` on your own copy only if you want a showcase, and delete it to
+stop.
 `npm run eject:samples` removes `_showcase/`, `_data/showcase.yml` and `assets/images/showcase/`
 along with the rest of the sample content, and turning `demo` off is what ends the showcase.
 

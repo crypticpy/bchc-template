@@ -40,14 +40,14 @@ behavior:
 
 | Setting | phct | bchc-ai-use-case-catalog | a fresh copy |
 |---|---|---|---|
-| `CATALOG_SHOWCASE` variable | `true` — Pages builds the landing + examples | unset — plain single-site build | unset |
+| `CATALOG_SHOWCASE` variable | Optional for the canonical repository; its identity enables the landing + examples | unset — plain single-site build | unset |
 | `CATALOG_METRICS` variable | `false` — no monthly metrics PRs on a template | unset — the monthly metrics job runs | unset |
 | `demo:` in `_data/site.yml` | `true` (sample content, demo banner) | `true` until BCHC removes the samples | flipped to `false` by eject/setup |
 | `github.repository` | `crypticpy/phct` | `crypticpy/bchc-ai-use-case-catalog` | set by the wizard |
 
-The showcase is double-gated (`CATALOG_SHOWCASE == 'true'` **and** `demo:
-true`) precisely so no copy of this repository ever deploys the template's
-landing page by accident — see [configuration.md](configuration.md).
+The showcase requires `demo: true` and either the exact canonical repository identity or an
+explicit `CATALOG_SHOWCASE == 'true'` opt-in. No ordinary copy can deploy the template landing by
+accident — see [configuration.md](configuration.md).
 
 ## History, briefly
 

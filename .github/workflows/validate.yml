@@ -44,17 +44,21 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: "3.3"
           bundler-cache: true
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "22"
+          node-version-file: ".node-version"
           cache: npm
 
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Verify exact toolchain and PHCT ownership contract
+        run: |
+          git config merge.ours.driver true
+          npm run doctor
 
       - name: Generated files are in sync with _data/schema.yml
         # Fails when .github/ISSUE_TEMPLATE/new-entry.yml, _config.yml or the
@@ -82,10 +86,11 @@ jobs:
       - name: Build CSS
         run: npm run build:css
 
-      - name: Build site
-        env:
-          JEKYLL_ENV: production
-        run: bundle exec jekyll build --destination _site
+      - name: Run Jekyll doctor and build the production site
+        run: npm run build:release
+
+      - name: Check built links, assets, anchors, sitemap, feed, and JSON
+        run: npm run links:check
 
   build-matrix:
     name: Build every preset and module combination
@@ -103,13 +108,12 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: "3.3"
           bundler-cache: true
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "22"
+          node-version-file: ".node-version"
           cache: npm
 
       - name: Install npm dependencies
