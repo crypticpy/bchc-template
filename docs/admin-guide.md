@@ -124,6 +124,11 @@ Without that secret, a release that changes workflows stops with an actionable r
 the candidate toolchain, full verification, push, or pull request. Releases that do not change
 workflows retain the built-in-token fallback.
 
+The credential is not available while candidate code runs. After verification, the updater moves
+the exact commit through a digest-checked Git bundle into a fresh publication runner that never
+executes the candidate, and only that isolated job receives the token for push and pull-request
+operations.
+
 ## Editing or removing an existing entry
 
 - **Small edit**: every entry page has a **Suggest an edit on GitHub** link (bottom of the page) that opens the file directly in GitHub's editor, pre-targeted at `catalog/<slug>/index.md` on the configured branch. Commit directly or via a PR.

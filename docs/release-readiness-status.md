@@ -116,12 +116,14 @@ artifacts.
   documentation namespace.
 
 The live updater push failure is a P1 release-path finding. A focused pre-merge review then found
-that the first remediation persisted the privileged token during candidate checkout. The corrected
-`v1.9.0-rc.2` code uses the built-in token without persisted credentials for checkout and every
-candidate-controlled command, then supplies the dedicated token only to the final push and
-pull-request operations through an ephemeral askpass helper. The gate remains open until BCHC
-configures that credential and the corrected candidate creates a green update pull request. No
-other automated P0 or P1 defect is known at this checkpoint.
+that the first remediation persisted the privileged token during candidate checkout; re-review
+also caught that delaying the secret within the same job still left it exposed to candidate-created
+hooks or processes. The corrected `v1.9.0-rc.2` code verifies without the privileged credential,
+commits with hooks disabled, and transfers the exact commit through a digest-checked Git bundle to
+a fresh runner that never checks out or executes it. Only that isolated job receives the token for
+push and pull-request operations. The gate remains open until BCHC configures that credential and
+the corrected candidate creates a green update pull request. No other automated P0 or P1 defect is
+known at this checkpoint.
 
 ## Release blockers still open
 

@@ -26,9 +26,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      actions: write
-      contents: write
-      pull-requests: write
+      contents: read
+    outputs:
+      release: ${{ steps.release.outputs.release }}
+      parent_commit: ${{ steps.release.outputs.commit }}
+      from: ${{ steps.release.outputs.from }}
+      from_commit: ${{ steps.release.outputs.from_commit }}
+      lock_state: ${{ steps.release.outputs.lock_state }}
+      branch: ${{ steps.release.outputs.branch }}
+      candidate_commit: ${{ steps.candidate.outputs.commit }}
+      publication_digest: ${{ steps.publication.outputs.artifact-digest }}
 
     steps:
       - name: Checkout downstream repository
@@ -190,6 +197,25 @@ jobs:
       - name: Run every non-browser release gate
         run: npm run verify
 
+      - name: Commit the verified candidate and create its publication bundle
+        id: candidate
+        env:
+          BRANCH: ${{ steps.release.outputs.branch }}
+          RELEASE: ${{ steps.release.outputs.release }}
+          PARENT_COMMIT: ${{ steps.release.outputs.commit }}
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "The downstream already contains $RELEASE ($PARENT_COMMIT)." >&2
+            exit 2
+          fi
+          git -c core.hooksPath=/dev/null commit --no-verify -m "chore: update PHCT to $RELEASE"
+          candidate_commit="$(git rev-parse HEAD)"
+          git bundle create "$RUNNER_TEMP/phct-update.bundle" "refs/heads/$BRANCH"
+          git bundle verify "$RUNNER_TEMP/phct-update.bundle"
+          printf 'commit=%s\n' "$candidate_commit" >> "$GITHUB_OUTPUT"
+
       - name: Save the inspectable site and ownership evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -201,24 +227,63 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Commit and push the update branch
+      - name: Transfer the verified commit to an isolated publication job
+        id: publication
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: phct-publication-${{ steps.release.outputs.release }}
+          path: ${{ runner.temp }}/phct-update.bundle
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish verified PHCT update
+    needs: update
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout the trusted downstream base on a fresh runner
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
+
+      - name: Download the verified publication bundle
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: phct-publication-${{ needs.update.outputs.release }}
+          path: ${{ runner.temp }}/phct-publication
+          digest-mismatch: error
+
+      - name: Verify the exact bundled candidate without checking it out
         env:
-          PUSH_TOKEN: ${{ secrets.PHCT_UPDATE_TOKEN || secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ steps.release.outputs.branch }}
-          RELEASE: ${{ steps.release.outputs.release }}
-          COMMIT: ${{ steps.release.outputs.commit }}
+          BRANCH: ${{ needs.update.outputs.branch }}
+          EXPECTED_COMMIT: ${{ needs.update.outputs.candidate_commit }}
+          BUNDLE: ${{ runner.temp }}/phct-publication/phct-update.bundle
         run: |
           set -euo pipefail
-          git add -A
-          if git diff --cached --quiet; then
-            echo "The downstream already contains $RELEASE ($COMMIT)." >&2
+          git bundle verify "$BUNDLE"
+          git fetch --no-tags "$BUNDLE" "refs/heads/$BRANCH:refs/phct-publish/candidate"
+          actual="$(git rev-parse 'refs/phct-publish/candidate^{commit}')"
+          if [ "$actual" != "$EXPECTED_COMMIT" ]; then
+            echo "Publication bundle resolved to $actual, expected verified candidate $EXPECTED_COMMIT." >&2
             exit 2
           fi
-          git commit -m "chore: update PHCT to $RELEASE"
-          # Supply the credential only now, after all candidate-controlled
-          # install, generation, and verification commands have passed. The
-          # askpass helper reads the masked environment value; the credential
-          # is never written into the remote URL or Git configuration.
+
+      - name: Push the verified commit from the clean runner
+        env:
+          PUSH_TOKEN: ${{ secrets.PHCT_UPDATE_TOKEN || secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ needs.update.outputs.branch }}
+          CANDIDATE_COMMIT: ${{ needs.update.outputs.candidate_commit }}
+        run: |
+          set -euo pipefail
           askpass="$RUNNER_TEMP/phct-git-askpass.sh"
           # These variables must be evaluated later by askpass, not while the
           # helper is being created.
@@ -232,18 +297,20 @@ jobs:
             'esac' > "$askpass"
           chmod 700 "$askpass"
           GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 \
-            git -c credential.helper= push --force-with-lease \
-            "https://github.com/$GITHUB_REPOSITORY.git" "HEAD:refs/heads/$BRANCH"
+            git -c core.hooksPath=/dev/null -c credential.helper= \
+            push --force-with-lease origin "$CANDIDATE_COMMIT:refs/heads/$BRANCH"
 
       - name: Open or update the human-reviewed pull request
         env:
           GH_TOKEN: ${{ secrets.PHCT_UPDATE_TOKEN || secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ steps.release.outputs.branch }}
-          RELEASE: ${{ steps.release.outputs.release }}
-          COMMIT: ${{ steps.release.outputs.commit }}
-          FROM: ${{ steps.release.outputs.from }}
-          FROM_COMMIT: ${{ steps.release.outputs.from_commit }}
-          LOCK_STATE: ${{ steps.release.outputs.lock_state }}
+          BRANCH: ${{ needs.update.outputs.branch }}
+          RELEASE: ${{ needs.update.outputs.release }}
+          COMMIT: ${{ needs.update.outputs.parent_commit }}
+          CANDIDATE_COMMIT: ${{ needs.update.outputs.candidate_commit }}
+          PUBLICATION_DIGEST: ${{ needs.update.outputs.publication_digest }}
+          FROM: ${{ needs.update.outputs.from }}
+          FROM_COMMIT: ${{ needs.update.outputs.from_commit }}
+          LOCK_STATE: ${{ needs.update.outputs.lock_state }}
           BASE_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
@@ -252,7 +319,9 @@ jobs:
           {
             printf 'Updates this deployment from PHCT `%s` to [`%s`](https://github.com/crypticpy/phct/releases/tag/%s).\n\n' "$FROM" "$RELEASE" "$RELEASE"
             printf 'Previous parent commit: `%s`\n' "$FROM_COMMIT"
-            printf 'Exact parent commit: `%s`\n\n' "$COMMIT"
+            printf 'Exact parent commit: `%s`\n' "$COMMIT"
+            printf 'Verified downstream commit: `%s`\n' "$CANDIDATE_COMMIT"
+            printf 'Publication bundle digest: `%s`\n\n' "$PUBLICATION_DIGEST"
             if [ "$LOCK_STATE" = "bootstrapped" ]; then
               printf '> [!IMPORTANT]\n> This is the first lock-aware update for this deployment. The workflow derived `%s` from `package.json`; verify previous parent commit `%s` against the PHCT release before approval.\n\n' "$FROM" "$FROM_COMMIT"
             else
@@ -264,6 +333,7 @@ jobs:
             printf -- '- [x] Generated outputs were rebuilt from deployment configuration\n'
             printf -- '- [x] The PHCT ownership manifest and version lock agree\n'
             printf -- '- [x] `npm run verify` passed on the update commit\n'
+            printf -- '- [x] The verified commit crossed into a clean publication runner through a digest-checked Git bundle\n'
             printf -- '- [x] An inspectable `_site` artifact is attached to the workflow run\n\n'
             printf '### Human release checklist\n\n'
             printf -- '- [ ] Read the PHCT release and migration notes\n'
@@ -284,7 +354,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           UPDATE_TOKEN_CONFIGURED: ${{ secrets.PHCT_UPDATE_TOKEN != '' }}
-          BRANCH: ${{ steps.release.outputs.branch }}
+          BRANCH: ${{ needs.update.outputs.branch }}
         run: |
           set -euo pipefail
           if [ "$UPDATE_TOKEN_CONFIGURED" = "true" ]; then

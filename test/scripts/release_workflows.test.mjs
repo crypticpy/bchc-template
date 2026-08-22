@@ -43,8 +43,11 @@ test('the PHCT updater preserves review evidence and never blindly overwrites a 
   assert.match(source, /gh pr create --base "\$BASE_BRANCH"/);
 });
 
-test('workflow-file updates require a dedicated workflow-capable credential before expensive gates', () => {
+test('workflow-file updates require a dedicated credential and publish from a clean runner', () => {
   const source = workflow('update-phct.yml');
+  const publishStart = source.indexOf('\n  publish:');
+  const updateJob = source.slice(source.indexOf('\n  update:'), publishStart);
+  const publishJob = source.slice(publishStart);
   const checkout = source.slice(
     source.indexOf('- name: Checkout downstream repository'),
     source.indexOf('- name: Setup Node from .node-version')
@@ -53,11 +56,13 @@ test('workflow-file updates require a dedicated workflow-capable credential befo
   const preflight = source.indexOf('Require a workflow-capable token when workflows change');
   const candidateRuby = source.indexOf('Setup candidate Ruby from the applied .ruby-version');
   const verify = source.indexOf('Run every non-browser release gate');
-  const publish = source.indexOf('Commit and push the update branch');
 
+  assert.ok(publishStart > verify, 'publication must be a separate job after candidate verification');
   assert.match(checkout, /token: \$\{\{ secrets\.GITHUB_TOKEN \}\}/u);
   assert.match(checkout, /persist-credentials: false/u);
   assert.doesNotMatch(checkout, /PHCT_UPDATE_TOKEN/u);
+  assert.match(updateJob, /permissions:\n\s+contents: read/u);
+  assert.doesNotMatch(updateJob, /secrets\.PHCT_UPDATE_TOKEN \|\| secrets\.GITHUB_TOKEN/u);
   assert.match(
     source,
     /workflow_changes=.*git status --porcelain --untracked-files=all -- \.github\/workflows/u
@@ -66,15 +71,30 @@ test('workflow-file updates require a dedicated workflow-capable credential befo
   assert.match(source, /\[ "\$UPDATE_TOKEN_CONFIGURED" = "true" \]/u);
   assert.match(source, /PHCT_UPDATE_TOKEN required/u);
   assert.match(source, /GitHub's built-in Actions token cannot push/u);
-  assert.match(source, /PUSH_TOKEN: \$\{\{ secrets\.PHCT_UPDATE_TOKEN \|\| secrets\.GITHUB_TOKEN \}\}/u);
-  assert.match(source, /GIT_ASKPASS="\$askpass" GIT_TERMINAL_PROMPT=0/u);
-  assert.match(source, /git -c credential\.helper= push --force-with-lease/u);
+  assert.match(updateJob, /git -c core\.hooksPath=\/dev\/null commit --no-verify/u);
+  assert.match(updateJob, /git bundle create/u);
+  assert.match(updateJob, /name: phct-publication-\$\{\{ steps\.release\.outputs\.release \}\}/u);
+
+  assert.match(publishJob, /needs: update/u);
+  assert.match(publishJob, /Checkout the trusted downstream base on a fresh runner/u);
+  assert.match(publishJob, /persist-credentials: false/u);
+  assert.match(publishJob, /actions\/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c/u);
+  assert.match(publishJob, /digest-mismatch: error/u);
+  assert.match(publishJob, /Verify the exact bundled candidate without checking it out/u);
+  assert.match(publishJob, /actual=.*refs\/phct-publish\/candidate\^\{commit\}/u);
+  assert.match(publishJob, /\[ "\$actual" != "\$EXPECTED_COMMIT" \]/u);
+  assert.doesNotMatch(publishJob, /^\s+(?:npm ci|npm run|node scripts\/)\b/mu);
+  assert.match(publishJob, /PUSH_TOKEN: \$\{\{ secrets\.PHCT_UPDATE_TOKEN \|\| secrets\.GITHUB_TOKEN \}\}/u);
+  assert.match(publishJob, /GIT_ASKPASS="\$askpass" GIT_TERMINAL_PROMPT=0/u);
+  assert.match(
+    publishJob,
+    /git -c core\.hooksPath=\/dev\/null -c credential\.helper= \\\n\s+push --force-with-lease origin/u
+  );
   assert.doesNotMatch(source, /https:\/\/x-access-token:/u);
-  assert.match(source, /GH_TOKEN: \$\{\{ secrets\.PHCT_UPDATE_TOKEN \|\| secrets\.GITHUB_TOKEN \}\}/u);
+  assert.match(publishJob, /GH_TOKEN: \$\{\{ secrets\.PHCT_UPDATE_TOKEN \|\| secrets\.GITHUB_TOKEN \}\}/u);
   assert.match(source, /UPDATE_TOKEN_CONFIGURED: \$\{\{ secrets\.PHCT_UPDATE_TOKEN != '' \}\}/u);
   assert.doesNotMatch(source, /secrets\.CONTENT_BOT_TOKEN/u);
   assert.ok(apply >= 0 && preflight > apply && candidateRuby > preflight);
-  assert.ok(verify >= 0 && publish > verify, 'the privileged token must not exist before candidate gates');
 });
 
 test('a built-in-token update dispatches stable entrypoints that fan out to every release gate', () => {
@@ -135,7 +155,7 @@ test('machine-maintained branches use lease-protected force pushes', () => {
 
   const updater = workflow('update-phct.yml');
   assert.doesNotMatch(updater, /git push --force /u);
-  assert.match(updater, /git -c credential\.helper= push --force-with-lease/u);
+  assert.match(updater, /push --force-with-lease origin/u);
 });
 
 test('every npm dependency install selects the exact package manager after setup-node', () => {

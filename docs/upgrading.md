@@ -77,10 +77,12 @@ to rewrite its own workflows. Never paste either credential into the workflow's 
 logs, an issue, or a pull request.
 
 The updater checks out and validates the candidate with GitHub's built-in token and does not
-persist checkout credentials. It exposes `PHCT_UPDATE_TOKEN` only to the final authenticated push
-and pull-request operations, after the candidate's install, generation, and verification commands
-have passed. The token is supplied through an ephemeral askpass helper, not stored in the remote
-URL or Git configuration.
+persist checkout credentials. After verification, it commits without repository hooks and sends
+that exact commit through a digest-checked Git bundle to a fresh publication runner. That clean
+runner never checks out or executes the candidate. It exposes `PHCT_UPDATE_TOKEN` only to the push
+and pull-request operations, through an ephemeral askpass helper rather than a remote URL or Git
+configuration. This separation prevents candidate install/build code, background processes, and
+Git hooks from reading the workflow-capable credential.
 
 If a target release changes workflow files and this secret is absent, **Update from PHCT** stops
 immediately after the protected reconciliation and checksum check. It explains the missing
