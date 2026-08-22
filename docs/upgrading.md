@@ -76,6 +76,12 @@ Do not reuse the narrower `CONTENT_BOT_TOKEN`: routine content automation does n
 to rewrite its own workflows. Never paste either credential into the workflow's release input,
 logs, an issue, or a pull request.
 
+The updater checks out and validates the candidate with GitHub's built-in token and does not
+persist checkout credentials. It exposes `PHCT_UPDATE_TOKEN` only to the final authenticated push
+and pull-request operations, after the candidate's install, generation, and verification commands
+have passed. The token is supplied through an ephemeral askpass helper, not stored in the remote
+URL or Git configuration.
+
 If a target release changes workflow files and this secret is absent, **Update from PHCT** stops
 immediately after the protected reconciliation and checksum check. It explains the missing
 permission in the run summary and creates neither a branch nor a pull request. A release with no

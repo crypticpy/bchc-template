@@ -115,10 +115,13 @@ artifacts.
 - Repaired stale BCHC documentation paths and moved the BCHC status ledger into its protected
   documentation namespace.
 
-The live updater push failure is a P1 release-path finding. Its fail-early, least-privilege
-remediation is implemented for `v1.9.0-rc.2`, but the gate remains open until BCHC configures the
-dedicated credential and the corrected candidate creates a green update pull request. No other
-automated P0 or P1 defect is known at this checkpoint.
+The live updater push failure is a P1 release-path finding. A focused pre-merge review then found
+that the first remediation persisted the privileged token during candidate checkout. The corrected
+`v1.9.0-rc.2` code uses the built-in token without persisted credentials for checkout and every
+candidate-controlled command, then supplies the dedicated token only to the final push and
+pull-request operations through an ephemeral askpass helper. The gate remains open until BCHC
+configures that credential and the corrected candidate creates a green update pull request. No
+other automated P0 or P1 defect is known at this checkpoint.
 
 ## Release blockers still open
 

@@ -283,7 +283,9 @@ The BCHC updater consumes the exact release-candidate tag and opens
    without assuming shared Git ancestry.
 6. If the candidate changes `.github/workflows`, require the dedicated repository-scoped
    `PHCT_UPDATE_TOKEN` with Contents, Pull requests, and Workflows read/write permissions; fail with
-   setup guidance before the expensive candidate gates when it is absent.
+   setup guidance before the expensive candidate gates when it is absent. Keep that credential out
+   of checkout and all candidate-controlled commands, then supply it only to the final push and
+   pull-request operations without persisting it in Git configuration or a remote URL.
 7. Regenerate downstream outputs.
 8. Compare checksums for every protected deployment-owned path.
 9. Fail on an unexplained protected-path change.

@@ -16,6 +16,9 @@ major version, and each entry says so when it happens.
   `.github/workflows`. It detects that requirement immediately after the protected reconciliation
   and checksum check, then fails with setup guidance before installing the candidate toolchain or
   running the full suite. Routine content automation retains its narrower token.
+- The privileged updater credential stays out of checkout and candidate-controlled install,
+  generation, and verification steps. It is supplied only to the final push and pull-request
+  operations without being stored in Git configuration or the remote URL.
 
 ## [1.9.0-rc.1] — 2026-08-22
 
