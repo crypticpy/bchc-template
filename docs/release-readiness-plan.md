@@ -446,7 +446,7 @@ Initial proposed gates, to be confirmed after the first controlled baseline:
 - no performance assertion reported only as an ignored warning;
 - catalog JavaScript, including module imports and Lunr, `<= 40 KB` gzip before search data;
 - production CSS `<= 30 KB` gzip;
-- filter response p95 `<= 100 ms` and search response p95 `<= 150 ms` at the agreed supported
+- filter response p95 `<= 100 ms` and search response p95 `<= 250 ms` at the agreed supported
   catalog size;
 - representative catalog HTML `<= 100 KB` gzip and a bounded DOM at the supported scale;
 - compressed search data `<= 500 KB` at 500 realistic entries, unless measurement supports a

@@ -40,11 +40,11 @@ test('the browser fixture must match the supported scale and expose its configur
 
 test('interaction budgets fail only when a measured p95 exceeds its reviewed maximum', () => {
   const config = {
-    interaction_budgets: { filter_response_p95_ms: 100, search_response_p95_ms: 150 },
+    interaction_budgets: { filter_response_p95_ms: 100, search_response_p95_ms: 250 },
   };
-  const interaction = { filter: { p95_ms: 100 }, search: { warm: { p95_ms: 151 } } };
+  const interaction = { filter: { p95_ms: 100 }, search: { warm: { p95_ms: 251 } } };
   assert.deepEqual(interactionBudgetFindings(interaction, config), [
-    { name: 'search_response_p95_ms', actual: 151, maximum: 150 },
+    { name: 'search_response_p95_ms', actual: 251, maximum: 250 },
   ]);
   assert.throws(
     () => interactionBudgetFindings({ filter: {}, search: { warm: { p95_ms: 1 } } }, config),
@@ -72,7 +72,7 @@ test('interaction evidence replaces prior browser findings on the supported run'
   const interaction = { filter: { p95_ms: 20 }, search: { warm: { p95_ms: 120 } } };
   assert.deepEqual(
     mergeInteractionEvidence(report, interaction, {
-      interaction_budgets: { filter_response_p95_ms: 100, search_response_p95_ms: 150 },
+      interaction_budgets: { filter_response_p95_ms: 100, search_response_p95_ms: 250 },
     }),
     []
   );

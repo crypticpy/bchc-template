@@ -51,16 +51,17 @@ Budgets live in [`quality/performance-budgets.json`](../quality/performance-budg
 - `search.json` and `entries.json` at most 500 KiB gzip each at the supported ceiling, with the
   `search.json` cap also enforced at the 500-entry target;
 - filter response p95 at most 100 ms; and
-- warm-search response p95 at most 150 ms, including the input debounce.
+- warm-search response p95 at most 250 ms, including the input debounce. The controlled Linux
+  baseline replaced the initial 150 ms proposal after the representative workload was introduced.
 
 The exact-toolchain parent baseline on 2026-08-22 passed every supported-scale budget. It measured
-100 entries at 5.6 seconds, 523 files/19.6 MiB, 59.5 KiB catalog HTML gzip, 8,894 DOM nodes, 24.9
-KiB CSS gzip, 39.5 KiB JavaScript gzip, 147.4 KiB fonts, 1.26 MiB images, 16.8 KiB search gzip, and
-20.1 KiB comparison data gzip. Chrome 151 under the low-end-mobile profile measured 301.1 ms cold
-search initialization, 128.8 ms warm-search p95, 14.2 ms filter p95 across rare/mid/common visible
-facets, 33.4 ms sort p95, and 1.2 ms comparison p95. Confirmation runs after moving URL-history
-bookkeeping behind the visible render kept filter p95 between 14.2 and 14.7 ms and warm search
-between 128.2 and 129.7 ms. The run used Node 22.22.2, npm 10.9.4, Ruby 3.3.11, and Bundler 4.0.11.
+100 entries at 5.5 seconds, 523 files/19.6 MiB, 59.5 KiB catalog HTML gzip, 8,894 DOM nodes, 24.9
+KiB CSS gzip, 39.9 KiB JavaScript gzip, 147.4 KiB fonts, 1.26 MiB images, 16.8 KiB search gzip, and
+20.1 KiB comparison data gzip. Chrome 151 under the low-end-mobile profile measured 249.7 ms cold
+search initialization, 93.3 ms warm-search p95, 15.9 ms filter p95 across rare/mid/common visible
+facets, 27.4 ms sort p95, and 0.9 ms comparison p95. A 12× CPU diagnostic used to approximate the
+slower hosted runner measured 191 ms search p95, within the reviewed 250 ms gate. The run used Node
+22.22.2, npm 10.9.4, Ruby 3.3.11, and Bundler 4.0.11.
 
 The representative 500-entry target built successfully in 25.1 seconds with an 81.5 KiB search
 payload, but its catalog page reached 150.7 KiB gzip and 36,860 DOM nodes. The 1,000-entry stress

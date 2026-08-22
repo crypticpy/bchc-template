@@ -15,7 +15,7 @@
   },
   "interaction_budgets": {
     "filter_response_p95_ms": 100,
-    "search_response_p95_ms": 150
+    "search_response_p95_ms": 250
   },
   "scale_budgets": {
     "500": {
