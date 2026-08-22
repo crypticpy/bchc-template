@@ -18,6 +18,15 @@ import { seedFixtureEntries } from './seed_fixture_entries.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ALLOWED_COUNTS = [0, 1, 10, 100, 500, 1000];
 
+export function normalizedBaseurl(raw) {
+  const value = String(raw ?? '').trim();
+  if (!value) return '';
+  if (!/^\/[A-Za-z0-9._~-]+(?:\/[A-Za-z0-9._~-]+)*$/.test(value) || value.split('/').includes('..')) {
+    throw new Error('--baseurl must be empty or a safe site-absolute path such as /phct-performance');
+  }
+  return value;
+}
+
 export function parseArgs(argv) {
   const value = (name, fallback) => {
     const at = argv.indexOf(name);
@@ -33,6 +42,7 @@ export function parseArgs(argv) {
     counts: [...new Set(counts)],
     output: value('--output', 'performance-report.json'),
     siteOutput: value('--site-output', ''),
+    baseurl: normalizedBaseurl(value('--baseurl', '/phct-performance')),
   };
 }
 
@@ -160,27 +170,36 @@ export function scaleBudgetFindings(metrics, config) {
     .filter(({ actual, maximum }) => actual > maximum);
 }
 
-function buildFixture(count, scratchRoot, budgets, siteOutput = '') {
+function buildFixture(count, scratchRoot, budgets, siteOutput = '', baseurl = '') {
   const fixtureRoot = path.join(scratchRoot, String(count));
   copyTree(ROOT, fixtureRoot);
   fs.symlinkSync(path.join(ROOT, 'node_modules'), path.join(fixtureRoot, 'node_modules'));
   removeEntries(fixtureRoot);
   seedFixtureEntries(fixtureRoot, { count, profile: 'performance' });
 
-  const generated = run(process.execPath, ['scripts/generate.mjs'], { cwd: fixtureRoot });
+  const generated = run(process.execPath, ['scripts/generate.mjs'], {
+    cwd: fixtureRoot,
+  });
   if (!generated.ok) throw new Error(`generate failed for ${count} entries:\n${generated.output}`);
 
   const siteDir = path.join(fixtureRoot, '_site');
+  fs.writeFileSync(
+    path.join(fixtureRoot, '_config.performance.yml'),
+    `baseurl: ${JSON.stringify(baseurl)}\n`
+  );
   const started = performance.now();
-  const built = run('bundle', ['exec', 'jekyll', 'build', '--destination', siteDir], {
-    cwd: fixtureRoot,
-    env: { ...process.env, JEKYLL_ENV: 'production' },
-  });
+  const built = run(
+    'bundle',
+    ['exec', 'jekyll', 'build', '--config', '_config.yml,_config.performance.yml', '--destination', siteDir],
+    {
+      cwd: fixtureRoot,
+      env: { ...process.env, JEKYLL_ENV: 'production' },
+    }
+  );
   const buildMs = Math.round(performance.now() - started);
   if (!built.ok) throw new Error(`Jekyll build failed for ${count} entries:\n${built.output}`);
 
   const entryPath = configuredEntryPath(fixtureRoot);
-  const baseurl = String(readYaml(path.join(fixtureRoot, '_config.yml')).baseurl || '');
   const catalogRelative = path.join(entryPath, 'index.html');
   const catalogFile = path.join(siteDir, catalogRelative);
   const metrics = {
@@ -217,7 +236,10 @@ function buildFixture(count, scratchRoot, budgets, siteOutput = '') {
     findings: [...budgetFindings(metrics, budgets), ...scaleBudgetFindings(metrics, budgets)],
     target_findings:
       metrics.entries > budgets.supported_entries && metrics.entries <= budgets.target_entries
-        ? budgetFindings(metrics, { ...budgets, supported_entries: budgets.target_entries })
+        ? budgetFindings(metrics, {
+            ...budgets,
+            supported_entries: budgets.target_entries,
+          })
         : [],
   };
 }
@@ -236,13 +258,16 @@ function main(argv) {
   };
   try {
     try {
-      report.commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+      report.commit = execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: ROOT,
+        encoding: 'utf8',
+      }).trim();
     } catch {
       report.commit = 'unknown';
     }
     for (const count of args.counts) {
       console.log(`Building deterministic ${count}-entry catalog...`);
-      const metrics = buildFixture(count, scratchRoot, budgets, args.siteOutput);
+      const metrics = buildFixture(count, scratchRoot, budgets, args.siteOutput, args.baseurl);
       report.runs.push(metrics);
       console.log(
         `  ${metrics.build_ms}ms, ${metrics.artifact.files} files, ` +
@@ -263,7 +288,10 @@ function main(argv) {
   fs.mkdirSync(path.dirname(output), { recursive: true });
   fs.writeFileSync(output, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
   const findings = report.runs.flatMap((runResult) =>
-    runResult.findings.map((finding) => ({ entries: runResult.entries, ...finding }))
+    runResult.findings.map((finding) => ({
+      entries: runResult.entries,
+      ...finding,
+    }))
   );
   if (findings.length > 0) {
     console.error('\nPerformance budgets failed:\n');

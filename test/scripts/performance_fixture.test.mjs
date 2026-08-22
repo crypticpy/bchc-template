@@ -10,6 +10,7 @@ import {
   budgetFindings,
   configuredEntryPath,
   javascriptBytes,
+  normalizedBaseurl,
   pageMetrics,
   parseArgs,
   scaleBudgetFindings,
@@ -120,6 +121,10 @@ test('the performance probe accepts a retained browser fixture destination', () 
       counts: [100],
       output: 'report.json',
       siteOutput: '/tmp/site',
+      baseurl: '/phct-performance',
     }
   );
+  assert.equal(normalizedBaseurl(' /project/demo '), '/project/demo');
+  assert.equal(normalizedBaseurl(''), '');
+  assert.throws(() => normalizedBaseurl('/project/../private'), /safe site-absolute path/);
 });
