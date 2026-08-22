@@ -41,12 +41,19 @@ and if you resolve one the wrong way you have quietly reverted your site to the 
 
 The setting is per clone. Anyone else who will run upgrades needs it too.
 
+A repository created directly from a PHCT release may not have a `.phct-version.json` yet. On that
+repository's first **Update from PHCT** run, the workflow derives the current release from
+`package.json`, resolves that release tag to a full commit, and calls this out in the update pull
+request. Review that previous commit against the named PHCT release before approving. The update
+then records the target tag and full commit, so every later run can fail closed if the previously
+consumed tag has moved or the lock is inconsistent.
+
 ## Recommended: one protected update pull request
 
 From the repository's **Actions** tab, run **Update from PHCT**, enter the exact release tag (for
 example `v1.9.0-rc.1`), and wait for it to open a pull request. The workflow:
 
-1. fetches only that immutable tag and records its full commit SHA;
+1. fetches the current and target immutable tags and records both full commit SHAs;
 2. snapshots every deployment-owned file;
 3. merges the release with the configured ownership driver;
 4. proves protected files are byte-identical before and after the merge;

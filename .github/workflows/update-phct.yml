@@ -71,18 +71,28 @@ jobs:
             exit 2
           fi
           git remote add phct https://github.com/crypticpy/phct.git
-          from="$(node --input-type=module -e "import lock from './.phct-version.json' with { type: 'json' }; process.stdout.write(lock.release)")"
-          locked_commit="$(node --input-type=module -e "import lock from './.phct-version.json' with { type: 'json' }; process.stdout.write(lock.commit)")"
+          if [ -f .phct-version.json ]; then
+            from="$(node --input-type=module -e "import lock from './.phct-version.json' with { type: 'json' }; process.stdout.write(lock.release)")"
+            locked_commit="$(node --input-type=module -e "import lock from './.phct-version.json' with { type: 'json' }; process.stdout.write(lock.commit)")"
+            lock_state=verified
+          else
+            from="$(node -p "'v' + require('./package.json').version")"
+            locked_commit=""
+            lock_state=bootstrapped
+          fi
           from_ref="refs/phct-update/from/$from"
           tag_ref="refs/phct-update/to/$RELEASE"
           git fetch --force --no-tags phct \
             "refs/tags/$from:$from_ref" \
             "refs/tags/$RELEASE:$tag_ref"
           resolved_from="$(git rev-parse "$from_ref^{commit}")"
-          if [ "$resolved_from" != "$locked_commit" ]; then
+          if [ -n "$locked_commit" ] && [ "$resolved_from" != "$locked_commit" ]; then
             echo "Locked PHCT commit $locked_commit does not match $from at $resolved_from." >&2
             echo "Refusing an update from a moved tag or inconsistent lock file." >&2
             exit 2
+          fi
+          if [ "$lock_state" = "bootstrapped" ]; then
+            echo "::notice::No .phct-version.json exists; bootstrapping the first update from package.json $from at $resolved_from. Review that baseline commit in the update pull request."
           fi
           commit="$(git rev-parse "$tag_ref^{commit}")"
           {
@@ -90,7 +100,9 @@ jobs:
             printf 'tag_ref=%s\n' "$tag_ref"
             printf 'commit=%s\n' "$commit"
             printf 'from=%s\n' "$from"
+            printf 'from_commit=%s\n' "$resolved_from"
             printf 'from_ref=%s\n' "$from_ref"
+            printf 'lock_state=%s\n' "$lock_state"
             printf 'branch=upgrade/phct-%s\n' "$RELEASE"
           } >> "$GITHUB_OUTPUT"
 
@@ -190,6 +202,8 @@ jobs:
           RELEASE: ${{ steps.release.outputs.release }}
           COMMIT: ${{ steps.release.outputs.commit }}
           FROM: ${{ steps.release.outputs.from }}
+          FROM_COMMIT: ${{ steps.release.outputs.from_commit }}
+          LOCK_STATE: ${{ steps.release.outputs.lock_state }}
           BASE_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
@@ -197,7 +211,13 @@ jobs:
           # shellcheck disable=SC2016
           {
             printf 'Updates this deployment from PHCT `%s` to [`%s`](https://github.com/crypticpy/phct/releases/tag/%s).\n\n' "$FROM" "$RELEASE" "$RELEASE"
+            printf 'Previous parent commit: `%s`\n' "$FROM_COMMIT"
             printf 'Exact parent commit: `%s`\n\n' "$COMMIT"
+            if [ "$LOCK_STATE" = "bootstrapped" ]; then
+              printf '> [!IMPORTANT]\n> This is the first lock-aware update for this deployment. The workflow derived `%s` from `package.json`; verify previous parent commit `%s` against the PHCT release before approval.\n\n' "$FROM" "$FROM_COMMIT"
+            else
+              printf 'The previous parent commit matched the existing `.phct-version.json` lock.\n\n'
+            fi
             printf '### Automated evidence\n\n'
             printf -- '- [x] Before/after checksum manifests prove every protected deployment file is byte-identical\n'
             printf -- '- [x] Generated outputs were rebuilt from deployment configuration\n'

@@ -10,13 +10,18 @@ function workflow(name) {
   return fs.readFileSync(path.join(ROOT, '.github', 'workflows', name), 'utf8');
 }
 
-test('the PHCT updater can start cleanly and refuses an inconsistent parent lock', () => {
+test('the PHCT updater bootstraps a missing lock and refuses an inconsistent existing lock', () => {
   const source = workflow('update-phct.yml');
   assert.match(source, /ref: \$\{\{ github\.event\.repository\.default_branch \}\}/);
+  assert.match(source, /if \[ -f \.phct-version\.json \]/);
+  assert.match(source, /'v' \+ require\('\.\/package\.json'\)\.version/);
+  assert.match(source, /lock_state=bootstrapped/);
   assert.match(source, /refs\/phct-update\/from\/\$from/);
   assert.match(source, /refs\/phct-update\/to\/\$RELEASE/);
   assert.match(source, /resolved_from=.*git rev-parse/);
-  assert.match(source, /\[ "\$resolved_from" != "\$locked_commit" \]/);
+  assert.match(source, /\[ -n "\$locked_commit" \].*\[ "\$resolved_from" != "\$locked_commit" \]/);
+  assert.match(source, /from_commit=%s/);
+  assert.match(source, /first lock-aware update/);
   assert.match(source, /FROM_REF: \$\{\{ steps\.release\.outputs\.from_ref \}\}/);
   assert.match(source, /--from "\$FROM_REF" --to "\$TAG_REF"/);
   const merge = source.indexOf('Merge the immutable PHCT candidate');
