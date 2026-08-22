@@ -76,6 +76,9 @@ test('validation enforces coverage floors and always retains the evidence', () =
 test('release performance always exercises the complete deterministic matrix', () => {
   const source = workflow('performance.yml');
   assert.match(source, /DISPATCH_COUNTS:-0,1,10,100,500,1000/);
+  assert.match(source, /--site-output "\$PERFORMANCE_SITE"/);
+  assert.match(source, /npm run performance:interactions/);
+  assert.match(source, /PUPPETEER_SKIP_DOWNLOAD: "1"/);
   assert.match(source, /push:\n\s+branches: \[main\]/);
   assert.doesNotMatch(source, /pull_request:\n\s+paths:/);
 });

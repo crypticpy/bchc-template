@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { resolveRequest, shouldGzip } from '../../scripts/serve_built_site.mjs';
+import { mountedRequestUrl, resolveRequest, shouldGzip } from '../../scripts/serve_built_site.mjs';
 
 test('built-site requests stay inside the configured directory', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'phct-static-'));
@@ -30,4 +30,10 @@ test('only substantial text responses are gzipped for clients that accept it', (
     shouldGzip({ acceptEncoding: 'gzip', contentType: 'application/json', byteLength: 100 }),
     false
   );
+});
+
+test('a Pages base URL is stripped without exposing other mounts', () => {
+  assert.equal(mountedRequestUrl('/phct/catalog/?q=test', '/phct/'), '/catalog/?q=test');
+  assert.equal(mountedRequestUrl('/phct', 'phct'), '/');
+  assert.equal(mountedRequestUrl('/other/catalog/', '/phct'), null);
 });

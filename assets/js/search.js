@@ -685,7 +685,7 @@
   input.addEventListener('input', () => {
     lifted = null;
     clearTimeout(timer);
-    timer = setTimeout(run, 120);
+    timer = setTimeout(run, 75);
   });
   input.addEventListener('focus', () => load());
 

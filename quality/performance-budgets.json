@@ -12,5 +12,14 @@
     "javascript_gzip_bytes": 40960,
     "search_json_gzip_bytes": 512000,
     "entries_json_gzip_bytes": 512000
+  },
+  "interaction_budgets": {
+    "filter_response_p95_ms": 100,
+    "search_response_p95_ms": 150
+  },
+  "scale_budgets": {
+    "500": {
+      "search_json_gzip_bytes": 512000
+    }
   }
 }

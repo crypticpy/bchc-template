@@ -104,7 +104,8 @@ The planned automated controls are now implemented in both working trees: exact 
 the parent/downstream ownership contract, immutable update metadata, protected-file checksums,
 full verification orchestration, supply-chain and license gates, deterministic SBOM generation,
 internal-link validation, the 0–1,000-entry performance fixture, blocking Lighthouse budgets,
-compressed browser-test serving, maintainer documentation, and BCHC's operations inventory.
+compressed browser-test serving, direct low-end-mobile interaction budgets, representative
+long-form/image/facet scale data, maintainer documentation, and BCHC's operations inventory.
 
 The current automated code baseline is green, including the complete PHCT verification suite,
 browser accessibility and interaction checks, mobile and desktop PHCT Lighthouse, mobile BCHC
@@ -527,6 +528,7 @@ Tasks:
 | Accessibility automation | landing + examples | required | required |
 | Keyboard/AT flows | representative presets | required | required |
 | Desktop/mobile Lighthouse | representative presets | required | required |
+| Direct filter/search interaction p95 at supported scale | required | inherited build | required after parent update |
 | Security and dependency checks | required | build artifact | required for downstream-only dependencies/config |
 | Ownership/checksum protection | manifest test | n/a | before and after every update |
 | Live issue-to-deploy rehearsal | release candidate | showcase deploy | release candidate |
@@ -579,7 +581,8 @@ Exit: the complete baseline is green or every red item is classified and assigne
 
 - Run the five-user functional matrix.
 - Complete automated and manual accessibility review.
-- Run 0/1/10/100/500/1,000-entry performance tests.
+- Run 0/1/10/100/500/1,000-entry performance tests and the real-Chrome interaction gate at the
+  supported ceiling.
 - Test all presets, modules, and failure states.
 
 Exit: P0/P1 findings are known; performance architecture is acceptable at the supported scale.
@@ -687,8 +690,8 @@ true:
   tagging.
 - Monthly, verify scheduled workflows, Pages, links, security alerts, token expiry, and backup
   maintainers.
-- Quarterly, run the scale fixture, browser/accessibility sample, dependency/license scan, and
-  rollback drill.
+- Quarterly, run the scale fixture, supported-scale Chrome interaction gate,
+  browser/accessibility sample, dependency/license scan, and rollback drill.
 - Annually, revisit supported browsers, runtime versions, performance budgets, GitHub Actions
   permissions, upstream ownership, and maintainer succession.
 - Keep the repository-family map and downstream version lock current whenever a repository is

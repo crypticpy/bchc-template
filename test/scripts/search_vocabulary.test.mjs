@@ -142,7 +142,7 @@ async function boot(options = {}) {
 }
 
 /**
- * Let the 120ms debounce fire and every chained promise resolve.
+ * Let the 75ms debounce fire and every chained promise resolve.
  * @param {object} window
  */
 function settle(window) {

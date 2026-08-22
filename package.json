@@ -29,6 +29,7 @@
     "a11y": "node quality/run.js pa11y-ci --config quality/pa11yci",
     "lighthouse": "node quality/run.js @lhci/cli autorun --config=quality/lighthouserc.js",
     "performance": "node scripts/performance_fixture.mjs",
+    "performance:interactions": "node scripts/interaction_performance.mjs",
     "licenses:check": "node scripts/check_licenses.mjs",
     "security:exceptions": "node scripts/check_security_exceptions.mjs",
     "security:audit": "node scripts/audit_dependencies.mjs",

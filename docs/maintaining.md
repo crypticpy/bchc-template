@@ -43,7 +43,8 @@ content, images, or `docs/bchc/`.
 
 ### Quarterly
 
-- Run the 0/1/10/100/500/1,000 performance matrix and browser/accessibility sample.
+- Run the 0/1/10/100/500/1,000 performance matrix, its supported-scale Chrome interaction gate,
+  and the browser/accessibility sample.
 - Download a backup, run a rollback rehearsal, and test the protected-content checksum workflow.
 - Review access, branch rules, Actions permissions, secrets/variables, DNS ownership, and the
   primary/backup succession plan. Remove access no longer needed.

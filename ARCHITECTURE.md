@@ -104,6 +104,7 @@ run identically in tests.
 | `thumbnails.yml` | PR touching `catalog/**` | `scripts/thumbnail_sources.mjs` + `pdftoppm` | commits `thumb.jpg` from `deck.pdf` |
 | `new-event.yml`, `new-year.yml`, `update-schedule.yml`, `update-event-attachments.yml` | issue templates for the events/cohorts modules | matching `scripts/*` | PRs against `_data/` |
 | `validate.yml` | PR / push | `generate.mjs --check`, `npm test`, `npm run coverage`, `npm run test:ruby`, `npm run validate`, CSS + Jekyll build | the merge gate; coverage evidence is retained as an artifact even when its reviewed floors fail |
+| `performance.yml` | PR / push to main / aggregate dispatch | `performance_fixture.mjs` + `interaction_performance.mjs` | deterministic 0–1,000-entry build/payload evidence plus blocking 100-entry filter/search p95 in low-end-mobile Chrome |
 | `quality.yml` | PR / push to main | `pa11y-ci` (WCAG 2 AA), keyboard flows, and blocking desktop/mobile Lighthouse budgets over `_site` | browser accessibility and performance gate |
 | `pages.yml` | push to main | `scripts/stamp_updated.mjs` (stamps `updated:` on modified entries, commits back), then CSS build + Jekyll build with the repo-derived `baseurl` — or `scripts/build_showcase.mjs` when this deployment is the showcase (see below) | deploys to GitHub Pages, tells the submitter |
 | `smoke.yml` | weekly | full build | catches upstream breakage |

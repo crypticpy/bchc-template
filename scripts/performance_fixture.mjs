@@ -18,7 +18,7 @@ import { seedFixtureEntries } from './seed_fixture_entries.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ALLOWED_COUNTS = [0, 1, 10, 100, 500, 1000];
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const value = (name, fallback) => {
     const at = argv.indexOf(name);
     return at === -1 ? fallback : argv[at + 1];
@@ -29,7 +29,11 @@ function parseArgs(argv) {
   if (counts.some((count) => !ALLOWED_COUNTS.includes(count))) {
     throw new Error(`--counts must use only ${ALLOWED_COUNTS.join(', ')}`);
   }
-  return { counts: [...new Set(counts)], output: value('--output', 'performance-report.json') };
+  return {
+    counts: [...new Set(counts)],
+    output: value('--output', 'performance-report.json'),
+    siteOutput: value('--site-output', ''),
+  };
 }
 
 function treeStats(root) {
@@ -53,6 +57,20 @@ function gzipBytes(file) {
   return fs.existsSync(file) ? zlib.gzipSync(fs.readFileSync(file), { level: 9 }).byteLength : 0;
 }
 
+export function assetTransferBytes(root, extensions) {
+  const wanted = new Set(extensions.map((extension) => extension.toLowerCase()));
+  let bytes = 0;
+  for (const item of fs.readdirSync(root, { withFileTypes: true })) {
+    const target = path.join(root, item.name);
+    if (item.isDirectory()) bytes += assetTransferBytes(target, extensions);
+    else if (item.isFile() && wanted.has(path.extname(item.name).toLowerCase())) {
+      bytes +=
+        path.extname(item.name).toLowerCase() === '.svg' ? gzipBytes(target) : fs.statSync(target).size;
+    }
+  }
+  return bytes;
+}
+
 export function pageMetrics(siteDir, relative) {
   const file = path.join(siteDir, relative);
   if (!fs.existsSync(file)) {
@@ -71,14 +89,40 @@ export function configuredEntryPath(root) {
   return String(schema.entry?.path || 'catalog').replace(/^\/+|\/+$/g, '') || 'catalog';
 }
 
-function javascriptBytes(siteDir, catalogFile) {
+export function javascriptBytes(siteDir, catalogFile, baseurl = '') {
   if (!fs.existsSync(catalogFile)) return 0;
   const document = new JSDOM(fs.readFileSync(catalogFile, 'utf8')).window.document;
+  const mount = `/${String(baseurl).replace(/^\/+|\/+$/g, '')}`.replace(/^\/$/, '');
   const paths = [...document.querySelectorAll('script[src]')]
     .map((script) => new URL(script.getAttribute('src'), 'https://fixture.test/').pathname)
     .filter((src) => !src.startsWith('//'))
+    .map((src) => (mount && src.startsWith(`${mount}/`) ? src.slice(mount.length) : src))
     .map((src) => src.replace(/^\//, ''));
-  return [...new Set(paths)].reduce((total, relative) => total + gzipBytes(path.join(siteDir, relative)), 0);
+  const measured = new Set();
+  const visit = (relative) => {
+    const normalized = path.posix.normalize(relative);
+    if (normalized.startsWith('../') || path.posix.isAbsolute(normalized)) {
+      throw new Error(`catalog script import escapes the built site: ${relative}`);
+    }
+    if (measured.has(normalized)) return;
+    const file = path.join(siteDir, ...normalized.split('/'));
+    if (!fs.existsSync(file)) throw new Error(`catalog references missing local script: /${normalized}`);
+    measured.add(normalized);
+    const source = fs.readFileSync(file, 'utf8');
+    const imports = /^\s*import\s+(?:(?:[\s\S]*?)\s+from\s+)?['"]([^'"]+)['"]\s*;/gmu;
+    for (const match of source.matchAll(imports)) {
+      const specifier = match[1];
+      if (!specifier.startsWith('.')) {
+        throw new Error(`catalog script uses an unmeasurable bare import: ${specifier}`);
+      }
+      visit(path.posix.join(path.posix.dirname(normalized), specifier));
+    }
+  };
+  [...new Set(paths)].forEach(visit);
+  return [...measured].reduce((total, relative) => {
+    const file = path.join(siteDir, relative);
+    return total + gzipBytes(file);
+  }, 0);
 }
 
 export function budgetFindings(metrics, config) {
@@ -91,6 +135,8 @@ export function budgetFindings(metrics, config) {
     catalog_dom_nodes: metrics.catalog.dom_nodes,
     css_gzip_bytes: metrics.css_gzip_bytes,
     javascript_gzip_bytes: metrics.javascript_gzip_bytes,
+    font_transfer_bytes: metrics.font_transfer_bytes,
+    image_transfer_bytes: metrics.image_transfer_bytes,
     search_json_gzip_bytes: metrics.search_json_gzip_bytes,
     entries_json_gzip_bytes: metrics.entries_json_gzip_bytes,
   };
@@ -99,12 +145,27 @@ export function budgetFindings(metrics, config) {
     .map(([name, maximum]) => ({ name, actual: values[name], maximum }));
 }
 
-function buildFixture(count, scratchRoot, budgets) {
+export function scaleBudgetFindings(metrics, config) {
+  const budgets = config.scale_budgets?.[String(metrics.entries)] || {};
+  const values = {
+    search_json_gzip_bytes: metrics.search_json_gzip_bytes,
+    entries_json_gzip_bytes: metrics.entries_json_gzip_bytes,
+  };
+  return Object.entries(budgets)
+    .map(([name, maximum]) => {
+      const actual = values[name];
+      if (!Number.isFinite(actual)) throw new Error(`scale probe did not measure ${name}`);
+      return { name, actual, maximum };
+    })
+    .filter(({ actual, maximum }) => actual > maximum);
+}
+
+function buildFixture(count, scratchRoot, budgets, siteOutput = '') {
   const fixtureRoot = path.join(scratchRoot, String(count));
   copyTree(ROOT, fixtureRoot);
   fs.symlinkSync(path.join(ROOT, 'node_modules'), path.join(fixtureRoot, 'node_modules'));
   removeEntries(fixtureRoot);
-  seedFixtureEntries(fixtureRoot, { count });
+  seedFixtureEntries(fixtureRoot, { count, profile: 'performance' });
 
   const generated = run(process.execPath, ['scripts/generate.mjs'], { cwd: fixtureRoot });
   if (!generated.ok) throw new Error(`generate failed for ${count} entries:\n${generated.output}`);
@@ -119,21 +180,41 @@ function buildFixture(count, scratchRoot, budgets) {
   if (!built.ok) throw new Error(`Jekyll build failed for ${count} entries:\n${built.output}`);
 
   const entryPath = configuredEntryPath(fixtureRoot);
+  const baseurl = String(readYaml(path.join(fixtureRoot, '_config.yml')).baseurl || '');
   const catalogRelative = path.join(entryPath, 'index.html');
   const catalogFile = path.join(siteDir, catalogRelative);
   const metrics = {
     entries: count,
+    baseurl,
     build_ms: buildMs,
     artifact: treeStats(siteDir),
     catalog: pageMetrics(siteDir, catalogRelative),
     css_gzip_bytes: gzipBytes(path.join(siteDir, 'assets', 'css', 'site.css')),
-    javascript_gzip_bytes: javascriptBytes(siteDir, catalogFile),
+    javascript_gzip_bytes: javascriptBytes(siteDir, catalogFile, baseurl),
+    font_transfer_bytes: assetTransferBytes(siteDir, ['.eot', '.otf', '.ttf', '.woff', '.woff2']),
+    image_transfer_bytes: assetTransferBytes(siteDir, [
+      '.avif',
+      '.gif',
+      '.ico',
+      '.jpeg',
+      '.jpg',
+      '.png',
+      '.svg',
+      '.webp',
+    ]),
     search_json_gzip_bytes: gzipBytes(path.join(siteDir, 'search.json')),
     entries_json_gzip_bytes: gzipBytes(path.join(siteDir, 'entries.json')),
   };
+  if (siteOutput && count === budgets.supported_entries) {
+    fs.cpSync(siteDir, path.resolve(ROOT, siteOutput), {
+      recursive: true,
+      errorOnExist: true,
+      force: false,
+    });
+  }
   return {
     ...metrics,
-    findings: budgetFindings(metrics, budgets),
+    findings: [...budgetFindings(metrics, budgets), ...scaleBudgetFindings(metrics, budgets)],
     target_findings:
       metrics.entries > budgets.supported_entries && metrics.entries <= budgets.target_entries
         ? budgetFindings(metrics, { ...budgets, supported_entries: budgets.target_entries })
@@ -161,12 +242,17 @@ function main(argv) {
     }
     for (const count of args.counts) {
       console.log(`Building deterministic ${count}-entry catalog...`);
-      const metrics = buildFixture(count, scratchRoot, budgets);
+      const metrics = buildFixture(count, scratchRoot, budgets, args.siteOutput);
       report.runs.push(metrics);
       console.log(
         `  ${metrics.build_ms}ms, ${metrics.artifact.files} files, ` +
           `${Math.round(metrics.artifact.bytes / 1024)} KiB artifact, ${metrics.findings.length} release findings, ` +
           `${metrics.target_findings.length} target findings`
+      );
+    }
+    if (args.siteOutput && !args.counts.includes(budgets.supported_entries)) {
+      console.log(
+        `  No browser fixture retained: --counts did not include the supported ${budgets.supported_entries}-entry ceiling.`
       );
     }
   } finally {

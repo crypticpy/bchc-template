@@ -13,6 +13,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TYPES = new Map([
   ['.avif', 'image/avif'],
   ['.css', 'text/css; charset=utf-8'],
+  ['.eot', 'application/vnd.ms-fontobject'],
   ['.gif', 'image/gif'],
   ['.html', 'text/html; charset=utf-8'],
   ['.ico', 'image/x-icon'],
@@ -21,9 +22,12 @@ const TYPES = new Map([
   ['.js', 'text/javascript; charset=utf-8'],
   ['.json', 'application/json; charset=utf-8'],
   ['.png', 'image/png'],
+  ['.otf', 'font/otf'],
   ['.svg', 'image/svg+xml; charset=utf-8'],
   ['.txt', 'text/plain; charset=utf-8'],
   ['.webp', 'image/webp'],
+  ['.ttf', 'font/ttf'],
+  ['.woff', 'font/woff'],
   ['.woff2', 'font/woff2'],
   ['.xml', 'application/xml; charset=utf-8'],
 ]);
@@ -56,7 +60,21 @@ export function shouldGzip({ acceptEncoding = '', contentType = '', byteLength =
   );
 }
 
-export function createBuiltSiteServer(directory) {
+/** Strip a Pages-style base URL before resolving a built artifact. */
+export function mountedRequestUrl(requestUrl, baseurl = '') {
+  let parsed;
+  try {
+    parsed = new URL(requestUrl, 'http://localhost');
+  } catch {
+    return null;
+  }
+  const mount = `/${String(baseurl).replace(/^\/+|\/+$/g, '')}`.replace(/^\/$/, '');
+  if (mount && parsed.pathname !== mount && !parsed.pathname.startsWith(`${mount}/`)) return null;
+  parsed.pathname = parsed.pathname.slice(mount.length) || '/';
+  return `${parsed.pathname}${parsed.search}`;
+}
+
+export function createBuiltSiteServer(directory, { baseurl = '' } = {}) {
   const root = path.resolve(directory);
   return http.createServer((request, response) => {
     if (!['GET', 'HEAD'].includes(request.method ?? '')) {
@@ -65,7 +83,8 @@ export function createBuiltSiteServer(directory) {
       return;
     }
 
-    const requested = resolveRequest(root, request.url ?? '/');
+    const mounted = mountedRequestUrl(request.url ?? '/', baseurl);
+    const requested = mounted === null ? null : resolveRequest(root, mounted);
     const notFound = resolveRequest(root, '/404.html');
     const file = requested ?? notFound;
     if (!file) {

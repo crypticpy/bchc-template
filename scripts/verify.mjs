@@ -41,5 +41,5 @@ for (const [label, command, args] of gates) {
 }
 
 console.log(
-  '\nAll non-browser PHCT release gates passed. Run npm run a11y, npm run test:flows, and both Lighthouse lanes for release evidence.\n'
+  '\nAll non-browser PHCT release gates passed. Run the full performance workflow (including its Chrome interaction probe), npm run a11y, npm run test:flows, and both Lighthouse lanes for release evidence.\n'
 );

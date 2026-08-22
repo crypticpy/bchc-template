@@ -8,6 +8,17 @@ major version, and each entry says so when it happens.
 
 ## [Unreleased]
 
+- Added a real-Chrome, 4× CPU-slowdown interaction gate at the supported 100-entry ceiling. Filter
+  and warm-search p95 now block release; search cold start, sorting, comparison, main-thread time,
+  heap use, repository subpath serving, cache behavior, and font/image transfer totals remain in
+  the retained performance evidence. Reduced search debounce from 120 ms to 75 ms after the first
+  controlled run exposed a small miss against the reviewed 150 ms target.
+- Kept scale and variant evidence reproducible by excluding locally generated coverage, SBOM, and
+  performance artifacts from scratch builds and reporting elapsed time for every variant step.
+  Performance fixtures now include long-form prose, deterministic 320×180 PNGs, every facet at
+  common/rare frequencies, deprecated rows, and relationships instead of 1×1 placeholder-only
+  scale data. Filter rendering now completes before deferred URL-history bookkeeping.
+
 ## [1.9.0-rc.1] — 2026-08-22
 
 ### Added
