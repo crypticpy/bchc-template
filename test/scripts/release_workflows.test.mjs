@@ -43,14 +43,21 @@ test('the PHCT updater preserves review evidence and never blindly overwrites a 
   assert.match(source, /gh pr create --base "\$BASE_BRANCH"/);
 });
 
-test('a built-in-token update dispatches every release gate', () => {
-  const source = workflow('update-phct.yml');
-  for (const name of ['validate.yml', 'quality.yml', 'performance.yml', 'supply-chain.yml', 'codeql.yml']) {
-    assert.match(source, new RegExp(name.replace('.', '\\.'), 'u'));
-  }
+test('a built-in-token update dispatches stable entrypoints that fan out to every release gate', () => {
+  const updater = workflow('update-phct.yml');
+  assert.match(updater, /for workflow in validate\.yml quality\.yml/u);
+  assert.doesNotMatch(
+    updater,
+    /for workflow in[^\n]*(?:performance|supply-chain|codeql)\.yml/u,
+    'the updater cannot dispatch a workflow absent from an older default branch'
+  );
+
+  const validate = workflow('validate.yml');
   for (const name of ['performance.yml', 'supply-chain.yml', 'codeql.yml']) {
-    assert.match(workflow(name), /Report the dispatched run on its commit/);
+    assert.match(validate, new RegExp(`uses: \\.\\/.github/workflows/${name.replace('.', '\\.')}`, 'u'));
+    assert.match(workflow(name), /workflow_call:/u, `${name} cannot be called by validate.yml`);
   }
+  assert.match(validate, /needs: \[checks, build-matrix, performance, supply-chain, codeql\]/u);
 });
 test('release performance always exercises the complete deterministic matrix', () => {
   const source = workflow('performance.yml');

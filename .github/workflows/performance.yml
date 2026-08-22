@@ -1,6 +1,13 @@
 name: Performance and scale
 
 on:
+  workflow_call:
+    inputs:
+      counts:
+        description: Comma-separated fixture sizes from 0,1,10,100,500,1000
+        required: false
+        default: "0,1,10,100,500,1000"
+        type: string
   pull_request:
     branches: [main]
   push:

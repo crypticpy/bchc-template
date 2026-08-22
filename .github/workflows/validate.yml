@@ -8,8 +8,10 @@
 #
 # Runs on pull requests and on `workflow_dispatch` for any ref — a dispatch is
 # how a fork re-runs the gate on a branch (`gh workflow run validate.yml --ref
-# <branch>`), so nothing here reads `github.event.pull_request`. The `status`
-# job posts the result back onto the dispatched commit.
+# <branch>`). That dispatch also calls the candidate branch's Performance,
+# Supply chain, and CodeQL workflows. This lets an older deployment run new
+# release gates before those workflow paths exist on its default branch. The
+# `status` job posts the aggregate result back onto the dispatched commit.
 name: Validate Content
 
 on:
@@ -132,6 +134,31 @@ jobs:
       - name: Build every variant and check the rendered copy
         run: npm run test:build
 
+  performance:
+    name: Performance and scale
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    permissions:
+      contents: read
+      statuses: write
+    uses: ./.github/workflows/performance.yml
+
+  supply-chain:
+    name: Supply chain
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    permissions:
+      contents: read
+      statuses: write
+    uses: ./.github/workflows/supply-chain.yml
+
+  codeql:
+    name: CodeQL
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    permissions:
+      contents: read
+      security-events: write
+      statuses: write
+    uses: ./.github/workflows/codeql.yml
+
   status:
     # `gh workflow run validate.yml --ref <branch>` produces a run with no
     # pull-request payload, so GitHub attaches no check to the branch head and
@@ -139,7 +166,7 @@ jobs:
     # instead. `statuses: write` is scoped to this job and nothing else.
     name: Report the dispatched run on its commit
     if: ${{ always() && github.event_name == 'workflow_dispatch' }}
-    needs: [checks, build-matrix]
+    needs: [checks, build-matrix, performance, supply-chain, codeql]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

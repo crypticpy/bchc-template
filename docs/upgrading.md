@@ -69,6 +69,12 @@ example `v1.9.0-rc.1`), and wait for it to open a pull request. The workflow:
 7. runs `npm run verify` and uploads an inspectable site artifact; and
 8. opens a human-reviewed pull request, dispatching validation and quality checks when needed.
 
+When GitHub suppresses pull-request events for the built-in token, the updater dispatches only the
+`validate.yml` and `quality.yml` entrypoints that exist in every supported deployment. The
+candidate branch's `validate.yml` then calls its own Performance, Supply chain, and CodeQL
+workflows, so newly added gates run before their workflow paths have reached the deployment's
+default branch.
+
 The workflow is manual-only until the first candidate upgrade and rollback have been rehearsed.
 It never merges its own pull request.
 
