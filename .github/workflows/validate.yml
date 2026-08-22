@@ -125,7 +125,7 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      # One runner, one bundle install, eight Jekyll builds — the builds
+      # One runner, one bundle install, nine Jekyll builds — the builds
       # themselves are seconds each, so sharding would cost more in setup than
       # it saves. `BUILD_VARIANTS` is read by test/build/variants.test.mjs if
       # this ever does need splitting across runners.

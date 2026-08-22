@@ -44,7 +44,7 @@ export const ROOT = process.env.BUILD_VARIANTS_ROOT
  * replaces them with ones generated from the variant's own schema, and `none`
  * empties the catalog so the empty state renders.
  *
- * @type {{id: string, preset: string|null, modules: object|null,
+ * @type {{id: string, preset: string|null, modules: object|null, demo?: boolean,
  *         entries: 'keep'|'fixtures'|'none', build: boolean,
  *         expectFrontMatter: 'pass'|'fail', why: string}[]}
  */
@@ -57,6 +57,16 @@ export const VARIANTS = [
     build: true,
     expectFrontMatter: 'pass',
     why: 'the configuration this repository ships and CI already builds',
+  },
+  {
+    id: 'shipped-live-mode',
+    preset: null,
+    modules: null,
+    demo: false,
+    entries: 'keep',
+    build: true,
+    expectFrontMatter: 'pass',
+    why: 'the shipped entries with demo mode disabled, proving real contacts and resources stay live',
   },
   {
     id: 'all-modules',
@@ -112,9 +122,10 @@ export const VARIANTS = [
 /* -------------------------------------------------------------------------- */
 
 /** Turn on/off modules in a scratch `_data/site.yml`. Comments are not preserved. */
-function patchModules(file, modules) {
+function patchSite(file, { modules, demo }) {
   const site = readYaml(file);
-  site.modules = { ...(site.modules ?? {}), ...modules };
+  if (modules) site.modules = { ...(site.modules ?? {}), ...modules };
+  if (typeof demo === 'boolean') site.demo = demo;
   writeYaml(file, site);
 }
 
@@ -155,7 +166,9 @@ export function buildVariant(variant, { scratchRoot, log = () => {} }) {
     if (!ok) return { variant, dir, siteDir: null, steps, ok: false };
   }
 
-  if (variant.modules) patchModules(path.join(dir, '_data', 'site.yml'), variant.modules);
+  if (variant.modules || typeof variant.demo === 'boolean') {
+    patchSite(path.join(dir, '_data', 'site.yml'), variant);
+  }
 
   if (variant.entries !== 'keep') {
     removeEntries(dir);
